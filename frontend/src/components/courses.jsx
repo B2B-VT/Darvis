@@ -514,8 +514,6 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
             }}>✕</button>
           </div>
 
-          <p style={{ color: colors.sub, fontSize: 14, margin: "0 0 20px", lineHeight: 1.6 }}>{course.description}</p>
-
           {course.pathways && course.pathways.length > 0 && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
               {course.pathways.map(code => {
@@ -1259,7 +1257,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
         }}>
           {loading
             ? "Loading the catalog…"
-            : `${filtered.length} courses · Real grade distributions · RateMyProfessor ratings.`}
+            : `${filtered.length} courses · grade data · RMP ratings.`}
         </p>
 
         {/* Search */}
