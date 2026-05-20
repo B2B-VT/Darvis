@@ -251,80 +251,6 @@ function GradeShowcase({ darkMode }) {
 }
 
 
-// ── Scroll-driven video background ───────────────────────────────────────────
-const SCROLL_VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3Dp4WEkcgeJOAWsT2tOR79izVMk/hf_20260520_222837_f48c3cb3-6ba9-4ec0-bd94-5f8bc0eb572e.mp4";
-
-function VideoBackground({ darkMode }) {
-  injectStyles('lp-v4', LP_CSS);
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    let rafId;
-    let ready = false;
-
-    // Use a RAF loop — fires every frame regardless of scroll speed,
-    // giving the browser time to decode between seeks.
-    const tick = () => {
-      if (ready && video.duration) {
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        const progress  = maxScroll > 0 ? Math.min(1, window.scrollY / maxScroll) : 0;
-        const target    = progress * video.duration;
-        // Dead zone: only seek if we're more than ~1 frame off.
-        // Prevents thrashing when the user isn't scrolling.
-        if (Math.abs(video.currentTime - target) > 0.05) {
-          video.currentTime = target;
-        }
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-
-    const onReady = () => { ready = true; video.pause(); };
-    video.addEventListener('canplay', onReady, { once: true });
-    if (video.readyState >= 3) onReady(); // already ready
-
-    rafId = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(rafId);
-      video.removeEventListener('canplay', onReady);
-    };
-  }, []);
-
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0,
-      width: '100vw', height: '100vh',
-      zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
-    }}>
-      <video
-        ref={videoRef}
-        src={SCROLL_VIDEO_URL}
-        muted
-        playsInline
-        preload="auto"
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-      />
-      {/* Light-mode overlay — heavier so text stays readable */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.84) 100%)',
-        opacity: darkMode ? 0 : 1,
-        transition: 'opacity 0.5s ease',
-      }} />
-      {/* Dark-mode overlay — lighter since the video is already dark */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(8,8,10,0.50) 0%, rgba(4,4,6,0.62) 100%)',
-        opacity: darkMode ? 1 : 0,
-        transition: 'opacity 0.5s ease',
-      }} />
-    </div>
-  );
-}
-
 // ── Product preview panels ────────────────────────────────────────────────────
 function CoursesPreview({ darkMode, t }) {
   const courses = [
@@ -610,8 +536,8 @@ export default function LandingPage({ onEnter, darkMode }) {
   return (
     <div style={{ position: 'relative', background: 'transparent', fontFamily: "'Plus Jakarta Sans', sans-serif", color: t.text }}>
 
-      {/* ── VIDEO BACKGROUND (fixed, scroll-driven) ─────────────────────────── */}
-      <VideoBackground darkMode={darkMode} />
+      {/* ── PHOTO BACKGROUND (fixed) ─────────────────────────────────────────── */}
+      <CampusBackground darkMode={darkMode} />
 
       {/* ── ALL CONTENT (above background) ── */}
       <div style={{ position: 'relative', zIndex: 1 }}>
