@@ -202,12 +202,6 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
             </button>
           )}
 
-          {!isMobile && (
-            <div style={{ fontSize: 11, color: metaColor, fontWeight: 600, letterSpacing: "0.5px" }}>
-              {new Date().getFullYear()}
-            </div>
-          )}
-
           {/* Auth */}
           <SignedOut>
             {isMobile ? (
@@ -223,17 +217,17 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <SignUpButton mode="modal">
                   <button style={{
-                    background: "rgba(255,255,255,0.06)",
-                    color: darkMode ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.55)",
-                    border: `1.5px solid ${darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
+                    background: "rgba(134,31,65,0.10)",
+                    color: "#861F41",
+                    border: "1.5px solid rgba(134,31,65,0.30)",
                     borderRadius: 8, padding: "6px 14px",
-                    fontWeight: 600, fontSize: 13, cursor: "pointer",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    transition: "background 0.15s",
+                    transition: "background 0.15s, border-color 0.15s",
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-                  >Sign up</button>
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(134,31,65,0.18)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.5)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(134,31,65,0.10)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.30)"; }}
+                  >Join waitlist</button>
                 </SignUpButton>
                 <SignInButton mode="modal">
                   <button style={{
@@ -252,32 +246,55 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
           </SignedOut>
 
           <SignedIn>
-            <button
-              onClick={() => setPage("profile")}
-              title="Your profile"
-              style={{
-                background: "none", border: "none", cursor: "pointer", padding: 0,
-                borderRadius: 7,
-                outline: page === "profile" ? "2px solid #861F41" : "2px solid transparent",
-                outlineOffset: 2,
-                transition: "outline-color 0.15s",
-                display: "flex", alignItems: "center",
-              }}
-            >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Profile"
-                  style={{ width: 30, height: 30, borderRadius: 7, objectFit: "cover", display: "block" }} />
-              ) : (
-                <div style={{
-                  width: 30, height: 30, borderRadius: 7,
-                  background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white",
-                  fontWeight: 900, fontSize: 11,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  {([user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || user?.username?.[0] || "?").toUpperCase()}
-                </div>
-              )}
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                onClick={() => setPage("profile")}
+                title="Your profile"
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: 0,
+                  borderRadius: 7,
+                  outline: page === "profile" ? "2px solid #861F41" : "2px solid transparent",
+                  outlineOffset: 2,
+                  transition: "outline-color 0.15s",
+                  display: "flex", alignItems: "center",
+                }}
+              >
+                {user?.imageUrl ? (
+                  <img src={user.imageUrl} alt="Profile"
+                    style={{ width: 30, height: 30, borderRadius: 7, objectFit: "cover", display: "block" }} />
+                ) : (
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 7,
+                    background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white",
+                    fontWeight: 900, fontSize: 11,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {([user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || user?.username?.[0] || "?").toUpperCase()}
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => signOut()}
+                style={{
+                  height: 30, padding: "0 14px",
+                  background: "transparent",
+                  border: `1px solid ${darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)"}`,
+                  borderRadius: 7, cursor: "pointer",
+                  color: darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)",
+                  fontSize: 12, fontWeight: 600,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.28)";
+                  e.currentTarget.style.color = darkMode ? "white" : "#1a1210";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)";
+                  e.currentTarget.style.color = darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)";
+                }}
+              >Sign out</button>
+            </div>
           </SignedIn>
 
           {/* Hamburger (mobile only) */}
@@ -337,12 +354,12 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
           <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
             <SignUpButton mode="modal">
               <button style={{
-                flex: 1, background: "rgba(255,255,255,0.06)",
-                color: darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)",
-                border: `1.5px solid ${darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-                borderRadius: 10, padding: "10px", fontWeight: 600, fontSize: 14,
+                flex: 1, background: "rgba(134,31,65,0.10)",
+                color: "#861F41",
+                border: "1.5px solid rgba(134,31,65,0.30)",
+                borderRadius: 10, padding: "10px", fontWeight: 700, fontSize: 14,
                 cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}>Sign up</button>
+              }}>Join waitlist</button>
             </SignUpButton>
             <SignInButton mode="modal">
               <button style={{

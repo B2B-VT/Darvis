@@ -1,5 +1,6 @@
 // Landing Page v4 — VT Campus panorama · scroll-pan · light/dark
 import { useState, useEffect, useRef } from "react";
+import { useSignUp, SignedIn, SignedOut } from "@clerk/clerk-react";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -249,12 +250,160 @@ function GradeShowcase({ darkMode }) {
 }
 
 
+// ── Product preview panels ────────────────────────────────────────────────────
+function CoursesPreview({ darkMode, t }) {
+  const courses = [
+    { code: 'CS 3114', name: 'Data Structures & Algorithms', gpa: 2.87, profs: 6 },
+    { code: 'CS 4664', name: 'Machine Learning',             gpa: 3.38, profs: 3 },
+    { code: 'MATH 2224', name: 'Multivariable Calculus',     gpa: 2.78, profs: 8 },
+  ];
+  const gpaColor = g => g >= 3.3 ? '#4ade80' : g >= 3.0 ? '#86efac' : g >= 2.7 ? '#fbbf24' : '#f87171';
+  return (
+    <div style={{ background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14, overflow: 'hidden' }}>
+      {/* Mock top bar */}
+      <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.cardBorder}`, display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ flex: 1, background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 7, height: 28, display: 'flex', alignItems: 'center', padding: '0 10px' }}>
+          <span style={{ fontSize: 11, color: t.textMute }}>Search courses…</span>
+        </div>
+        <div style={{ background: 'rgba(134,31,65,0.15)', borderRadius: 6, padding: '4px 10px' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#861F41' }}>Filters</span>
+        </div>
+      </div>
+      {courses.map((c, i) => (
+        <div key={i} style={{ padding: '11px 14px', borderBottom: i < courses.length - 1 ? `1px solid ${t.cardBorder}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#861F41', letterSpacing: '0.5px' }}>{c.code}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: t.text, marginTop: 2 }}>{c.name}</div>
+            <div style={{ fontSize: 10, color: t.textMute, marginTop: 2 }}>{c.profs} instructors</div>
+          </div>
+          <div style={{ background: gpaColor(c.gpa) + '22', border: `1px solid ${gpaColor(c.gpa)}44`, borderRadius: 7, padding: '4px 10px', textAlign: 'center' }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: gpaColor(c.gpa) }}>{c.gpa.toFixed(2)}</div>
+            <div style={{ fontSize: 9, color: t.textMute, fontWeight: 600 }}>Avg GPA</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SchedulePreview({ darkMode, t }) {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const blocks = [
+    { day: 0, start: 1, span: 2, label: 'CS 3114', color: '#861F41' },
+    { day: 2, start: 1, span: 2, label: 'CS 3114', color: '#861F41' },
+    { day: 4, start: 1, span: 2, label: 'CS 3114', color: '#861F41' },
+    { day: 1, start: 3, span: 2, label: 'MATH 2224', color: '#2563eb' },
+    { day: 3, start: 3, span: 2, label: 'MATH 2224', color: '#2563eb' },
+    { day: 0, start: 5, span: 1, label: 'CS 4664', color: '#059669' },
+    { day: 2, start: 5, span: 1, label: 'CS 4664', color: '#059669' },
+  ];
+  const rows = 7;
+  const times = ['8am','9am','10am','11am','12pm','1pm','2pm'];
+  return (
+    <div style={{ background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.cardBorder}` }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: t.text }}>Weekly Schedule</span>
+        <span style={{ fontSize: 10, color: t.textMute, marginLeft: 8 }}>3 classes added</span>
+      </div>
+      <div style={{ padding: '10px 12px', overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '28px repeat(5, 1fr)', gap: 3, minWidth: 220 }}>
+          {/* Header */}
+          <div />
+          {days.map(d => (
+            <div key={d} style={{ fontSize: 9, fontWeight: 800, color: t.textMute, textAlign: 'center', paddingBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{d}</div>
+          ))}
+          {/* Grid rows */}
+          {Array.from({ length: rows }).map((_, row) => (
+            [
+              <div key={`t${row}`} style={{ fontSize: 8, color: t.textFaint, paddingTop: 2, textAlign: 'right', paddingRight: 4 }}>{times[row]}</div>,
+              ...days.map((_, col) => {
+                const block = blocks.find(b => b.day === col && b.start === row);
+                const covered = blocks.some(b => b.day === col && b.start < row && b.start + b.span > row);
+                if (covered) return null;
+                if (block) return (
+                  <div key={`c${col}`} style={{
+                    gridRow: `span ${block.span}`,
+                    background: block.color + '25',
+                    border: `1px solid ${block.color}55`,
+                    borderRadius: 5,
+                    padding: '3px 5px',
+                    fontSize: 8, fontWeight: 800, color: block.color,
+                    overflow: 'hidden',
+                  }}>{block.label}</div>
+                );
+                return <div key={`e${col}`} style={{ height: 22, background: darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: 4 }} />;
+              })
+            ]
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatbotPreview({ darkMode, t }) {
+  const messages = [
+    { role: 'user', text: 'Who's the best prof for CS 3114?' },
+    { role: 'bot',  text: 'For CS 3114, Hamouda has the strongest grade outcomes — 3.67 avg GPA across 459 students over 4 terms. Farghally is worth considering too at 3.54.' },
+    { role: 'user', text: 'What about the F rate?' },
+    { role: 'bot',  text: 'Hamouda's F rate sits at 2.1%, which is on the lower end for that course. Grade distributions show outcomes, not what the class actually feels like.' },
+  ];
+  return (
+    <div style={{ background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.cardBorder}`, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 20, height: 20, borderRadius: 6, background: 'linear-gradient(135deg, #6b1833, #861F41)' }} />
+        <span style={{ fontSize: 11, fontWeight: 800, color: t.text }}>Darvis AI</span>
+        <span style={{ fontSize: 9, background: 'rgba(134,31,65,0.15)', color: '#861F41', borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>Beta</span>
+      </div>
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            <div style={{
+              maxWidth: '82%',
+              background: m.role === 'user' ? '#861F41' : (darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
+              color: m.role === 'user' ? 'white' : t.text,
+              borderRadius: m.role === 'user' ? '10px 10px 3px 10px' : '10px 10px 10px 3px',
+              padding: '7px 10px', fontSize: 10.5, lineHeight: 1.5, fontWeight: 500,
+            }}>{m.text}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: '10px 12px', borderTop: `1px solid ${t.cardBorder}` }}>
+        <div style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: 8, height: 28, display: 'flex', alignItems: 'center', padding: '0 10px' }}>
+          <span style={{ fontSize: 10, color: t.textMute }}>Ask about any course or professor…</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main landing page ─────────────────────────────────────────────────────────
 export default function LandingPage({ onEnter, darkMode }) {
   const statsRef  = useRef(null);
   const heroBgRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  // Waitlist form
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const [wlEmail, setWlEmail]   = useState('');
+  const [wlOpen,  setWlOpen]    = useState(false);
+  const [wlStep,  setWlStep]    = useState('idle'); // idle | loading | success | error
+  const [wlError, setWlError]   = useState('');
+
+  const handleWaitlist = async (e) => {
+    e.preventDefault();
+    if (!signUpLoaded || !wlEmail.trim()) return;
+    setWlStep('loading');
+    try {
+      await signUp.create({ emailAddress: wlEmail.trim() });
+      setWlStep('success');
+    } catch (err) {
+      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Something went wrong. Try again.';
+      setWlStep('error');
+      setWlError(msg);
+    }
+  };
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -455,8 +604,69 @@ export default function LandingPage({ onEnter, darkMode }) {
           </p>
 
           {/* CTA */}
-          <div className="lp-hero-fade d4" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <Btn label="Browse courses →" primary onClick={onEnter} />
+          <div className="lp-hero-fade d4">
+            <SignedIn>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Btn label="Browse courses →" primary onClick={onEnter} />
+              </div>
+            </SignedIn>
+            <SignedOut>
+              {wlStep === 'success' ? (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10,
+                  background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.25)',
+                  borderRadius: 10, padding: '12px 20px',
+                }}>
+                  <span style={{ fontSize: 16 }}>✓</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>
+                    You're on the list. We'll email you when you're approved.
+                  </span>
+                </div>
+              ) : wlOpen ? (
+                <div>
+                  <form onSubmit={handleWaitlist} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={wlEmail}
+                      onChange={e => setWlEmail(e.target.value)}
+                      autoFocus
+                      required
+                      style={{
+                        height: 44, padding: '0 16px', fontSize: 14, fontWeight: 500,
+                        background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.85)',
+                        border: `1px solid ${darkMode ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.18)'}`,
+                        borderRadius: 9, color: t.text, outline: 'none', minWidth: 220,
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      }}
+                    />
+                    <button type="submit" disabled={wlStep === 'loading'} style={{
+                      height: 44, padding: '0 22px',
+                      background: '#861F41', color: 'white', border: 'none',
+                      borderRadius: 9, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      opacity: wlStep === 'loading' ? 0.7 : 1,
+                    }}>
+                      {wlStep === 'loading' ? 'Joining…' : 'Join →'}
+                    </button>
+                    <button type="button" onClick={() => { setWlOpen(false); setWlStep('idle'); }} style={{
+                      height: 44, padding: '0 16px', background: 'transparent',
+                      border: `1px solid ${t.btnGhostBorder}`, borderRadius: 9,
+                      color: t.btnGhostText, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    }}>Cancel</button>
+                  </form>
+                  {wlStep === 'error' && (
+                    <div style={{ marginTop: 8, fontSize: 12, color: '#f87171', fontWeight: 600 }}>{wlError}</div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Btn label="Join the waitlist →" primary onClick={() => setWlOpen(true)} />
+                  <Btn label="Browse courses" onClick={onEnter} />
+                </div>
+              )}
+            </SignedOut>
           </div>
 
           {/* Trust line */}
@@ -464,8 +674,15 @@ export default function LandingPage({ onEnter, darkMode }) {
             marginTop: 28, fontSize: 12, color: t.textFaint,
             fontWeight: 600, display: 'flex', gap: 20, flexWrap: 'wrap',
           }}>
-            <span>✓ Real institutional grade data</span>
-            <span>✓ Free forever</span>
+            <SignedOut>
+              <span>✓ Private beta</span>
+              <span>✓ Built by VT students</span>
+              <span>✓ Free forever</span>
+            </SignedOut>
+            <SignedIn>
+              <span>✓ Real institutional grade data</span>
+              <span>✓ Free forever</span>
+            </SignedIn>
           </div>
         </div>
 
@@ -565,6 +782,38 @@ export default function LandingPage({ onEnter, darkMode }) {
         </div>
       </section>
 
+      {/* ── PRODUCT PREVIEW ──────────────────────────────────────────────────── */}
+      <section style={{ padding: isMobile ? '60px 20px 72px' : '80px 64px 100px', maxWidth: 1200, margin: '0 auto', boxSizing: 'border-box' }}>
+        <div style={{ marginBottom: 52 }}>
+          <span className="lp-clip">
+            <span className="lp-line" style={{
+              display: 'block', fontSize: 10, fontWeight: 900,
+              color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
+            }}>See inside</span>
+          </span>
+          <span className="lp-clip">
+            <span className="lp-line d1" style={{
+              display: 'block', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 900,
+              color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px',
+            }}>Everything in one place.</span>
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
+          <div className="lp-fade d1">
+            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Browse courses</div>
+            <CoursesPreview darkMode={darkMode} t={t} />
+          </div>
+          <div className="lp-fade d2">
+            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Schedule builder</div>
+            <SchedulePreview darkMode={darkMode} t={t} />
+          </div>
+          <div className="lp-fade d3">
+            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>AI chatbot</div>
+            <ChatbotPreview darkMode={darkMode} t={t} />
+          </div>
+        </div>
+      </section>
+
       {/* ── GRADE DATA ───────────────────────────────────────────────────────── */}
       <section style={{ background: gradeBg, padding: isMobile ? '60px 20px' : '120px 64px', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 36 : 80, alignItems: 'center' }}>
@@ -624,7 +873,16 @@ export default function LandingPage({ onEnter, darkMode }) {
             Real grade data for every course and professor.
           </p>
           <div className="lp-fade d3">
-            <Btn label="Browse courses →" primary onClick={onEnter} />
+            <SignedIn>
+              <Btn label="Browse courses →" primary onClick={onEnter} />
+            </SignedIn>
+            <SignedOut>
+              {wlStep === 'success' ? (
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>✓ You're on the list.</div>
+              ) : (
+                <Btn label="Join the waitlist →" primary onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => setWlOpen(true), 500); }} />
+              )}
+            </SignedOut>
           </div>
         </div>
       </section>
