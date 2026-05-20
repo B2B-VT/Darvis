@@ -742,6 +742,40 @@ export default function LandingPage({ onEnter, darkMode }) {
         </div>
       </section>
 
+      {/* ── PRODUCT PREVIEW ──────────────────────────────────────────────────── */}
+      <section style={{ background: gradeBg, padding: isMobile ? '60px 20px 72px' : '80px 64px 100px', boxSizing: 'border-box' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ marginBottom: 52 }}>
+            <span className="lp-clip">
+              <span className="lp-line" style={{
+                display: 'block', fontSize: 10, fontWeight: 900,
+                color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
+              }}>See inside</span>
+            </span>
+            <span className="lp-clip">
+              <span className="lp-line d1" style={{
+                display: 'block', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 900,
+                color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px',
+              }}>Everything in one place.</span>
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="lp-fade d1">
+              <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Browse courses</div>
+              <CoursesPreview darkMode={darkMode} t={t} />
+            </div>
+            <div className="lp-fade d2">
+              <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Schedule builder</div>
+              <SchedulePreview darkMode={darkMode} t={t} />
+            </div>
+            <div className="lp-fade d3">
+              <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>AI chatbot</div>
+              <ChatbotPreview darkMode={darkMode} t={t} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── FEATURES ─────────────────────────────────────────────────────────── */}
       <section style={{ padding: isMobile ? '60px 20px 72px' : '100px 64px 120px', maxWidth: 1200, margin: '0 auto', boxSizing: 'border-box' }}>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.8fr', gap: isMobile ? 32 : 80, alignItems: 'start' }}>
@@ -778,38 +812,6 @@ export default function LandingPage({ onEnter, darkMode }) {
               </div>
             ))}
             <div style={{ borderTop: `1px solid ${t.sectionLineSoft}` }} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRODUCT PREVIEW ──────────────────────────────────────────────────── */}
-      <section style={{ padding: isMobile ? '60px 20px 72px' : '80px 64px 100px', maxWidth: 1200, margin: '0 auto', boxSizing: 'border-box' }}>
-        <div style={{ marginBottom: 52 }}>
-          <span className="lp-clip">
-            <span className="lp-line" style={{
-              display: 'block', fontSize: 10, fontWeight: 900,
-              color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
-            }}>See inside</span>
-          </span>
-          <span className="lp-clip">
-            <span className="lp-line d1" style={{
-              display: 'block', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 900,
-              color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px',
-            }}>Everything in one place.</span>
-          </span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
-          <div className="lp-fade d1">
-            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Browse courses</div>
-            <CoursesPreview darkMode={darkMode} t={t} />
-          </div>
-          <div className="lp-fade d2">
-            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>Schedule builder</div>
-            <SchedulePreview darkMode={darkMode} t={t} />
-          </div>
-          <div className="lp-fade d3">
-            <div style={{ fontSize: 10, fontWeight: 800, color: t.textMute, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>AI chatbot</div>
-            <ChatbotPreview darkMode={darkMode} t={t} />
           </div>
         </div>
       </section>
