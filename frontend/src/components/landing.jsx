@@ -1,6 +1,7 @@
 // Landing Page v4 — VT Campus panorama · scroll-pan · light/dark
 import { useState, useEffect, useRef } from "react";
-import { useSignUp, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
+import { db } from "../supabase.js";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -385,7 +386,6 @@ export default function LandingPage({ onEnter, darkMode }) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   // Waitlist form
-  const { signUp, isLoaded: signUpLoaded } = useSignUp();
   const [wlEmail, setWlEmail]   = useState('');
   const [wlOpen,  setWlOpen]    = useState(false);
   const [wlStep,  setWlStep]    = useState('idle'); // idle | loading | success | error
@@ -393,21 +393,15 @@ export default function LandingPage({ onEnter, darkMode }) {
 
   const handleWaitlist = async (e) => {
     e.preventDefault();
-    if (!signUpLoaded || !wlEmail.trim()) return;
+    if (!wlEmail.trim()) return;
     setWlStep('loading');
     try {
-      await signUp.create({ emailAddress: wlEmail.trim() });
+      const { error } = await db.from('waitlist').insert({ email: wlEmail.trim().toLowerCase() });
+      if (error && error.code !== '23505') throw error; // 23505 = duplicate email, still show success
       setWlStep('success');
     } catch (err) {
-      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || '';
-      // In Clerk waitlist mode, the SDK throws an error even though the user was
-      // successfully added to the waitlist. Detect that case and show success.
-      if (msg.toLowerCase().includes('waitlist') || msg.toLowerCase().includes('unavailable')) {
-        setWlStep('success');
-        return;
-      }
       setWlStep('error');
-      setWlError(msg || 'Something went wrong. Try again.');
+      setWlError('Something went wrong. Try again.');
     }
   };
 
