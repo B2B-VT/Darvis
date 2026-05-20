@@ -248,6 +248,27 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
           <SignedIn>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button
+                onClick={() => signOut()}
+                style={{
+                  height: 30, padding: "0 14px",
+                  background: "transparent",
+                  border: `1px solid ${darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)"}`,
+                  borderRadius: 7, cursor: "pointer",
+                  color: darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)",
+                  fontSize: 12, fontWeight: 600,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.28)";
+                  e.currentTarget.style.color = darkMode ? "white" : "#1a1210";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)";
+                  e.currentTarget.style.color = darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)";
+                }}
+              >Sign out</button>
+              <button
                 onClick={() => setPage("profile")}
                 title="Your profile"
                 style={{
@@ -273,27 +294,6 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                   </div>
                 )}
               </button>
-              <button
-                onClick={() => signOut()}
-                style={{
-                  height: 30, padding: "0 14px",
-                  background: "transparent",
-                  border: `1px solid ${darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)"}`,
-                  borderRadius: 7, cursor: "pointer",
-                  color: darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)",
-                  fontSize: 12, fontWeight: 600,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  transition: "all 0.15s",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.28)";
-                  e.currentTarget.style.color = darkMode ? "white" : "#1a1210";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)";
-                  e.currentTarget.style.color = darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)";
-                }}
-              >Sign out</button>
             </div>
           </SignedIn>
 
