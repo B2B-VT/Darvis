@@ -742,6 +742,24 @@ export default function LandingPage({ onEnter, darkMode }) {
         </div>
       </section>
 
+      {/* ── CINEMATIC VIDEO ──────────────────────────────────────────────────── */}
+      <section style={{ width: '100%', lineHeight: 0, overflow: 'hidden', position: 'relative' }}>
+        <video
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_3Dp4WEkcgeJOAWsT2tOR79izVMk/hf_20260520_215217_fdd07390-9b15-4d8b-9a8d-a7e523f87d61.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            width: '100%',
+            height: isMobile ? 260 : 480,
+            objectFit: 'cover',
+            display: 'block',
+            filter: 'brightness(0.88)',
+          }}
+        />
+      </section>
+
       {/* ── PRODUCT PREVIEW ──────────────────────────────────────────────────── */}
       <section style={{ background: gradeBg, padding: isMobile ? '60px 20px 72px' : '80px 64px 100px', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
