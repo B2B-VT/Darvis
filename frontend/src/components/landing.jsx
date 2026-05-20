@@ -253,7 +253,7 @@ function GradeShowcase({ darkMode }) {
 
 // ── Scroll-driven video background ───────────────────────────────────────────
 const SCROLL_VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3Dp4WEkcgeJOAWsT2tOR79izVMk/hf_20260520_215217_fdd07390-9b15-4d8b-9a8d-a7e523f87d61.mp4";
+  "https://d8j0ntlcm91z4.cloudfront.net/user_3Dp4WEkcgeJOAWsT2tOR79izVMk/hf_20260520_222837_f48c3cb3-6ba9-4ec0-bd94-5f8bc0eb572e.mp4";
 
 function VideoBackground({ darkMode }) {
   injectStyles('lp-v4', LP_CSS);
@@ -263,19 +263,33 @@ function VideoBackground({ darkMode }) {
     const video = videoRef.current;
     if (!video) return;
 
-    const onScroll = () => {
-      if (!video.duration) return;
-      const scrollY    = window.scrollY;
-      const maxScroll  = document.documentElement.scrollHeight - window.innerHeight;
-      const progress   = maxScroll > 0 ? Math.max(0, Math.min(1, scrollY / maxScroll)) : 0;
-      video.currentTime = progress * video.duration;
+    let rafId;
+    let ready = false;
+
+    // Use a RAF loop — fires every frame regardless of scroll speed,
+    // giving the browser time to decode between seeks.
+    const tick = () => {
+      if (ready && video.duration) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const progress  = maxScroll > 0 ? Math.min(1, window.scrollY / maxScroll) : 0;
+        const target    = progress * video.duration;
+        // Dead zone: only seek if we're more than ~1 frame off.
+        // Prevents thrashing when the user isn't scrolling.
+        if (Math.abs(video.currentTime - target) > 0.05) {
+          video.currentTime = target;
+        }
+      }
+      rafId = requestAnimationFrame(tick);
     };
 
-    video.addEventListener('loadedmetadata', onScroll);
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const onReady = () => { ready = true; video.pause(); };
+    video.addEventListener('canplay', onReady, { once: true });
+    if (video.readyState >= 3) onReady(); // already ready
+
+    rafId = requestAnimationFrame(tick);
     return () => {
-      video.removeEventListener('loadedmetadata', onScroll);
-      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(rafId);
+      video.removeEventListener('canplay', onReady);
     };
   }, []);
 
