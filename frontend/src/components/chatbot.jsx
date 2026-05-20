@@ -681,6 +681,63 @@ export default function ChatbotPage({ darkMode }) {
     }
   }, [input, loading, useRecency, minStudents, topN, messages, currentSessionId]);
 
+  // Retry: re-fetches a response for an existing question and replaces the
+  // bot message at botMsgIdx in-place — does NOT append a new user message.
+  const retry = useCallback(async (question, botMsgIdx) => {
+    if (loading) return;
+    setLoading(true);
+    setServerDown(false);
+
+    // Replace the bot message with a temporary loading placeholder
+    const withPlaceholder = messages.map((m, i) =>
+      i === botMsgIdx ? { role: "bot", _retrying: true, answer: "", tables: [], charts: [], warnings: [] } : m
+    );
+    setMessages(withPlaceholder);
+
+    const sessionId = currentSessionId;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
+
+    try {
+      const res = await fetch(CHAT_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.detail || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const botMsg = { role: "bot", ...data };
+      const final = messages.map((m, i) => i === botMsgIdx ? botMsg : m);
+      setMessages(final);
+      if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isTimeout = err.name === "AbortError";
+      const isNetwork = isTimeout || err.message === "Failed to fetch";
+      setServerDown(isNetwork);
+      const errMsg = {
+        role: "bot", isError: true,
+        answer: isTimeout
+          ? "The request timed out. Render's free tier takes ~30 seconds to spin up after inactivity. Try again in a moment."
+          : isNetwork
+          ? "Couldn't reach the server. Check your connection or try again in ~30 seconds."
+          : "Something went wrong on the server. Try again — if it keeps failing, the question may need rephrasing.",
+        tables: [], charts: [], warnings: [],
+      };
+      const final = messages.map((m, i) => i === botMsgIdx ? errMsg : m);
+      setMessages(final);
+      if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+    } finally {
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [loading, messages, currentSessionId, useRecency, minStudents, topN]);
+
   const handleKey = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
   const isEmpty = messages.length === 0;
@@ -803,7 +860,7 @@ export default function ChatbotPage({ darkMode }) {
                     msg={msg}
                     darkMode={dm}
                     question={messages[i - 1]?.content}
-                    onRetry={send}
+                    onRetry={(q) => retry(q, i)}
                   />
                 )
               ))}
