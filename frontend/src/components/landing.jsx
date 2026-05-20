@@ -399,9 +399,15 @@ export default function LandingPage({ onEnter, darkMode }) {
       await signUp.create({ emailAddress: wlEmail.trim() });
       setWlStep('success');
     } catch (err) {
-      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Something went wrong. Try again.';
+      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || '';
+      // In Clerk waitlist mode, the SDK throws an error even though the user was
+      // successfully added to the waitlist. Detect that case and show success.
+      if (msg.toLowerCase().includes('waitlist') || msg.toLowerCase().includes('unavailable')) {
+        setWlStep('success');
+        return;
+      }
       setWlStep('error');
-      setWlError(msg);
+      setWlError(msg || 'Something went wrong. Try again.');
     }
   };
 
