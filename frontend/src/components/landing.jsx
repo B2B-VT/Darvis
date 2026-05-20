@@ -343,10 +343,10 @@ function SchedulePreview({ darkMode, t }) {
 
 function ChatbotPreview({ darkMode, t }) {
   const messages = [
-    { role: 'user', text: 'Who's the best prof for CS 3114?' },
+    { role: 'user', text: "Who's the best prof for CS 3114?" },
     { role: 'bot',  text: 'For CS 3114, Hamouda has the strongest grade outcomes — 3.67 avg GPA across 459 students over 4 terms. Farghally is worth considering too at 3.54.' },
     { role: 'user', text: 'What about the F rate?' },
-    { role: 'bot',  text: 'Hamouda's F rate sits at 2.1%, which is on the lower end for that course. Grade distributions show outcomes, not what the class actually feels like.' },
+    { role: 'bot',  text: "Hamouda's F rate sits at 2.1%, which is on the lower end for that course. Grade distributions show outcomes, not what the class actually feels like." },
   ];
   return (
     <div style={{ background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
