@@ -251,120 +251,62 @@ function GradeShowcase({ darkMode }) {
 }
 
 
-// ── Scroll-driven video section ───────────────────────────────────────────────
+// ── Scroll-driven video background ───────────────────────────────────────────
 const SCROLL_VIDEO_URL =
   "https://d8j0ntlcm91z4.cloudfront.net/user_3Dp4WEkcgeJOAWsT2tOR79izVMk/hf_20260520_215217_fdd07390-9b15-4d8b-9a8d-a7e523f87d61.mp4";
 
-function ScrollVideoSection({ darkMode, isMobile, t }) {
-  const containerRef = useRef(null);
-  const videoRef     = useRef(null);
+function VideoBackground({ darkMode }) {
+  injectStyles('lp-v4', LP_CSS);
+  const videoRef = useRef(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    const video     = videoRef.current;
-    if (!container || !video) return;
+    const video = videoRef.current;
+    if (!video) return;
 
     const onScroll = () => {
-      const rect           = container.getBoundingClientRect();
-      const scrollable     = container.offsetHeight - window.innerHeight;
-      const scrolled       = -rect.top;
-      const progress       = Math.max(0, Math.min(1, scrolled / scrollable));
-      if (video.duration) video.currentTime = progress * video.duration;
+      if (!video.duration) return;
+      const scrollY    = window.scrollY;
+      const maxScroll  = document.documentElement.scrollHeight - window.innerHeight;
+      const progress   = maxScroll > 0 ? Math.max(0, Math.min(1, scrollY / maxScroll)) : 0;
+      video.currentTime = progress * video.duration;
     };
 
-    // Seed the first frame immediately
-    const onLoaded = () => onScroll();
-    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('loadedmetadata', onScroll);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('loadedmetadata', onScroll);
       window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
-  // Phases: progress 0–0.35 → tagline A, 0.35–0.7 → tagline B, 0.7–1 → tagline C
-  const [phase, setPhase] = useState(0);
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const onScroll = () => {
-      const rect       = container.getBoundingClientRect();
-      const scrollable = container.offsetHeight - window.innerHeight;
-      const p          = Math.max(0, Math.min(1, -rect.top / scrollable));
-      setPhase(p < 0.35 ? 0 : p < 0.7 ? 1 : 2);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  const taglines = [
-    { top: "Know before you register.", sub: "See grade distributions for every course at Virginia Tech." },
-    { top: "Compare every instructor.", sub: "GPA averages, A/A− rates, and F rates — across every section." },
-    { top: "Stop guessing. Start planning.", sub: "Historical data. Real decisions." },
-  ];
-  const tl = taglines[phase];
-
   return (
-    <div ref={containerRef} style={{ height: '300vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
-        {/* Video */}
-        <video
-          ref={videoRef}
-          src={SCROLL_VIDEO_URL}
-          muted
-          playsInline
-          preload="auto"
-          style={{
-            width: '100%', height: '100%',
-            objectFit: 'cover', display: 'block',
-            filter: 'brightness(0.72)',
-          }}
-        />
-        {/* Gradient vignette */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%, rgba(0,0,0,0.25) 100%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Overlay text */}
-        <div style={{
-          position: 'absolute', bottom: isMobile ? 48 : 72, left: 0, right: 0,
-          padding: isMobile ? '0 24px' : '0 80px',
-          textAlign: 'left',
-        }}>
-          <div key={phase} style={{
-            animation: 'lp-appear 0.6s ease both',
-          }}>
-            <div style={{
-              fontSize: isMobile ? 26 : 'clamp(32px, 3.5vw, 52px)',
-              fontWeight: 900, color: '#fff',
-              letterSpacing: '-1.5px', lineHeight: 1.1,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              marginBottom: 12,
-              textShadow: '0 2px 20px rgba(0,0,0,0.5)',
-            }}>{tl.top}</div>
-            <div style={{
-              fontSize: isMobile ? 13 : 16,
-              fontWeight: 500, color: 'rgba(255,255,255,0.75)',
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-            }}>{tl.sub}</div>
-          </div>
-        </div>
-        {/* Scroll indicator — fades out once user starts scrolling */}
-        <div style={{
-          position: 'absolute', bottom: isMobile ? 20 : 28, right: isMobile ? 20 : 40,
-          display: 'flex', alignItems: 'center', gap: 6,
-          opacity: phase === 0 ? 0.5 : 0,
-          transition: 'opacity 0.4s ease',
-          pointerEvents: 'none',
-        }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Scroll</span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 2v10M3 8l4 4 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-      </div>
+    <div style={{
+      position: 'fixed', top: 0, left: 0,
+      width: '100vw', height: '100vh',
+      zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
+    }}>
+      <video
+        ref={videoRef}
+        src={SCROLL_VIDEO_URL}
+        muted
+        playsInline
+        preload="auto"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
+      {/* Light-mode overlay — heavier so text stays readable */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.84) 100%)',
+        opacity: darkMode ? 0 : 1,
+        transition: 'opacity 0.5s ease',
+      }} />
+      {/* Dark-mode overlay — lighter since the video is already dark */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(8,8,10,0.50) 0%, rgba(4,4,6,0.62) 100%)',
+        opacity: darkMode ? 1 : 0,
+        transition: 'opacity 0.5s ease',
+      }} />
     </div>
   );
 }
@@ -654,8 +596,8 @@ export default function LandingPage({ onEnter, darkMode }) {
   return (
     <div style={{ position: 'relative', background: 'transparent', fontFamily: "'Plus Jakarta Sans', sans-serif", color: t.text }}>
 
-      {/* ── PHOTO BACKGROUND (fixed) ─────────────────────────────────────────── */}
-      <CampusBackground darkMode={darkMode} />
+      {/* ── VIDEO BACKGROUND (fixed, scroll-driven) ─────────────────────────── */}
+      <VideoBackground darkMode={darkMode} />
 
       {/* ── ALL CONTENT (above background) ── */}
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -859,9 +801,6 @@ export default function LandingPage({ onEnter, darkMode }) {
           ))}
         </div>
       </section>
-
-      {/* ── SCROLL VIDEO ─────────────────────────────────────────────────────── */}
-      <ScrollVideoSection darkMode={darkMode} isMobile={isMobile} t={t} />
 
       {/* ── PRODUCT PREVIEW ──────────────────────────────────────────────────── */}
       <section style={{ background: gradeBg, padding: isMobile ? '60px 20px 72px' : '80px 64px 100px', boxSizing: 'border-box' }}>
