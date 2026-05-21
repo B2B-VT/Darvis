@@ -533,7 +533,7 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
 }
 
 // ── Main chatbot page ─────────────────────────────────────────────
-export default function ChatbotPage({ darkMode }) {
+export default function ChatbotPage({ darkMode, addSection, setPage, userProfile }) {
   const [sessions,          setSessions]         = useState(() => loadSessions());
   const [currentSessionId,  setCurrentSessionId] = useState(null);
   const [messages,          setMessages]         = useState([]);
@@ -638,7 +638,7 @@ export default function ChatbotPage({ darkMode }) {
       const res = await fetch(CHAT_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN }),
+        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -649,6 +649,13 @@ export default function ChatbotPage({ darkMode }) {
       }
 
       const data = await res.json();
+
+      // Handle schedule actions — add sections to scheduler then navigate
+      if (data.schedule_actions && data.schedule_actions.length > 0 && addSection) {
+        data.schedule_actions.forEach(sec => addSection(sec));
+        setTimeout(() => setPage?.("schedule"), 1200);
+      }
+
       const botMsg = { role: "bot", ...data };
       const final = [...withUser, botMsg];
       setMessages(final);
@@ -702,7 +709,7 @@ export default function ChatbotPage({ darkMode }) {
       const res = await fetch(CHAT_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN }),
+        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -711,6 +718,10 @@ export default function ChatbotPage({ darkMode }) {
         throw new Error(errBody.detail || `HTTP ${res.status}`);
       }
       const data = await res.json();
+      if (data.schedule_actions && data.schedule_actions.length > 0 && addSection) {
+        data.schedule_actions.forEach(sec => addSection(sec));
+        setTimeout(() => setPage?.("schedule"), 1200);
+      }
       const botMsg = { role: "bot", ...data };
       const final = messages.map((m, i) => i === botMsgIdx ? botMsg : m);
       setMessages(final);

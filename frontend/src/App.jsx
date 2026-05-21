@@ -142,7 +142,14 @@ export default function App() {
       return <ProfilePage darkMode={darkMode} setPage={navigateTo} />;
     }
     if (page === "chatbot") {
-      return <ChatbotPage darkMode={darkMode} />;
+      return (
+        <ChatbotPage
+          darkMode={darkMode}
+          addSection={addSection}
+          setPage={navigateTo}
+          userProfile={user?.unsafeMetadata || null}
+        />
+      );
     }
     if (page === "forums") {
       return <ForumsPage darkMode={darkMode} setPage={navigateTo} />;
