@@ -215,6 +215,8 @@ export default function ProfilePage({ darkMode }) {
     db.from("major_requirements")
       .select("course_code")
       .not("course_code", "is", null)
+      .order("course_code")
+      .limit(20000)
       .then(({ data }) => {
         if (data) {
           const unique = [...new Set(data.map(r => r.course_code))].sort();
