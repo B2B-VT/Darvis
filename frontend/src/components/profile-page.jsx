@@ -1,6 +1,7 @@
 // Profile page — unified Clerk + site profile
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { db } from "../supabase.js";
 
 const MAJORS = [
   "Aerospace Engineering", "Agriculture", "Animal & Poultry Sciences",
@@ -207,6 +208,20 @@ export default function ProfilePage({ darkMode }) {
   const [editing, setEditing] = useState(false);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState("");
+  const [courseSuggestions, setCourseSuggestions] = useState([]);
+
+  // Load catalog course codes once on mount
+  useEffect(() => {
+    db.from("major_requirements")
+      .select("course_code")
+      .not("course_code", "is", null)
+      .then(({ data }) => {
+        if (data) {
+          const unique = [...new Set(data.map(r => r.course_code))].sort();
+          setCourseSuggestions(unique);
+        }
+      });
+  }, []);
 
   const freshForm = () => ({
     // Clerk-managed fields
@@ -600,6 +615,7 @@ export default function ProfilePage({ darkMode }) {
                       tags={form.coursesTaken}
                       onChange={val => set("coursesTaken", val)}
                       placeholder="e.g. CS 2114, MATH 2224…"
+                      suggestions={courseSuggestions}
                       dm={dm}
                     />
                     <div style={{ fontSize: 11, color: c.sub, marginTop: 5 }}>Press Enter or comma after each course code.</div>

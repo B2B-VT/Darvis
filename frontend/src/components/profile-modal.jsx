@@ -1,6 +1,7 @@
 // Profile setup modal — shown after first sign-in
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { db } from "../supabase.js";
 
 const VT_MAJORS = [
   "Aerospace Engineering", "Agriculture", "Animal & Poultry Sciences",
@@ -139,6 +140,21 @@ export default function ProfileModal({ onClose, darkMode = true }) {
     interests: [],
     coursesTaken: [],
   });
+  const [courseSuggestions, setCourseSuggestions] = useState([]);
+
+  // Load catalog course codes when the form step opens
+  useEffect(() => {
+    if (step !== "form" || courseSuggestions.length > 0) return;
+    db.from("major_requirements")
+      .select("course_code")
+      .not("course_code", "is", null)
+      .then(({ data }) => {
+        if (data) {
+          const unique = [...new Set(data.map(r => r.course_code))].sort();
+          setCourseSuggestions(unique);
+        }
+      });
+  }, [step]);
 
   const firstName = user?.firstName || "there";
 
@@ -370,9 +386,10 @@ export default function ProfileModal({ onClose, darkMode = true }) {
                   tags={form.coursesTaken}
                   onChange={val => set("coursesTaken", val)}
                   placeholder="e.g. CS 2114, MATH 2224…"
+                  suggestions={courseSuggestions}
                 />
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 5 }}>
-                  Press Enter or comma after each course code.
+                  Type a course code and pick from the list, or press Enter to add.
                 </div>
               </div>
             </div>
