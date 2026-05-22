@@ -142,18 +142,14 @@ export default function ProfileModal({ onClose, darkMode = true }) {
   });
   const [courseSuggestions, setCourseSuggestions] = useState([]);
 
-  // Load catalog course codes when the form step opens
+  // Load catalog course codes when the form step opens.
+  // Uses an RPC (server-side DISTINCT) to bypass PostgREST's 1000-row limit.
   useEffect(() => {
     if (step !== "form" || courseSuggestions.length > 0) return;
-    db.from("major_requirements")
-      .select("course_code")
-      .not("course_code", "is", null)
-      .order("course_code")
-      .limit(20000)
+    db.rpc("get_distinct_course_codes")
       .then(({ data }) => {
         if (data) {
-          const unique = [...new Set(data.map(r => r.course_code))].sort();
-          setCourseSuggestions(unique);
+          setCourseSuggestions(data.map(r => r.course_code));
         }
       });
   }, [step]);

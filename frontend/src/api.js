@@ -89,11 +89,11 @@ export const API = {
     return allData.map(formatCourse);
   },
 
-  // Returns all instructors from the instructor_summary view.
+  // Returns all instructors from the instructors table.
   // Filtering is done client-side — the dataset is small enough (~200 rows).
   async getInstructors() {
     const { data, error } = await db
-      .from('instructor_summary')
+      .from('instructors')
       .select('*')
       .order('name');
     if (error) throw error;
@@ -179,7 +179,7 @@ export const API = {
     let rmpMap = {};
     if (instructorNames.length > 0) {
       const { data: rmpRows } = await db
-        .from('professors')
+        .from('instructors')
         .select('name, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, rmp_reviews, rmp_id')
         .in('name', instructorNames);
       if (rmpRows) {

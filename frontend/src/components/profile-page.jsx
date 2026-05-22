@@ -210,17 +210,13 @@ export default function ProfilePage({ darkMode }) {
   const [error,   setError]   = useState("");
   const [courseSuggestions, setCourseSuggestions] = useState([]);
 
-  // Load catalog course codes once on mount
+  // Load catalog course codes once on mount.
+  // Uses an RPC (server-side DISTINCT) to bypass PostgREST's 1000-row limit.
   useEffect(() => {
-    db.from("major_requirements")
-      .select("course_code")
-      .not("course_code", "is", null)
-      .order("course_code")
-      .limit(20000)
+    db.rpc("get_distinct_course_codes")
       .then(({ data }) => {
         if (data) {
-          const unique = [...new Set(data.map(r => r.course_code))].sort();
-          setCourseSuggestions(unique);
+          setCourseSuggestions(data.map(r => r.course_code));
         }
       });
   }, []);
