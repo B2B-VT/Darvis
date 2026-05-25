@@ -1,8 +1,7 @@
 // scripts/fetch_rmp_tags.js
 //
-// Second-pass script: fetches full individual professor profiles from RMP
-// for the professors already in the Supabase `professors` table, to populate
-// the rmp_tags field that the paginated search endpoint doesn't return.
+// Fetches individual professor profiles from RMP to populate rmp_tags
+// in the Supabase `instructors` table (which the chatbot reads).
 //
 // Run from the backend/ directory:
 //   node scripts/fetch_rmp_tags.js
@@ -62,14 +61,14 @@ async function fetchTags(rmpId) {
 (async () => {
   console.log('=== RMP Tag Fetcher ===\n');
 
-  // Load professors that have an rmp_id but empty tags
+  // Load instructors that have an rmp_id (these are the 65 with RMP ratings)
   const { data: profs, error } = await supabase
-    .from('professors')
+    .from('instructors')
     .select('id, name, rmp_id, rmp_tags')
     .not('rmp_id', 'is', null);
 
   if (error) { console.error('Supabase error:', error.message); process.exit(1); }
-  console.log(`Found ${profs.length} professors with RMP IDs.\n`);
+  console.log(`Found ${profs.length} instructors with RMP IDs.\n`);
 
   let updated = 0;
   let failed  = 0;
@@ -82,8 +81,8 @@ async function fetchTags(rmpId) {
       const tags = await fetchTags(prof.rmp_id);
 
       const { error: upErr } = await supabase
-        .from('professors')
-        .update({ rmp_tags: tags, last_fetched_at: new Date().toISOString() })
+        .from('instructors')
+        .update({ rmp_tags: tags, last_updated: new Date().toISOString() })
         .eq('id', prof.id);
 
       if (upErr) throw upErr;
@@ -101,7 +100,7 @@ async function fetchTags(rmpId) {
 
   // Print a few with tags to confirm it worked
   const { data: sample } = await supabase
-    .from('professors')
+    .from('instructors')
     .select('name, rmp_rating, rmp_tags')
     .not('rmp_tags', 'eq', '[]')
     .order('rmp_count', { ascending: false })
@@ -113,7 +112,7 @@ async function fetchTags(rmpId) {
       console.log(`  ${p.name} (${p.rmp_rating}⭐): ${(p.rmp_tags || []).join(', ')}`);
     });
   } else {
-    console.log('\nNo tags populated — the individual profile query may not be returning them.');
-    console.log('Tags are a nice-to-have; ratings and difficulty are what matter most.');
+    console.log('\nNo tags populated — the individual profile query may not be returning tags.');
+    console.log('Ratings and difficulty are still populated and working regardless.');
   }
 })();
