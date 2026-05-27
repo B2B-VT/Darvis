@@ -6,7 +6,7 @@ Darvis is a live Virginia Tech academic intelligence platform at darvis.tech. St
 
 ```
 Hokie_Darvis/
-├── frontend/           React 18 + Babel CDN (no build step) — deployed on Vercel
+├── frontend/           React 18 + Vite — deployed on Vercel
 ├── chat-bot/           FastAPI chatbot backend — deployed on Render
 ├── backend/            Node.js data scripts (scrapers, importers) — not a server
 └── CLAUDE.md
@@ -14,12 +14,12 @@ Hokie_Darvis/
 
 ## Frontend
 
-React 18 loaded via CDN with Babel standalone for JSX transpilation. No Vite, no webpack. All components are plain `.jsx` files loaded via `<script>` tags in `index.html`. Styles are CSS-in-JS inline objects — no Tailwind config, no build step.
+React 18 built with Vite (`@vitejs/plugin-react`). Auth via `@clerk/clerk-react`, Supabase via `@supabase/supabase-js`, charts via `chart.js` — all npm packages. Styles are CSS-in-JS inline objects — no Tailwind, no CSS modules.
 
 **Run locally:**
 ```bash
 cd frontend
-npx serve .        # http://localhost:3000
+npm run dev        # http://localhost:5173
 ```
 
 **Deploy:** git push to main → Vercel auto-deploys.
@@ -139,7 +139,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 
 **Medium priority:**
 - `natural_filter.py`: `lowest_gpa` sort goal sets chart metric label to `"Avg GPA"` — same as `highest_gpa`. Add directional label.
-- Feedback collection (thumbs up/down logging) not built. No infrastructure for capturing which answers users found helpful.
+- Feedback collection: `POST /feedback` endpoint exists in chatbot (writes to `feedback` table). Frontend thumbs up/down UI still needs to be wired up.
 - `grade_embeddings` table is dead (0 rows, unused). Can be dropped.
 
 **Low priority:**
