@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pandas
+google-genai
+fastembed
+python-dotenv
+pydantic
+python-multipart
+pydantic-settings
+supabase
+slowapi
+
+# RAG pipeline — semantic embeddings + reranking
+# Install all three; the pipeline auto-selects based on available API keys.
+openai>=1.0.0                  # text-embedding-3-small/large (needs OPENAI_API_KEY)
+cohere>=5.0.0                  # Rerank API (needs COHERE_API_KEY; free tier: 1k calls/month)
+sentence-transformers>=2.2.0   # cross-encoder reranking (local, no API key needed)
