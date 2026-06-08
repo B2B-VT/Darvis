@@ -19,7 +19,7 @@ git push    # Render auto-deploys from main
 
 Render free tier sleeps after inactivity — first request takes ~30 seconds. Upgrade to Render Starter ($7/month) to fix.
 
-## Env vars (chat-bot/.env)
+## Env vars (chatbot/.env)
 
 ```
 GOOGLE_API_KEY=...

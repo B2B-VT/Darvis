@@ -5,10 +5,10 @@ Darvis is a live Virginia Tech academic intelligence platform at darvis.tech. St
 ## Repo layout
 
 ```
-Hokie_Darvis/
-├── frontend/           React 18 + Vite — deployed on Vercel
-├── chat-bot/           FastAPI chatbot backend — deployed on Render
-├── backend/            Node.js data scripts (scrapers, importers) — not a server
+Darvis/
+├── frontend/               React 18 + Vite — deployed on Vercel
+├── chatbot/                FastAPI chatbot backend — deployed on Render
+├── backend/                Node.js data scripts (scrapers, importers) — not a server
 └── CLAUDE.md
 ```
 
@@ -38,16 +38,16 @@ FastAPI backend in Python. Loads all data from Supabase at startup into Pandas D
 
 **Run locally:**
 ```bash
-cd chat-bot
+cd chatbot
 source .venv/bin/activate
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
-**Deploy:** git push to main → Render auto-deploys.
+**Deploy:** git push to main → Render auto-deploys (root directory set to `chatbot/` in Render config).
 
-**LLM:** Google AI Studio (Gemma). Set `GOOGLE_API_KEY` and `GOOGLE_MODEL` in `chat-bot/.env`. Current model string: `gemma-3-27b-it`. Has a 30-second HTTP timeout at the transport layer. Falls back to template answers when the LLM is unavailable.
+**LLM:** Google AI Studio (Gemma). Set `GOOGLE_API_KEY` and `GOOGLE_MODEL` in `chatbot/.env`. Current model string: `gemma-3-27b-it`. Has a 30-second HTTP timeout at the transport layer. Falls back to template answers when the LLM is unavailable.
 
-**Required env vars (`chat-bot/.env`):**
+**Required env vars (`chatbot/.env`):**
 ```
 GOOGLE_API_KEY=...
 GOOGLE_MODEL=gemma-3-27b-it
@@ -56,35 +56,7 @@ SUPABASE_KEY=...           # service role key
 ALLOWED_ORIGINS=https://darvis.tech,...
 ```
 
-**Architecture:**
-```
-app/
-├── main.py                 FastAPI app, lifespan data loader, all routes
-├── config.py               Pydantic settings from env
-├── models.py               ChatRequest, ChatResponse, TableSpec, ChartSpec
-├── data/
-│   ├── loader.py           Supabase batch fetchers for grades, RMP, courses, requirements
-│   ├── analytics.py        Pandas aggregations — course_profile, professor_profile, natural_filter
-│   └── recency.py          Recency weighting for recent semesters
-├── features/
-│   ├── router.py           Keyword router — maps questions to handler routes
-│   ├── course_profile.py   Handler for specific course questions (CS 3114)
-│   ├── professor_profile.py Handler for professor questions (Hamouda)
-│   ├── natural_filter.py   Handler for filter/ranking questions (highest GPA, worst F rate)
-│   ├── general_chat.py     Catch-all — tries natural_filter, then LLM fallback
-│   ├── major_requirements.py Handler for graduation requirement questions
-│   ├── schedule_builder.py Handler for schedule builder requests
-│   └── templated_answers.py Template fallbacks when LLM is unavailable
-├── rag/
-│   ├── gemma_client.py     Google AI Studio LLM client
-│   ├── prompts.py          System prompt + build_answer_prompt
-│   └── vector_store.py     Keyword + semantic search over grade data
-├── safety/
-│   ├── guardrails.py       System prompt, NLP normalization, answer sanitization
-│   └── privacy.py          PII detection in questions
-└── utils/
-    └── charts.py           table_spec, bar_chart, scatter_chart helpers
-```
+**Architecture:** See `chatbot/CLAUDE.md` for the full file map and request flow.
 
 ## Backend (Node scripts)
 
