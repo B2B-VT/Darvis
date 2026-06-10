@@ -94,6 +94,16 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
 
   return (
     <>
+    <style>{`
+      @keyframes navIconIn {
+        from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+        to   { opacity: 1; transform: rotate(0deg) scale(1); }
+      }
+      @keyframes navMenuIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    `}</style>
     <nav style={{
       position: "sticky", top: 0, zIndex: 200,
       background: navBg,
@@ -117,8 +127,8 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
         }}>
           <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 26, height: 26 }} />
           <span style={{
-            fontWeight: 900, fontSize: 17, color: logoColor,
-            letterSpacing: "-0.5px", transition: "color 0.3s",
+            fontWeight: 700, fontSize: 17, color: logoColor,
+            letterSpacing: "-0.4px", transition: "color 0.3s",
           }}>
             Darvis
           </span>
@@ -162,13 +172,13 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                     borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 800,
                   }}>{schedule.length}</span>
                 )}
-                {page === link.id && (
-                  <span style={{
-                    position: "absolute", bottom: -1, left: "50%",
-                    transform: "translateX(-50%)",
-                    width: 20, height: 2, background: "#861F41", borderRadius: 2,
-                  }} />
-                )}
+                <span style={{
+                  position: "absolute", bottom: -1, left: "50%",
+                  width: 20, height: 2, background: "#861F41", borderRadius: 2,
+                  transform: `translateX(-50%) scaleX(${page === link.id ? 1 : 0})`,
+                  transformOrigin: "center",
+                  transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                }} />
               </button>
             ))}
           </div>
@@ -198,7 +208,12 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                 e.currentTarget.style.background = "none";
               }}
             >
-              <ThemeIcon />
+              <span key={darkMode ? "moon" : "sun"} style={{
+                display: "flex", alignItems: "center",
+                animation: "navIconIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both",
+              }}>
+                <ThemeIcon />
+              </span>
             </button>
           )}
 
@@ -208,8 +223,8 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
               <SignInButton mode="modal">
                 <button style={{
                   background: "#861F41", color: "white", border: "none",
-                  borderRadius: 8, padding: "6px 14px",
-                  fontWeight: 700, fontSize: 13, cursor: "pointer",
+                  borderRadius: 999, padding: "7px 16px",
+                  fontWeight: 600, fontSize: 13, cursor: "pointer",
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}>Sign in</button>
               </SignInButton>
@@ -217,28 +232,27 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <SignUpButton mode="modal">
                   <button style={{
-                    background: "rgba(134,31,65,0.10)",
+                    background: "transparent",
                     color: "#861F41",
-                    border: "1.5px solid rgba(134,31,65,0.30)",
-                    borderRadius: 8, padding: "6px 14px",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer",
+                    border: "1px solid rgba(134,31,65,0.35)",
+                    borderRadius: 999, padding: "7px 16px",
+                    fontWeight: 600, fontSize: 13, cursor: "pointer",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    transition: "background 0.15s, border-color 0.15s",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(134,31,65,0.18)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.5)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(134,31,65,0.10)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.30)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(134,31,65,0.08)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.6)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.35)"; }}
                   >Join waitlist</button>
                 </SignUpButton>
                 <SignInButton mode="modal">
                   <button style={{
                     background: "#861F41", color: "white", border: "none",
-                    borderRadius: 8, padding: "6px 16px",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer",
+                    borderRadius: 999, padding: "7px 18px",
+                    fontWeight: 600, fontSize: 13, cursor: "pointer",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    transition: "opacity 0.15s",
+                    boxShadow: "0 1px 8px rgba(134,31,65,0.25)",
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-                  onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#9b2950"; e.currentTarget.style.boxShadow = "0 2px 14px rgba(134,31,65,0.35)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#861F41"; e.currentTarget.style.boxShadow = "0 1px 8px rgba(134,31,65,0.25)"; }}
                   >Sign in</button>
                 </SignInButton>
               </div>
@@ -253,7 +267,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                   height: 30, padding: "0 14px",
                   background: "transparent",
                   border: `1px solid ${darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)"}`,
-                  borderRadius: 7, cursor: "pointer",
+                  borderRadius: 999, cursor: "pointer",
                   color: darkMode ? "rgba(255,255,255,0.48)" : "rgba(0,0,0,0.48)",
                   fontSize: 12, fontWeight: 600,
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -322,6 +336,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
         borderBottom: `1px solid ${navBorder}`,
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         padding: "8px 16px 16px",
+        animation: "navMenuIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both",
       }}>
         {navLinks.map(link => (
           <button

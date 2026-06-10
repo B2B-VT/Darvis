@@ -172,14 +172,14 @@ function Ticker({ darkMode }) {
       padding: '14px 0', background: tickerBg,
       transition: 'background 0.3s, border-color 0.3s',
     }}>
-      <div style={{ display: 'flex', animation: 'lp-ticker 42s linear infinite', width: 'max-content' }}>
+      <div style={{ display: 'flex', animation: 'lp-ticker 52s linear infinite', width: 'max-content' }}>
         {doubled.map((item, i) => (
           <span key={i} style={{
-            padding: '0 36px', fontSize: 11, fontWeight: 700,
-            letterSpacing: '1px', textTransform: 'uppercase', whiteSpace: 'nowrap',
-            color: i % 5 === 0 ? '#861F41' : tickerSub,
+            padding: '0 36px', fontSize: 11, fontWeight: 600,
+            letterSpacing: '1.2px', textTransform: 'uppercase', whiteSpace: 'nowrap',
+            color: i % 6 === 0 ? '#861F41' : tickerSub,
           }}>
-            {i % 2 === 0 ? '◆' : '·'} &nbsp;{item}
+            {item}
           </span>
         ))}
       </div>
@@ -513,17 +513,26 @@ export default function LandingPage({ onEnter, darkMode }) {
       background: primary ? '#861F41' : 'transparent',
       color: primary ? 'white' : t.btnGhostText,
       border: primary ? 'none' : `1px solid ${t.btnGhostBorder}`,
-      borderRadius: 9, padding: '13px 30px',
-      fontWeight: 800, fontSize: 14, cursor: 'pointer',
+      borderRadius: 999, padding: '13px 30px',
+      fontWeight: 600, fontSize: 14.5, cursor: 'pointer',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      transition: 'all 0.2s', letterSpacing: '0.2px',
+      letterSpacing: '0.1px',
+      boxShadow: primary ? '0 2px 16px rgba(134,31,65,0.28)' : 'none',
     }}
     onMouseEnter={e => {
-      if (primary) { e.currentTarget.style.background = '#a02450'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+      if (primary) {
+        e.currentTarget.style.background = '#9b2950';
+        e.currentTarget.style.transform = 'translateY(-1px)';
+        e.currentTarget.style.boxShadow = '0 6px 24px rgba(134,31,65,0.38)';
+      }
       else { e.currentTarget.style.borderColor = t.btnGhostHovBd; e.currentTarget.style.color = t.btnGhostHovTxt; }
     }}
     onMouseLeave={e => {
-      if (primary) { e.currentTarget.style.background = '#861F41'; e.currentTarget.style.transform = 'none'; }
+      if (primary) {
+        e.currentTarget.style.background = '#861F41';
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 2px 16px rgba(134,31,65,0.28)';
+      }
       else { e.currentTarget.style.borderColor = t.btnGhostBorder; e.currentTarget.style.color = t.btnGhostText; }
     }}
     >{label}</button>
@@ -574,7 +583,7 @@ export default function LandingPage({ onEnter, darkMode }) {
           {/* Label */}
           <div className="lp-hero-fade" style={{ marginBottom: 36 }}>
             <span style={{
-              fontSize: 10, fontWeight: 900, letterSpacing: '2.5px',
+              fontSize: 11, fontWeight: 600, letterSpacing: '2px',
               color: '#861F41', textTransform: 'uppercase',
             }}>Course Planning · Grade Data</span>
           </div>
@@ -583,14 +592,16 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div style={{ marginBottom: 36 }}>
             <span className="lp-hero-clip">
               <span className="lp-hero-line d1" style={{
-                fontSize: 'clamp(52px, 7.5vw, 104px)', fontWeight: 900,
-                lineHeight: 0.98, letterSpacing: '-4px', color: t.text,
+                fontSize: 'clamp(54px, 7.5vw, 108px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                lineHeight: 1.02, letterSpacing: '-1.5px', color: t.text,
               }}>Pick classes</span>
             </span>
             <span className="lp-hero-clip">
               <span className="lp-hero-line d2" style={{
-                fontSize: 'clamp(52px, 7.5vw, 104px)', fontWeight: 900,
-                lineHeight: 0.98, letterSpacing: '-4px', color: '#861F41',
+                fontSize: 'clamp(54px, 7.5vw, 108px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic',
+                lineHeight: 1.02, letterSpacing: '-1.5px', color: '#861F41',
               }}>with real data.</span>
             </span>
           </div>
@@ -633,25 +644,29 @@ export default function LandingPage({ onEnter, darkMode }) {
                       autoFocus
                       required
                       style={{
-                        height: 44, padding: '0 16px', fontSize: 14, fontWeight: 500,
+                        height: 46, padding: '0 20px', fontSize: 14, fontWeight: 500,
                         background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.85)',
                         border: `1px solid ${darkMode ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.18)'}`,
-                        borderRadius: 9, color: t.text, outline: 'none', minWidth: 220,
+                        borderRadius: 999, color: t.text, outline: 'none', minWidth: 230,
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        transition: 'border-color 0.2s ease',
                       }}
+                      onFocus={e => e.currentTarget.style.borderColor = 'rgba(134,31,65,0.6)'}
+                      onBlur={e => e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.18)'}
                     />
                     <button type="submit" disabled={wlStep === 'loading'} style={{
-                      height: 44, padding: '0 22px',
+                      height: 46, padding: '0 24px',
                       background: '#861F41', color: 'white', border: 'none',
-                      borderRadius: 9, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                      borderRadius: 999, fontWeight: 600, fontSize: 14, cursor: 'pointer',
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       opacity: wlStep === 'loading' ? 0.7 : 1,
+                      boxShadow: '0 2px 16px rgba(134,31,65,0.28)',
                     }}>
                       {wlStep === 'loading' ? 'Joining…' : 'Join →'}
                     </button>
                     <button type="button" onClick={() => { setWlOpen(false); setWlStep('idle'); }} style={{
-                      height: 44, padding: '0 16px', background: 'transparent',
-                      border: `1px solid ${t.btnGhostBorder}`, borderRadius: 9,
+                      height: 46, padding: '0 18px', background: 'transparent',
+                      border: `1px solid ${t.btnGhostBorder}`, borderRadius: 999,
                       color: t.btnGhostText, fontWeight: 600, fontSize: 13, cursor: 'pointer',
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                     }}>Cancel</button>
@@ -675,13 +690,16 @@ export default function LandingPage({ onEnter, darkMode }) {
             fontWeight: 600, display: 'flex', gap: 20, flexWrap: 'wrap',
           }}>
             <SignedOut>
-              <span>✓ Private beta</span>
-              <span>✓ Built by VT students</span>
-              <span>✓ Free forever</span>
+              <span>Private beta</span>
+              <span aria-hidden="true">·</span>
+              <span>Built by VT students</span>
+              <span aria-hidden="true">·</span>
+              <span>Free forever</span>
             </SignedOut>
             <SignedIn>
-              <span>✓ Real institutional grade data</span>
-              <span>✓ Free forever</span>
+              <span>Real institutional grade data</span>
+              <span aria-hidden="true">·</span>
+              <span>Free forever</span>
             </SignedIn>
           </div>
         </div>
@@ -727,8 +745,9 @@ export default function LandingPage({ onEnter, darkMode }) {
               padding: '32px 36px 28px',
             }}>
               <div style={{
-                fontSize: 'clamp(38px, 4.5vw, 62px)', fontWeight: 900,
-                color: t.text, letterSpacing: '-2.5px', lineHeight: 1,
+                fontSize: 'clamp(40px, 4.8vw, 66px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                color: t.text, letterSpacing: '-1px', lineHeight: 1,
               }}>
                 <AnimCounter target={s.val} suffix={s.suffix} active={statsActive} />
               </div>
@@ -748,14 +767,15 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div style={{ marginBottom: 52 }}>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 10, fontWeight: 900,
-                color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 600,
+                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
               }}>See inside</span>
             </span>
             <span className="lp-clip">
               <span className="lp-line d1" style={{
-                display: 'block', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 900,
-                color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px',
+                display: 'block', fontSize: 'clamp(30px, 3.4vw, 46px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                color: t.text, lineHeight: 1.12, letterSpacing: '-0.5px',
               }}>Everything in one place.</span>
             </span>
           </div>
@@ -782,14 +802,15 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div style={{ position: isMobile ? 'static' : 'sticky', top: 100 }}>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 10, fontWeight: 900,
-                color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 600,
+                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
               }}>What you get</span>
             </span>
             <span className="lp-clip">
               <span className="lp-line d1" style={{
-                display: 'block', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 900,
-                color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px',
+                display: 'block', fontSize: 'clamp(30px, 3.4vw, 46px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                color: t.text, lineHeight: 1.12, letterSpacing: '-0.5px',
               }}>Tools for picking the right class.</span>
             </span>
           </div>
@@ -822,14 +843,15 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 10, fontWeight: 900,
-                color: '#861F41', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 600,
+                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
               }}>Grade data</span>
             </span>
             <span className="lp-clip">
               <span className="lp-line d1" style={{
-                display: 'block', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 900,
-                color: t.text, lineHeight: 1.1, letterSpacing: '-1.5px', marginBottom: 22,
+                display: 'block', fontSize: 'clamp(30px, 3.8vw, 50px)', fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                color: t.text, lineHeight: 1.12, letterSpacing: '-0.5px', marginBottom: 22,
               }}>24 years of real grade records.</span>
             </span>
             <p className="lp-fade d2" style={{
@@ -857,14 +879,16 @@ export default function LandingPage({ onEnter, darkMode }) {
         <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative' }}>
           <span className="lp-clip">
             <span className="lp-line" style={{
-              display: 'block', fontSize: 'clamp(40px, 6vw, 80px)',
-              fontWeight: 900, color: t.text, letterSpacing: '-3px', lineHeight: 1.0,
+              display: 'block', fontSize: 'clamp(42px, 6vw, 84px)',
+              fontWeight: 400, fontFamily: "'Instrument Serif', Georgia, serif",
+              color: t.text, letterSpacing: '-1px', lineHeight: 1.05,
             }}>Stop guessing.</span>
           </span>
           <span className="lp-clip">
             <span className="lp-line d1" style={{
-              display: 'block', fontSize: 'clamp(40px, 6vw, 80px)',
-              fontWeight: 900, color: '#861F41', letterSpacing: '-3px', lineHeight: 1.0,
+              display: 'block', fontSize: 'clamp(42px, 6vw, 84px)',
+              fontWeight: 400, fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic',
+              color: '#861F41', letterSpacing: '-1px', lineHeight: 1.05,
               marginBottom: 32,
             }}>Start knowing.</span>
           </span>
@@ -897,7 +921,7 @@ export default function LandingPage({ onEnter, darkMode }) {
         justifyContent: 'space-between', alignItems: 'center', gap: isMobile ? 6 : 0,
         background: footerBg,
       }}>
-        <span style={{ fontWeight: 900, fontSize: 14, color: t.textSub, letterSpacing: '-0.5px' }}>Darvis</span>
+        <span style={{ fontWeight: 700, fontSize: 14, color: t.textSub, letterSpacing: '-0.3px' }}>Darvis</span>
         <span style={{ fontSize: 11, color: t.textFaint, fontWeight: 600 }}>
           Course planning · Grade data · Schedule builder
         </span>
