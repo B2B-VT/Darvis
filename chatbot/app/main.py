@@ -31,6 +31,7 @@ from app.features.schedule_builder import handle_schedule_builder
 from app.features.major_requirements import handle_major_requirements
 from app.safety.guardrails import default_warnings, out_of_scope_response, normalize_question
 from app.safety.privacy import privacy_warnings
+from app.safety.entity_resolver import EntityResolver
 
 # ── Logging ────────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -52,6 +53,7 @@ STATE = {
     "vector_store": None,
     "llm": None,
     "intent": None,
+    "entity_resolver": None,
     "supabase": None,
 }
 
@@ -84,6 +86,9 @@ async def lifespan(app: FastAPI):
     # Intent extractor: replaces keyword router — Gemma understands the question
     intent_extractor = IntentExtractor(llm)
 
+    # Entity resolver: fuzzy-matches professor names and course codes post-extraction
+    entity_resolver = EntityResolver(df, courses_df)
+
     STATE["df"] = df
     STATE["rmp_df"] = rmp_df
     STATE["courses_df"] = courses_df
@@ -91,6 +96,7 @@ async def lifespan(app: FastAPI):
     STATE["vector_store"] = vector_store
     STATE["llm"] = llm
     STATE["intent"] = intent_extractor
+    STATE["entity_resolver"] = entity_resolver
     yield
 
 
@@ -260,6 +266,21 @@ def chat(request: Request, body: ChatRequest):
 
     # Use intent route if available, otherwise fall back to keyword router
     if intent is not None:
+        # Apply entity resolution to correct professor/course typos from LLM extraction
+        er = STATE.get("entity_resolver")
+        if er is not None:
+            if intent.professor_name:
+                intent.professor_name = er.resolve_professor(intent.professor_name)
+            if intent.subject and intent.course_no:
+                intent.subject, intent.course_no = er.resolve_course_code(
+                    intent.subject, intent.course_no
+                )
+            # If no professor name was extracted but the question likely names one, scan it
+            if not intent.professor_name and intent.route == "professor_profile":
+                resolved_prof, _ = er.resolve_question_entities(question)
+                if resolved_prof:
+                    intent.professor_name = resolved_prof
+
         route = intent.route
         logger.info(
             "intent route=%s conf=%.2f subj=%s course=%s prof=%s sort=%s",

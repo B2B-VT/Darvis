@@ -72,7 +72,7 @@ class AgenticRAGPipeline:
 
         for attempt in range(_MAX_ATTEMPTS):
             context, results = self._base.retrieve_full(
-                question,
+                plan.primary_query,
                 n_results=n_results,
                 source_filter=plan.source_filter,
                 alpha=plan.alpha,

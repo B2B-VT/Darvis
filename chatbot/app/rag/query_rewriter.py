@@ -149,26 +149,33 @@ class QueryRewriter:
     def _llm_rewrite_with_timeout(self, question: str, timeout_s: float) -> str | None:
         """
         Call the LLM in a separate thread and return None if it doesn't
-        respond within timeout_s. This prevents a slow model response from
-        blocking the entire request for 30 seconds.
+        respond within timeout_s.
 
-        Uses answer_raw() (no system prompt, no sanitization) because we want
-        raw keywords, not advisor-tone prose.
+        Uses answer_raw() (no system prompt) because we want raw keywords.
+
+        NOTE: We avoid `with ThreadPoolExecutor() as executor:` because the context
+        manager calls shutdown(wait=True) on exit — this blocks for the full HTTP
+        timeout (30 s) even after catching TimeoutError. Instead, shutdown(wait=False)
+        abandons the worker thread immediately so the request is unblocked.
         """
         prompt = _REWRITE_PROMPT.format(question=question)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(self._llm.answer_raw, prompt, 50)
-            try:
-                return future.result(timeout=timeout_s)
-            except concurrent.futures.TimeoutError:
-                logger.debug(
-                    "[query_rewriter] LLM rewrite timed out after %.1fs for: %r",
-                    timeout_s, question[:60],
-                )
-                return None
-            except Exception as exc:
-                logger.debug("[query_rewriter] LLM rewrite failed: %s", exc)
-                return None
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = executor.submit(self._llm.answer_raw, prompt, 50)
+        try:
+            result = future.result(timeout=timeout_s)
+            executor.shutdown(wait=False)
+            return result
+        except concurrent.futures.TimeoutError:
+            executor.shutdown(wait=False)
+            logger.debug(
+                "[query_rewriter] LLM rewrite timed out after %.1fs for: %r",
+                timeout_s, question[:60],
+            )
+            return None
+        except Exception as exc:
+            executor.shutdown(wait=False)
+            logger.debug("[query_rewriter] LLM rewrite failed: %s", exc)
+            return None
 
     def _rule_expand(self, question: str) -> str:
         """

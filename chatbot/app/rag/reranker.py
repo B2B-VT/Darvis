@@ -58,12 +58,19 @@ class Reranker:
                 self._provider = "cohere"
                 logger.info("[reranker] Provider: Cohere Rerank")
 
+        # Local cross-encoder disabled by default — avoids loading ~85 MB
+        # sentence-transformers model on Render free tier (512 MB RAM limit).
+        # Set RAG_ENABLE_LOCAL_RERANKER=true locally or on a paid-tier deployment.
         if self._provider == "passthrough":
-            ce = self._init_cross_encoder()
-            if ce:
-                self._cross_encoder = ce
-                self._provider = "cross_encoder"
-                logger.info("[reranker] Provider: cross-encoder %s (local)", _CROSS_ENCODER_MODEL)
+            enable_local = getattr(cfg, "rag_enable_local_reranker", False)
+            if enable_local:
+                ce = self._init_cross_encoder()
+                if ce:
+                    self._cross_encoder = ce
+                    self._provider = "cross_encoder"
+                    logger.info("[reranker] Provider: cross-encoder %s (local)", _CROSS_ENCODER_MODEL)
+            else:
+                logger.info("[reranker] Local cross-encoder skipped (RAG_ENABLE_LOCAL_RERANKER=false)")
 
         if self._provider == "passthrough":
             logger.info("[reranker] Provider: passthrough (sorted by retrieval score)")

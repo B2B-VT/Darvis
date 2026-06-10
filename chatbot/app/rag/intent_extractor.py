@@ -26,6 +26,7 @@ Why this is better than keyword matching:
 
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import logging
 import re
@@ -144,9 +145,12 @@ class IntentExtractor:
     """
 
     def __init__(self, gemma_client, settings=None):
+        from app.config import get_settings
+        cfg = settings or get_settings()
         self._llm = gemma_client
         self._enabled = True
-        logger.info("[intent] LLM intent extractor ready")
+        self._timeout_s: float = getattr(cfg, "rag_intent_timeout_s", 5.0)
+        logger.info("[intent] LLM intent extractor ready (timeout=%.1fs)", self._timeout_s)
 
     def extract(self, question: str) -> ChatIntent:
         """
@@ -172,11 +176,28 @@ class IntentExtractor:
         return self._keyword_fallback(question)
 
     def _llm_extract(self, question: str) -> ChatIntent | None:
-        """Call Gemma with the intent prompt. Returns None if parsing fails."""
-        prompt = _INTENT_PROMPT + question
+        """
+        Call Gemma with the intent prompt, bounded by _timeout_s. Returns None on
+        failure or timeout.
 
-        # Use a shorter timeout for intent extraction (don't block the full request)
-        raw = self._llm.answer_raw(prompt, max_tokens=300)
+        Same shutdown(wait=False) pattern as QueryRewriter: avoids blocking for the
+        full HTTP timeout when future.result() raises TimeoutError.
+        """
+        prompt = _INTENT_PROMPT + question
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = executor.submit(self._llm.answer_raw, prompt, 300)
+        try:
+            raw = future.result(timeout=self._timeout_s)
+        except concurrent.futures.TimeoutError:
+            executor.shutdown(wait=False)
+            logger.debug("[intent] LLM extraction timed out after %.1fs", self._timeout_s)
+            return None
+        except Exception as exc:
+            executor.shutdown(wait=False)
+            logger.debug("[intent] LLM call failed: %s", exc)
+            return None
+        executor.shutdown(wait=False)
+
         if not raw:
             return None
 
