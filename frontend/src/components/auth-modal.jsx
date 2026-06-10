@@ -51,7 +51,7 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         </div>
 
         <div style={{
-          fontSize: 10, fontWeight: 900, color: "#861F41",
+          fontSize: 10, fontWeight: 700, color: "#861F41",
           letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 14,
         }}>
           Invite Only · Beta

@@ -329,7 +329,7 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
   }, [schedule]);
 
   const colors = {
-    bg:     dm ? "#0a0a0a"                : "#f7f4f0",
+    bg:     "transparent",
     text:   dm ? "#f0edf3"               : "#1c1a1e",
     sub:    dm ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.45)",
     border: dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
@@ -348,8 +348,17 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${colors.border}`, padding: isMobile ? "24px 16px 20px" : "32px 24px 28px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <h1 style={{ margin: "0 0 4px", color: colors.text, fontWeight: 800, fontSize: isMobile ? 22 : 26 }}>Schedule Builder</h1>
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.38)", fontSize: 14 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 500, letterSpacing: "1.8px",
+            fontFamily: "'JetBrains Mono', monospace",
+            color: "#861F41", textTransform: "uppercase", display: "block", marginBottom: 10,
+          }}>Fall 2026</span>
+          <h1 style={{
+            margin: "0 0 6px", color: colors.text, fontWeight: 400,
+            fontFamily: "'Instrument Serif', Georgia, serif",
+            fontSize: isMobile ? 32 : 42, letterSpacing: "-0.5px", lineHeight: 1.05,
+          }}>Schedule <span style={{ color: "#861F41", fontStyle: "italic" }}>builder.</span></h1>
+          <p style={{ margin: 0, color: colors.sub, fontSize: 14 }}>
             Fall 2026 · {sections.length} section{sections.length !== 1 ? "s" : ""} · {courseKeys.length} course{courseKeys.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -373,12 +382,16 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
         {sections.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 0", color: colors.sub }}>
             <div style={{ marginBottom: 16, display: "flex", justifyContent: "center", color: colors.sub }}><CalendarIcon size={48} /></div>
-            <div style={{ fontWeight: 800, fontSize: 20, color: colors.text, marginBottom: 8 }}>Your schedule is empty</div>
+            <div style={{
+              fontWeight: 400, fontSize: 28, color: colors.text, marginBottom: 8,
+              fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: "italic",
+            }}>Your schedule is empty.</div>
             <div style={{ fontSize: 15, marginBottom: 24 }}>Browse courses and add sections to build your schedule</div>
             <button onClick={() => setPage("search")} style={{
-              background: "#861F41", color: "white", border: "none", borderRadius: 12,
-              padding: "12px 28px", fontWeight: 800, fontSize: 15, cursor: "pointer",
+              background: "#861F41", color: "white", border: "none", borderRadius: 999,
+              padding: "12px 28px", fontWeight: 600, fontSize: 14.5, cursor: "pointer",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
+              boxShadow: "0 2px 18px rgba(134,31,65,0.3)",
             }}>Browse Courses →</button>
           </div>
         ) : (

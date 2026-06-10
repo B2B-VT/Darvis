@@ -195,7 +195,7 @@ function PostThread({ post, onBack, darkMode, currentUser }) {
   const [replyAnonymous,   setReplyAnonymous] = useState(false);
 
   const dm = darkMode;
-  const bg     = dm ? "#080808" : "#f7f4f0";
+  const bg     = "transparent";
   const cardBg = dm ? "rgba(255,255,255,0.04)" : "white";
   const border = dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const text   = dm ? "rgba(255,255,255,0.88)" : "#1a1210";
@@ -411,7 +411,7 @@ function CategoryView({ category, onBack, onOpenPost, onNewPost, darkMode, curre
   const [confirmDelete, setConfirmDelete] = useState(null); // post id being confirmed
 
   const dm = darkMode;
-  const bg     = dm ? "#080808" : "#f7f4f0";
+  const bg     = "transparent";
   const cardBg = dm ? "rgba(255,255,255,0.04)" : "white";
   const cardHov= dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
   const border = dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
@@ -458,7 +458,11 @@ function CategoryView({ category, onBack, onOpenPost, onNewPost, darkMode, curre
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
           <div>
             <div style={{ marginBottom: 8, color: sub }}><category.Icon size={22} /></div>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: head, letterSpacing: "-0.4px" }}>{category.title}</h1>
+            <h1 style={{
+              margin: 0, fontSize: 30, fontWeight: 400,
+              fontFamily: "'Instrument Serif', Georgia, serif",
+              color: head, letterSpacing: "-0.4px",
+            }}>{category.title}</h1>
             <p style={{ margin: "6px 0 0", fontSize: 14, color: sub }}>{category.description}</p>
           </div>
           {currentUser && (
@@ -561,7 +565,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
   }, []);
 
   const dm = darkMode;
-  const bg      = dm ? "#080808"                 : "#f7f4f0";
+  const bg      = "transparent";
   const cardBg  = dm ? "rgba(255,255,255,0.04)"  : "rgba(0,0,0,0.03)";
   const cardHov = dm ? "rgba(255,255,255,0.07)"  : "rgba(0,0,0,0.06)";
   const border  = dm ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.08)";
@@ -666,7 +670,16 @@ export default function ForumsPage({ darkMode = true, setPage }) {
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "0 16px" : "0 48px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: "-0.5px", color: head }}>Forums</h1>
+              <span style={{
+                fontSize: 11, fontWeight: 500, letterSpacing: "1.8px",
+                fontFamily: "'JetBrains Mono', monospace",
+                color: "#861F41", textTransform: "uppercase", display: "block", marginBottom: 10,
+              }}>Community</span>
+              <h1 style={{
+                margin: 0, fontSize: "clamp(34px, 4vw, 46px)", fontWeight: 400,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                letterSpacing: "-0.5px", color: head, lineHeight: 1.05,
+              }}>The <span style={{ color: "#861F41", fontStyle: "italic" }}>forums.</span></h1>
               <p style={{ margin: "10px 0 0", color: subtext, fontSize: 15 }}>
                 Real talk about courses from students who've been there.
               </p>

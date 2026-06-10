@@ -14,6 +14,9 @@ import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
 import AboutPage from "./components/about.jsx";
+import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
+
+injectGlobalStyles();
 
 // Pages that require authentication
 const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors"]);
@@ -112,19 +115,19 @@ export default function App() {
 
   // Show nothing until Clerk finishes loading (avoids auth gate flash)
   if (!authLoaded) {
+    const p = palette(darkMode);
     return (
       <div style={{
-        background: darkMode ? "#080808" : "#f7f4f0",
+        background: p.bg,
         minHeight: "100vh",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontFamily: SANS,
       }}>
         <div style={{
-          width: 32, height: 32, border: "3px solid rgba(134,31,65,0.3)",
+          width: 32, height: 32, border: "2.5px solid rgba(134,31,65,0.25)",
           borderTopColor: "#861F41", borderRadius: "50%",
-          animation: "spin 0.7s linear infinite",
+          animation: "dvSpin 0.7s linear infinite",
         }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -183,29 +186,31 @@ export default function App() {
     );
   };
 
+  const p = palette(darkMode);
+
   return (
     <div style={{
-      background: darkMode ? "#080808" : "#f7f4f0",
+      background: p.bg,
       minHeight: "100vh",
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
-      transition: "background 0.3s",
+      fontFamily: SANS,
+      transition: "background 0.45s",
     }}>
+      {/* Ambient atmosphere on every page except landing (which has campus photos) */}
+      {page !== "landing" && <AmbientBackdrop dark={darkMode} />}
+      <GrainOverlay dark={darkMode} />
+
       <Nav
         page={page} setPage={navigateTo}
         schedule={schedule}
         darkMode={darkMode} setDarkMode={setDarkMode}
       />
 
-      <div key={page} style={{ animation: "pageIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both" }}>
+      <div key={page} style={{
+        position: "relative", zIndex: 1,
+        animation: "dvPageIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
+      }}>
         {renderPage()}
       </div>
-
-      <style>{`
-        @keyframes pageIn {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
 
       {selectedCourse && (
         <CourseDetail

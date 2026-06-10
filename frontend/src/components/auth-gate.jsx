@@ -18,13 +18,13 @@ const PAGE_ICONS = {
 export default function AuthGate({ page, darkMode }) {
   const dm = darkMode;
   const c = dm ? {
-    bg:     "#080808",
+    bg:     "transparent",
     head:   "#ffffff",
     sub:    "rgba(255,255,255,0.45)",
     card:   "rgba(255,255,255,0.04)",
     border: "rgba(255,255,255,0.08)",
   } : {
-    bg:     "#f7f4f0",
+    bg:     "transparent",
     head:   "#1a1210",
     sub:    "rgba(0,0,0,0.45)",
     card:   "rgba(0,0,0,0.03)",

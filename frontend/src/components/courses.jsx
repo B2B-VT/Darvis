@@ -821,7 +821,7 @@ function CourseCard({ course, darkMode, onClick, onProfClick }) {
       {/* Eyebrow row: course code + GPA */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <span style={{
-          fontSize: 10, fontWeight: 900, color: "#861F41",
+          fontSize: 10, fontWeight: 700, color: "#861F41",
           letterSpacing: "1.2px", textTransform: "uppercase",
         }}>{course.subject} {course.number}</span>
         <span style={{ fontSize: 11, fontWeight: 800, color: gpaCol, letterSpacing: "0.3px" }}>
@@ -880,7 +880,7 @@ function FilterSection({ title, divider, faint, children }) {
   return (
     <div style={{ borderTop: `1px solid ${divider}`, padding: "20px 0" }}>
       <div style={{
-        fontSize: 10, fontWeight: 900, color: faint,
+        fontSize: 10, fontWeight: 700, color: faint,
         textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 14,
       }}>{title}</div>
       {children}
@@ -925,7 +925,7 @@ function SubjectSearch({ subjects, selected, onChange, darkMode, c }) {
               {s}
               <button onClick={() => remove(s)} style={{
                 background: "none", border: "none", color: "rgba(255,255,255,0.75)",
-                cursor: "pointer", padding: 0, fontSize: 12, lineHeight: 1, fontWeight: 900,
+                cursor: "pointer", padding: 0, fontSize: 12, lineHeight: 1, fontWeight: 700,
               }}>×</button>
             </span>
           ))}
@@ -1010,7 +1010,7 @@ function FilterPanel({ filters, setFilters, darkMode, subjects, isMobile }) {
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingBottom: 14 }}>
         <span style={{
-          fontSize: 10, fontWeight: 900, color: "#861F41",
+          fontSize: 10, fontWeight: 700, color: "#861F41",
           letterSpacing: "1.5px", textTransform: "uppercase",
         }}>Filter</span>
         <button onClick={() => setFilters({ subjects: [], minGpa: "", maxDiff: "", minCredits: "", maxCredits: "", pathway: "", days: [] })} style={{
@@ -1086,7 +1086,7 @@ function FilterPanel({ filters, setFilters, darkMode, subjects, isMobile }) {
                 }}
               >
                 <span style={{
-                  flexShrink: 0, fontSize: 10, fontWeight: 900,
+                  flexShrink: 0, fontSize: 10, fontWeight: 700,
                   color: active ? "#861F41" : c.faint,
                   letterSpacing: "0.5px", minWidth: 22,
                 }}>{pw.code}</span>
@@ -1177,14 +1177,14 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   }, [query, filters.subjects, filters.minGpa, filters.minCredits, filters.pathway]);
 
   const c = dm ? {
-    bg:       "#0a0a0a",
+    bg:       "transparent",
     text:     "#f0edf3",
     sub:      "rgba(255,255,255,0.45)",
     faint:    "rgba(255,255,255,0.22)",
     divider:  "rgba(255,255,255,0.08)",
     inputBg:  "transparent",
   } : {
-    bg:       "#fbf8f4",
+    bg:       "transparent",
     text:     "#1a1210",
     sub:      "rgba(20,16,12,0.55)",
     faint:    "rgba(20,16,12,0.32)",
@@ -1237,17 +1237,19 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       }}>
         {/* Eyebrow */}
         <span style={{
-          fontSize: 10, fontWeight: 900, letterSpacing: "2.5px",
+          fontSize: 11, fontWeight: 500, letterSpacing: "1.8px",
+          fontFamily: "'JetBrains Mono', monospace",
           color: "#861F41", textTransform: "uppercase",
         }}>Course Catalog</span>
 
         {/* Headline */}
         <h1 style={{
-          margin: "20px 0 14px",
-          fontSize: "clamp(40px, 5.5vw, 76px)", fontWeight: 900,
-          color: c.text, letterSpacing: "-3px", lineHeight: 0.98,
+          margin: "18px 0 14px",
+          fontSize: "clamp(42px, 5.5vw, 78px)", fontWeight: 400,
+          fontFamily: "'Instrument Serif', Georgia, serif",
+          color: c.text, letterSpacing: "-1px", lineHeight: 1.02,
         }}>
-          Browse <span style={{ color: "#861F41" }}>courses.</span>
+          Browse <span style={{ color: "#861F41", fontStyle: "italic" }}>courses.</span>
         </h1>
 
         {/* Subtitle */}

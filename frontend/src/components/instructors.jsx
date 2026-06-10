@@ -79,7 +79,7 @@ function InstructorRow({ instr, darkMode, onOpen, isLast }) {
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
         background: dm ? "#2a1f2e" : "#f0edf3",
-        color: "#861F41", fontWeight: 900, fontSize: 13,
+        color: "#861F41", fontWeight: 700, fontSize: 13,
         display: "flex", alignItems: "center", justifyContent: "center",
         letterSpacing: "-0.5px",
       }}>
@@ -140,7 +140,7 @@ function InstructorRow({ instr, darkMode, onOpen, isLast }) {
 export default function InstructorsPage({ darkMode }) {
   const dm = darkMode;
   const colors = {
-    bg:     dm ? "#0a0a0a" : "#fbf8f4",
+    bg:     "transparent",
     text:   dm ? "#f0edf3" : "#1c1a1e",
     sub:    dm ? "rgba(255,255,255,0.40)" : "rgba(20,16,12,0.55)",
     faint:  dm ? "rgba(255,255,255,0.22)" : "rgba(20,16,12,0.32)",
@@ -243,16 +243,18 @@ export default function InstructorsPage({ darkMode }) {
         borderBottom: `1px solid ${colors.border}`,
       }}>
         <span style={{
-          fontSize: 10, fontWeight: 900, letterSpacing: "2.5px",
+          fontSize: 11, fontWeight: 500, letterSpacing: "1.8px",
+          fontFamily: "'JetBrains Mono', monospace",
           color: "#861F41", textTransform: "uppercase",
         }}>Directory</span>
 
         <h1 style={{
-          margin: "20px 0 14px",
-          fontSize: "clamp(36px, 5vw, 68px)", fontWeight: 900,
-          color: colors.text, letterSpacing: "-2.5px", lineHeight: 0.98,
+          margin: "18px 0 14px",
+          fontSize: "clamp(38px, 5vw, 70px)", fontWeight: 400,
+          fontFamily: "'Instrument Serif', Georgia, serif",
+          color: colors.text, letterSpacing: "-1px", lineHeight: 1.02,
         }}>
-          Browse <span style={{ color: "#861F41" }}>instructors.</span>
+          Browse <span style={{ color: "#861F41", fontStyle: "italic" }}>instructors.</span>
         </h1>
 
         <p style={{
@@ -301,7 +303,7 @@ export default function InstructorsPage({ darkMode }) {
           {/* Dept pills */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span style={{
-              fontSize: 10, fontWeight: 900, color: colors.faint,
+              fontSize: 10, fontWeight: 700, color: colors.faint,
               letterSpacing: "1.5px", textTransform: "uppercase",
             }}>Dept</span>
             {allSubjects.map(sub => {
@@ -325,7 +327,7 @@ export default function InstructorsPage({ darkMode }) {
           {/* Sort */}
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <span style={{
-              fontSize: 10, fontWeight: 900, color: colors.faint,
+              fontSize: 10, fontWeight: 700, color: colors.faint,
               letterSpacing: "1.5px", textTransform: "uppercase",
             }}>Sort</span>
             <SortBtn id="name" label="Name" />

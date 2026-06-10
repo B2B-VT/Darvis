@@ -165,7 +165,7 @@ function Avatar({ user, size = 68 }) {
     <div style={{
       width: size, height: size, borderRadius: Math.round(size * 0.18),
       background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white",
-      fontWeight: 900, fontSize: Math.round(size * 0.36),
+      fontWeight: 700, fontSize: Math.round(size * 0.36),
       display: "flex", alignItems: "center", justifyContent: "center",
       border: "3px solid rgba(255,255,255,0.3)",
       flexShrink: 0,
@@ -182,7 +182,7 @@ export default function ProfilePage({ darkMode }) {
   const dm = darkMode;
 
   const c = dm ? {
-    bg:          "#080808",
+    bg:          "transparent",
     head:        "#ffffff",
     text:        "rgba(255,255,255,0.88)",
     sub:         "rgba(255,255,255,0.45)",
@@ -192,7 +192,7 @@ export default function ProfilePage({ darkMode }) {
     inputBorder: "rgba(255,255,255,0.12)",
     divider:     "rgba(255,255,255,0.06)",
   } : {
-    bg:          "#f7f4f0",
+    bg:          "transparent",
     head:        "#1a1210",
     text:        "#1a1210",
     sub:         "rgba(0,0,0,0.45)",
@@ -322,7 +322,10 @@ export default function ProfilePage({ darkMode }) {
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <Avatar user={user} size={68} />
             <div style={{ flex: 1 }}>
-              <h1 style={{ margin: "0 0 4px", color: "white", fontWeight: 800, fontSize: 24, letterSpacing: "-0.4px" }}>
+              <h1 style={{
+                margin: "0 0 4px", color: "white", fontWeight: 400, fontSize: 32,
+                fontFamily: "'Instrument Serif', Georgia, serif", letterSpacing: "-0.4px",
+              }}>
                 {displayName}
               </h1>
               <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 14 }}>
@@ -452,7 +455,7 @@ export default function ProfilePage({ darkMode }) {
               {/* ── Identity section ── */}
               <div>
                 <div style={{
-                  fontSize: 10, fontWeight: 900, color: "#861F41",
+                  fontSize: 10, fontWeight: 700, color: "#861F41",
                   letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14,
                 }}>Identity</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -510,7 +513,7 @@ export default function ProfilePage({ darkMode }) {
               {/* ── Academic section ── */}
               <div>
                 <div style={{
-                  fontSize: 10, fontWeight: 900, color: "#861F41",
+                  fontSize: 10, fontWeight: 700, color: "#861F41",
                   letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14,
                 }}>Academic</div>
 

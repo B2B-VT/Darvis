@@ -493,7 +493,7 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
           flexShrink: 0,
         }}>
           <span style={{
-            fontSize: 10, fontWeight: 900, color: "#861F41",
+            fontSize: 10, fontWeight: 700, color: "#861F41",
             letterSpacing: "1.5px", textTransform: "uppercase",
           }}>History</span>
           <button
@@ -756,8 +756,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   return (
     <div style={{
       display: "flex",
-      height: "calc(100vh - 60px)",
-      background: c.bg,
+      height: "calc(100vh - 76px)",
+      background: "transparent",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       overflow: "hidden",
     }}>
@@ -818,12 +818,12 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
             overflowY: "auto",
           }}>
             <div style={{
-              fontSize: 10, fontWeight: 900, color: "#861F41",
+              fontSize: 10, fontWeight: 700, color: "#861F41",
               letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 20,
             }}>Darvis AI</div>
             <h1 style={{
               margin: "0 0 12px", fontSize: isMobile ? "clamp(28px, 8vw, 38px)" : "clamp(28px, 4vw, 48px)",
-              fontWeight: 900, color: c.text, letterSpacing: "-2px", textAlign: "center",
+              fontWeight: 700, color: c.text, letterSpacing: "-2px", textAlign: "center",
             }}>
               Ask about <span style={{ color: "#861F41" }}>any course.</span>
             </h1>

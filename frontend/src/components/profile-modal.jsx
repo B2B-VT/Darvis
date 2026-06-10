@@ -239,7 +239,7 @@ export default function ProfileModal({ onClose, darkMode = true }) {
               <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 60, height: 60 }} />
             </div>
             <div style={{
-              fontSize: 10, fontWeight: 900, color: "#861F41",
+              fontSize: 10, fontWeight: 700, color: "#861F41",
               letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 16,
             }}>Welcome to Darvis</div>
             <h2 style={{
@@ -296,7 +296,7 @@ export default function ProfileModal({ onClose, darkMode = true }) {
             {/* Header */}
             <div style={{ marginBottom: 28 }}>
               <div style={{
-                fontSize: 10, fontWeight: 900, color: "#861F41",
+                fontSize: 10, fontWeight: 700, color: "#861F41",
                 letterSpacing: "2px", textTransform: "uppercase", marginBottom: 10,
               }}>Your Profile</div>
               <h2 style={{

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 export default function FaqsPage({ darkMode = true, setPage }) {
-  const bg      = darkMode ? "#080808"                 : "#f7f4f0";
+  const bg      = "transparent";
   const cardBg  = darkMode ? "rgba(255,255,255,0.04)"  : "rgba(0,0,0,0.03)";
   const cardHov = darkMode ? "rgba(255,255,255,0.03)"  : "rgba(0,0,0,0.02)";
   const border  = darkMode ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.08)";
@@ -123,7 +123,16 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${border}`, padding: isMobile ? "32px 0 24px" : "48px 0 40px" }}>
         <div style={{ maxWidth: 820, margin: "0 auto", padding: isMobile ? "0 16px" : "0 48px" }}>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: "-0.5px", color: head }}>FAQs</h1>
+          <span style={{
+            fontSize: 11, fontWeight: 500, letterSpacing: "1.8px",
+            fontFamily: "'JetBrains Mono', monospace",
+            color: accent, textTransform: "uppercase", display: "block", marginBottom: 10,
+          }}>Help Center</span>
+          <h1 style={{
+            margin: 0, fontSize: "clamp(34px, 4vw, 46px)", fontWeight: 400,
+            fontFamily: "'Instrument Serif', Georgia, serif",
+            letterSpacing: "-0.5px", color: head, lineHeight: 1.05,
+          }}>Questions, <span style={{ color: accent, fontStyle: "italic" }}>answered.</span></h1>
           <p style={{ margin: "10px 0 0", color: subtext, fontSize: 15 }}>
             Common questions about Darvis, the grade data, and the AI.
           </p>

@@ -1,7 +1,8 @@
-// Landing Page v4 — VT Campus panorama · scroll-pan · light/dark
+// Landing Page v5 — VT Campus panorama · editorial serif · light/dark
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
+import { Scribble, MONO, SERIF } from "../theme.jsx";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -77,7 +78,7 @@ export function CampusBackground({ darkMode }) {
       position: 'fixed', top: 0, left: 0,
       width: '100vw', height: '100vh',
       zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
-      background: darkMode ? '#080808' : '#f5f1ec',
+      background: darkMode ? '#0A0908' : '#FAF6F0',
     }}>
       <img
         src="images/campus_day.jpg"
@@ -484,8 +485,8 @@ export default function LandingPage({ onEnter, darkMode }) {
     cardBorder:  'rgba(255,255,255,0.07)',
     sectionLine: 'rgba(255,255,255,0.08)',
     sectionLineSoft: 'rgba(255,255,255,0.06)',
-    gradeBg:     '#0c0c0c',
-    footerBg:    '#080808',
+    gradeBg:     '#0D0B0A',
+    footerBg:    '#0A0908',
     btnGhostText:   'rgba(255,255,255,0.45)',
     btnGhostBorder: 'rgba(255,255,255,0.12)',
     btnGhostHovBd:  'rgba(255,255,255,0.30)',
@@ -500,8 +501,8 @@ export default function LandingPage({ onEnter, darkMode }) {
     cardBorder:  'rgba(20,16,12,0.10)',
     sectionLine: 'rgba(20,16,12,0.12)',
     sectionLineSoft: 'rgba(20,16,12,0.08)',
-    gradeBg:     'rgba(255,250,243,0.92)',
-    footerBg:    'rgba(255,250,243,0.95)',
+    gradeBg:     'rgba(250,246,240,0.92)',
+    footerBg:    'rgba(250,246,240,0.95)',
     btnGhostText:   'rgba(20,16,12,0.55)',
     btnGhostBorder: 'rgba(20,16,12,0.18)',
     btnGhostHovBd:  'rgba(20,16,12,0.40)',
@@ -583,7 +584,7 @@ export default function LandingPage({ onEnter, darkMode }) {
           {/* Label */}
           <div className="lp-hero-fade" style={{ marginBottom: 36 }}>
             <span style={{
-              fontSize: 11, fontWeight: 600, letterSpacing: '2px',
+              fontSize: 11, fontWeight: 500, letterSpacing: '1.8px', fontFamily: MONO,
               color: '#861F41', textTransform: 'uppercase',
             }}>Course Planning · Grade Data</span>
           </div>
@@ -603,6 +604,15 @@ export default function LandingPage({ onEnter, darkMode }) {
                 fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic',
                 lineHeight: 1.02, letterSpacing: '-1.5px', color: '#861F41',
               }}>with real data.</span>
+            </span>
+            {/* Hand-drawn underline draws itself in after the headline rises */}
+            <span aria-hidden="true" style={{
+              display: 'block',
+              fontSize: 'clamp(54px, 7.5vw, 108px)',
+              width: 'min(6.4em, 88%)',
+              marginTop: '0.06em',
+            }}>
+              <Scribble delay={1.1} />
             </span>
           </div>
 
@@ -752,9 +762,9 @@ export default function LandingPage({ onEnter, darkMode }) {
                 <AnimCounter target={s.val} suffix={s.suffix} active={statsActive} />
               </div>
               <div style={{
-                fontSize: 11, color: t.textMute,
-                fontWeight: 700, marginTop: 10,
-                textTransform: 'uppercase', letterSpacing: '1px',
+                fontSize: 10.5, color: t.textMute, fontFamily: MONO,
+                fontWeight: 500, marginTop: 10,
+                textTransform: 'uppercase', letterSpacing: '1.4px',
               }}>{s.label}</div>
             </div>
           ))}
@@ -767,8 +777,8 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div style={{ marginBottom: 52 }}>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 11, fontWeight: 600,
-                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 500, fontFamily: MONO,
+                color: '#861F41', letterSpacing: '1.8px', textTransform: 'uppercase', marginBottom: 18,
               }}>See inside</span>
             </span>
             <span className="lp-clip">
@@ -802,8 +812,8 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div style={{ position: isMobile ? 'static' : 'sticky', top: 100 }}>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 11, fontWeight: 600,
-                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 500, fontFamily: MONO,
+                color: '#861F41', letterSpacing: '1.8px', textTransform: 'uppercase', marginBottom: 18,
               }}>What you get</span>
             </span>
             <span className="lp-clip">
@@ -843,8 +853,8 @@ export default function LandingPage({ onEnter, darkMode }) {
           <div>
             <span className="lp-clip">
               <span className="lp-line" style={{
-                display: 'block', fontSize: 11, fontWeight: 600,
-                color: '#861F41', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 18,
+                display: 'block', fontSize: 11, fontWeight: 500, fontFamily: MONO,
+                color: '#861F41', letterSpacing: '1.8px', textTransform: 'uppercase', marginBottom: 18,
               }}>Grade data</span>
             </span>
             <span className="lp-clip">

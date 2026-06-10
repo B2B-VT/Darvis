@@ -64,7 +64,7 @@ function Dashboard({ user, schedule, darkMode, onCourseClick, onProfClick, onRem
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 4 }}>
             <div style={{
               width: 52, height: 52, borderRadius: "50%", background: "#f0c050",
-              color: "#861F41", fontWeight: 900, fontSize: 22,
+              color: "#861F41", fontWeight: 700, fontSize: 22,
               display: "flex", alignItems: "center", justifyContent: "center",
               border: "3px solid rgba(255,255,255,0.3)",
             }}>{user?.name?.charAt(0) || "?"}</div>
@@ -133,7 +133,7 @@ function Dashboard({ user, schedule, darkMode, onCourseClick, onProfClick, onRem
                           width: 48, height: 48, borderRadius: 12, background: col.bg,
                           border: `2px solid ${col.border}`, flexShrink: 0,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontWeight: 900, fontSize: 11, color: col.text, textAlign: "center", lineHeight: 1.2,
+                          fontWeight: 700, fontSize: 11, color: col.text, textAlign: "center", lineHeight: 1.2,
                         }}>
                           {course?.subject}<br/>{course?.number}
                         </div>
@@ -340,7 +340,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
               <div style={{
                 width: isMobile ? 48 : 64, height: isMobile ? 48 : 64, borderRadius: "50%",
                 background: "#f0c050", color: "#861F41",
-                fontWeight: 900, fontSize: isMobile ? 20 : 26,
+                fontWeight: 700, fontSize: isMobile ? 20 : 26,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 border: "3px solid rgba(255,255,255,0.3)", flexShrink: 0,
               }}>{(prof?.name || "?").charAt(0)}</div>
@@ -370,7 +370,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
               {rmpRating != null ? (
                 <>
                   <div style={{ textAlign: "center", marginBottom: 20 }}>
-                    <div style={{ fontSize: 52, fontWeight: 900, color: "#861F41", lineHeight: 1 }}>{rmpRating.toFixed(1)}</div>
+                    <div style={{ fontSize: 52, fontWeight: 700, color: "#861F41", lineHeight: 1 }}>{rmpRating.toFixed(1)}</div>
                     <StarRating rating={rmpRating} size={18} />
                     <div style={{ color: colors.sub, fontSize: 13, marginTop: 6 }}>Based on {rmpCount} ratings</div>
                     <div style={{ display: "inline-block", marginTop: 8, background: "#fdf4f6", border: "1px solid #f5c0cc", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 700, color: "#861F41" }}>

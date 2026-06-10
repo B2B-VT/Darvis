@@ -47,7 +47,7 @@ const IconUsers = ({ color }) => (
 export default function AboutPage({ darkMode, setPage }) {
   const dm = darkMode;
   const colors = {
-    bg:     dm ? "#080808" : "#f7f4f0",
+    bg:     "transparent",
     text:   dm ? "#f0edf3" : "#1c1a1e",
     sub:    dm ? "rgba(255,255,255,0.5)"  : "#75787b",
     border: dm ? "rgba(255,255,255,0.08)" : "#e5e0ea",
@@ -113,10 +113,11 @@ export default function AboutPage({ darkMode, setPage }) {
             <img src="/logo.svg" alt="Darvis" style={{ width: 36, height: 36 }} />
           </div>
           <h1 style={{
-            margin: "0 0 14px", fontSize: 36, fontWeight: 900,
-            color: "white", letterSpacing: "-0.5px", lineHeight: 1.15,
+            margin: "0 0 14px", fontSize: "clamp(36px, 4.5vw, 50px)", fontWeight: 400,
+            fontFamily: "'Instrument Serif', Georgia, serif",
+            color: "white", letterSpacing: "-0.5px", lineHeight: 1.1,
           }}>
-            Built for Hokies, by a Hokie
+            Built for Hokies, <span style={{ fontStyle: "italic" }}>by a Hokie.</span>
           </h1>
           <p style={{
             margin: 0, fontSize: 17, color: "rgba(255,255,255,0.75)",
@@ -134,7 +135,7 @@ export default function AboutPage({ darkMode, setPage }) {
         {/* What Darvis is */}
         <section style={{ marginBottom: 64 }}>
           <h2 style={{
-            margin: "0 0 16px", fontSize: 22, fontWeight: 900,
+            margin: "0 0 16px", fontSize: 22, fontWeight: 700,
             color: colors.text, letterSpacing: "-0.3px",
           }}>
             What is Darvis?
@@ -159,7 +160,7 @@ export default function AboutPage({ darkMode, setPage }) {
         {/* Features grid */}
         <section style={{ marginBottom: 64 }}>
           <h2 style={{
-            margin: "0 0 24px", fontSize: 22, fontWeight: 900,
+            margin: "0 0 24px", fontSize: 22, fontWeight: 700,
             color: colors.text, letterSpacing: "-0.3px",
           }}>
             What's inside
@@ -210,7 +211,7 @@ export default function AboutPage({ darkMode, setPage }) {
           padding: "28px 32px",
         }}>
           <h2 style={{
-            margin: "0 0 16px", fontSize: 22, fontWeight: 900,
+            margin: "0 0 16px", fontSize: 22, fontWeight: 700,
             color: colors.text, letterSpacing: "-0.3px",
           }}>
             Data sources
@@ -256,7 +257,7 @@ export default function AboutPage({ darkMode, setPage }) {
             textAlign: "center",
           }}>
             <h2 style={{
-              margin: "0 0 12px", fontSize: 24, fontWeight: 900,
+              margin: "0 0 12px", fontSize: 24, fontWeight: 700,
               color: "white", letterSpacing: "-0.3px",
             }}>
               Ready to plan smarter?
