@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, EASE, palette } from "../theme.jsx";
-import ScrollStoryAnimation from "./landing/ScrollStoryAnimation.jsx";
+import StudentBrainAnimation from "./landing/StudentBrainAnimation.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -746,8 +746,8 @@ export default function LandingPage({ onEnter, darkMode }) {
         </div>
       </section>
 
-      {/* ── THE ACADEMIC CONSTELLATION (scroll-driven story) ─────────────────── */}
-      <ScrollStoryAnimation dark={darkMode} />
+      {/* ── THE STUDENT BRAIN (scroll-driven story) ──────────────────────────── */}
+      <StudentBrainAnimation dark={darkMode} />
 
       {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
       <section ref={chartRef} style={{
