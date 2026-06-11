@@ -29,6 +29,18 @@ const LP_CSS = `
   from { transform: translateY(0); }
   to   { transform: translateY(28px); }
 }
+@keyframes lpFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes lpTwinkle {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 0.25; }
+}
+@keyframes lpNudge {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(4px); }
+}
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-h-fade { animation: lpHeroFade 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -48,8 +60,9 @@ const LP_CSS = `
 .lp-mq-r .lp-mq-track { animation: lpMqRight 48s linear infinite; }
 .lp-mq-l .lp-mq-track { animation: lpMqLeft 54s linear infinite; }
 .lp-mq:hover .lp-mq-track { animation-play-state: paused; }
-.lp-card { transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), border-color 0.3s ease, box-shadow 0.3s ease; }
-.lp-card:hover { transform: translateY(-5px); border-color: rgba(134,31,65,0.55) !important; }
+.lp-card { position: relative; transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
+.lp-card:hover { transform: translateY(-5px); border-color: rgba(134,31,65,0.55) !important;
+  background: var(--card-solid) !important; z-index: 10; }
 .lp-card-more { max-height: 0; opacity: 0; overflow: hidden;
   transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.35s ease; }
 .lp-card:hover .lp-card-more { max-height: 150px; opacity: 1; margin-top: 12px; }
@@ -176,28 +189,28 @@ function HeroPhoto({ dark, parallaxRef }) {
         <img src="images/campus_day.jpg" alt="" style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
           objectFit: "cover",
-          filter: "grayscale(0.65) contrast(1.06) brightness(1.04)",
+          filter: "grayscale(0.25) contrast(1.06) brightness(1.04)",
           opacity: dark ? 0 : 1, transition: "opacity 0.6s ease",
         }} />
         <img src="images/campus_night.jpg" alt="" style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
           objectFit: "cover",
-          filter: "grayscale(0.5) contrast(1.1) brightness(0.9)",
+          filter: "grayscale(0.2) contrast(1.1) brightness(0.9)",
           opacity: dark ? 1 : 0, transition: "opacity 0.6s ease",
         }} />
       </div>
       {/* Duotone maroon wash */}
       <div style={{
         position: "absolute", inset: 0,
-        background: dark ? "rgba(134,31,65,0.16)" : "rgba(134,31,65,0.07)",
+        background: dark ? "rgba(134,31,65,0.12)" : "rgba(134,31,65,0.05)",
         mixBlendMode: dark ? "screen" : "multiply",
       }} />
       {/* Legibility scrim → fades into the page atmosphere at the bottom */}
       <div style={{
         position: "absolute", inset: 0,
         background: dark
-          ? "linear-gradient(180deg, rgba(10,9,8,0.58) 0%, rgba(10,9,8,0.70) 55%, #0A0908 100%)"
-          : "linear-gradient(180deg, rgba(250,246,240,0.64) 0%, rgba(250,246,240,0.76) 55%, #FAF6F0 100%)",
+          ? "linear-gradient(180deg, rgba(10,9,8,0.50) 0%, rgba(10,9,8,0.62) 55%, #0A0908 100%)"
+          : "linear-gradient(180deg, rgba(250,246,240,0.56) 0%, rgba(250,246,240,0.68) 55%, #FAF6F0 100%)",
         transition: "background 0.45s ease",
       }} />
       {/* Drifting perspective grid */}
@@ -309,6 +322,13 @@ function RotatingStamp({ dark }) {
         <text fill={ink} fontSize="8.2" fontFamily="'JetBrains Mono', monospace" letterSpacing="2.2">
           <textPath href="#lp-circle">DARVIS · COURSE INTELLIGENCE · EST 2025 ·</textPath>
         </text>
+      </svg>
+      <svg viewBox="0 0 100 100" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        animation: "lpSpinSlow 30s linear infinite reverse",
+      }}>
+        <circle cx="50" cy="50" r="26" fill="none" stroke={ACCENT}
+          strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3 6" />
       </svg>
       <svg viewBox="0 0 24 24" style={{
         position: "absolute", top: "50%", left: "50%",
@@ -564,6 +584,7 @@ function CourseCard({ c, t, dark }) {
     <div className="lp-card" style={{
       width: 252, flexShrink: 0, marginRight: 14,
       background: t.card, border: `1px solid ${t.line}`,
+      "--card-solid": dark ? "#181311" : "#FFFFFF",
       borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
@@ -605,6 +626,7 @@ function ProfCard({ pr, t, dark }) {
     <div className="lp-card" style={{
       width: 252, flexShrink: 0, marginRight: 14,
       background: t.card, border: `1px solid ${t.line}`,
+      "--card-solid": dark ? "#181311" : "#FFFFFF",
       borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
@@ -655,7 +677,7 @@ function DataMarquees({ dark, t }) {
         </div>
       </div>
       {/* Instructors — drift left, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-l" style={{ marginTop: -20, zIndex: 1 }}>
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -44, zIndex: 1 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
@@ -670,6 +692,75 @@ function DataMarquees({ dark, t }) {
         Sample data — hover any card
       </div>
     </div>
+  );
+}
+
+// ── Floating hero ornaments — plus / circle / asterisk marks (desktop only) ───
+function FloatMark({ kind, size }) {
+  const s = size;
+  if (kind === "plus") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M12 4v16M4 12h16" stroke={ACCENT} strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+  if (kind === "circle") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="8" stroke={ACCENT} strokeWidth="2.2" />
+    </svg>
+  );
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HeroOrnaments() {
+  const marks = [
+    { kind: "plus",     top: "14%", left: "6%",  size: 13, dur: 4.4, delay: 0.0, tw: 3.1 },
+    { kind: "asterisk", top: "24%", left: "84%", size: 16, dur: 5.6, delay: 0.8, tw: 4.0 },
+    { kind: "circle",   top: "12%", left: "58%", size: 9,  dur: 4.8, delay: 1.6, tw: 3.5 },
+    { kind: "plus",     top: "62%", left: "88%", size: 11, dur: 5.2, delay: 0.4, tw: 2.8 },
+    { kind: "asterisk", top: "74%", left: "10%", size: 13, dur: 4.6, delay: 2.1, tw: 3.8 },
+    { kind: "circle",   top: "48%", left: "4%",  size: 7,  dur: 6.0, delay: 1.2, tw: 4.4 },
+    { kind: "plus",     top: "34%", left: "70%", size: 9,  dur: 5.4, delay: 2.6, tw: 3.2 },
+    { kind: "circle",   top: "82%", left: "72%", size: 10, dur: 4.2, delay: 0.6, tw: 2.6 },
+    { kind: "asterisk", top: "8%",  left: "30%", size: 11, dur: 5.8, delay: 1.9, tw: 4.2 },
+  ];
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none", overflow: "hidden" }}>
+      {marks.map((m, i) => (
+        <span key={i} style={{
+          position: "absolute", top: m.top, left: m.left,
+          animation: `lpFloat ${m.dur}s ease-in-out ${m.delay}s infinite`,
+          display: "block", lineHeight: 0,
+        }}>
+          <span style={{ display: "block", lineHeight: 0, animation: `lpTwinkle ${m.tw}s ease-in-out ${m.delay * 0.7}s infinite` }}>
+            <FloatMark kind={m.kind} size={m.size} />
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── Pulsing kicker dot — solid dot + expanding ping ring ──────────────────────
+function KickerDot() {
+  return (
+    <span aria-hidden="true" style={{
+      position: "relative", display: "inline-block",
+      width: 6, height: 6, marginRight: 10, verticalAlign: "middle",
+    }}>
+      <span style={{
+        position: "absolute", inset: 0, borderRadius: "50%", background: ACCENT,
+        animation: "lpPulse 2.2s ease-in-out infinite",
+      }} />
+      <span style={{
+        position: "absolute", inset: 0, borderRadius: "50%",
+        border: `1px solid ${ACCENT}`,
+        animation: "lpPing 2.2s ease-out infinite",
+      }} />
+    </span>
   );
 }
 
@@ -751,7 +842,10 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
     "BIOL 2104", "HIST 1015", "CS 4664", "PSYC 1004", "MATH 2114",
   ];
 
-  const Btn = ({ label, primary, onClick }) => (
+  const Btn = ({ label, primary, onClick }) => {
+    const hasArrow = label.endsWith("→");
+    const text = hasArrow ? label.slice(0, -1).trimEnd() : label;
+    return (
     <button onClick={onClick} style={{
       background: primary ? ACCENT : "transparent",
       color: primary ? "white" : t.textSub,
@@ -783,8 +877,14 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         e.currentTarget.style.color = t.textSub;
       }
     }}
-    >{label}</button>
-  );
+    >{hasArrow ? (
+      <>
+        {text}{" "}
+        <span style={{ display: "inline-block", animation: "lpNudge 1.5s ease-in-out infinite" }}>→</span>
+      </>
+    ) : label}</button>
+    );
+  };
 
   const pad = isMobile ? "0 22px" : "0 64px";
 
@@ -802,6 +902,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         display: "flex", flexDirection: "column", justifyContent: "center",
       }}>
         <HeroPhoto dark={darkMode} parallaxRef={parallaxRef} />
+        {!isMobile && <HeroOrnaments />}
 
         <div style={{
           position: "relative", zIndex: 1,
@@ -834,7 +935,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
               ))}
             </span>
             {/* Tech baseline draws in under the headline */}
-            <span aria-hidden="true" style={{ display: "block", width: "min(520px, 78%)", marginTop: 18 }}>
+            <span aria-hidden="true" style={{ display: "block", width: "min(520px, 78%)", marginTop: 28 }}>
               <TechLine delay={1.0} />
             </span>
           </div>
@@ -940,7 +1041,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
           <span style={{
             fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
             color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-          }}>Inside the catalog</span>
+          }}><KickerDot />Inside the catalog</span>
           <h2 style={{
             fontFamily: SERIF, fontWeight: 400, margin: 0,
             fontSize: "clamp(28px, 3.2vw, 42px)", letterSpacing: "-0.5px",
@@ -965,7 +1066,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             <span style={{
               fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
               color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-            }}>CS 3114 · Instructor A</span>
+            }}><KickerDot />CS 3114 · Instructor A</span>
             <p style={{
               fontFamily: SERIF, fontSize: isMobile ? 24 : 30, lineHeight: 1.25,
               color: t.text, margin: 0,
@@ -1034,7 +1135,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
           <span style={{
             fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
             color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 16,
-          }}>One quiet workspace</span>
+          }}><KickerDot />One quiet workspace</span>
           <h2 style={{
             fontFamily: SERIF, fontWeight: 400, margin: 0,
             fontSize: "clamp(30px, 3.6vw, 48px)", letterSpacing: "-0.5px",
