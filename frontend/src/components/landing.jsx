@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, EASE, palette } from "../theme.jsx";
-import StudentBrainAnimation from "./landing/StudentBrainAnimation.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -183,7 +182,7 @@ function HeroPhoto({ dark, parallaxRef }) {
       {/* Drifting perspective grid */}
       <svg width="100%" height="100%" preserveAspectRatio="none" style={{
         position: "absolute", inset: 0,
-        opacity: dark ? 0.11 : 0.08,
+        opacity: dark ? 0.07 : 0.05,
       }}>
         <defs>
           <pattern id="lp-grid" width="56" height="56" patternUnits="userSpaceOnUse">
@@ -745,9 +744,6 @@ export default function LandingPage({ onEnter, darkMode }) {
           </svg>
         </div>
       </section>
-
-      {/* ── THE STUDENT BRAIN (scroll-driven story) ──────────────────────────── */}
-      <StudentBrainAnimation dark={darkMode} />
 
       {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
       <section ref={chartRef} style={{
