@@ -32,7 +32,8 @@ const LP_CSS = `
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-h-fade { animation: lpHeroFade 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.lp-w-clip { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.lp-w-clip { display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding-bottom: 0.18em; margin-bottom: -0.18em; }
 .lp-w { display: inline-block; animation: lpHeroLine 0.95s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* ── Data marquees (fluence-style streams, hover to pause + expand) ── */
