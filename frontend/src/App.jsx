@@ -195,8 +195,8 @@ export default function App() {
       fontFamily: SANS,
       transition: "background 0.45s",
     }}>
-      {/* Ambient atmosphere on every page except landing (which has campus photos) */}
-      {page !== "landing" && <AmbientBackdrop dark={darkMode} />}
+      {/* Ambient atmosphere on every page */}
+      <AmbientBackdrop dark={darkMode} />
       <GrainOverlay dark={darkMode} />
 
       <Nav
