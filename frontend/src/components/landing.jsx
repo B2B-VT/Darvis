@@ -1,4 +1,5 @@
-// Landing Page v6 — "The Transcript" · ink-line SVG editorial · light/dark
+// Landing Page v7 — "Observatory" · editorial futurism · treated photo hero ·
+// scroll-driven SVG · light/dark
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
@@ -15,6 +16,18 @@ const LP_CSS = `
 @keyframes lpHeroFade {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lpPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+@keyframes lpPing {
+  0%   { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes lpGridDrift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(28px); }
 }
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -34,6 +47,215 @@ export function CampusBackground({ darkMode }) {
   return null;
 }
 
+// ── Scroll progress hairline (top of viewport) ────────────────────────────────
+function ScrollProgress() {
+  const ref = useRef(null);
+  useEffect(() => {
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const p = doc.scrollTop / Math.max(doc.scrollHeight - doc.clientHeight, 1);
+        if (ref.current) ref.current.style.transform = `scaleX(${p})`;
+        raf = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  return (
+    <div aria-hidden="true" style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 300, pointerEvents: "none" }}>
+      <div ref={ref} style={{
+        height: "100%", background: ACCENT, transformOrigin: "left",
+        transform: "scaleX(0)", boxShadow: `0 0 12px ${ACCENT}`,
+      }} />
+    </div>
+  );
+}
+
+// ── Data spine — vertical line that fills as you scroll, nodes light up ───────
+function DataSpine({ dark }) {
+  const fillRef = useRef(null);
+  const [lit, setLit] = useState(0);
+  useEffect(() => {
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const p = doc.scrollTop / Math.max(doc.scrollHeight - doc.clientHeight, 1);
+        if (fillRef.current) fillRef.current.style.transform = `scaleY(${p})`;
+        setLit(Math.floor(p * 4.999));
+        raf = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  const track = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.12)";
+  return (
+    <div aria-hidden="true" style={{
+      position: "fixed", left: 26, top: "16vh", bottom: "16vh",
+      width: 14, zIndex: 5, pointerEvents: "none",
+      display: "flex", justifyContent: "center",
+    }}>
+      {/* Track */}
+      <div style={{ position: "absolute", top: 0, bottom: 0, width: 1, background: track }} />
+      {/* Fill */}
+      <div ref={fillRef} style={{
+        position: "absolute", top: 0, bottom: 0, width: 1,
+        background: `linear-gradient(${ACCENT}, ${ACCENT})`,
+        transformOrigin: "top", transform: "scaleY(0)",
+        boxShadow: `0 0 8px ${ACCENT}66`,
+      }} />
+      {/* Nodes */}
+      {[0, 1, 2, 3, 4].map(i => (
+        <div key={i} style={{
+          position: "absolute", top: `${i * 25}%`, left: "50%",
+          width: 7, height: 7, borderRadius: "50%",
+          transform: "translateX(-50%)",
+          background: i <= lit ? ACCENT : "transparent",
+          border: `1px solid ${i <= lit ? ACCENT : track}`,
+          boxShadow: i <= lit ? `0 0 10px ${ACCENT}88` : "none",
+          transition: "background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease",
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ── HUD corner brackets ───────────────────────────────────────────────────────
+function Brackets({ color, size = 18, inset = 0, opacity = 1 }) {
+  const s = size;
+  const corner = (rotate, pos) => (
+    <svg key={rotate} width={s} height={s} viewBox="0 0 24 24" aria-hidden="true" style={{
+      position: "absolute", ...pos, transform: `rotate(${rotate}deg)`, opacity,
+    }}>
+      <path d="M2 9 V4 a2 2 0 0 1 2-2 H9" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+  return (
+    <>
+      {corner(0,   { top: inset, left: inset })}
+      {corner(90,  { top: inset, right: inset })}
+      {corner(270, { bottom: inset, left: inset })}
+      {corner(180, { bottom: inset, right: inset })}
+    </>
+  );
+}
+
+// ── Pulsing live-status chip ──────────────────────────────────────────────────
+function LiveChip({ dark, label = "LIVE GRADE DATA" }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 9,
+      border: `1px solid ${dark ? "rgba(244,239,233,0.14)" : "rgba(26,18,15,0.14)"}`,
+      borderRadius: 999, padding: "7px 15px",
+      fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.6px",
+      color: dark ? "rgba(244,239,233,0.6)" : "rgba(26,18,15,0.6)",
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+    }}>
+      <span style={{ position: "relative", width: 7, height: 7, display: "inline-block" }}>
+        <span style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          background: "#4ade80", animation: "lpPulse 2s ease-in-out infinite",
+        }} />
+        <span style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          border: "1px solid #4ade80", animation: "lpPing 2s ease-out infinite",
+        }} />
+      </span>
+      {label}
+    </span>
+  );
+}
+
+// ── Treated photo hero backdrop (campus imagery, recon-style) ─────────────────
+function HeroPhoto({ dark, parallaxRef }) {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
+      <div ref={parallaxRef} style={{ position: "absolute", inset: "-12% 0", willChange: "transform" }}>
+        <img src="images/campus_day.jpg" alt="" style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover",
+          filter: "grayscale(0.65) contrast(1.06) brightness(1.04)",
+          opacity: dark ? 0 : 1, transition: "opacity 0.6s ease",
+        }} />
+        <img src="images/campus_night.jpg" alt="" style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover",
+          filter: "grayscale(0.5) contrast(1.1) brightness(0.9)",
+          opacity: dark ? 1 : 0, transition: "opacity 0.6s ease",
+        }} />
+      </div>
+      {/* Duotone maroon wash */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: dark ? "rgba(134,31,65,0.16)" : "rgba(134,31,65,0.07)",
+        mixBlendMode: dark ? "screen" : "multiply",
+      }} />
+      {/* Legibility scrim → fades into the page atmosphere at the bottom */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: dark
+          ? "linear-gradient(180deg, rgba(10,9,8,0.72) 0%, rgba(10,9,8,0.82) 55%, #0A0908 100%)"
+          : "linear-gradient(180deg, rgba(250,246,240,0.78) 0%, rgba(250,246,240,0.86) 55%, #FAF6F0 100%)",
+        transition: "background 0.45s ease",
+      }} />
+      {/* Drifting perspective grid */}
+      <svg width="100%" height="100%" preserveAspectRatio="none" style={{
+        position: "absolute", inset: 0,
+        opacity: dark ? 0.16 : 0.12,
+      }}>
+        <defs>
+          <pattern id="lp-grid" width="56" height="56" patternUnits="userSpaceOnUse">
+            <path d="M 56 0 L 0 0 0 56" fill="none"
+              stroke={dark ? "#F4EFE9" : "#1A120F"} strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <g style={{ animation: "lpGridDrift 7s linear infinite" }}>
+          <rect x="-56" y="-56" width="200%" height="200%" fill="url(#lp-grid)" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// ── Tech baseline — straight line draws in, node pings at the end ─────────────
+function TechLine({ delay = 1.0 }) {
+  const ref = useRef(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); obs.disconnect(); } }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <svg ref={ref} viewBox="0 0 300 12" fill="none" preserveAspectRatio="none"
+      style={{ display: "block", width: "100%", height: 12, overflow: "visible" }}>
+      <line x1="2" y1="6" x2="284" y2="6" stroke={ACCENT} strokeWidth="2" strokeLinecap="round"
+        style={{
+          strokeDasharray: 282, strokeDashoffset: on ? 0 : 282,
+          transition: `stroke-dashoffset 1.3s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+        }} />
+      <circle cx="292" cy="6" r="4" fill={ACCENT}
+        style={{ opacity: on ? 1 : 0, transition: `opacity 0.3s ease ${delay + 1.1}s` }} />
+      <circle cx="292" cy="6" r="4" fill="none" stroke={ACCENT} strokeWidth="1"
+        style={{
+          opacity: on ? 1 : 0,
+          transformOrigin: "292px 6px",
+          animation: on ? "lpPing 2.4s ease-out infinite" : "none",
+          animationDelay: `${delay + 1.2}s`,
+        }} />
+    </svg>
+  );
+}
+
 // ── Self-drawing grade curve (drafting-table chart) ───────────────────────────
 function DrawnChart({ dark, active }) {
   const ink   = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
@@ -45,25 +267,21 @@ function DrawnChart({ dark, active }) {
   return (
     <svg viewBox="0 0 620 180" fill="none" preserveAspectRatio="xMidYMid meet"
       style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}>
-      {/* Dashed drafting grid */}
       {[40, 80, 120, 160].map((y, i) => (
         <line key={y} x1="20" y1={y} x2="600" y2={y}
           stroke={faint} strokeWidth="1" strokeDasharray="2 6"
           style={{ opacity: active ? 1 : 0, transition: `opacity 0.8s ease ${0.1 * i}s` }} />
       ))}
-      {/* Axis labels */}
       {[["4.0", 34], ["3.0", 74], ["2.0", 114], ["1.0", 154]].map(([t, y], i) => (
         <text key={t} x="0" y={y} fill={dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)"}
           fontSize="9" fontFamily="'JetBrains Mono', monospace"
           style={{ opacity: active ? 1 : 0, transition: `opacity 0.8s ease ${0.1 * i + 0.2}s` }}>{t}</text>
       ))}
-      {/* The curve draws itself */}
       <path d={PATH} stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round"
         style={{
           strokeDasharray: 720, strokeDashoffset: active ? 0 : 720,
           transition: "stroke-dashoffset 2.2s cubic-bezier(0.45, 0, 0.2, 1) 0.5s",
         }} />
-      {/* Plotted points pop in as the line passes */}
       {points.map((pt, i) => (
         <g key={i} style={{
           opacity: active ? 1 : 0,
@@ -74,7 +292,6 @@ function DrawnChart({ dark, active }) {
           <circle cx={pt.x} cy={pt.y} r="5" fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5" />
         </g>
       ))}
-      {/* End label */}
       <g style={{ opacity: active ? 1 : 0, transition: "opacity 0.6s ease 2.5s" }}>
         <text x="588" y="22" fill={ink} fontSize="11" fontFamily="'JetBrains Mono', monospace" textAnchor="end">3.67 GPA</text>
       </g>
@@ -82,7 +299,7 @@ function DrawnChart({ dark, active }) {
   );
 }
 
-// ── Rotating registrar stamp (circular SVG text) ──────────────────────────────
+// ── Rotating stamp (circular SVG text — de-branded) ───────────────────────────
 function RotatingStamp({ dark }) {
   const ink = dark ? "rgba(244,239,233,0.4)" : "rgba(26,18,15,0.4)";
   return (
@@ -95,10 +312,9 @@ function RotatingStamp({ dark }) {
           <path id="lp-circle" d="M 50,50 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
         </defs>
         <text fill={ink} fontSize="8.2" fontFamily="'JetBrains Mono', monospace" letterSpacing="2.2">
-          <textPath href="#lp-circle">VIRGINIA TECH · GRADE DATA · EST 2025 ·</textPath>
+          <textPath href="#lp-circle">DARVIS · COURSE INTELLIGENCE · EST 2025 ·</textPath>
         </text>
       </svg>
-      {/* Center asterisk */}
       <svg viewBox="0 0 24 24" style={{
         position: "absolute", top: "50%", left: "50%",
         width: 22, height: 22, transform: "translate(-50%, -50%)",
@@ -106,16 +322,6 @@ function RotatingStamp({ dark }) {
         <path d="M12 3v18M5 7.5l14 9M19 7.5l-14 9" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     </div>
-  );
-}
-
-// ── Ink asterisk separator for the marquee ────────────────────────────────────
-function InkStar() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" style={{ flexShrink: 0, margin: "0 26px" }}>
-      <path d="M12 3v18M5 7.5l14 9M19 7.5l-14 9"
-        stroke={ACCENT} strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-    </svg>
   );
 }
 
@@ -137,7 +343,7 @@ function AnimCounter({ target, suffix = "", duration = 1600, active }) {
   return <span>{val.toLocaleString()}{suffix}</span>;
 }
 
-// ── Product previews (live inside the showcase window) ────────────────────────
+// ── Product previews (inside the showcase window) ─────────────────────────────
 function CoursesPreview({ dark, t }) {
   const courses = [
     { code: "CS 3114",   name: "Data Structures & Algorithms", gpa: 2.87, profs: 6 },
@@ -240,7 +446,7 @@ function ChatPreview({ dark, t }) {
   );
 }
 
-// ── Auto-cycling product showcase ─────────────────────────────────────────────
+// ── Auto-cycling product showcase (HUD window) ────────────────────────────────
 function Showcase({ dark, t }) {
   const tabs = [
     { id: "courses",  label: "Courses",  C: CoursesPreview },
@@ -267,48 +473,48 @@ function Showcase({ dark, t }) {
   const Active = tabs[active].C;
 
   return (
-    <div ref={ref}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      style={{
-        maxWidth: 640, margin: "0 auto", width: "100%",
-        background: t.card,
-        border: `1px solid ${t.line}`,
-        borderRadius: 20, overflow: "hidden",
-        boxShadow: dark ? "0 24px 80px rgba(0,0,0,0.45)" : "0 24px 80px rgba(26,18,15,0.10)",
-        backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-      }}>
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: 4, padding: "12px 14px", borderBottom: `1px solid ${t.lineSoft}`, alignItems: "center" }}>
-        <div style={{ display: "flex", gap: 5, marginRight: 12 }}>
-          {[0, 1, 2].map(i => (
-            <span key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: t.lineSoft, border: `1px solid ${t.line}` }} />
+    <div style={{ position: "relative", maxWidth: 680, margin: "0 auto", padding: 14 }}>
+      {/* HUD brackets around the window */}
+      <Brackets color={ACCENT} size={20} inset={0} opacity={0.7} />
+      <div ref={ref}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        style={{
+          width: "100%",
+          background: t.card,
+          border: `1px solid ${t.line}`,
+          borderRadius: 18, overflow: "hidden",
+          boxShadow: dark ? "0 24px 80px rgba(0,0,0,0.45)" : "0 24px 80px rgba(26,18,15,0.10)",
+          backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+          boxSizing: "border-box",
+        }}>
+        {/* Title bar */}
+        <div style={{ display: "flex", gap: 4, padding: "12px 14px", borderBottom: `1px solid ${t.lineSoft}`, alignItems: "center" }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute, marginRight: 12 }}>DARVIS.SYS</span>
+          {tabs.map((tab, i) => (
+            <button key={tab.id} onClick={() => setActive(i)} style={{
+              background: i === active ? (dark ? "rgba(134,31,65,0.25)" : "rgba(134,31,65,0.10)") : "transparent",
+              border: `1px solid ${i === active ? "rgba(134,31,65,0.4)" : "transparent"}`,
+              color: i === active ? (dark ? "#fff" : ACCENT) : t.textMute,
+              borderRadius: 999, padding: "5px 14px",
+              fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: SANS,
+              transition: `all 0.3s ${EASE}`,
+            }}>{tab.label}</button>
           ))}
+          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+            {tabs.map((_, i) => (
+              <span key={i} style={{
+                width: i === active ? 18 : 5, height: 5, borderRadius: 999,
+                background: i === active ? ACCENT : t.lineSoft,
+                transition: `all 0.4s ${EASE}`,
+              }} />
+            ))}
+          </div>
         </div>
-        {tabs.map((tab, i) => (
-          <button key={tab.id} onClick={() => setActive(i)} style={{
-            background: i === active ? (dark ? "rgba(134,31,65,0.25)" : "rgba(134,31,65,0.10)") : "transparent",
-            border: `1px solid ${i === active ? "rgba(134,31,65,0.4)" : "transparent"}`,
-            color: i === active ? (dark ? "#fff" : ACCENT) : t.textMute,
-            borderRadius: 999, padding: "5px 14px",
-            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: SANS,
-            transition: `all 0.3s ${EASE}`,
-          }}>{tab.label}</button>
-        ))}
-        {/* Progress dashes */}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
-          {tabs.map((_, i) => (
-            <span key={i} style={{
-              width: i === active ? 18 : 5, height: 5, borderRadius: 999,
-              background: i === active ? ACCENT : t.lineSoft,
-              transition: `all 0.4s ${EASE}`,
-            }} />
-          ))}
+        {/* Crossfading panel */}
+        <div key={active} style={{ animation: `lpHeroFade 0.5s ${EASE} both`, minHeight: 270 }}>
+          <Active dark={dark} t={t} />
         </div>
-      </div>
-      {/* Crossfading panel */}
-      <div key={active} style={{ animation: `lpHeroFade 0.5s ${EASE} both`, minHeight: 270 }}>
-        <Active dark={dark} t={t} />
       </div>
     </div>
   );
@@ -319,6 +525,7 @@ export default function LandingPage({ onEnter, darkMode }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
   const chartRef = useRef(null);
+  const parallaxRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
   const [chartActive, setChartActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -349,7 +556,23 @@ export default function LandingPage({ onEnter, darkMode }) {
     return () => window.removeEventListener("resize", handler);
   }, []);
 
-  injectStyles("lp-v6", LP_CSS);
+  injectStyles("lp-v7", LP_CSS);
+
+  // Hero photo parallax — photo drifts at 30% of scroll speed
+  useEffect(() => {
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        if (parallaxRef.current) {
+          parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.28}px)`;
+        }
+        raf = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStatsActive(true); }, { threshold: 0.3 });
@@ -384,6 +607,8 @@ export default function LandingPage({ onEnter, darkMode }) {
       fontWeight: 600, fontSize: 15, cursor: "pointer",
       fontFamily: SANS, letterSpacing: "0.1px",
       boxShadow: primary ? "0 2px 18px rgba(134,31,65,0.3)" : "none",
+      backdropFilter: primary ? "none" : "blur(8px)",
+      WebkitBackdropFilter: primary ? "none" : "blur(8px)",
     }}
     onMouseEnter={e => {
       if (primary) {
@@ -413,132 +638,151 @@ export default function LandingPage({ onEnter, darkMode }) {
   return (
     <div style={{ position: "relative", fontFamily: SANS, color: t.text }}>
 
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
+      {/* Scroll-driven chrome */}
+      <ScrollProgress />
+      {!isMobile && <DataSpine dark={darkMode} />}
+
+      {/* ── HERO (treated campus photo · parallax · HUD) ─────────────────────── */}
       <section style={{
         minHeight: "calc(100vh - 80px)",
-        maxWidth: 1150, margin: "0 auto", padding: pad,
-        boxSizing: "border-box",
-        display: "flex", flexDirection: "column", justifyContent: "center",
         position: "relative",
+        display: "flex", flexDirection: "column", justifyContent: "center",
       }}>
-        {/* Kicker */}
-        <div className="lp-h-fade" style={{ marginBottom: 30 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 500, letterSpacing: "2px", fontFamily: MONO,
-            color: ACCENT, textTransform: "uppercase",
-          }}>Virginia Tech · Course Intelligence</span>
-        </div>
+        <HeroPhoto dark={darkMode} parallaxRef={parallaxRef} />
 
-        {/* Headline */}
-        <div style={{ marginBottom: 30 }}>
-          <span className="lp-h-clip">
-            <span className="lp-h-line" style={{
-              fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
-              fontFamily: SERIF, lineHeight: 1.0, letterSpacing: "-2px", color: t.text,
-            }}>The data behind</span>
-          </span>
-          <span className="lp-h-clip">
-            <span className="lp-h-line dv-d1" style={{
-              fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
-              fontFamily: SERIF, fontStyle: "italic",
-              lineHeight: 1.0, letterSpacing: "-2px", color: ACCENT,
-            }}>every grade.</span>
-          </span>
-          <span aria-hidden="true" style={{
-            display: "block", fontSize: "clamp(56px, 9vw, 124px)",
-            width: "min(4.9em, 80%)", marginTop: "0.05em",
-          }}>
-            <Scribble delay={1.0} />
-          </span>
-        </div>
-
-        {/* Sub + CTA */}
-        <p className="lp-h-fade dv-d2" style={{
-          fontSize: 17, color: t.textSub, lineHeight: 1.7,
-          margin: "0 0 38px", fontWeight: 500, maxWidth: 440,
+        <div style={{
+          position: "relative", zIndex: 1,
+          maxWidth: 1150, margin: "0 auto", padding: pad, width: "100%",
+          boxSizing: "border-box",
         }}>
-          Grade distributions, professor ratings, and a schedule builder — every VT course, in one quiet place.
-        </p>
+          {/* Status chip */}
+          <div className="lp-h-fade" style={{ marginBottom: 34 }}>
+            <LiveChip dark={darkMode} />
+          </div>
 
-        <div className="lp-h-fade dv-d3">
-          <SignedIn>
-            <Btn label="Browse courses →" primary onClick={onEnter} />
-          </SignedIn>
-          <SignedOut>
-            {wlStep === "success" ? (
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 10,
-                border: "1px solid rgba(74,222,128,0.35)",
-                borderRadius: 999, padding: "13px 24px",
-              }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 12.5l5 5L20 6.5" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#4ade80" }}>
-                  You're on the list — we'll email you.
-                </span>
-              </div>
-            ) : wlOpen ? (
-              <div>
-                <form onSubmit={handleWaitlist} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <input
-                    type="email" placeholder="your@email.com" value={wlEmail}
-                    onChange={e => setWlEmail(e.target.value)} autoFocus required
-                    style={{
-                      height: 48, padding: "0 20px", fontSize: 14, fontWeight: 500,
-                      background: t.input,
-                      border: `1px solid ${t.line}`,
-                      borderRadius: 999, color: t.text, outline: "none", minWidth: 235,
-                      fontFamily: SANS, transition: "border-color 0.2s ease",
-                    }}
-                    onFocus={e => e.currentTarget.style.borderColor = "rgba(134,31,65,0.6)"}
-                    onBlur={e => e.currentTarget.style.borderColor = t.line}
-                  />
-                  <button type="submit" disabled={wlStep === "loading"} style={{
-                    height: 48, padding: "0 26px",
-                    background: ACCENT, color: "white", border: "none",
-                    borderRadius: 999, fontWeight: 600, fontSize: 14, cursor: "pointer",
-                    fontFamily: SANS, opacity: wlStep === "loading" ? 0.7 : 1,
-                    boxShadow: "0 2px 18px rgba(134,31,65,0.3)",
-                  }}>
-                    {wlStep === "loading" ? "Joining…" : "Join →"}
-                  </button>
-                  <button type="button" onClick={() => { setWlOpen(false); setWlStep("idle"); }} style={{
-                    height: 48, padding: "0 20px", background: "transparent",
-                    border: `1px solid ${t.line}`, borderRadius: 999,
-                    color: t.textSub, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                    fontFamily: SANS,
-                  }}>Cancel</button>
-                </form>
-                {wlStep === "error" && (
-                  <div style={{ marginTop: 10, fontSize: 12.5, color: "#f87171", fontWeight: 600 }}>{wlError}</div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <Btn label="Join the waitlist →" primary onClick={() => setWlOpen(true)} />
-                <Btn label="Browse courses" onClick={onEnter} />
-              </div>
-            )}
-          </SignedOut>
+          {/* Headline */}
+          <div style={{ marginBottom: 26 }}>
+            <span className="lp-h-clip">
+              <span className="lp-h-line" style={{
+                fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
+                fontFamily: SERIF, lineHeight: 1.0, letterSpacing: "-2px", color: t.text,
+              }}>The data behind</span>
+            </span>
+            <span className="lp-h-clip">
+              <span className="lp-h-line dv-d1" style={{
+                fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
+                fontFamily: SERIF, fontStyle: "italic",
+                lineHeight: 1.0, letterSpacing: "-2px", color: ACCENT,
+              }}>every grade.</span>
+            </span>
+            {/* Tech baseline draws in under the headline */}
+            <span aria-hidden="true" style={{ display: "block", width: "min(520px, 78%)", marginTop: 18 }}>
+              <TechLine delay={1.0} />
+            </span>
+          </div>
+
+          {/* Sub + CTA */}
+          <p className="lp-h-fade dv-d2" style={{
+            fontSize: 17, color: t.textSub, lineHeight: 1.7,
+            margin: "0 0 38px", fontWeight: 500, maxWidth: 440,
+          }}>
+            Grade distributions, professor ratings, and a schedule builder — every course, in one quiet place.
+          </p>
+
+          <div className="lp-h-fade dv-d3">
+            <SignedIn>
+              <Btn label="Browse courses →" primary onClick={onEnter} />
+            </SignedIn>
+            <SignedOut>
+              {wlStep === "success" ? (
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 10,
+                  border: "1px solid rgba(74,222,128,0.35)",
+                  borderRadius: 999, padding: "13px 24px",
+                }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12.5l5 5L20 6.5" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#4ade80" }}>
+                    You're on the list — we'll email you.
+                  </span>
+                </div>
+              ) : wlOpen ? (
+                <div>
+                  <form onSubmit={handleWaitlist} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    <input
+                      type="email" placeholder="your@email.com" value={wlEmail}
+                      onChange={e => setWlEmail(e.target.value)} autoFocus required
+                      style={{
+                        height: 48, padding: "0 20px", fontSize: 14, fontWeight: 500,
+                        background: t.input,
+                        border: `1px solid ${t.line}`,
+                        borderRadius: 999, color: t.text, outline: "none", minWidth: 235,
+                        fontFamily: SANS, transition: "border-color 0.2s ease",
+                      }}
+                      onFocus={e => e.currentTarget.style.borderColor = "rgba(134,31,65,0.6)"}
+                      onBlur={e => e.currentTarget.style.borderColor = t.line}
+                    />
+                    <button type="submit" disabled={wlStep === "loading"} style={{
+                      height: 48, padding: "0 26px",
+                      background: ACCENT, color: "white", border: "none",
+                      borderRadius: 999, fontWeight: 600, fontSize: 14, cursor: "pointer",
+                      fontFamily: SANS, opacity: wlStep === "loading" ? 0.7 : 1,
+                      boxShadow: "0 2px 18px rgba(134,31,65,0.3)",
+                    }}>
+                      {wlStep === "loading" ? "Joining…" : "Join →"}
+                    </button>
+                    <button type="button" onClick={() => { setWlOpen(false); setWlStep("idle"); }} style={{
+                      height: 48, padding: "0 20px", background: "transparent",
+                      border: `1px solid ${t.line}`, borderRadius: 999,
+                      color: t.textSub, fontWeight: 600, fontSize: 13, cursor: "pointer",
+                      fontFamily: SANS,
+                    }}>Cancel</button>
+                  </form>
+                  {wlStep === "error" && (
+                    <div style={{ marginTop: 10, fontSize: 12.5, color: "#f87171", fontWeight: 600 }}>{wlError}</div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <Btn label="Join the waitlist →" primary onClick={() => setWlOpen(true)} />
+                  <Btn label="Browse courses" onClick={onEnter} />
+                </div>
+              )}
+            </SignedOut>
+          </div>
         </div>
 
-        {/* Rotating stamp — bottom right of hero */}
+        {/* Rotating stamp — bottom right */}
         {!isMobile && (
-          <div className="lp-h-fade dv-d4" style={{ position: "absolute", right: 64, bottom: 48 }}>
+          <div className="lp-h-fade dv-d4" style={{ position: "absolute", right: 64, bottom: 48, zIndex: 1 }}>
             <RotatingStamp dark={darkMode} />
           </div>
         )}
+
+        {/* Scroll cue */}
+        <div className="lp-h-fade dv-d5" style={{
+          position: "absolute", left: "50%", bottom: 22, transform: "translateX(-50%)",
+          zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "2px", color: t.textFaint }}>SCROLL</span>
+          <svg width="14" height="22" viewBox="0 0 14 22" fill="none">
+            <rect x="1" y="1" width="12" height="20" rx="6" stroke={t.textFaint} strokeWidth="1.5" />
+            <circle cx="7" cy="7" r="2" fill={ACCENT}>
+              <animate attributeName="cy" values="6;13;6" dur="1.8s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+        </div>
       </section>
 
       {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
       <section ref={chartRef} style={{
         maxWidth: 1150, margin: "0 auto", padding: pad,
-        boxSizing: "border-box", paddingBottom: isMobile ? 56 : 90,
+        boxSizing: "border-box",
+        paddingTop: isMobile ? 48 : 70, paddingBottom: isMobile ? 56 : 90,
       }}>
         <div style={{
-          borderTop: `1px solid ${t.lineSoft}`,
-          paddingTop: isMobile ? 36 : 54,
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "240px 1fr",
           gap: isMobile ? 28 : 64, alignItems: "center",
@@ -547,7 +791,7 @@ export default function LandingPage({ onEnter, darkMode }) {
             <span style={{
               fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
               color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-            }}>CS 3114 · Hamouda</span>
+            }}>CS 3114 · Instructor A</span>
             <p style={{
               fontFamily: SERIF, fontSize: isMobile ? 24 : 30, lineHeight: 1.25,
               color: t.text, margin: 0,
@@ -559,21 +803,21 @@ export default function LandingPage({ onEnter, darkMode }) {
         </div>
       </section>
 
-      {/* ── MARQUEE ───────────────────────────────────────────────────────────── */}
+      {/* ── MARQUEE (mono HUD strip) ──────────────────────────────────────────── */}
       <div style={{
         overflow: "hidden",
         borderTop: `1px solid ${t.lineSoft}`,
         borderBottom: `1px solid ${t.lineSoft}`,
-        padding: "18px 0",
+        padding: "16px 0",
       }}>
-        <div style={{ display: "flex", alignItems: "center", animation: "lpMarquee 36s linear infinite", width: "max-content" }}>
+        <div style={{ display: "flex", alignItems: "center", animation: "lpMarquee 38s linear infinite", width: "max-content" }}>
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
             <span key={i} style={{ display: "flex", alignItems: "center" }}>
               <span style={{
-                fontFamily: SERIF, fontStyle: "italic", fontSize: 19,
+                fontFamily: MONO, fontSize: 12, letterSpacing: "1.5px",
                 color: t.textMute, whiteSpace: "nowrap",
               }}>{item}</span>
-              <InkStar />
+              <span style={{ fontFamily: MONO, fontSize: 12, color: ACCENT, opacity: 0.65, margin: "0 22px" }}>/</span>
             </span>
           ))}
         </div>
@@ -680,7 +924,7 @@ export default function LandingPage({ onEnter, darkMode }) {
       }}>
         <span style={{ fontFamily: SERIF, fontSize: 16, color: t.textSub }}>Darvis</span>
         <span style={{ fontSize: 10.5, color: t.textFaint, fontFamily: MONO, letterSpacing: "1px", textTransform: "uppercase" }}>
-          Blacksburg, VA · Not affiliated with Virginia Tech
+          Course intelligence · EST 2025
         </span>
       </footer>
     </div>
