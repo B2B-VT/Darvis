@@ -61,8 +61,6 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
     { id: "schedule",    label: "Schedule" },
     { id: "chatbot",     label: "Chatbot" },
     { id: "forums",      label: "Forums" },
-    { id: "faqs",        label: "FAQs" },
-    { id: "about",       label: "About" },
   ];
 
   // Measure the active link and slide the pill under it
@@ -144,10 +142,11 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
         fontFamily: SANS,
         boxSizing: "border-box",
       }}>
-        {/* Logo */}
+        {/* Logo — left zone (flex:1 so links sit dead-center) */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
         <button onClick={() => setPage("landing")} style={{
           background: "none", border: "none", cursor: "pointer",
-          padding: 0, marginRight: isMobile ? 0 : 14,
+          padding: 0,
           display: "flex", alignItems: "center", gap: 9,
         }}
         onMouseEnter={e => { const img = e.currentTarget.querySelector("img"); if (img) img.style.transform = "rotate(-8deg) scale(1.08)"; }}
@@ -162,10 +161,11 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
             Darvis
           </span>
         </button>
+        </div>
 
-        {/* Desktop links with sliding pill */}
+        {/* Desktop links — centered zone with sliding pill */}
         {!isMobile && (
-          <div ref={rowRef} style={{ display: "flex", gap: 2, flex: 1, position: "relative", alignItems: "center" }}>
+          <div ref={rowRef} style={{ display: "flex", gap: 2, position: "relative", alignItems: "center" }}>
             {/* Sliding indicator */}
             {pill && (
               <span aria-hidden="true" style={{
@@ -212,10 +212,8 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
           </div>
         )}
 
-        {isMobile && <div style={{ flex: 1 }} />}
-
-        {/* Right cluster */}
-        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 10 }}>
+        {/* Right cluster — right zone (flex:1, content pushed to the end) */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: isMobile ? 8 : 10 }}>
           {setDarkMode && (
             <button
               onClick={() => setDarkMode(m => !m)}

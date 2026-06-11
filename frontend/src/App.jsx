@@ -13,7 +13,6 @@ import AuthModal from "./components/auth-modal.jsx";
 import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
-import AboutPage from "./components/about.jsx";
 import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
 
 injectGlobalStyles();
@@ -135,11 +134,11 @@ export default function App() {
   const renderPage = () => {
     // If somehow on a protected page without being signed in, show landing
     if (PROTECTED.has(page) && !isSignedIn) {
-      return <LandingPage onEnter={() => navigateTo("search")} darkMode={darkMode} />;
+      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} />;
     }
 
     if (page === "landing") {
-      return <LandingPage onEnter={() => navigateTo("search")} darkMode={darkMode} />;
+      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} />;
     }
     if (page === "profile") {
       return <ProfilePage darkMode={darkMode} setPage={navigateTo} />;
@@ -162,9 +161,6 @@ export default function App() {
     }
     if (page === "instructors") {
       return <InstructorsPage darkMode={darkMode} />;
-    }
-    if (page === "about") {
-      return <AboutPage darkMode={darkMode} setPage={navigateTo} />;
     }
     if (page === "schedule") {
       return (

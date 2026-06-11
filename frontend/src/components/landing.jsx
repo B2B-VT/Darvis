@@ -32,6 +32,26 @@ const LP_CSS = `
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-h-fade { animation: lpHeroFade 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.lp-w-clip { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.lp-w { display: inline-block; animation: lpHeroLine 0.95s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── Data marquees (fluence-style streams, hover to pause + expand) ── */
+@keyframes lpMqLeft  { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+@keyframes lpMqRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+.lp-mq { position: relative; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+}
+.lp-mq:hover { z-index: 6; }
+.lp-mq-track { display: flex; width: max-content; padding: 10px 0; }
+.lp-mq-r .lp-mq-track { animation: lpMqRight 48s linear infinite; }
+.lp-mq-l .lp-mq-track { animation: lpMqLeft 54s linear infinite; }
+.lp-mq:hover .lp-mq-track { animation-play-state: paused; }
+.lp-card { transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), border-color 0.3s ease, box-shadow 0.3s ease; }
+.lp-card:hover { transform: translateY(-5px); border-color: rgba(134,31,65,0.55) !important; }
+.lp-card-more { max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.35s ease; }
+.lp-card:hover .lp-card-more { max-height: 150px; opacity: 1; margin-top: 12px; }
 `;
 
 function injectStyles(id, css) {
@@ -182,12 +202,12 @@ function HeroPhoto({ dark, parallaxRef }) {
       {/* Drifting perspective grid */}
       <svg width="100%" height="100%" preserveAspectRatio="none" style={{
         position: "absolute", inset: 0,
-        opacity: dark ? 0.07 : 0.05,
+        opacity: dark ? 0.055 : 0.042,
       }}>
         <defs>
           <pattern id="lp-grid" width="56" height="56" patternUnits="userSpaceOnUse">
             <path d="M 56 0 L 0 0 0 56" fill="none"
-              stroke={dark ? "#F4EFE9" : "#1A120F"} strokeWidth="0.5" />
+              stroke={dark ? "#F4EFE9" : "#1A120F"} strokeWidth="1.2" />
           </pattern>
         </defs>
         <g style={{ animation: "lpGridDrift 7s linear infinite" }}>
@@ -494,8 +514,166 @@ function Showcase({ dark, t }) {
   );
 }
 
+// ── Data marquees — two counter-scrolling card streams (all data is fake) ─────
+// Top row: example course cards drifting right; hover pauses the stream and the
+// card unfolds its grade distribution. Bottom row (slightly overlapping):
+// example instructor cards drifting left; hover pauses + reveals their stats.
+const FAKE_COURSES = [
+  { code: "CSX 2140", title: "Intro to Data Systems",   gpa: 3.42, profs: 5, n: "1,240", dist: [48, 31, 14, 4, 3] },
+  { code: "MTH 2210", title: "Discrete Structures",     gpa: 2.91, profs: 7, n: "2,118", dist: [29, 33, 24, 8, 6] },
+  { code: "PHY 1850", title: "Mechanics & Waves",       gpa: 3.05, profs: 4, n: "1,876", dist: [35, 32, 21, 7, 5] },
+  { code: "ECN 2005", title: "Microeconomics",          gpa: 3.18, profs: 6, n: "2,431", dist: [40, 31, 19, 6, 4] },
+  { code: "STA 3100", title: "Applied Statistics",      gpa: 3.33, profs: 3, n: "986",   dist: [45, 30, 17, 5, 3] },
+  { code: "CSX 3320", title: "Algorithms II",           gpa: 2.74, profs: 6, n: "1,654", dist: [24, 31, 27, 10, 8] },
+  { code: "BIO 1400", title: "Cell Biology",            gpa: 3.21, profs: 5, n: "2,044", dist: [41, 30, 19, 6, 4] },
+  { code: "HUM 2200", title: "World Literature",        gpa: 3.61, profs: 2, n: "742",   dist: [58, 27, 11, 2, 2] },
+];
+const FAKE_PROFS = [
+  { name: "Dr. Eleanor Voss",    dept: "CSX", rating: 4.6, diff: 2.8, gpa: 3.41, again: 92 },
+  { name: "Prof. Marcus Hale",   dept: "MTH", rating: 4.2, diff: 3.4, gpa: 2.98, again: 81 },
+  { name: "Dr. Priya Anand",     dept: "STA", rating: 4.8, diff: 2.5, gpa: 3.52, again: 95 },
+  { name: "Prof. Daniel Okafor", dept: "PHY", rating: 3.9, diff: 3.8, gpa: 2.87, again: 74 },
+  { name: "Dr. Sofia Marin",     dept: "ECN", rating: 4.4, diff: 2.9, gpa: 3.22, again: 88 },
+  { name: "Prof. Theo Lindqvist",dept: "CSX", rating: 4.1, diff: 3.1, gpa: 3.05, again: 79 },
+  { name: "Dr. Amara Diallo",    dept: "BIO", rating: 4.7, diff: 2.6, gpa: 3.44, again: 93 },
+  { name: "Prof. Ivan Petrov",   dept: "HUM", rating: 4.0, diff: 2.2, gpa: 3.58, again: 85 },
+];
+const GRADE_COLORS = ["#4ade80", "#93c5fd", "#fbbf24", "#fb923c", "#f87171"];
+const GRADE_KEYS = ["A", "B", "C", "D", "F"];
+
+// SVG ring showing GPA out of 4.0
+function GpaRing({ gpa, t }) {
+  const r = 17, C = 2 * Math.PI * r;
+  const col = gpa >= 3.3 ? "#4ade80" : gpa >= 3.0 ? "#86efac" : gpa >= 2.7 ? "#fbbf24" : "#f87171";
+  return (
+    <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+      <circle cx="22" cy="22" r={r} fill="none" stroke={t.lineSoft} strokeWidth="3" />
+      <circle cx="22" cy="22" r={r} fill="none" stroke={col} strokeWidth="3"
+        strokeLinecap="round" strokeDasharray={C}
+        strokeDashoffset={C * (1 - gpa / 4)}
+        transform="rotate(-90 22 22)" />
+      <text x="22" y="26" textAnchor="middle" fill={t.text} fontSize="11.5"
+        fontFamily="'Instrument Serif', Georgia, serif">{gpa.toFixed(2)}</text>
+    </svg>
+  );
+}
+
+function CourseCard({ c, t, dark }) {
+  return (
+    <div className="lp-card" style={{
+      width: 252, flexShrink: 0, marginRight: 14,
+      background: t.card, border: `1px solid ${t.line}`,
+      borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
+      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, color: ACCENT, letterSpacing: "0.8px" }}>{c.code}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginTop: 5, lineHeight: 1.3 }}>{c.title}</div>
+          <div style={{ fontSize: 11, color: t.textMute, marginTop: 4 }}>{c.profs} instructors · {c.n} students</div>
+        </div>
+        <GpaRing gpa={c.gpa} t={t} />
+      </div>
+      {/* Unfolds on hover — grade distribution */}
+      <div className="lp-card-more">
+        <svg width="100%" height="10" style={{ display: "block", borderRadius: 5, overflow: "hidden" }} aria-hidden="true">
+          {c.dist.reduce((acc, pct, i) => {
+            acc.els.push(
+              <rect key={i} x={`${acc.x}%`} y="0" width={`${pct}%`} height="10" fill={GRADE_COLORS[i]} />
+            );
+            acc.x += pct;
+            return acc;
+          }, { x: 0, els: [] }).els}
+        </svg>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7 }}>
+          {c.dist.map((pct, i) => (
+            <span key={i} style={{ fontFamily: MONO, fontSize: 9.5, color: t.textMute }}>
+              <span style={{ color: GRADE_COLORS[i] }}>{GRADE_KEYS[i]}</span> {pct}%
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfCard({ pr, t, dark }) {
+  const initials = pr.name.split(" ").slice(-1)[0].slice(0, 2).toUpperCase();
+  return (
+    <div className="lp-card" style={{
+      width: 252, flexShrink: 0, marginRight: 14,
+      background: t.card, border: `1px solid ${t.line}`,
+      borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
+      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="19" fill="rgba(134,31,65,0.14)" stroke={ACCENT} strokeOpacity="0.4" strokeWidth="1" />
+          <text x="20" y="25" textAnchor="middle" fill={ACCENT} fontSize="13"
+            fontFamily="'Instrument Serif', Georgia, serif">{initials}</text>
+        </svg>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text }}>{pr.name}</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: t.textMute, letterSpacing: "0.8px", marginTop: 2 }}>{pr.dept} DEPT</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 18, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
+          <div style={{ fontFamily: MONO, fontSize: 8.5, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
+        </div>
+      </div>
+      {/* Unfolds on hover — instructor stats */}
+      <div className="lp-card-more">
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          {[["AVG GPA", pr.gpa.toFixed(2)], ["DIFFICULTY", pr.diff.toFixed(1)], ["TAKE AGAIN", `${pr.again}%`]].map(([k, v]) => (
+            <div key={k}>
+              <div style={{ fontSize: 14, fontFamily: SERIF, color: t.text }}>{v}</div>
+              <div style={{ fontFamily: MONO, fontSize: 8.5, color: t.textMute, letterSpacing: "0.5px", marginTop: 1 }}>{k}</div>
+            </div>
+          ))}
+        </div>
+        <svg width="100%" height="6" style={{ display: "block", borderRadius: 3 }} aria-hidden="true">
+          <rect x="0" y="0" width="100%" height="6" rx="3" fill={t.lineSoft} />
+          <rect x="0" y="0" width={`${pr.again}%`} height="6" rx="3" fill={ACCENT} opacity="0.7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function DataMarquees({ dark, t }) {
+  return (
+    <div aria-label="Example of how Darvis displays course and instructor data (sample data)">
+      {/* Courses — drift right, hover to pause + unfold grade data */}
+      <div className="lp-mq lp-mq-r" style={{ zIndex: 2 }}>
+        <div className="lp-mq-track">
+          {[...FAKE_COURSES, ...FAKE_COURSES].map((c, i) => (
+            <CourseCard key={i} c={c} t={t} dark={dark} />
+          ))}
+        </div>
+      </div>
+      {/* Instructors — drift left, slightly overlapping the row above */}
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -20, zIndex: 1 }}>
+        <div className="lp-mq-track">
+          {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
+            <ProfCard key={i} pr={pr} t={t} dark={dark} />
+          ))}
+        </div>
+      </div>
+      <div style={{
+        textAlign: "center", marginTop: 18,
+        fontFamily: MONO, fontSize: 9.5, letterSpacing: "1.6px",
+        textTransform: "uppercase", color: t.textFaint,
+      }}>
+        Sample data — hover any card
+      </div>
+    </div>
+  );
+}
+
 // ── Main landing page ─────────────────────────────────────────────────────────
-export default function LandingPage({ onEnter, darkMode }) {
+export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
   const chartRef = useRef(null);
@@ -629,20 +807,30 @@ export default function LandingPage({ onEnter, darkMode }) {
           maxWidth: 1150, margin: "0 auto", padding: pad, width: "100%",
           boxSizing: "border-box",
         }}>
-          {/* Headline */}
+          {/* Headline — words rise one by one */}
           <div style={{ marginBottom: 26 }}>
-            <span className="lp-h-clip">
-              <span className="lp-h-line" style={{
-                fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
-                fontFamily: SERIF, lineHeight: 1.0, letterSpacing: "-2px", color: t.text,
-              }}>The data behind</span>
+            <span style={{
+              display: "block",
+              fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
+              fontFamily: SERIF, lineHeight: 1.0, letterSpacing: "-2px", color: t.text,
+            }}>
+              {"The data behind".split(" ").map((w, i) => (
+                <span key={i} className="lp-w-clip">
+                  <span className="lp-w" style={{ animationDelay: `${i * 0.08}s` }}>{w}&nbsp;</span>
+                </span>
+              ))}
             </span>
-            <span className="lp-h-clip">
-              <span className="lp-h-line dv-d1" style={{
-                fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
-                fontFamily: SERIF, fontStyle: "italic",
-                lineHeight: 1.0, letterSpacing: "-2px", color: ACCENT,
-              }}>every grade.</span>
+            <span style={{
+              display: "block",
+              fontSize: "clamp(56px, 9vw, 124px)", fontWeight: 400,
+              fontFamily: SERIF, fontStyle: "italic",
+              lineHeight: 1.0, letterSpacing: "-2px", color: ACCENT,
+            }}>
+              {"every grade.".split(" ").map((w, i) => (
+                <span key={i} className="lp-w-clip">
+                  <span className="lp-w" style={{ animationDelay: `${(i + 3) * 0.08}s` }}>{w}&nbsp;</span>
+                </span>
+              ))}
             </span>
             {/* Tech baseline draws in under the headline */}
             <span aria-hidden="true" style={{ display: "block", width: "min(520px, 78%)", marginTop: 18 }}>
@@ -743,6 +931,22 @@ export default function LandingPage({ onEnter, darkMode }) {
             </circle>
           </svg>
         </div>
+      </section>
+
+      {/* ── DATA MARQUEES — counter-scrolling course + instructor streams ────── */}
+      <section style={{ paddingTop: isMobile ? 40 : 64, paddingBottom: isMobile ? 48 : 72, position: "relative" }}>
+        <Reveal style={{ textAlign: "center", marginBottom: 30, padding: pad }}>
+          <span style={{
+            fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
+            color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
+          }}>Inside the catalog</span>
+          <h2 style={{
+            fontFamily: SERIF, fontWeight: 400, margin: 0,
+            fontSize: "clamp(28px, 3.2vw, 42px)", letterSpacing: "-0.5px",
+            color: t.text, lineHeight: 1.1,
+          }}>Every course. Every instructor. <span style={{ fontStyle: "italic", color: ACCENT }}>One glance.</span></h2>
+        </Reveal>
+        <DataMarquees dark={darkMode} t={t} />
       </section>
 
       {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
@@ -884,17 +1088,82 @@ export default function LandingPage({ onEnter, darkMode }) {
         </Reveal>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────────────────────────── */}
-      <footer style={{
-        borderTop: `1px solid ${t.lineSoft}`,
-        padding: isMobile ? "22px 22px" : "26px 64px",
-        display: "flex", flexDirection: isMobile ? "column" : "row",
-        justifyContent: "space-between", alignItems: "center", gap: isMobile ? 8 : 0,
-      }}>
-        <span style={{ fontFamily: SERIF, fontSize: 16, color: t.textSub }}>Darvis</span>
-        <span style={{ fontSize: 10.5, color: t.textFaint, fontFamily: MONO, letterSpacing: "1px", textTransform: "uppercase" }}>
-          Course intelligence · EST 2025
-        </span>
+      {/* ── FOOTER (carries the former About page) ────────────────────────────── */}
+      <footer style={{ borderTop: `1px solid ${t.lineSoft}`, padding: isMobile ? "48px 22px 26px" : "72px 64px 30px" }}>
+        <div style={{
+          maxWidth: 1150, margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr 0.8fr",
+          gap: isMobile ? 36 : 72,
+        }}>
+          {/* About */}
+          <Reveal>
+            <div style={{ fontFamily: SERIF, fontSize: 26, color: t.text, marginBottom: 14 }}>
+              Built by a student, <span style={{ fontStyle: "italic", color: ACCENT }}>for students.</span>
+            </div>
+            <p style={{ fontSize: 14, color: t.textSub, lineHeight: 1.75, margin: 0, fontWeight: 500, maxWidth: 420 }}>
+              Darvis started as a frustration — bouncing between spreadsheets, rating
+              sites, and timetables just to pick classes. It pulls historical grade
+              distributions, professor insight, and schedule planning into one quiet
+              place, so course decisions come from evidence instead of guesswork.
+            </p>
+          </Reveal>
+
+          {/* Data sources */}
+          <Reveal delay={0.08}>
+            <div style={{
+              fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.8px",
+              textTransform: "uppercase", color: ACCENT, marginBottom: 16,
+            }}>Data sources</div>
+            {[
+              ["Grade distributions", "Publicly released university grade records"],
+              ["Professor ratings", "Aggregated student review platforms"],
+              ["Timetable & sections", "Live course catalog each semester"],
+            ].map(([k, v]) => (
+              <div key={k} style={{ marginBottom: 13 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{k}</div>
+                <div style={{ fontSize: 12, color: t.textMute, marginTop: 2, lineHeight: 1.5 }}>{v}</div>
+              </div>
+            ))}
+          </Reveal>
+
+          {/* Explore */}
+          <Reveal delay={0.16}>
+            <div style={{
+              fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.8px",
+              textTransform: "uppercase", color: ACCENT, marginBottom: 16,
+            }}>Explore</div>
+            {[
+              ["Browse courses", () => onEnter?.()],
+              ["FAQs", () => onNavigate?.("faqs")],
+              ["Forums", () => onNavigate?.("forums")],
+              ["Schedule builder", () => onNavigate?.("schedule")],
+            ].map(([label, go]) => (
+              <button key={label} onClick={go} style={{
+                display: "block", background: "none", border: "none", padding: "5px 0",
+                fontSize: 13.5, fontWeight: 500, color: t.textSub, cursor: "pointer",
+                fontFamily: SANS, textAlign: "left",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = ACCENT; }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.textSub; }}
+              >{label} →</button>
+            ))}
+          </Reveal>
+        </div>
+
+        {/* Bottom rail */}
+        <div style={{
+          maxWidth: 1150, margin: "0 auto",
+          borderTop: `1px solid ${t.lineSoft}`,
+          marginTop: isMobile ? 36 : 56, paddingTop: 22,
+          display: "flex", flexDirection: isMobile ? "column" : "row",
+          justifyContent: "space-between", alignItems: "center", gap: isMobile ? 8 : 0,
+        }}>
+          <span style={{ fontFamily: SERIF, fontSize: 16, color: t.textSub }}>Darvis</span>
+          <span style={{ fontSize: 10, color: t.textFaint, fontFamily: MONO, letterSpacing: "1px", textTransform: "uppercase", textAlign: "center" }}>
+            Course intelligence · EST 2025 · Not affiliated with any university
+          </span>
+        </div>
       </footer>
     </div>
   );
