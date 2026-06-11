@@ -183,7 +183,7 @@ function HeroPhoto({ dark, parallaxRef }) {
       {/* Drifting perspective grid */}
       <svg width="100%" height="100%" preserveAspectRatio="none" style={{
         position: "absolute", inset: 0,
-        opacity: dark ? 0.16 : 0.12,
+        opacity: dark ? 0.11 : 0.08,
       }}>
         <defs>
           <pattern id="lp-grid" width="56" height="56" patternUnits="userSpaceOnUse">
@@ -745,6 +745,9 @@ export default function LandingPage({ onEnter, darkMode }) {
           </svg>
         </div>
       </section>
+
+      {/* ── THE ACADEMIC CONSTELLATION (scroll-driven story) ─────────────────── */}
+      <ScrollStoryAnimation dark={darkMode} />
 
       {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
       <section ref={chartRef} style={{
