@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, EASE, palette } from "../theme.jsx";
+import ScrollStoryAnimation from "./landing/ScrollStoryAnimation.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -147,32 +148,6 @@ function Brackets({ color, size = 18, inset = 0, opacity = 1 }) {
   );
 }
 
-// ── Pulsing live-status chip ──────────────────────────────────────────────────
-function LiveChip({ dark, label = "LIVE GRADE DATA" }) {
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 9,
-      border: `1px solid ${dark ? "rgba(244,239,233,0.14)" : "rgba(26,18,15,0.14)"}`,
-      borderRadius: 999, padding: "7px 15px",
-      fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.6px",
-      color: dark ? "rgba(244,239,233,0.6)" : "rgba(26,18,15,0.6)",
-      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-    }}>
-      <span style={{ position: "relative", width: 7, height: 7, display: "inline-block" }}>
-        <span style={{
-          position: "absolute", inset: 0, borderRadius: "50%",
-          background: "#4ade80", animation: "lpPulse 2s ease-in-out infinite",
-        }} />
-        <span style={{
-          position: "absolute", inset: 0, borderRadius: "50%",
-          border: "1px solid #4ade80", animation: "lpPing 2s ease-out infinite",
-        }} />
-      </span>
-      {label}
-    </span>
-  );
-}
-
 // ── Treated photo hero backdrop (campus imagery, recon-style) ─────────────────
 function HeroPhoto({ dark, parallaxRef }) {
   return (
@@ -201,8 +176,8 @@ function HeroPhoto({ dark, parallaxRef }) {
       <div style={{
         position: "absolute", inset: 0,
         background: dark
-          ? "linear-gradient(180deg, rgba(10,9,8,0.72) 0%, rgba(10,9,8,0.82) 55%, #0A0908 100%)"
-          : "linear-gradient(180deg, rgba(250,246,240,0.78) 0%, rgba(250,246,240,0.86) 55%, #FAF6F0 100%)",
+          ? "linear-gradient(180deg, rgba(10,9,8,0.58) 0%, rgba(10,9,8,0.70) 55%, #0A0908 100%)"
+          : "linear-gradient(180deg, rgba(250,246,240,0.64) 0%, rgba(250,246,240,0.76) 55%, #FAF6F0 100%)",
         transition: "background 0.45s ease",
       }} />
       {/* Drifting perspective grid */}
@@ -655,11 +630,6 @@ export default function LandingPage({ onEnter, darkMode }) {
           maxWidth: 1150, margin: "0 auto", padding: pad, width: "100%",
           boxSizing: "border-box",
         }}>
-          {/* Status chip */}
-          <div className="lp-h-fade" style={{ marginBottom: 34 }}>
-            <LiveChip dark={darkMode} />
-          </div>
-
           {/* Headline */}
           <div style={{ marginBottom: 26 }}>
             <span className="lp-h-clip">
