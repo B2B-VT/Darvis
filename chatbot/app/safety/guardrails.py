@@ -152,6 +152,14 @@ _TYPO_MAP: dict[str, str] = {
     "mth": "math", "mtah": "math", "matj": "math",
     "cse": "cs", "compsci": "cs",
     # Note: "EE" → "ECE" is handled by _SUBJECT_EXPANSIONS via word-boundary regex
+    # slang / shorthand students actually type
+    "reqs": "requirements", "req": "requirement",
+    "profs": "professors",
+    "ez": "easy", "tuff": "tough",
+    "wat": "what", "wut": "what",
+    "scheduel": "schedule", "schedual": "schedule", "shedule": "schedule",
+    "calsses": "classes", "classs": "classes",
+    "requitements": "requirements", "requierments": "requirements",
 }
 
 # Subject code expansions (single-word → canonical VT code, uppercase input expected).
