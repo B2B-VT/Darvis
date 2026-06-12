@@ -202,23 +202,22 @@ function Brackets({ color, size = 18, inset = 0, opacity = 1 }) {
 }
 
 // ── Treated photo hero backdrop (campus imagery, recon-style) ─────────────────
-function HeroPhoto({ dark, parallaxRef }) {
+function HeroPhoto({ dark }) {
+  // backgroundAttachment: fixed keeps the photo stagnant while the page scrolls
+  // over it. No CSS filter here — filters break fixed attachment in Chrome.
+  const bg = (img, on) => (
+    <div key={img} style={{
+      position: "absolute", inset: 0,
+      backgroundImage: `url(${img})`,
+      backgroundSize: "cover", backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+      opacity: on ? 1 : 0, transition: "opacity 0.6s ease",
+    }} />
+  );
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
-      <div ref={parallaxRef} style={{ position: "absolute", inset: "-12% 0", willChange: "transform" }}>
-        <img src="images/campus_day.jpg" alt="" style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover",
-          filter: "grayscale(0.25) contrast(1.06) brightness(1.04)",
-          opacity: dark ? 0 : 1, transition: "opacity 0.6s ease",
-        }} />
-        <img src="images/campus_night.jpg" alt="" style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover",
-          filter: "grayscale(0.2) contrast(1.1) brightness(0.9)",
-          opacity: dark ? 1 : 0, transition: "opacity 0.6s ease",
-        }} />
-      </div>
+      {bg("images/campus_day.jpg", !dark)}
+      {bg("images/campus_night.jpg", dark)}
       {/* Duotone maroon wash */}
       <div style={{
         position: "absolute", inset: 0,
@@ -284,64 +283,24 @@ function TechLine({ delay = 1.0 }) {
   );
 }
 
-// ── Scroll story — chart line draws with features, then morphs into "DARVIS" ──
-// Sticky section: scroll progress drives both the feature highlight on the left
-// and the line on the right. Phase 1 scrubs the grade-curve draw; phase 2
-// interpolates sampled points between the curve and a one-stroke DARVIS path.
+// ── Scroll story — chart line draws in as features highlight one by one ───────
+// Sticky section: scroll progress scrubs the grade-curve draw on the right and
+// drives the feature highlight on the left.
 const STORY_CHART = "M20 150 C 90 140, 130 96, 200 104 S 330 70, 400 56 S 520 40, 580 30";
-// The line settles into a straight underline while real "Darvis" text fades in
-const STORY_WORD = "M168 142 L452 142";
 const STORY_FEATURES = [
   ["01", "Grade distributions", "24 years of history. Every section, every term, every grade band."],
   ["02", "Instructor comparison", "Outcomes, ratings, and difficulty side by side."],
   ["03", "Schedule builder", "Conflict-free timetables assembled in seconds."],
   ["04", "Ask anything", "A chatbot that answers in plain English, backed by the data."],
-  ["05", "Darvis", "All of it, drawn from one line of data."],
 ];
 
 function ScrollStory({ dark, t, isMobile, pad }) {
   const wrapRef = useRef(null);
   const lineRef = useRef(null);
-  const decoRef = useRef(null);
-  const ptsRef = useRef(null);
-  const dotRefs = useRef([]);
-  const textRef = useRef(null);
   const [active, setActive] = useState(0);
   const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
   const ink = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
   const dots = [{ x: 20, y: 150 }, { x: 200, y: 104 }, { x: 400, y: 56 }, { x: 580, y: 30 }];
-
-  // Sample both paths once into matched point lists for morphing
-  useEffect(() => {
-    const ns = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("width", "0"); svg.setAttribute("height", "0");
-    svg.style.position = "absolute"; svg.style.overflow = "hidden";
-    const mk = d => { const p = document.createElementNS(ns, "path"); p.setAttribute("d", d); svg.appendChild(p); return p; };
-    const pa = mk(STORY_CHART), pb = mk(STORY_WORD);
-    document.body.appendChild(svg);
-    const K = 150;
-    const sample = p => {
-      const L = p.getTotalLength();
-      return Array.from({ length: K }, (_, i) => {
-        const pt = p.getPointAtLength((L * i) / (K - 1));
-        return [pt.x, pt.y];
-      });
-    };
-    const a = sample(pa), b = sample(pb);
-    // Map each chart dot to its nearest sample so dots can ride the morph
-    const chartDots = [[20, 150], [200, 104], [400, 56], [580, 30]];
-    const dotIdx = chartDots.map(([dx, dy]) => {
-      let best = 0, bestD = Infinity;
-      a.forEach(([x, y], i) => {
-        const d = (x - dx) ** 2 + (y - dy) ** 2;
-        if (d < bestD) { bestD = d; best = i; }
-      });
-      return best;
-    });
-    ptsRef.current = { a, b, dotIdx };
-    document.body.removeChild(svg);
-  }, []);
 
   useEffect(() => {
     let raf = null;
@@ -354,40 +313,9 @@ function ScrollStory({ dark, t, isMobile, pad }) {
         const rect = el.getBoundingClientRect();
         const span = Math.max(rect.height - window.innerHeight, 1);
         const p = Math.min(Math.max(-rect.top / span, 0), 1);
-        const drawP = Math.min(p / 0.68, 1);
-        const morphP = Math.max((p - 0.68) / 0.32, 0);
-        setActive(morphP > 0.05 ? 4 : Math.min(Math.floor(drawP * 4), 3));
-        const e = morphP <= 0 ? 0
-          : morphP < 0.5 ? 2 * morphP * morphP : 1 - Math.pow(-2 * morphP + 2, 2) / 2;
-        if (morphP <= 0) {
-          line.setAttribute("d", STORY_CHART);
-          line.style.strokeDasharray = "720";
-          line.style.strokeDashoffset = String(720 * (1 - drawP));
-        } else if (ptsRef.current) {
-          line.style.strokeDasharray = "none";
-          line.style.strokeDashoffset = "0";
-          const { a, b } = ptsRef.current;
-          line.setAttribute("d", a.map((pt, i) => {
-            const x = pt[0] + (b[i][0] - pt[0]) * e;
-            const y = pt[1] + (b[i][1] - pt[1]) * e;
-            return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
-          }).join(""));
-        }
-        // Dots stay visible and ride the line onto the cursive letters
-        if (ptsRef.current) {
-          const { a, b, dotIdx } = ptsRef.current;
-          dotIdx.forEach((idx, i) => {
-            const c = dotRefs.current[i];
-            if (!c) return;
-            c.setAttribute("cx", (a[idx][0] + (b[idx][0] - a[idx][0]) * e).toFixed(1));
-            c.setAttribute("cy", (a[idx][1] + (b[idx][1] - a[idx][1]) * e).toFixed(1));
-          });
-        }
-        if (textRef.current) {
-          textRef.current.style.opacity = String(e);
-          textRef.current.style.transform = `translateY(${(1 - e) * 14}px)`;
-        }
-        if (decoRef.current) decoRef.current.style.opacity = String(Math.max(1 - morphP * 2.5, 0));
+        const drawP = Math.min(p / 0.94, 1);
+        setActive(Math.min(Math.floor(drawP * 4), 3));
+        line.style.strokeDashoffset = String(720 * (1 - drawP));
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -396,7 +324,7 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   }, []);
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "300vh" : "340vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
       <div style={{
         position: "sticky", top: 0, minHeight: "100vh",
         display: "flex", alignItems: "center",
@@ -431,8 +359,7 @@ function ScrollStory({ dark, t, isMobile, pad }) {
                   <span style={{ fontFamily: MONO, fontSize: 10, color: on ? ACCENT : t.textMute, paddingTop: 6 }}>{num}</span>
                   <div>
                     <div style={{
-                      fontFamily: SERIF, fontSize: isMobile ? 19 : 22, color: t.text,
-                      fontStyle: i === 4 ? "italic" : "normal", lineHeight: 1.2,
+                      fontFamily: SERIF, fontSize: isMobile ? 19 : 22, color: t.text, lineHeight: 1.2,
                     }}>{title}</div>
                     <div style={{ fontSize: 12.5, color: t.textMute, lineHeight: 1.55, marginTop: 3 }}>{desc}</div>
                   </div>
@@ -442,7 +369,7 @@ function ScrollStory({ dark, t, isMobile, pad }) {
           </div>
           <svg viewBox="0 0 620 180" fill="none" preserveAspectRatio="xMidYMid meet"
             style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}>
-            <g ref={decoRef}>
+            <g>
               {[40, 80, 120, 160].map(y => (
                 <line key={y} x1="20" y1={y} x2="600" y2={y} stroke={faint} strokeWidth="1" strokeDasharray="2 6" />
               ))}
@@ -456,14 +383,9 @@ function ScrollStory({ dark, t, isMobile, pad }) {
             <path ref={lineRef} d={STORY_CHART} stroke={ACCENT} strokeWidth="2.5" fill="none"
               strokeLinecap="round" strokeLinejoin="round"
               style={{ strokeDasharray: 720, strokeDashoffset: 720 }} />
-            {/* Brand wordmark fades in as the line settles into its underline */}
-            <text ref={textRef} x="310" y="122" textAnchor="middle"
-              fontFamily="'Instrument Serif', Georgia, serif" fontStyle="italic"
-              fontSize="82" fill={ACCENT} style={{ opacity: 0 }}>Darvis</text>
-            {/* Data points persist through the morph, settling along the underline */}
             <g>
               {dots.map((pt, i) => (
-                <circle key={i} ref={el => { dotRefs.current[i] = el; }} cx={pt.x} cy={pt.y} r="5"
+                <circle key={i} cx={pt.x} cy={pt.y} r="5"
                   fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5"
                   style={{
                     opacity: active >= i ? 1 : 0,
@@ -785,7 +707,8 @@ function GpaRing({ gpa, t }) {
 function CourseCard({ c, t, dark }) {
   return (
     <div className="lp-card" style={{
-      width: 318, flexShrink: 0, marginRight: 18,
+      width: 318, minHeight: 136, flexShrink: 0, marginRight: 18,
+      display: "flex", flexDirection: "column", justifyContent: "center",
       background: t.card, border: `1px solid ${t.line}`,
       "--card-solid": dark ? "#181311" : "#FFFFFF",
       borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
@@ -827,26 +750,27 @@ function ProfCard({ pr, t, dark }) {
   const initials = pr.name.split(" ").slice(-1)[0].slice(0, 2).toUpperCase();
   return (
     <div className="lp-card" style={{
-      width: 318, flexShrink: 0, marginRight: 18,
+      width: 318, minHeight: 136, flexShrink: 0, marginRight: 18,
+      display: "flex", flexDirection: "column", justifyContent: "center",
       background: t.card, border: `1px solid ${t.line}`,
       "--card-solid": dark ? "#181311" : "#FFFFFF",
       borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true" style={{ flexShrink: 0 }}>
           <circle cx="20" cy="20" r="19" fill="rgba(134,31,65,0.14)" stroke={ACCENT} strokeOpacity="0.4" strokeWidth="1" />
           <text x="20" y="25" textAnchor="middle" fill={ACCENT} fontSize="13"
             fontFamily="'Instrument Serif', Georgia, serif">{initials}</text>
         </svg>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: t.text }}>{pr.name}</div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: t.textMute, letterSpacing: "0.8px", marginTop: 2 }}>{pr.dept} DEPT</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: t.text }}>{pr.name}</div>
+          <div style={{ fontFamily: MONO, fontSize: 11, color: t.textMute, letterSpacing: "0.8px", marginTop: 3 }}>{pr.dept} DEPT</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 20, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
-          <div style={{ fontFamily: MONO, fontSize: 8.5, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
+          <div style={{ fontSize: 22, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
+          <div style={{ fontFamily: MONO, fontSize: 9, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
         </div>
       </div>
       {/* Unfolds on hover — instructor stats */}
@@ -1013,11 +937,12 @@ function SectionGrid({ dark, id }) {
 function SectionBackdrop({ dark, id }) {
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none" }}>
-      <img src={dark ? "images/campus_night.jpg" : "images/campus_day.jpg"} alt="" style={{
-        position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
-        filter: dark
-          ? "grayscale(0.2) contrast(1.1) brightness(0.9)"
-          : "grayscale(0.25) contrast(1.06) brightness(1.04)",
+      {/* Stagnant photo — fixed attachment so content scrolls over it */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `url(${dark ? "images/campus_night.jpg" : "images/campus_day.jpg"})`,
+        backgroundSize: "cover", backgroundPosition: "center",
+        backgroundAttachment: "fixed",
       }} />
       {/* Duotone maroon wash */}
       <div style={{
@@ -1033,30 +958,6 @@ function SectionBackdrop({ dark, id }) {
           : "linear-gradient(180deg, #FAF6F0 0%, rgba(250,246,240,0.86) 28%, rgba(250,246,240,0.86) 72%, #FAF6F0 100%)",
       }} />
       <SectionGrid dark={dark} id={id} />
-    </div>
-  );
-}
-
-// ── Vertical data stream — looping chevron column on a section edge ───────────
-function VertStream({ side, t, duration = 9 }) {
-  return (
-    <div aria-hidden="true" style={{
-      position: "absolute", top: 0, bottom: 0, [side]: 14, width: 16,
-      overflow: "hidden", pointerEvents: "none",
-      WebkitMaskImage: "linear-gradient(180deg, transparent, black 20%, black 80%, transparent)",
-      maskImage: "linear-gradient(180deg, transparent, black 20%, black 80%, transparent)",
-    }}>
-      <div style={{
-        animation: `lpStreamY ${duration}s linear infinite`,
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
-      }}>
-        {Array.from({ length: 36 }).map((_, i) => (
-          <svg key={i} width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M1 1l4 4 4-4" stroke={i % 4 === 0 ? ACCENT : t.textFaint}
-              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1173,7 +1074,6 @@ function ChatSection({ dark, t, isMobile, pad }) {
       display: "flex", alignItems: "center",
       maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
     }}>
-      {!isMobile && <VertStream side="right" t={t} duration={11} />}
       {!isMobile && (
         <div aria-hidden="true" style={{ position: "absolute", top: "8%", left: "46%", animation: "lpFloat 5.2s ease-in-out 0.5s infinite", pointerEvents: "none" }}>
           <span style={{ display: "block", lineHeight: 0, animation: "lpTwinkle 3.6s ease-in-out infinite" }}>
@@ -1285,7 +1185,6 @@ function ChatSection({ dark, t, isMobile, pad }) {
 export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
-  const parallaxRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
@@ -1316,22 +1215,6 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   }, []);
 
   injectStyles("lp-v7", LP_CSS);
-
-  // Hero photo parallax — photo drifts at 30% of scroll speed
-  useEffect(() => {
-    let raf = null;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        if (parallaxRef.current) {
-          parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.28}px)`;
-        }
-        raf = null;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
-  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStatsActive(true); }, { threshold: 0.3 });
@@ -1411,7 +1294,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         position: "relative",
         display: "flex", flexDirection: "column", justifyContent: "center",
       }}>
-        <HeroPhoto dark={darkMode} parallaxRef={parallaxRef} />
+        <HeroPhoto dark={darkMode} />
         {!isMobile && <HeroOrnaments />}
 
         <div style={{
@@ -1590,8 +1473,6 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         padding: pad, boxSizing: "border-box",
         paddingTop: isMobile ? 56 : 90, paddingBottom: isMobile ? 56 : 90,
       }}>
-        {!isMobile && <VertStream side="left" t={t} duration={10} />}
-        {!isMobile && <VertStream side="right" t={t} duration={13} />}
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>
           {stats.map((s, i) => (
             <Reveal key={i} delay={i * 0.08} style={{
