@@ -131,13 +131,20 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
         gap: isMobile ? 8 : 6,
         padding: isMobile ? "8px 10px 8px 14px" : "8px 10px 8px 18px",
         borderRadius: 999,
-        background: p.glass,
-        backdropFilter: "blur(20px) saturate(1.4)",
-        WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-        border: `1px solid ${p.line}`,
-        boxShadow: scrolled
-          ? (darkMode ? "0 8px 32px rgba(0,0,0,0.45)" : "0 8px 32px rgba(26,18,15,0.12)")
-          : "0 2px 12px rgba(0,0,0,0.06)",
+        // Liquid glass: heavy blur + saturation, translucent sheen gradient,
+        // inset top highlight + bottom shadow hairlines for the lensed-edge look
+        background: darkMode
+          ? "linear-gradient(180deg, rgba(38,30,27,0.62), rgba(20,16,14,0.5))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(250,246,240,0.45))",
+        backdropFilter: "blur(28px) saturate(1.9)",
+        WebkitBackdropFilter: "blur(28px) saturate(1.9)",
+        border: `1px solid ${darkMode ? "rgba(244,239,233,0.14)" : "rgba(255,255,255,0.65)"}`,
+        boxShadow: (scrolled
+          ? (darkMode ? "0 12px 40px rgba(0,0,0,0.5)" : "0 12px 40px rgba(26,18,15,0.14)")
+          : (darkMode ? "0 4px 16px rgba(0,0,0,0.25)" : "0 4px 16px rgba(26,18,15,0.07)"))
+          + (darkMode
+            ? ", inset 0 1px 0 rgba(244,239,233,0.12), inset 0 -1px 0 rgba(0,0,0,0.3)"
+            : ", inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(26,18,15,0.05)"),
         transition: `box-shadow 0.4s ease, background 0.45s ease, border-color 0.45s ease`,
         fontFamily: SANS,
         boxSizing: "border-box",

@@ -53,12 +53,17 @@ const LP_CSS = `
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30%           { transform: translateY(-4px); opacity: 1; }
 }
+@keyframes lpArrowDrop {
+  0%   { opacity: 0.15; transform: translateY(-3px); }
+  40%  { opacity: 1; }
+  100% { opacity: 0.15; transform: translateY(4px); }
+}
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-h-fade { animation: lpHeroFade 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-w-clip { display: inline-block; overflow: hidden; vertical-align: bottom;
-  padding-bottom: 0.18em; margin-bottom: -0.18em;
-  padding-left: 0.14em; margin-left: -0.14em; }
+  padding-bottom: 0.32em; margin-bottom: -0.32em;
+  padding-left: 0.24em; margin-left: -0.24em; }
 .lp-w { display: inline-block; animation: lpHeroLine 0.95s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* ── Data marquees (fluence-style streams, hover to pause + expand) ── */
@@ -132,7 +137,9 @@ function DataSpine({ dark }) {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         const doc = document.documentElement;
-        const p = doc.scrollTop / Math.max(doc.scrollHeight - doc.clientHeight, 1);
+        // /0.97: complete slightly before absolute bottom so fractional scroll
+        // positions and overscroll never leave the spine visibly unfinished
+        const p = Math.min(doc.scrollTop / Math.max(doc.scrollHeight - doc.clientHeight, 1) / 0.97, 1);
         if (fillRef.current) fillRef.current.style.transform = `scaleY(${p})`;
         setLit(Math.floor(p * 4.999));
         raf = null;
@@ -283,13 +290,17 @@ function TechLine({ delay = 1.0 }) {
 // interpolates sampled points between the curve and a one-stroke DARVIS path.
 const STORY_CHART = "M20 150 C 90 140, 130 96, 200 104 S 330 70, 400 56 S 520 40, 580 30";
 const STORY_WORD =
-  "M20 150 L45 127 L52 125 L52 55 C97 55 107 75 107 90 C107 105 97 125 52 125 " +
-  "L130 125 L160 55 L190 125 " +
-  "L218 125 L218 55 C262 55 262 92 218 92 L266 125 " +
-  "L296 55 L326 125 L356 55 " +
-  "L388 55 L388 125 " +
-  "L414 114 C422 130 460 132 464 108 C467 86 418 92 420 66 C422 44 462 46 470 60 " +
-  "L580 30";
+  // One continuous cursive stroke: lead-in, D, a, r, v, i, s, tail
+  "M20 150 C36 118 58 84 82 58 C76 84 68 106 60 124 C92 128 118 110 122 84 " +
+  "C124 62 100 52 82 58 C96 66 110 96 120 116 C124 122 130 125 136 124 " +
+  "C150 116 170 98 184 92 C168 84 152 90 149 104 C146 120 162 128 174 120 " +
+  "C181 115 184 104 185 94 C186 108 190 120 196 124 " +
+  "C206 114 214 100 218 92 C220 86 227 86 231 92 C234 100 240 116 248 124 " +
+  "C258 114 266 102 270 94 C274 108 280 120 290 122 C300 118 308 106 312 96 " +
+  "C313 91 318 90 320 95 C326 106 334 116 342 122 " +
+  "C350 113 356 102 359 93 C360 105 364 118 370 124 " +
+  "C380 114 388 102 393 93 C398 86 408 88 405 96 C398 108 388 112 392 121 " +
+  "C396 130 412 126 420 114 C470 96 530 62 580 30";
 const STORY_FEATURES = [
   ["01", "Grade distributions", "24 years of history. Every section, every term, every grade band."],
   ["02", "Instructor comparison", "Outcomes, ratings, and difficulty side by side."],
@@ -303,6 +314,8 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   const lineRef = useRef(null);
   const decoRef = useRef(null);
   const ptsRef = useRef(null);
+  const dotRefs = useRef([]);
+  const idotRef = useRef(null);
   const [active, setActive] = useState(0);
   const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
   const ink = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
@@ -325,7 +338,18 @@ function ScrollStory({ dark, t, isMobile, pad }) {
         return [pt.x, pt.y];
       });
     };
-    ptsRef.current = { a: sample(pa), b: sample(pb) };
+    const a = sample(pa), b = sample(pb);
+    // Map each chart dot to its nearest sample so dots can ride the morph
+    const chartDots = [[20, 150], [200, 104], [400, 56], [580, 30]];
+    const dotIdx = chartDots.map(([dx, dy]) => {
+      let best = 0, bestD = Infinity;
+      a.forEach(([x, y], i) => {
+        const d = (x - dx) ** 2 + (y - dy) ** 2;
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return best;
+    });
+    ptsRef.current = { a, b, dotIdx };
     document.body.removeChild(svg);
   }, []);
 
@@ -343,12 +367,13 @@ function ScrollStory({ dark, t, isMobile, pad }) {
         const drawP = Math.min(p / 0.68, 1);
         const morphP = Math.max((p - 0.68) / 0.32, 0);
         setActive(morphP > 0.05 ? 4 : Math.min(Math.floor(drawP * 4), 3));
+        const e = morphP <= 0 ? 0
+          : morphP < 0.5 ? 2 * morphP * morphP : 1 - Math.pow(-2 * morphP + 2, 2) / 2;
         if (morphP <= 0) {
           line.setAttribute("d", STORY_CHART);
           line.style.strokeDasharray = "720";
           line.style.strokeDashoffset = String(720 * (1 - drawP));
         } else if (ptsRef.current) {
-          const e = morphP < 0.5 ? 2 * morphP * morphP : 1 - Math.pow(-2 * morphP + 2, 2) / 2;
           line.style.strokeDasharray = "none";
           line.style.strokeDashoffset = "0";
           const { a, b } = ptsRef.current;
@@ -358,6 +383,17 @@ function ScrollStory({ dark, t, isMobile, pad }) {
             return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
           }).join(""));
         }
+        // Dots stay visible and ride the line onto the cursive letters
+        if (ptsRef.current) {
+          const { a, b, dotIdx } = ptsRef.current;
+          dotIdx.forEach((idx, i) => {
+            const c = dotRefs.current[i];
+            if (!c) return;
+            c.setAttribute("cx", (a[idx][0] + (b[idx][0] - a[idx][0]) * e).toFixed(1));
+            c.setAttribute("cy", (a[idx][1] + (b[idx][1] - a[idx][1]) * e).toFixed(1));
+          });
+        }
+        if (idotRef.current) idotRef.current.style.opacity = String(Math.max((morphP - 0.65) / 0.35, 0));
         if (decoRef.current) decoRef.current.style.opacity = String(Math.max(1 - morphP * 2.5, 0));
       });
     };
@@ -421,20 +457,25 @@ function ScrollStory({ dark, t, isMobile, pad }) {
                 <text key={lab} x="0" y={y} fill={dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)"}
                   fontSize="9" fontFamily="'JetBrains Mono', monospace">{lab}</text>
               ))}
-              {dots.map((pt, i) => (
-                <circle key={i} cx={pt.x} cy={pt.y} r="5"
-                  fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5"
-                  style={{
-                    opacity: active >= i ? 1 : 0,
-                    transition: "opacity 0.35s ease",
-                  }} />
-              ))}
               <text x="588" y="22" fill={ink} fontSize="11" fontFamily="'JetBrains Mono', monospace" textAnchor="end"
                 style={{ opacity: active >= 3 ? 1 : 0, transition: "opacity 0.4s ease" }}>3.67 GPA</text>
             </g>
             <path ref={lineRef} d={STORY_CHART} stroke={ACCENT} strokeWidth="2.5" fill="none"
               strokeLinecap="round" strokeLinejoin="round"
               style={{ strokeDasharray: 720, strokeDashoffset: 720 }} />
+            {/* Data points persist through the morph, landing on the letters */}
+            <g>
+              {dots.map((pt, i) => (
+                <circle key={i} ref={el => { dotRefs.current[i] = el; }} cx={pt.x} cy={pt.y} r="5"
+                  fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5"
+                  style={{
+                    opacity: active >= i ? 1 : 0,
+                    transition: "opacity 0.35s ease",
+                  }} />
+              ))}
+              {/* The dot on the cursive i, fades in as the word completes */}
+              <circle ref={idotRef} cx="360" cy="76" r="2.6" fill={ACCENT} style={{ opacity: 0 }} />
+            </g>
           </svg>
         </div>
       </div>
@@ -630,11 +671,22 @@ function Showcase({ dark, t }) {
     return () => obs.disconnect();
   }, []);
 
+  // rAF-driven cycle timer so the progress bar stays in sync with tab advances
+  const [prog, setProg] = useState(0);
   useEffect(() => {
     if (!seen || paused) return;
-    const id = setInterval(() => setActive(a => (a + 1) % tabs.length), 4200);
-    return () => clearInterval(id);
-  }, [seen, paused, tabs.length]);
+    let raf, last = performance.now();
+    const tick = now => {
+      const dt = now - last; last = now;
+      setProg(p => p + dt / 4200);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [seen, paused]);
+  useEffect(() => {
+    if (prog >= 1) { setActive(a => (a + 1) % tabs.length); setProg(0); }
+  }, [prog, tabs.length]);
 
   const Active = tabs[active].C;
 
@@ -655,10 +707,15 @@ function Showcase({ dark, t }) {
           boxSizing: "border-box",
         }}>
         {/* Title bar */}
-        <div style={{ display: "flex", gap: 4, padding: "12px 14px", borderBottom: `1px solid ${t.lineSoft}`, alignItems: "center" }}>
+        <div style={{ position: "relative", display: "flex", gap: 4, padding: "12px 14px", borderBottom: `1px solid ${t.lineSoft}`, alignItems: "center" }}>
+          {/* Cycle progress — fills until the next preview swaps in */}
+          <svg aria-hidden="true" width="100%" height="2" style={{ position: "absolute", left: 0, bottom: -1 }}>
+            <rect x="0" y="0" width="100%" height="2" fill={ACCENT} opacity="0.8"
+              style={{ transform: `scaleX(${Math.min(prog, 1)})`, transformOrigin: "left" }} />
+          </svg>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute, marginRight: 12 }}>DARVIS.SYS</span>
           {tabs.map((tab, i) => (
-            <button key={tab.id} onClick={() => setActive(i)} style={{
+            <button key={tab.id} onClick={() => { setActive(i); setProg(0); }} style={{
               background: i === active ? (dark ? "rgba(134,31,65,0.25)" : "rgba(134,31,65,0.10)") : "transparent",
               border: `1px solid ${i === active ? "rgba(134,31,65,0.4)" : "transparent"}`,
               color: i === active ? (dark ? "#fff" : ACCENT) : t.textMute,
@@ -733,18 +790,18 @@ function GpaRing({ gpa, t }) {
 function CourseCard({ c, t, dark }) {
   return (
     <div className="lp-card" style={{
-      width: 252, flexShrink: 0, marginRight: 14,
+      width: 318, flexShrink: 0, marginRight: 18,
       background: t.card, border: `1px solid ${t.line}`,
       "--card-solid": dark ? "#181311" : "#FFFFFF",
-      borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
+      borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, color: ACCENT, letterSpacing: "0.8px" }}>{c.code}</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginTop: 5, lineHeight: 1.3 }}>{c.title}</div>
-          <div style={{ fontSize: 11, color: t.textMute, marginTop: 4 }}>{c.profs} instructors · {c.n} students</div>
+          <div style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: ACCENT, letterSpacing: "0.8px" }}>{c.code}</div>
+          <div style={{ fontSize: 15.5, fontWeight: 600, color: t.text, marginTop: 5, lineHeight: 1.3 }}>{c.title}</div>
+          <div style={{ fontSize: 12, color: t.textMute, marginTop: 4 }}>{c.profs} instructors · {c.n} students</div>
         </div>
         <GpaRing gpa={c.gpa} t={t} />
       </div>
@@ -775,10 +832,10 @@ function ProfCard({ pr, t, dark }) {
   const initials = pr.name.split(" ").slice(-1)[0].slice(0, 2).toUpperCase();
   return (
     <div className="lp-card" style={{
-      width: 252, flexShrink: 0, marginRight: 14,
+      width: 318, flexShrink: 0, marginRight: 18,
       background: t.card, border: `1px solid ${t.line}`,
       "--card-solid": dark ? "#181311" : "#FFFFFF",
-      borderRadius: 16, padding: "16px 18px", boxSizing: "border-box",
+      borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
     }}>
@@ -789,11 +846,11 @@ function ProfCard({ pr, t, dark }) {
             fontFamily="'Instrument Serif', Georgia, serif">{initials}</text>
         </svg>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text }}>{pr.name}</div>
-          <div style={{ fontFamily: MONO, fontSize: 10, color: t.textMute, letterSpacing: "0.8px", marginTop: 2 }}>{pr.dept} DEPT</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: t.text }}>{pr.name}</div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: t.textMute, letterSpacing: "0.8px", marginTop: 2 }}>{pr.dept} DEPT</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 18, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
+          <div style={{ fontSize: 20, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
           <div style={{ fontFamily: MONO, fontSize: 8.5, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
         </div>
       </div>
@@ -828,7 +885,7 @@ function DataMarquees({ dark, t }) {
         </div>
       </div>
       {/* Instructors — drift left, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-l" style={{ marginTop: -34, zIndex: 1 }}>
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -25, zIndex: 1 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
@@ -915,6 +972,48 @@ function KickerDot() {
   );
 }
 
+// ── Scroll cue arrows — cascading downward chevrons, fixed on the right ───────
+function ScrollArrows({ dark }) {
+  const col = dark ? "rgba(244,239,233,0.5)" : "rgba(26,18,15,0.45)";
+  return (
+    <div aria-hidden="true" style={{
+      position: "fixed", right: 27, top: "50%", transform: "translateY(-50%)",
+      zIndex: 5, pointerEvents: "none",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+    }}>
+      {[0, 1, 2].map(i => (
+        <svg key={i} width="12" height="7" viewBox="0 0 12 7" fill="none"
+          style={{ animation: `lpArrowDrop 1.6s ease-in-out ${i * 0.22}s infinite` }}>
+          <path d="M1 1l5 5 5-5" stroke={i === 2 ? ACCENT : col}
+            strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+// ── Drifting grid backdrop for sections (same motif as the hero) ──────────────
+function SectionGrid({ dark, id }) {
+  return (
+    <svg width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{
+      position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+      opacity: dark ? 0.07 : 0.055,
+      WebkitMaskImage: "linear-gradient(180deg, transparent, black 18%, black 82%, transparent)",
+      maskImage: "linear-gradient(180deg, transparent, black 18%, black 82%, transparent)",
+    }}>
+      <defs>
+        <pattern id={id} width="56" height="56" patternUnits="userSpaceOnUse">
+          <path d="M 56 0 L 0 0 0 56" fill="none"
+            stroke={dark ? "#F4EFE9" : "#1A120F"} strokeWidth="1.2" />
+        </pattern>
+      </defs>
+      <g style={{ animation: "lpGridDrift 7s linear infinite" }}>
+        <rect x="-56" y="-56" width="200%" height="200%" fill={`url(#${id})`} />
+      </g>
+    </svg>
+  );
+}
+
 // ── Vertical data stream — looping chevron column on a section edge ───────────
 function VertStream({ side, t, duration = 9 }) {
   return (
@@ -971,57 +1070,85 @@ function TypingDots({ t }) {
   );
 }
 
-// ── Chatbot section — scripted conversation plays when scrolled into view ─────
-const CHAT_SCRIPT = [
-  { role: "user", text: "Who should I take for CS 3114?" },
-  { role: "bot",  text: "Hamouda has the strongest outcomes: 3.67 avg GPA across 459 students over four terms. Farghally is close behind at 3.54." },
-  { role: "user", text: "And the F rate?" },
-  { role: "bot",  text: "2.1% under Hamouda, among the lowest for this course." },
+// ── Chatbot section — scroll scrubs through three Q&A exchanges ───────────────
+// Sticky section: each third of the scroll shows one exchange (question, then
+// typing dots, then the answer) and highlights the matching bullet on the left.
+const CHAT_EXCHANGES = [
+  {
+    q: "What's the GPA like in CS 3114?",
+    a: "3.42 average over the last four terms, with Hamouda's sections trending highest.",
+    bullet: "Trained on every grade record in the catalog",
+  },
+  {
+    q: "Who should I take for it?",
+    a: "Hamouda: 3.67 avg GPA across 459 students and a 2.1% F rate. Farghally is close behind at 3.54.",
+    bullet: "Compares instructors and sections instantly",
+  },
+  {
+    q: "Add it to my schedule.",
+    a: "Done. CS 3114 with Hamouda, MWF 10:10 to 11:00, no conflicts with your other courses.",
+    bullet: "Adds courses to your schedule on request",
+  },
 ];
 
 function ChatSection({ dark, t, isMobile, pad }) {
-  const ref = useRef(null);
-  const [seen, setSeen] = useState(false);
-  // Stages: 1 user msg · 2 typing · 3 bot msg · 4 user msg · 5 typing · 6 bot msg
-  const [stage, setStage] = useState(0);
+  const wrapRef = useRef(null);
+  // stage = active*3 + phase; phase: 0 question · 1 typing · 2 answer; -1 idle
+  const [stage, setStage] = useState(-1);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); obs.disconnect(); } }, { threshold: 0.3 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const el = wrapRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const span = Math.max(rect.height - window.innerHeight, 1);
+        const p = Math.min(Math.max(-rect.top / span, 0), 1);
+        if (p <= 0.001) { setStage(-1); return; }
+        const active = Math.min(Math.floor(p * 3), 2);
+        const sub = p * 3 - active;
+        const phase = sub < 0.2 ? 0 : sub < 0.5 ? 1 : 2;
+        setStage(active * 3 + phase);
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
   }, []);
 
-  useEffect(() => {
-    if (!seen) return;
-    const ids = [500, 1300, 2700, 3700, 4400, 5800].map((ms, i) => setTimeout(() => setStage(i + 1), ms));
-    return () => ids.forEach(clearTimeout);
-  }, [seen]);
+  const started = stage >= 0;
+  const active = started ? Math.floor(stage / 3) : 0;
+  const phase = started ? stage % 3 : -1;
+  const ex = CHAT_EXCHANGES[active];
 
-  const slotOn = [stage >= 1, stage >= 2, stage >= 4, stage >= 5];
-  const bubble = (m, i, on, typing) => (
-    <div key={i} style={{
-      display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start",
+  const bubble = (text, role, on, typing, key) => (
+    <div key={key} style={{
+      display: "flex", justifyContent: role === "user" ? "flex-end" : "flex-start",
       opacity: on ? 1 : 0, transform: on ? "none" : "translateY(12px)",
-      transition: "opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1)",
+      transition: "opacity 0.4s ease, transform 0.4s cubic-bezier(0.22,1,0.36,1)",
     }}>
       {typing ? <TypingDots t={t} /> : (
         <div style={{
           maxWidth: "82%",
-          background: m.role === "user" ? ACCENT : t.input,
-          border: m.role === "user" ? "none" : `1px solid ${t.lineSoft}`,
-          color: m.role === "user" ? "white" : t.text,
-          borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+          background: role === "user" ? ACCENT : t.input,
+          border: role === "user" ? "none" : `1px solid ${t.lineSoft}`,
+          color: role === "user" ? "white" : t.text,
+          borderRadius: role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
           padding: "10px 14px", fontSize: 12.5, lineHeight: 1.55, fontWeight: 500,
-        }}>{m.text}</div>
+        }}>{text}</div>
       )}
     </div>
   );
 
   return (
-    <section ref={ref} style={{
-      position: "relative",
+    <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
+    <div style={{
+      position: "sticky", top: 0, minHeight: "100vh",
+      display: "flex", alignItems: "center",
       maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
-      paddingBottom: isMobile ? 72 : 120,
     }}>
       {!isMobile && <VertStream side="right" t={t} duration={11} />}
       {!isMobile && (
@@ -1046,32 +1173,34 @@ function ChatSection({ dark, t, isMobile, pad }) {
             fontSize: "clamp(30px, 3.6vw, 48px)", letterSpacing: "-0.5px",
             color: t.text, lineHeight: 1.1,
           }}>Answers, <span style={{ fontStyle: "italic", color: ACCENT }}>not spreadsheets.</span></h2>
-          <WaveLine active={seen} delay={0.3} />
+          <WaveLine active={started} delay={0.1} />
           <p style={{ fontSize: 15.5, color: t.textSub, lineHeight: 1.7, margin: "20px 0 6px", fontWeight: 500, maxWidth: 420 }}>
             Every grade record, instructor rating, and section time, queryable in plain
-            English. Ask the question you'd ask a friend who somehow read all the data.
+            English. Keep scrolling to watch a conversation unfold.
           </p>
-          {[
-            "Trained on every grade record in the catalog",
-            "Compares instructors and sections instantly",
-            "Adds courses to your schedule on request",
-          ].map((b, i) => (
-            <div key={b} style={{
-              display: "flex", gap: 10, alignItems: "center", marginTop: 13,
-              opacity: seen ? 1 : 0, transform: seen ? "none" : "translateY(8px)",
-              transition: `opacity 0.5s ease ${0.5 + i * 0.15}s, transform 0.5s ease ${0.5 + i * 0.15}s`,
-            }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke={ACCENT} strokeOpacity="0.35" strokeWidth="1.5" />
-                <path d="M7 12.5l3.2 3L17 9" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  style={{
-                    strokeDasharray: 16, strokeDashoffset: seen ? 0 : 16,
-                    transition: `stroke-dashoffset 0.5s ease ${0.75 + i * 0.15}s`,
-                  }} />
-              </svg>
-              <span style={{ fontSize: 14, color: t.textSub, fontWeight: 500 }}>{b}</span>
-            </div>
-          ))}
+          {CHAT_EXCHANGES.map((e2, i) => {
+            const done = started && i <= active;
+            const on = started && i === active;
+            return (
+              <div key={i} style={{
+                display: "flex", gap: 10, alignItems: "center", marginTop: 13,
+                paddingLeft: 12, borderLeft: `2px solid ${on ? ACCENT : "transparent"}`,
+                opacity: on ? 1 : done ? 0.6 : 0.3,
+                transform: on ? "translateX(4px)" : "none",
+                transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.4s ease",
+              }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" stroke={ACCENT} strokeOpacity="0.35" strokeWidth="1.5" />
+                  <path d="M7 12.5l3.2 3L17 9" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{
+                      strokeDasharray: 16, strokeDashoffset: done ? 0 : 16,
+                      transition: "stroke-dashoffset 0.45s ease 0.1s",
+                    }} />
+                </svg>
+                <span style={{ fontSize: 14, color: t.textSub, fontWeight: 500 }}>{e2.bullet}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Chat window in HUD frame */}
@@ -1089,13 +1218,13 @@ function ChatSection({ dark, t, isMobile, pad }) {
                 animation: "lpPulse 2s ease-in-out infinite",
               }} />
               <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute }}>DARVIS.AI · ONLINE</span>
-              <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", color: t.textFaint }}>1,706 RECORDS</span>
+              <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", color: t.textFaint }}>
+                QUERY 0{active + 1}/03
+              </span>
             </div>
-            <div style={{ padding: "18px 16px", display: "flex", flexDirection: "column", gap: 12, minHeight: 250 }}>
-              {bubble(CHAT_SCRIPT[0], 0, slotOn[0], false)}
-              {bubble(CHAT_SCRIPT[1], 1, slotOn[1], stage === 2)}
-              {bubble(CHAT_SCRIPT[2], 2, slotOn[2], false)}
-              {bubble(CHAT_SCRIPT[3], 3, slotOn[3], stage === 5)}
+            <div style={{ padding: "18px 16px", display: "flex", flexDirection: "column", gap: 12, minHeight: 190 }}>
+              {bubble(ex.q, "user", started, false, `q${active}`)}
+              {bubble(ex.a, "bot", started && phase >= 1, phase === 1, `a${active}`)}
             </div>
             <div style={{ borderTop: `1px solid ${t.lineSoft}`, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{
@@ -1124,6 +1253,7 @@ function ChatSection({ dark, t, isMobile, pad }) {
           </div>
         </div>
       </div>
+    </div>
     </section>
   );
 }
@@ -1250,6 +1380,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
       {/* Scroll-driven chrome */}
       <ScrollProgress />
       {!isMobile && <DataSpine dark={darkMode} />}
+      {!isMobile && <ScrollArrows dark={darkMode} />}
 
       {/* ── HERO (treated campus photo · parallax · HUD) ─────────────────────── */}
       <section style={{
@@ -1301,7 +1432,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             fontSize: 17, color: t.textSub, lineHeight: 1.7,
             margin: "0 0 38px", fontWeight: 500, maxWidth: 440,
           }}>
-            Grade distributions, professor ratings, and a schedule builder — every course, in one quiet place.
+            Grade distributions, professor ratings, and a schedule builder, every course, in one quiet place.
           </p>
 
           <div className="lp-h-fade dv-d3">
@@ -1463,8 +1594,10 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
       {/* ── SHOWCASE ──────────────────────────────────────────────────────────── */}
       <section style={{
         maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
-        paddingBottom: isMobile ? 72 : 120,
+        paddingBottom: isMobile ? 72 : 120, position: "relative",
       }}>
+        <SectionGrid dark={darkMode} id="lp-grid-sc" />
+        <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
           <span style={{
             fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
@@ -1479,6 +1612,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         <Reveal delay={0.12}>
           <Showcase dark={darkMode} t={t} />
         </Reveal>
+        </div>
       </section>
 
       {/* ── CHATBOT — scripted conversation plays on scroll ──────────────────── */}
@@ -1488,8 +1622,10 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
       <section style={{
         borderTop: `1px solid ${t.lineSoft}`,
         padding: isMobile ? "88px 22px" : "150px 64px",
-        textAlign: "center",
+        textAlign: "center", position: "relative",
       }}>
+        <SectionGrid dark={darkMode} id="lp-grid-cta" />
+        <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
           <p style={{
             fontFamily: SERIF, fontWeight: 400,
@@ -1525,6 +1661,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             )}
           </SignedOut>
         </Reveal>
+        </div>
       </section>
 
       {/* ── FOOTER (carries the former About page) ────────────────────────────── */}
