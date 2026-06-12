@@ -289,18 +289,8 @@ function TechLine({ delay = 1.0 }) {
 // and the line on the right. Phase 1 scrubs the grade-curve draw; phase 2
 // interpolates sampled points between the curve and a one-stroke DARVIS path.
 const STORY_CHART = "M20 150 C 90 140, 130 96, 200 104 S 330 70, 400 56 S 520 40, 580 30";
-const STORY_WORD =
-  // One continuous cursive stroke: lead-in, D, a, r, v, i, s, tail
-  "M20 150 C36 118 58 84 82 58 C76 84 68 106 60 124 C92 128 118 110 122 84 " +
-  "C124 62 100 52 82 58 C96 66 110 96 120 116 C124 122 130 125 136 124 " +
-  "C150 116 170 98 184 92 C168 84 152 90 149 104 C146 120 162 128 174 120 " +
-  "C181 115 184 104 185 94 C186 108 190 120 196 124 " +
-  "C206 114 214 100 218 92 C220 86 227 86 231 92 C234 100 240 116 248 124 " +
-  "C258 114 266 102 270 94 C274 108 280 120 290 122 C300 118 308 106 312 96 " +
-  "C313 91 318 90 320 95 C326 106 334 116 342 122 " +
-  "C350 113 356 102 359 93 C360 105 364 118 370 124 " +
-  "C380 114 388 102 393 93 C398 86 408 88 405 96 C398 108 388 112 392 121 " +
-  "C396 130 412 126 420 114 C470 96 530 62 580 30";
+// The line settles into a straight underline while real "Darvis" text fades in
+const STORY_WORD = "M168 142 L452 142";
 const STORY_FEATURES = [
   ["01", "Grade distributions", "24 years of history. Every section, every term, every grade band."],
   ["02", "Instructor comparison", "Outcomes, ratings, and difficulty side by side."],
@@ -315,7 +305,7 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   const decoRef = useRef(null);
   const ptsRef = useRef(null);
   const dotRefs = useRef([]);
-  const idotRef = useRef(null);
+  const textRef = useRef(null);
   const [active, setActive] = useState(0);
   const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
   const ink = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
@@ -393,7 +383,10 @@ function ScrollStory({ dark, t, isMobile, pad }) {
             c.setAttribute("cy", (a[idx][1] + (b[idx][1] - a[idx][1]) * e).toFixed(1));
           });
         }
-        if (idotRef.current) idotRef.current.style.opacity = String(Math.max((morphP - 0.65) / 0.35, 0));
+        if (textRef.current) {
+          textRef.current.style.opacity = String(e);
+          textRef.current.style.transform = `translateY(${(1 - e) * 14}px)`;
+        }
         if (decoRef.current) decoRef.current.style.opacity = String(Math.max(1 - morphP * 2.5, 0));
       });
     };
@@ -463,7 +456,11 @@ function ScrollStory({ dark, t, isMobile, pad }) {
             <path ref={lineRef} d={STORY_CHART} stroke={ACCENT} strokeWidth="2.5" fill="none"
               strokeLinecap="round" strokeLinejoin="round"
               style={{ strokeDasharray: 720, strokeDashoffset: 720 }} />
-            {/* Data points persist through the morph, landing on the letters */}
+            {/* Brand wordmark fades in as the line settles into its underline */}
+            <text ref={textRef} x="310" y="122" textAnchor="middle"
+              fontFamily="'Instrument Serif', Georgia, serif" fontStyle="italic"
+              fontSize="82" fill={ACCENT} style={{ opacity: 0 }}>Darvis</text>
+            {/* Data points persist through the morph, settling along the underline */}
             <g>
               {dots.map((pt, i) => (
                 <circle key={i} ref={el => { dotRefs.current[i] = el; }} cx={pt.x} cy={pt.y} r="5"
@@ -473,8 +470,6 @@ function ScrollStory({ dark, t, isMobile, pad }) {
                     transition: "opacity 0.35s ease",
                   }} />
               ))}
-              {/* The dot on the cursive i, fades in as the word completes */}
-              <circle ref={idotRef} cx="360" cy="76" r="2.6" fill={ACCENT} style={{ opacity: 0 }} />
             </g>
           </svg>
         </div>
@@ -1011,6 +1006,34 @@ function SectionGrid({ dark, id }) {
         <rect x="-56" y="-56" width="200%" height="200%" fill={`url(#${id})`} />
       </g>
     </svg>
+  );
+}
+
+// ── Section backdrop — still campus photo + scrim with the drifting grid on top
+function SectionBackdrop({ dark, id }) {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none" }}>
+      <img src={dark ? "images/campus_night.jpg" : "images/campus_day.jpg"} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+        filter: dark
+          ? "grayscale(0.2) contrast(1.1) brightness(0.9)"
+          : "grayscale(0.25) contrast(1.06) brightness(1.04)",
+      }} />
+      {/* Duotone maroon wash */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: dark ? "rgba(134,31,65,0.12)" : "rgba(134,31,65,0.05)",
+        mixBlendMode: dark ? "screen" : "multiply",
+      }} />
+      {/* Heavy scrim, fading to the page background at both edges */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: dark
+          ? "linear-gradient(180deg, #0A0908 0%, rgba(10,9,8,0.82) 28%, rgba(10,9,8,0.82) 72%, #0A0908 100%)"
+          : "linear-gradient(180deg, #FAF6F0 0%, rgba(250,246,240,0.86) 28%, rgba(250,246,240,0.86) 72%, #FAF6F0 100%)",
+      }} />
+      <SectionGrid dark={dark} id={id} />
+    </div>
   );
 }
 
@@ -1593,11 +1616,12 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
 
       {/* ── SHOWCASE ──────────────────────────────────────────────────────────── */}
       <section style={{
-        maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
+        padding: pad, boxSizing: "border-box",
+        paddingTop: isMobile ? 48 : 72,
         paddingBottom: isMobile ? 72 : 120, position: "relative",
       }}>
-        <SectionGrid dark={darkMode} id="lp-grid-sc" />
-        <div style={{ position: "relative", zIndex: 1 }}>
+        <SectionBackdrop dark={darkMode} id="lp-grid-sc" />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1150, margin: "0 auto" }}>
         <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
           <span style={{
             fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
@@ -1624,7 +1648,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         padding: isMobile ? "88px 22px" : "150px 64px",
         textAlign: "center", position: "relative",
       }}>
-        <SectionGrid dark={darkMode} id="lp-grid-cta" />
+        <SectionBackdrop dark={darkMode} id="lp-grid-cta" />
         <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
           <p style={{
