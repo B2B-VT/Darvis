@@ -41,11 +41,24 @@ const LP_CSS = `
   0%, 100% { transform: translateX(0); }
   50%      { transform: translateX(4px); }
 }
+@keyframes lpStreamY {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
+@keyframes lpBlink {
+  0%, 55%   { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@keyframes lpDotB {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
 .lp-h-clip { overflow: hidden; display: block; }
 .lp-h-line { display: block; animation: lpHeroLine 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-h-fade { animation: lpHeroFade 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lp-w-clip { display: inline-block; overflow: hidden; vertical-align: bottom;
-  padding-bottom: 0.18em; margin-bottom: -0.18em; }
+  padding-bottom: 0.18em; margin-bottom: -0.18em;
+  padding-left: 0.14em; margin-left: -0.14em; }
 .lp-w { display: inline-block; animation: lpHeroLine 0.95s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* ── Data marquees (fluence-style streams, hover to pause + expand) ── */
@@ -264,46 +277,168 @@ function TechLine({ delay = 1.0 }) {
   );
 }
 
-// ── Self-drawing grade curve (drafting-table chart) ───────────────────────────
-function DrawnChart({ dark, active }) {
-  const ink   = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
+// ── Scroll story — chart line draws with features, then morphs into "DARVIS" ──
+// Sticky section: scroll progress drives both the feature highlight on the left
+// and the line on the right. Phase 1 scrubs the grade-curve draw; phase 2
+// interpolates sampled points between the curve and a one-stroke DARVIS path.
+const STORY_CHART = "M20 150 C 90 140, 130 96, 200 104 S 330 70, 400 56 S 520 40, 580 30";
+const STORY_WORD =
+  "M20 150 L45 127 L52 125 L52 55 C97 55 107 75 107 90 C107 105 97 125 52 125 " +
+  "L130 125 L160 55 L190 125 " +
+  "L218 125 L218 55 C262 55 262 92 218 92 L266 125 " +
+  "L296 55 L326 125 L356 55 " +
+  "L388 55 L388 125 " +
+  "L414 114 C422 130 460 132 464 108 C467 86 418 92 420 66 C422 44 462 46 470 60 " +
+  "L580 30";
+const STORY_FEATURES = [
+  ["01", "Grade distributions", "24 years of history. Every section, every term, every grade band."],
+  ["02", "Instructor comparison", "Outcomes, ratings, and difficulty side by side."],
+  ["03", "Schedule builder", "Conflict-free timetables assembled in seconds."],
+  ["04", "Ask anything", "A chatbot that answers in plain English, backed by the data."],
+  ["05", "Darvis", "All of it, drawn from one line of data."],
+];
+
+function ScrollStory({ dark, t, isMobile, pad }) {
+  const wrapRef = useRef(null);
+  const lineRef = useRef(null);
+  const decoRef = useRef(null);
+  const ptsRef = useRef(null);
+  const [active, setActive] = useState(0);
   const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
-  const PATH = "M20 150 C 90 140, 130 96, 200 104 S 330 70, 400 56 S 520 40, 580 30";
-  const points = [
-    { x: 20,  y: 150 }, { x: 200, y: 104 }, { x: 400, y: 56 }, { x: 580, y: 30 },
-  ];
+  const ink = dark ? "rgba(244,239,233,0.8)" : "rgba(26,18,15,0.75)";
+  const dots = [{ x: 20, y: 150 }, { x: 200, y: 104 }, { x: 400, y: 56 }, { x: 580, y: 30 }];
+
+  // Sample both paths once into matched point lists for morphing
+  useEffect(() => {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("width", "0"); svg.setAttribute("height", "0");
+    svg.style.position = "absolute"; svg.style.overflow = "hidden";
+    const mk = d => { const p = document.createElementNS(ns, "path"); p.setAttribute("d", d); svg.appendChild(p); return p; };
+    const pa = mk(STORY_CHART), pb = mk(STORY_WORD);
+    document.body.appendChild(svg);
+    const K = 150;
+    const sample = p => {
+      const L = p.getTotalLength();
+      return Array.from({ length: K }, (_, i) => {
+        const pt = p.getPointAtLength((L * i) / (K - 1));
+        return [pt.x, pt.y];
+      });
+    };
+    ptsRef.current = { a: sample(pa), b: sample(pb) };
+    document.body.removeChild(svg);
+  }, []);
+
+  useEffect(() => {
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const el = wrapRef.current, line = lineRef.current;
+        if (!el || !line) return;
+        const rect = el.getBoundingClientRect();
+        const span = Math.max(rect.height - window.innerHeight, 1);
+        const p = Math.min(Math.max(-rect.top / span, 0), 1);
+        const drawP = Math.min(p / 0.68, 1);
+        const morphP = Math.max((p - 0.68) / 0.32, 0);
+        setActive(morphP > 0.05 ? 4 : Math.min(Math.floor(drawP * 4), 3));
+        if (morphP <= 0) {
+          line.setAttribute("d", STORY_CHART);
+          line.style.strokeDasharray = "720";
+          line.style.strokeDashoffset = String(720 * (1 - drawP));
+        } else if (ptsRef.current) {
+          const e = morphP < 0.5 ? 2 * morphP * morphP : 1 - Math.pow(-2 * morphP + 2, 2) / 2;
+          line.style.strokeDasharray = "none";
+          line.style.strokeDashoffset = "0";
+          const { a, b } = ptsRef.current;
+          line.setAttribute("d", a.map((pt, i) => {
+            const x = pt[0] + (b[i][0] - pt[0]) * e;
+            const y = pt[1] + (b[i][1] - pt[1]) * e;
+            return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+          }).join(""));
+        }
+        if (decoRef.current) decoRef.current.style.opacity = String(Math.max(1 - morphP * 2.5, 0));
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+
   return (
-    <svg viewBox="0 0 620 180" fill="none" preserveAspectRatio="xMidYMid meet"
-      style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}>
-      {[40, 80, 120, 160].map((y, i) => (
-        <line key={y} x1="20" y1={y} x2="600" y2={y}
-          stroke={faint} strokeWidth="1" strokeDasharray="2 6"
-          style={{ opacity: active ? 1 : 0, transition: `opacity 0.8s ease ${0.1 * i}s` }} />
-      ))}
-      {[["4.0", 34], ["3.0", 74], ["2.0", 114], ["1.0", 154]].map(([t, y], i) => (
-        <text key={t} x="0" y={y} fill={dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)"}
-          fontSize="9" fontFamily="'JetBrains Mono', monospace"
-          style={{ opacity: active ? 1 : 0, transition: `opacity 0.8s ease ${0.1 * i + 0.2}s` }}>{t}</text>
-      ))}
-      <path d={PATH} stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round"
-        style={{
-          strokeDasharray: 720, strokeDashoffset: active ? 0 : 720,
-          transition: "stroke-dashoffset 2.2s cubic-bezier(0.45, 0, 0.2, 1) 0.5s",
-        }} />
-      {points.map((pt, i) => (
-        <g key={i} style={{
-          opacity: active ? 1 : 0,
-          transform: active ? "scale(1)" : "scale(0)",
-          transformOrigin: `${pt.x}px ${pt.y}px`,
-          transition: `opacity 0.3s ease ${0.7 + i * 0.5}s, transform 0.45s cubic-bezier(0.34,1.4,0.64,1) ${0.7 + i * 0.5}s`,
+    <section ref={wrapRef} style={{ height: isMobile ? "300vh" : "340vh", position: "relative" }}>
+      <div style={{
+        position: "sticky", top: 0, minHeight: "100vh",
+        display: "flex", alignItems: "center",
+        padding: pad, boxSizing: "border-box",
+      }}>
+        <div style={{
+          maxWidth: 1150, margin: "0 auto", width: "100%",
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "minmax(280px, 400px) 1fr",
+          gap: isMobile ? 30 : 70, alignItems: "center",
         }}>
-          <circle cx={pt.x} cy={pt.y} r="5" fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5" />
-        </g>
-      ))}
-      <g style={{ opacity: active ? 1 : 0, transition: "opacity 0.6s ease 2.5s" }}>
-        <text x="588" y="22" fill={ink} fontSize="11" fontFamily="'JetBrains Mono', monospace" textAnchor="end">3.67 GPA</text>
-      </g>
-    </svg>
+          <div>
+            <span style={{
+              fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
+              color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 12,
+            }}><KickerDot />Inside Darvis</span>
+            <h2 style={{
+              fontFamily: SERIF, fontWeight: 400, margin: "0 0 18px",
+              fontSize: isMobile ? 26 : 34, letterSpacing: "-0.5px",
+              color: t.text, lineHeight: 1.1,
+            }}>Follow <span style={{ fontStyle: "italic", color: ACCENT }}>the line.</span></h2>
+            {STORY_FEATURES.map(([num, title, desc], i) => {
+              const on = i === active;
+              return (
+                <div key={num} style={{
+                  display: "flex", gap: 13, padding: "10px 0 10px 14px",
+                  borderLeft: `2px solid ${on ? ACCENT : "transparent"}`,
+                  opacity: on ? 1 : 0.32,
+                  transform: on ? "translateX(6px)" : "none",
+                  transition: "opacity 0.4s ease, transform 0.4s ease, border-color 0.4s ease",
+                }}>
+                  <span style={{ fontFamily: MONO, fontSize: 10, color: on ? ACCENT : t.textMute, paddingTop: 6 }}>{num}</span>
+                  <div>
+                    <div style={{
+                      fontFamily: SERIF, fontSize: isMobile ? 19 : 22, color: t.text,
+                      fontStyle: i === 4 ? "italic" : "normal", lineHeight: 1.2,
+                    }}>{title}</div>
+                    <div style={{ fontSize: 12.5, color: t.textMute, lineHeight: 1.55, marginTop: 3 }}>{desc}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <svg viewBox="0 0 620 180" fill="none" preserveAspectRatio="xMidYMid meet"
+            style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}>
+            <g ref={decoRef}>
+              {[40, 80, 120, 160].map(y => (
+                <line key={y} x1="20" y1={y} x2="600" y2={y} stroke={faint} strokeWidth="1" strokeDasharray="2 6" />
+              ))}
+              {[["4.0", 34], ["3.0", 74], ["2.0", 114], ["1.0", 154]].map(([lab, y]) => (
+                <text key={lab} x="0" y={y} fill={dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)"}
+                  fontSize="9" fontFamily="'JetBrains Mono', monospace">{lab}</text>
+              ))}
+              {dots.map((pt, i) => (
+                <circle key={i} cx={pt.x} cy={pt.y} r="5"
+                  fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5"
+                  style={{
+                    opacity: active >= i ? 1 : 0,
+                    transition: "opacity 0.35s ease",
+                  }} />
+              ))}
+              <text x="588" y="22" fill={ink} fontSize="11" fontFamily="'JetBrains Mono', monospace" textAnchor="end"
+                style={{ opacity: active >= 3 ? 1 : 0, transition: "opacity 0.4s ease" }}>3.67 GPA</text>
+            </g>
+            <path ref={lineRef} d={STORY_CHART} stroke={ACCENT} strokeWidth="2.5" fill="none"
+              strokeLinecap="round" strokeLinejoin="round"
+              style={{ strokeDasharray: 720, strokeDashoffset: 720 }} />
+          </svg>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -436,25 +571,41 @@ function SchedulePreview({ dark, t }) {
   );
 }
 
-function ChatPreview({ dark, t }) {
-  const messages = [
-    { role: "user", text: "Who's the best prof for CS 3114?" },
-    { role: "bot",  text: "Hamouda has the strongest outcomes — 3.67 avg GPA across 459 students over 4 terms. Farghally is close behind at 3.54." },
-    { role: "user", text: "What about the F rate?" },
-    { role: "bot",  text: "Hamouda's F rate is 2.1%, on the low end for this course." },
+function InstructorsPreview({ dark, t }) {
+  const profs = [
+    { name: "Hamouda",   course: "CS 3114", rating: 4.6, again: 92, gpa: 3.67 },
+    { name: "Farghally", course: "CS 3114", rating: 4.3, again: 88, gpa: 3.54 },
+    { name: "McQuain",   course: "CS 3114", rating: 3.9, again: 71, gpa: 3.12 },
   ];
+  const gpaColor = g => g >= 3.3 ? "#4ade80" : g >= 3.0 ? "#86efac" : g >= 2.7 ? "#fbbf24" : "#f87171";
   return (
-    <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      {messages.map((m, i) => (
-        <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-          <div style={{
-            maxWidth: "80%",
-            background: m.role === "user" ? ACCENT : t.input,
-            border: m.role === "user" ? "none" : `1px solid ${t.lineSoft}`,
-            color: m.role === "user" ? "white" : t.text,
-            borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-            padding: "9px 13px", fontSize: 12, lineHeight: 1.55, fontWeight: 500,
-          }}>{m.text}</div>
+    <div>
+      <div style={{ padding: "14px 18px", borderBottom: `1px solid ${t.lineSoft}` }}>
+        <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1px", color: t.textMute }}>
+          CS 3114 · 6 INSTRUCTORS · SORTED BY OUTCOME
+        </span>
+      </div>
+      {profs.map((p, i) => (
+        <div key={i} style={{ padding: "13px 18px", borderBottom: i < profs.length - 1 ? `1px solid ${t.lineSoft}` : "none", display: "flex", alignItems: "center", gap: 12 }}>
+          <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+            <circle cx="18" cy="18" r="17" fill="rgba(134,31,65,0.14)" stroke={ACCENT} strokeOpacity="0.4" strokeWidth="1" />
+            <text x="18" y="23" textAnchor="middle" fill={ACCENT} fontSize="12"
+              fontFamily="'Instrument Serif', Georgia, serif">{p.name.slice(0, 2).toUpperCase()}</text>
+          </svg>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text }}>{p.name}</div>
+            <div style={{ fontSize: 10.5, fontFamily: MONO, color: t.textMute, letterSpacing: "0.5px", marginTop: 2 }}>
+              RATING {p.rating.toFixed(1)} · TAKE AGAIN {p.again}%
+            </div>
+            <svg width="100%" height="4" style={{ display: "block", borderRadius: 2, marginTop: 6, maxWidth: 180 }} aria-hidden="true">
+              <rect x="0" y="0" width="100%" height="4" rx="2" fill={t.lineSoft} />
+              <rect x="0" y="0" width={`${p.again}%`} height="4" rx="2" fill={ACCENT} opacity="0.7" />
+            </svg>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 19, fontFamily: SERIF, color: gpaColor(p.gpa) }}>{p.gpa.toFixed(2)}</div>
+            <div style={{ fontSize: 9, color: t.textMute, fontFamily: MONO, letterSpacing: "0.5px" }}>AVG GPA</div>
+          </div>
         </div>
       ))}
     </div>
@@ -466,7 +617,7 @@ function Showcase({ dark, t }) {
   const tabs = [
     { id: "courses",  label: "Courses",  C: CoursesPreview },
     { id: "schedule", label: "Schedule", C: SchedulePreview },
-    { id: "chat",     label: "Chatbot",  C: ChatPreview },
+    { id: "instructors", label: "Instructors", C: InstructorsPreview },
   ];
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -677,7 +828,7 @@ function DataMarquees({ dark, t }) {
         </div>
       </div>
       {/* Instructors — drift left, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-l" style={{ marginTop: -44, zIndex: 1 }}>
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -34, zIndex: 1 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
@@ -764,14 +915,225 @@ function KickerDot() {
   );
 }
 
+// ── Vertical data stream — looping chevron column on a section edge ───────────
+function VertStream({ side, t, duration = 9 }) {
+  return (
+    <div aria-hidden="true" style={{
+      position: "absolute", top: 0, bottom: 0, [side]: 14, width: 16,
+      overflow: "hidden", pointerEvents: "none",
+      WebkitMaskImage: "linear-gradient(180deg, transparent, black 20%, black 80%, transparent)",
+      maskImage: "linear-gradient(180deg, transparent, black 20%, black 80%, transparent)",
+    }}>
+      <div style={{
+        animation: `lpStreamY ${duration}s linear infinite`,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
+      }}>
+        {Array.from({ length: 36 }).map((_, i) => (
+          <svg key={i} width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M1 1l4 4 4-4" stroke={i % 4 === 0 ? ACCENT : t.textFaint}
+              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Wavy underline that draws in (signal motif for the chat section) ──────────
+function WaveLine({ active, delay = 0.2 }) {
+  return (
+    <svg viewBox="0 0 300 16" fill="none" preserveAspectRatio="none" aria-hidden="true"
+      style={{ display: "block", width: "min(360px, 80%)", height: 16, overflow: "visible", marginTop: 16 }}>
+      <path d="M2 8 Q 20 1, 38 8 T 74 8 T 110 8 T 146 8 T 182 8 T 218 8 T 254 8 T 290 8"
+        stroke={ACCENT} strokeWidth="2" strokeLinecap="round"
+        style={{
+          strokeDasharray: 330, strokeDashoffset: active ? 0 : 330,
+          transition: `stroke-dashoffset 1.6s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+        }} />
+    </svg>
+  );
+}
+
+function TypingDots({ t }) {
+  return (
+    <div style={{
+      display: "flex", gap: 4, alignItems: "center", width: "fit-content",
+      background: t.input, border: `1px solid ${t.lineSoft}`,
+      borderRadius: "14px 14px 14px 4px", padding: "12px 14px",
+    }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{
+          width: 5, height: 5, borderRadius: "50%", background: ACCENT,
+          display: "inline-block", animation: `lpDotB 1.1s ease-in-out ${i * 0.18}s infinite`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ── Chatbot section — scripted conversation plays when scrolled into view ─────
+const CHAT_SCRIPT = [
+  { role: "user", text: "Who should I take for CS 3114?" },
+  { role: "bot",  text: "Hamouda has the strongest outcomes: 3.67 avg GPA across 459 students over four terms. Farghally is close behind at 3.54." },
+  { role: "user", text: "And the F rate?" },
+  { role: "bot",  text: "2.1% under Hamouda, among the lowest for this course." },
+];
+
+function ChatSection({ dark, t, isMobile, pad }) {
+  const ref = useRef(null);
+  const [seen, setSeen] = useState(false);
+  // Stages: 1 user msg · 2 typing · 3 bot msg · 4 user msg · 5 typing · 6 bot msg
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); obs.disconnect(); } }, { threshold: 0.3 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!seen) return;
+    const ids = [500, 1300, 2700, 3700, 4400, 5800].map((ms, i) => setTimeout(() => setStage(i + 1), ms));
+    return () => ids.forEach(clearTimeout);
+  }, [seen]);
+
+  const slotOn = [stage >= 1, stage >= 2, stage >= 4, stage >= 5];
+  const bubble = (m, i, on, typing) => (
+    <div key={i} style={{
+      display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start",
+      opacity: on ? 1 : 0, transform: on ? "none" : "translateY(12px)",
+      transition: "opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1)",
+    }}>
+      {typing ? <TypingDots t={t} /> : (
+        <div style={{
+          maxWidth: "82%",
+          background: m.role === "user" ? ACCENT : t.input,
+          border: m.role === "user" ? "none" : `1px solid ${t.lineSoft}`,
+          color: m.role === "user" ? "white" : t.text,
+          borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+          padding: "10px 14px", fontSize: 12.5, lineHeight: 1.55, fontWeight: 500,
+        }}>{m.text}</div>
+      )}
+    </div>
+  );
+
+  return (
+    <section ref={ref} style={{
+      position: "relative",
+      maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
+      paddingBottom: isMobile ? 72 : 120,
+    }}>
+      {!isMobile && <VertStream side="right" t={t} duration={11} />}
+      {!isMobile && (
+        <div aria-hidden="true" style={{ position: "absolute", top: "8%", left: "46%", animation: "lpFloat 5.2s ease-in-out 0.5s infinite", pointerEvents: "none" }}>
+          <span style={{ display: "block", lineHeight: 0, animation: "lpTwinkle 3.6s ease-in-out infinite" }}>
+            <FloatMark kind="asterisk" size={13} />
+          </span>
+        </div>
+      )}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1.05fr",
+        gap: isMobile ? 36 : 72, alignItems: "center",
+      }}>
+        <div>
+          <span style={{
+            fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
+            color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
+          }}><KickerDot />Ask Darvis</span>
+          <h2 style={{
+            fontFamily: SERIF, fontWeight: 400, margin: 0,
+            fontSize: "clamp(30px, 3.6vw, 48px)", letterSpacing: "-0.5px",
+            color: t.text, lineHeight: 1.1,
+          }}>Answers, <span style={{ fontStyle: "italic", color: ACCENT }}>not spreadsheets.</span></h2>
+          <WaveLine active={seen} delay={0.3} />
+          <p style={{ fontSize: 15.5, color: t.textSub, lineHeight: 1.7, margin: "20px 0 6px", fontWeight: 500, maxWidth: 420 }}>
+            Every grade record, instructor rating, and section time, queryable in plain
+            English. Ask the question you'd ask a friend who somehow read all the data.
+          </p>
+          {[
+            "Trained on every grade record in the catalog",
+            "Compares instructors and sections instantly",
+            "Adds courses to your schedule on request",
+          ].map((b, i) => (
+            <div key={b} style={{
+              display: "flex", gap: 10, alignItems: "center", marginTop: 13,
+              opacity: seen ? 1 : 0, transform: seen ? "none" : "translateY(8px)",
+              transition: `opacity 0.5s ease ${0.5 + i * 0.15}s, transform 0.5s ease ${0.5 + i * 0.15}s`,
+            }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke={ACCENT} strokeOpacity="0.35" strokeWidth="1.5" />
+                <path d="M7 12.5l3.2 3L17 9" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: 16, strokeDashoffset: seen ? 0 : 16,
+                    transition: `stroke-dashoffset 0.5s ease ${0.75 + i * 0.15}s`,
+                  }} />
+              </svg>
+              <span style={{ fontSize: 14, color: t.textSub, fontWeight: 500 }}>{b}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Chat window in HUD frame */}
+        <div style={{ position: "relative", padding: 14 }}>
+          <Brackets color={ACCENT} size={20} inset={0} opacity={0.7} />
+          <div style={{
+            background: t.card, border: `1px solid ${t.line}`,
+            borderRadius: 18, overflow: "hidden",
+            boxShadow: dark ? "0 24px 80px rgba(0,0,0,0.45)" : "0 24px 80px rgba(26,18,15,0.10)",
+            backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderBottom: `1px solid ${t.lineSoft}` }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: "50%", background: "#4ade80",
+                animation: "lpPulse 2s ease-in-out infinite",
+              }} />
+              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute }}>DARVIS.AI · ONLINE</span>
+              <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", color: t.textFaint }}>1,706 RECORDS</span>
+            </div>
+            <div style={{ padding: "18px 16px", display: "flex", flexDirection: "column", gap: 12, minHeight: 250 }}>
+              {bubble(CHAT_SCRIPT[0], 0, slotOn[0], false)}
+              {bubble(CHAT_SCRIPT[1], 1, slotOn[1], stage === 2)}
+              {bubble(CHAT_SCRIPT[2], 2, slotOn[2], false)}
+              {bubble(CHAT_SCRIPT[3], 3, slotOn[3], stage === 5)}
+            </div>
+            <div style={{ borderTop: `1px solid ${t.lineSoft}`, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{
+                flex: 1, display: "flex", alignItems: "center", height: 38,
+                background: t.input, border: `1px solid ${t.lineSoft}`,
+                borderRadius: 999, padding: "0 16px", fontSize: 12.5, color: t.textMute,
+              }}>
+                Ask about any course
+                <span style={{ width: 1.5, height: 14, background: ACCENT, marginLeft: 6, animation: "lpBlink 1.1s steps(1) infinite" }} />
+              </span>
+              <span style={{ position: "relative", width: 38, height: 38, flexShrink: 0 }}>
+                <span style={{
+                  position: "absolute", inset: 0, borderRadius: "50%",
+                  border: `1px solid ${ACCENT}`, animation: "lpPing 2.6s ease-out infinite",
+                }} />
+                <span style={{
+                  position: "absolute", inset: 0, borderRadius: "50%", background: ACCENT,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 19V5M6 11l6-6 6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Main landing page ─────────────────────────────────────────────────────────
 export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
-  const chartRef = useRef(null);
   const parallaxRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
-  const [chartActive, setChartActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   // Waitlist form
@@ -821,12 +1183,6 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStatsActive(true); }, { threshold: 0.3 });
     if (statsRef.current) obs.observe(statsRef.current);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setChartActive(true); }, { threshold: 0.4 });
-    if (chartRef.current) obs.observe(chartRef.current);
     return () => obs.disconnect();
   }, []);
 
@@ -1051,32 +1407,8 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         <DataMarquees dark={darkMode} t={t} />
       </section>
 
-      {/* ── DRAWN CHART STRIP ─────────────────────────────────────────────────── */}
-      <section ref={chartRef} style={{
-        maxWidth: 1150, margin: "0 auto", padding: pad,
-        boxSizing: "border-box",
-        paddingTop: isMobile ? 48 : 70, paddingBottom: isMobile ? 56 : 90,
-      }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "240px 1fr",
-          gap: isMobile ? 28 : 64, alignItems: "center",
-        }}>
-          <div>
-            <span style={{
-              fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
-              color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-            }}><KickerDot />CS 3114 · Instructor A</span>
-            <p style={{
-              fontFamily: SERIF, fontSize: isMobile ? 24 : 30, lineHeight: 1.25,
-              color: t.text, margin: 0,
-            }}>
-              Four terms of grades, <span style={{ fontStyle: "italic", color: ACCENT }}>one clear trend.</span>
-            </p>
-          </div>
-          <DrawnChart dark={darkMode} active={chartActive} />
-        </div>
-      </section>
+      {/* ── SCROLL STORY — features + chart line that morphs into DARVIS ─────── */}
+      <ScrollStory dark={darkMode} t={t} isMobile={isMobile} pad={pad} />
 
       {/* ── MARQUEE (mono HUD strip) ──────────────────────────────────────────── */}
       <div style={{
@@ -1100,10 +1432,12 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
 
       {/* ── STATS ─────────────────────────────────────────────────────────────── */}
       <section ref={statsRef} style={{
-        maxWidth: 1150, margin: "0 auto",
+        maxWidth: 1150, margin: "0 auto", position: "relative",
         padding: pad, boxSizing: "border-box",
         paddingTop: isMobile ? 56 : 90, paddingBottom: isMobile ? 56 : 90,
       }}>
+        {!isMobile && <VertStream side="left" t={t} duration={10} />}
+        {!isMobile && <VertStream side="right" t={t} duration={13} />}
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>
           {stats.map((s, i) => (
             <Reveal key={i} delay={i * 0.08} style={{
@@ -1140,12 +1474,15 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             fontFamily: SERIF, fontWeight: 400, margin: 0,
             fontSize: "clamp(30px, 3.6vw, 48px)", letterSpacing: "-0.5px",
             color: t.text, lineHeight: 1.1,
-          }}>Courses, schedule, <span style={{ fontStyle: "italic", color: ACCENT }}>answers.</span></h2>
+          }}>Courses, schedule, <span style={{ fontStyle: "italic", color: ACCENT }}>instructors.</span></h2>
         </Reveal>
         <Reveal delay={0.12}>
           <Showcase dark={darkMode} t={t} />
         </Reveal>
       </section>
+
+      {/* ── CHATBOT — scripted conversation plays on scroll ──────────────────── */}
+      <ChatSection dark={darkMode} t={t} isMobile={isMobile} pad={pad} />
 
       {/* ── MANIFESTO / CTA ───────────────────────────────────────────────────── */}
       <section style={{
@@ -1204,7 +1541,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
               Built by a student, <span style={{ fontStyle: "italic", color: ACCENT }}>for students.</span>
             </div>
             <p style={{ fontSize: 14, color: t.textSub, lineHeight: 1.75, margin: 0, fontWeight: 500, maxWidth: 420 }}>
-              Darvis started as a frustration — bouncing between spreadsheets, rating
+              Darvis started as a frustration, bouncing between spreadsheets, rating
               sites, and timetables just to pick classes. It pulls historical grade
               distributions, professor insight, and schedule planning into one quiet
               place, so course decisions come from evidence instead of guesswork.
