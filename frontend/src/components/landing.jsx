@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
-import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, EASE, palette } from "../theme.jsx";
+import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -84,6 +84,12 @@ const LP_CSS = `
 .lp-card-more { max-height: 0; opacity: 0; overflow: hidden;
   transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.35s ease; }
 .lp-card:hover .lp-card-more { max-height: 150px; opacity: 1; margin-top: 12px; }
+
+/* ── Ambient ink streaks idle drift ── */
+@keyframes lpStreakDrift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@media (prefers-reduced-motion: reduce) {
+  [style*="lpStreakDrift"] { animation: none !important; }
+}
 `;
 
 function injectStyles(id, css) {
@@ -1182,6 +1188,256 @@ function ChatSection({ dark, t, isMobile, pad }) {
 }
 
 // ── Main landing page ─────────────────────────────────────────────────────────
+// ── Ink streaks — fixed ambient field, parallax + scroll-velocity reactive ────
+// Desktop-only atmospheric back layer (sits at z:-1 inside the isolated root).
+// Thin maroon/copper ticks drift on scroll; fast scrolling stretches them.
+// Honors prefers-reduced-motion (no JS reaction + CSS idle drift disabled).
+function InkStreaks({ dark }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const layer = ref.current;
+    if (!layer) return;
+    let raf = null, lastY = window.scrollY;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const y = window.scrollY;
+        const vel = Math.max(-1, Math.min(1, (y - lastY) / 60));
+        lastY = y;
+        const kids = layer.children;
+        for (let i = 0; i < kids.length; i++) {
+          const depth = 0.1 + (i % 5) * 0.05;
+          const ty = -((y * depth) % 260);
+          const sy = (1 + Math.abs(vel) * 0.45).toFixed(3);
+          kids[i].style.transform =
+            `translateY(${ty.toFixed(1)}px) scaleY(${sy}) skewX(${(vel * 4).toFixed(2)}deg)`;
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+
+  const cols = 7, rows = 3;
+  return (
+    <div ref={ref} aria-hidden="true" style={{
+      position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none", overflow: "hidden",
+    }}>
+      {Array.from({ length: cols * rows }).map((_, i) => {
+        const col = i % cols, row = Math.floor(i / cols);
+        const copper = i % 3 === 0;
+        const c = copper
+          ? (dark ? "rgba(199,123,63,0.18)" : "rgba(199,123,63,0.13)")
+          : (dark ? "rgba(134,31,65,0.20)" : "rgba(134,31,65,0.12)");
+        return (
+          <span key={i} style={{
+            position: "absolute",
+            left: `${(col + 0.5) * (100 / cols)}%`,
+            top: `${row * 36 + (col % 2) * 10}%`,
+            width: 1, height: 34 + (i % 4) * 20,
+            background: `linear-gradient(${c}, transparent)`,
+            transformOrigin: "top center",
+            animation: `lpStreakDrift ${7 + (i % 5)}s ease-in-out ${(i * 0.2).toFixed(1)}s infinite`,
+          }} />
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Topographic contour lines — parallax drift behind a section ───────────────
+function TopoLines({ dark }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const host = ref.current;
+    if (!host) return;
+    const paths = host.querySelectorAll("path");
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const rect = host.getBoundingClientRect();
+        const p = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+        paths.forEach((pa, i) => {
+          const rate = 26 + i * 18;
+          pa.style.transform =
+            `translate(${((p - 0.5) * rate).toFixed(1)}px, ${((p - 0.5) * rate * 0.4).toFixed(1)}px)`;
+        });
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  const s1 = dark ? "rgba(134,31,65,0.20)" : "rgba(134,31,65,0.12)";
+  const s2 = dark ? "rgba(199,123,63,0.16)" : "rgba(199,123,63,0.10)";
+  return (
+    <div ref={ref} aria-hidden="true" style={{
+      position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none",
+    }}>
+      <svg viewBox="0 0 1200 400" preserveAspectRatio="none"
+        style={{ position: "absolute", inset: "-12% -7%", width: "114%", height: "124%" }}>
+        <path d="M-60 120 C 200 80, 360 165, 620 110 S 1050 55, 1280 122" fill="none" stroke={s1} strokeWidth="1.2" style={{ transition: "transform 0.15s linear" }} />
+        <path d="M-60 215 C 220 178, 430 262, 645 208 S 1040 168, 1280 220" fill="none" stroke={s2} strokeWidth="1.2" style={{ transition: "transform 0.15s linear" }} />
+        <path d="M-60 312 C 180 286, 380 352, 665 300 S 1060 268, 1280 318" fill="none" stroke={s1} strokeWidth="1" style={{ transition: "transform 0.15s linear" }} />
+      </svg>
+    </div>
+  );
+}
+
+// ── DataViz — sticky scroll-scrub: grade-trend line self-plots (left) and a GPA
+//    gauge sweeps 0 → 4.00 (right). One scroll progress drives both via refs
+//    (no per-frame React state). Honors prefers-reduced-motion (jumps to final).
+const DV_TREND = "M30 165 L120 150 L210 158 L300 120 L390 132 L480 92 L570 104 L660 64 L740 72";
+const DV_PTS = [[30,165],[120,150],[210,158],[300,120],[390,132],[480,92],[570,104],[660,64],[740,72]];
+const DV_LEN = 780;
+const DV_ARC = 293;
+function DataViz({ dark, t, isMobile, pad }) {
+  const wrapRef = useRef(null);
+  const lineRef = useRef(null);
+  const areaRef = useRef(null);
+  const arcRef = useRef(null);
+  const needleRef = useRef(null);
+  const marksRef = useRef(null);
+  const gpaRef = useRef(null);
+
+  useEffect(() => {
+    const apply = (p) => {
+      if (lineRef.current) lineRef.current.style.strokeDashoffset = String(DV_LEN * (1 - p));
+      if (areaRef.current) areaRef.current.style.opacity = String(Math.max(0, (p - 0.1) / 0.9));
+      if (arcRef.current) arcRef.current.style.strokeDashoffset = String(DV_ARC * (1 - p));
+      if (needleRef.current) needleRef.current.style.transform = `rotate(${(-120 + p * 240).toFixed(1)}deg)`;
+      const mk = marksRef.current && marksRef.current.children;
+      if (mk) for (let i = 0; i < mk.length; i++) mk[i].style.opacity = p >= i / (DV_PTS.length - 1) ? "1" : "0";
+      if (gpaRef.current) gpaRef.current.textContent = (p * 4).toFixed(2);
+    };
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      apply(1); return;
+    }
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const el = wrapRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const span = Math.max(rect.height - window.innerHeight, 1);
+        const p = Math.min(Math.max(-rect.top / span, 0), 1);
+        apply(Math.min(p / 0.92, 1));
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+
+  const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
+  const axis = dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)";
+
+  return (
+    <section ref={wrapRef} style={{ height: isMobile ? "200vh" : "240vh", position: "relative" }}>
+      <div style={{
+        position: "sticky", top: 0, minHeight: "100vh",
+        display: "flex", alignItems: "center", padding: pad, boxSizing: "border-box",
+      }}>
+        <div style={{ maxWidth: 1150, margin: "0 auto", width: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: isMobile ? 30 : 48 }}>
+            <span style={{
+              fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
+              color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
+            }}><KickerDot />By the numbers</span>
+            <h2 style={{
+              fontFamily: SERIF, fontWeight: 400, margin: 0,
+              fontSize: "clamp(28px, 3.4vw, 44px)", letterSpacing: "-0.5px",
+              color: t.text, lineHeight: 1.1,
+            }}>Watch the curve <span style={{ fontStyle: "italic", color: ACCENT }}>draw itself.</span></h2>
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1.35fr 1fr",
+            gap: isMobile ? 44 : 64, alignItems: "center",
+          }}>
+            {/* Self-plotting trend chart */}
+            <div>
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute, textTransform: "uppercase", marginBottom: 14 }}>
+                Average GPA by year
+              </div>
+              <svg viewBox="0 0 780 200" fill="none" preserveAspectRatio="xMidYMid meet"
+                style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}>
+                <defs>
+                  <linearGradient id="dv-area" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COPPER} stopOpacity="0.22" />
+                    <stop offset="100%" stopColor={COPPER} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {[40, 80, 120, 160].map(y => (
+                  <line key={y} x1="30" y1={y} x2="750" y2={y} stroke={faint} strokeWidth="1" strokeDasharray="2 6" />
+                ))}
+                {[["4.0", 44], ["3.0", 84], ["2.0", 124], ["1.0", 164]].map(([lab, y]) => (
+                  <text key={lab} x="0" y={y} fill={axis} fontSize="9" fontFamily="'JetBrains Mono', monospace">{lab}</text>
+                ))}
+                <path ref={areaRef} d={`${DV_TREND} L740 190 L30 190 Z`} fill="url(#dv-area)" style={{ opacity: 0 }} />
+                <path ref={lineRef} d={DV_TREND} stroke={ACCENT} strokeWidth="2.5" fill="none"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  style={{ strokeDasharray: DV_LEN, strokeDashoffset: DV_LEN }} />
+                <g ref={marksRef}>
+                  {DV_PTS.map(([x, y], i) => (
+                    <circle key={i} cx={x} cy={y} r="4.5"
+                      fill={dark ? "#0A0908" : "#FAF6F0"} stroke={ACCENT} strokeWidth="2.5"
+                      style={{ opacity: 0, transition: "opacity 0.3s ease" }} />
+                  ))}
+                </g>
+              </svg>
+            </div>
+
+            {/* Scroll-scrubbed GPA gauge */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute, textTransform: "uppercase", marginBottom: 6 }}>
+                Typical course GPA
+              </div>
+              <svg viewBox="0 0 200 150" style={{ width: isMobile ? 220 : 260, maxWidth: "100%", overflow: "visible" }}>
+                <defs>
+                  <linearGradient id="dv-arc" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={ACCENT} />
+                    <stop offset="100%" stopColor={COPPER} />
+                  </linearGradient>
+                </defs>
+                <path d="M39.4 135 A70 70 0 1 1 160.6 135" fill="none" stroke={faint} strokeWidth="10" strokeLinecap="round" />
+                <path ref={arcRef} d="M39.4 135 A70 70 0 1 1 160.6 135" fill="none"
+                  stroke="url(#dv-arc)" strokeWidth="10" strokeLinecap="round"
+                  style={{ strokeDasharray: DV_ARC, strokeDashoffset: DV_ARC }} />
+                {[0, 1, 2, 3, 4].map(n => {
+                  const a = (210 - n * 60) * Math.PI / 180;
+                  return (
+                    <line key={n}
+                      x1={100 + 58 * Math.cos(a)} y1={100 - 58 * Math.sin(a)}
+                      x2={100 + 68 * Math.cos(a)} y2={100 - 68 * Math.sin(a)}
+                      stroke={axis} strokeWidth="1.4" />
+                  );
+                })}
+                <line ref={needleRef} x1="100" y1="100" x2="100" y2="46"
+                  stroke={t.text} strokeWidth="2.5" strokeLinecap="round"
+                  style={{ transformBox: "view-box", transformOrigin: "100px 100px", transform: "rotate(-120deg)", transition: "transform 0.1s linear" }} />
+                <circle cx="100" cy="100" r="5" fill={ACCENT} />
+                <text ref={gpaRef} x="100" y="90" textAnchor="middle" fill={t.text}
+                  fontFamily="'Instrument Serif', Georgia, serif" fontSize="34">0.00</text>
+                <text x="100" y="114" textAnchor="middle" fill={t.textMute}
+                  fontFamily="'JetBrains Mono', monospace" fontSize="9" letterSpacing="1.5">/ 4.00</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
@@ -1281,10 +1537,11 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const pad = isMobile ? "0 22px" : "0 64px";
 
   return (
-    <div style={{ position: "relative", fontFamily: SANS, color: t.text }}>
+    <div style={{ position: "relative", isolation: "isolate", fontFamily: SANS, color: t.text }}>
 
       {/* Scroll-driven chrome */}
       <ScrollProgress />
+      {!isMobile && <InkStreaks dark={darkMode} />}
       {!isMobile && <DataSpine dark={darkMode} />}
       {!isMobile && <ScrollArrows dark={darkMode} />}
 
@@ -1473,7 +1730,8 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
         padding: pad, boxSizing: "border-box",
         paddingTop: isMobile ? 56 : 90, paddingBottom: isMobile ? 56 : 90,
       }}>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>
+        {!isMobile && <TopoLines dark={darkMode} />}
+        <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>
           {stats.map((s, i) => (
             <Reveal key={i} delay={i * 0.08} style={{
               borderLeft: !isMobile && i > 0 ? `1px solid ${t.lineSoft}` : "none",
@@ -1494,6 +1752,9 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
           ))}
         </div>
       </section>
+
+      {/* ── DATA VIZ — sticky scrub: trend line self-plots + GPA gauge sweeps ─── */}
+      <DataViz dark={darkMode} t={t} isMobile={isMobile} pad={pad} />
 
       {/* ── SHOWCASE ──────────────────────────────────────────────────────────── */}
       <section style={{
