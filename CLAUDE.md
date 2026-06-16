@@ -27,14 +27,14 @@ npm run dev        # http://localhost:5173
 **Key files:**
 - `frontend/src/App.jsx` — root component, page routing, global dark mode state
 - `frontend/src/api.js` — all Supabase calls from the frontend
-- `frontend/src/config.js` — Supabase URL + publishable key
+- `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
 - `frontend/src/components/` — one file per page/feature
 
 **Auth:** Clerk. Users must be signed in to access courses, schedule, chatbot, and forums. Waitlist mode is enabled in the Clerk dashboard (Configure → Restrictions → Sign-up mode).
 
 ## Chat-bot
 
-FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Routes each question through a keyword-based router, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`.
+FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Extracts intent from each question with an LLM (Gemma `IntentExtractor`, falling back to a keyword router), resolves professor/course names with a fuzzy `EntityResolver`, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`.
 
 **Run locally:**
 ```bash
@@ -65,21 +65,28 @@ Not a server. These are one-off data scripts.
 ```
 backend/
 ├── scrapers/
-│   ├── udc_cs_manual.js    Paste into browser console on udc.vt.edu to scrape grades
-│   └── rmp_scraper.js      Scrapes all VT professors from RMP GraphQL API
+│   ├── udc_single_scraper.js        Browser console: one selected subject → CSV
+│   ├── udc_batch_scraper.js         Browser console: selected subject forward, CSV each
+│   ├── udc_grades_scraper.js        Browser console: one subject per run, resumable
+│   ├── udc_2020_present_scraper.js  Browser console: all subjects × courses, 2020-21→2025-26
+│   ├── rmp_scraper.js               Scrapes all VT professors from RMP GraphQL API → data/raw/
+│   └── catalog_scraper.js           Scrapes course descriptions from catalog.vt.edu → data/raw/
 ├── scripts/
-│   ├── import_grades.js    Reads CSVs from data/raw/, upserts to Supabase grades table
-│   ├── import_rmp.js       Matches RMP data to instructors table by last name
-│   └── fetch_rmp_tags.js   Fetches individual RMP profiles to populate rmp_tags in instructors table
+│   ├── import_grades.js        Reads vt_udc_grades_*.csv from data/raw/, upserts grades + courses
+│   ├── import_timetable.js     Reads vt_timetable_*.csv, upserts to sections table
+│   ├── import_descriptions.js  Reads course_descriptions.json, fills courses.description
+│   ├── import_rmp.js           Matches RMP by last name, upserts to legacy professors table
+│   └── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
 └── supabase/
-    └── schema.sql          Full DB schema
+    └── schema.sql              Full DB schema
 ```
 
 **Run scripts:**
 ```bash
 cd backend
-node scripts/import_grades.js       # after dropping CSVs in data/raw/
-node scripts/fetch_rmp_tags.js      # populate RMP tags
+npm run import-grades               # after dropping vt_udc_grades_*.csv in data/raw/
+npm run import-timetable            # after dropping vt_timetable_*.csv in data/raw/
+node scripts/import_rmp.js          # match + import RMP ratings
 ```
 
 ## Supabase database
@@ -92,7 +99,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 | `courses` | 3,564 | All have `total_sections`; only 137 have `avg_gpa`; none have `pathways` or `description` |
 | `sections` | 10,129 | Fall 2026 (term `202609`); 2 rows missing `start_time` (handled) |
 | `instructors` | 210 | 65 have RMP ratings + rmp_id; all have empty `rmp_tags` (RMP API limitation) |
-| `professors` | 65 | Legacy table used by frontend `api.js`; chatbot uses `instructors` |
+| `professors` | 65 | Legacy. Written by `import_rmp.js`, not read by app code — frontend `api.js` and chatbot both read `instructors` |
 | `majors` | 183 | Full list |
 | `major_requirements` | 16,151 | Full list |
 | `embeddings` | 4,576 | Vectors populated; `search_embeddings` RPC exists; semantic search ready |
@@ -105,7 +112,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 ## Known issues and pending work
 
 **High priority:**
-- Scrape remaining UDC subjects (ECE, MATH, BIOL, etc.) — waiting on hardware. Use `backend/scrapers/udc_cs_manual.js` adapted for each subject.
+- Scrape remaining UDC subjects (ECE, MATH, BIOL, etc.) — waiting on hardware. Use the `backend/scrapers/udc_*_scraper.js` browser-console scripts (one-subject, batch, or all-subjects variants).
 - `courses.avg_gpa` is null for 3,427 of 3,564 courses (only CS has grade data to populate it). Will fix itself as more grade data is imported.
 - `courses.pathways` empty for all courses — VT Pathways data never populated. Static JSON lookup file needed.
 
@@ -115,7 +122,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 - `grade_embeddings` table is dead (0 rows, unused). Can be dropped.
 
 **Low priority:**
-- Two professor tables (`professors` + `instructors`) create inconsistency. Frontend uses `professors`, chatbot uses `instructors`. Consolidate when convenient.
+- Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.
 - `rmp_tags` is empty for all 65 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
 
 ## Deployment
@@ -123,7 +130,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 | Service | What | URL |
 |---------|------|-----|
 | Vercel | Frontend | https://darvis.tech |
-| Render | Chat-bot FastAPI | https://darvis-chat.onrender.com (or similar) |
+| Render | Chat-bot FastAPI | https://chat-bot-6dpo.onrender.com |
 | Supabase | Database | project ID rpmgcurhxrgtzbdixtay |
 | Clerk | Auth | clerk.darvis.tech |
 

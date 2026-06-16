@@ -1,6 +1,6 @@
 # Darvis — Chatbot backend
 
-FastAPI backend powering the Darvis AI chatbot. Deployed on Render at the `/chat` endpoint. Loads all data from Supabase at startup into Pandas DataFrames, routes each question to a specialized handler, and returns structured JSON.
+FastAPI backend powering the Darvis AI chatbot. Deployed on Render at the `/chat` endpoint. Loads all data from Supabase at startup into Pandas DataFrames, extracts structured intent from each question with an LLM (keyword router as fallback), routes to a specialized handler, and returns structured JSON.
 
 ## Setup
 
@@ -37,7 +37,7 @@ Push to main — Render auto-deploys. Render free tier sleeps after inactivity; 
 
 ```
 app/
-├── main.py                 FastAPI app factory, lifespan data loader, route handlers
+├── main.py                 FastAPI app factory, lifespan loader, intent+entity wiring, route handlers
 ├── config.py               Pydantic settings (reads from .env)
 ├── models.py               ChatRequest, ChatResponse, TableSpec, ChartSpec, SearchItem
 ├── data/
@@ -45,7 +45,7 @@ app/
 │   ├── analytics.py        Core Pandas logic — course_profile, professor_profile, natural_filter
 │   └── recency.py          Recency weighting (recent semesters weighted higher)
 ├── features/
-│   ├── router.py           Keyword router — maps incoming questions to a route string
+│   ├── router.py           Keyword router — fallback when LLM intent extraction is unavailable
 │   ├── course_profile.py   "CS 3114" style questions
 │   ├── professor_profile.py "Hamouda" style questions
 │   ├── natural_filter.py   Filter/ranking questions ("highest GPA", "worst F rate")
@@ -55,10 +55,21 @@ app/
 │   └── templated_answers.py Template fallbacks when LLM is unavailable or quota'd
 ├── rag/
 │   ├── gemma_client.py     Google AI Studio client (30s HTTP timeout, template fallback on error)
+│   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
+│   ├── query_rewriter.py   LLM query rewriting for retrieval
+│   ├── retriever.py        Candidate retrieval (vector + keyword)
+│   ├── reranker.py         Reranks retrieved candidates
+│   ├── chunker.py          Splits source rows into embeddable chunks
+│   ├── embedder.py         fastembed embedding wrapper
+│   ├── pipeline.py         RAG retrieval pipeline orchestration
+│   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
+│   ├── agents/             planner.py (plans retrieval) + critic.py (validates answer)
+│   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          System prompt reference + build_answer_prompt
 │   └── vector_store.py     Keyword search + optional pgvector semantic search
 ├── safety/
 │   ├── guardrails.py       SYSTEM_GUARDRAIL prompt, NLP normalization, answer sanitization, typo map
+│   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
 │   └── privacy.py          PII detection in incoming questions
 └── utils/
     └── charts.py           table_spec, bar_chart, scatter_chart JSON helpers
@@ -102,6 +113,14 @@ Response:
 
 Returns row counts and vector store size.
 
+### POST /feedback
+
+Logs a thumbs up (`rating: 1`) or thumbs down (`rating: -1`) for an answer. Body: `question`, `answer`, `route`, `rating`. Writes to the `feedback` table; returns 204. Rate limit 30/min per IP.
+
+### POST /retrieval/debug
+
+Runs the full retrieval pipeline for a question and returns candidate chunks, vector/keyword/combined scores, rerank results, and per-stage timing — for tuning retrieval without the full chat flow. Rate limit 30/min per IP.
+
 ## Routes
 
 | Route string | Triggered by | Handler |
@@ -133,7 +152,7 @@ Returns row counts and vector store size.
 
 1. **Grades data is CS only** — 1,706 rows. Every non-CS question returns no results from the database. UDC scraper for remaining subjects (ECE, MATH, BIOL, etc.) is pending hardware.
 2. **`natural_filter.py` chart label bug** — `lowest_gpa` sort goal maps to `"Avg GPA"` chart metric label, same as `highest_gpa`. Needs a directional label.
-3. **No feedback logging** — thumbs up/down endpoint doesn't exist yet. No way to capture which answers users found helpful.
+3. **Feedback UI not wired up** — the `POST /feedback` endpoint exists and writes to the `feedback` table, but the frontend thumbs up/down UI still needs to be connected to it.
 4. **`courses.avg_gpa` mostly null** — only 137/3,564 courses have it populated (the CS ones). Resolves automatically as more grade data is imported.
 5. **`rmp_tags` empty** — RMP's GraphQL API doesn't return `teacherRatingTags`. Confirmed via `fetch_rmp_tags.js`. Accepted limitation; ratings and difficulty are populated and working.
-6. **Two professor tables** — `professors` (65 rows, used by frontend) and `instructors` (210 rows, used by chatbot). Inconsistency to resolve when convenient.
+6. **Two professor tables** — `instructors` (210 rows) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Resolve when convenient.

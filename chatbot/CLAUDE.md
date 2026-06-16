@@ -1,6 +1,6 @@
 # Darvis chatbot — Claude Code context
 
-FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, routes questions through a keyword-based router, runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer.
+FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, extracts structured intent from each question with an LLM (`IntentExtractor`, with a keyword router as fallback), runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer.
 
 ## Run locally
 
@@ -34,7 +34,7 @@ SHOW_DOCS=true             # local only — enables /docs
 
 ```
 app/
-├── main.py                 App factory, lifespan loader, all routes (/chat, /health, search)
+├── main.py                 App factory, lifespan loader, intent+entity wiring, all routes (/chat, /feedback, /health, search, /retrieval/debug)
 ├── config.py               Pydantic settings from env
 ├── models.py               ChatRequest, ChatResponse, TableSpec, ChartSpec, SearchItem
 ├── data/
@@ -52,10 +52,22 @@ app/
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
 │   ├── gemma_client.py     Google AI Studio client — 30s timeout, returns None on failure
+│   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
+│   ├── query_rewriter.py   LLM query rewriting for retrieval
+│   ├── retriever.py        Candidate retrieval (vector + keyword)
+│   ├── reranker.py         Reranks retrieved candidates
+│   ├── chunker.py          Splits source rows into embeddable chunks
+│   ├── embedder.py         fastembed embedding wrapper
+│   ├── pipeline.py         RAG retrieval pipeline orchestration
+│   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
+│   ├── agents/planner.py   Plans retrieval steps
+│   ├── agents/critic.py    Critiques/validates the drafted answer
+│   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          SYSTEM_PROMPT reference + build_answer_prompt
 │   └── vector_store.py     Keyword search + optional pgvector semantic search via fastembed
 ├── safety/
 │   ├── guardrails.py       SYSTEM_GUARDRAIL, normalize_question, sanitize_answer, typo/subject maps
+│   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
 │   └── privacy.py          PII detection — returns warning if sensitive terms detected
 └── utils/
     └── charts.py           table_spec, bar_chart, scatter_chart dict builders
@@ -69,16 +81,18 @@ app/
 | `POST` | `/feedback` | 30/min per IP | Log thumbs up (rating=1) or thumbs down (rating=-1) |
 | `GET` | `/courses/search` | 60/min per IP | Typeahead course search |
 | `GET` | `/professors/search` | 60/min per IP | Typeahead professor search |
+| `POST` | `/retrieval/debug` | 30/min per IP | Runs the retrieval pipeline and returns candidate/scoring/timing telemetry |
 | `GET` | `/health` | none | Row counts and vector store size |
 
 ## Request flow
 
 ```
 POST /chat
-  → normalize_question (guardrails.py)   # typo fix, subject expansion
-  → route_question (router.py)           # keyword match → route string
-  → handler (features/*.py)              # analytics + LLM or template answer
-  → ChatResponse                         # answer, tables, charts, warnings, schedule_actions
+  → normalize_question (guardrails.py)             # typo fix, subject expansion
+  → IntentExtractor.extract (intent_extractor.py)  # LLM → structured intent (route + params); keyword router on fallback
+  → EntityResolver (entity_resolver.py)            # fuzzy-correct professor/course names
+  → handler (features/*.py)                        # analytics + LLM or template answer
+  → ChatResponse                                   # answer, tables, charts, warnings, schedule_actions
 
 POST /feedback
   → FeedbackRequest validation           # question, answer, route, rating (1 or -1)
@@ -87,6 +101,8 @@ POST /feedback
 ```
 
 ## Routes
+
+Route strings come from `IntentExtractor` (LLM); the keyword router is the fallback.
 
 | Route | Triggered when | Handler |
 |-------|---------------|---------|
@@ -144,7 +160,7 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 
 4. **`grade_embeddings` table** — 0 rows, not referenced anywhere. Drop it when convenient.
 
-5. **Two professor tables** — `professors` (65 rows, used by frontend) and `instructors` (210 rows, used by chatbot). Inconsistency to consolidate later.
+5. **Two professor tables** — `instructors` (210 rows) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Consolidate later.
 
 ## What not to break
 
