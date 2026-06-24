@@ -4,9 +4,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # ── LLM (Google AI Studio / Gemma) ─────────────────────────────────────────
-    google_api_key: str = Field(default="", alias="GOOGLE_API_KEY")
-    google_model: str = Field(default="gemma-3-27b-it", alias="GOOGLE_MODEL")
+    # ── LLM (Anthropic) ────────────────────────────────────────────────────────
+    anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
+    anthropic_model: str = Field(default="claude-haiku-4-5-20251001", alias="ANTHROPIC_MODEL")
 
     # ── Supabase (service role key — bypasses RLS) ──────────────────────────────
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
