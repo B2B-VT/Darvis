@@ -22,7 +22,7 @@ class GemmaAnswerClient:
             raise ValueError("GOOGLE_API_KEY is missing. Add it to your .env file.")
         self._client = genai.Client(
             api_key=settings.google_api_key,
-            http_options=types.HttpOptions(timeout=30),  # 30-second hard cap per request
+            http_options=types.HttpOptions(timeout=30_000),  # 30 seconds (unit: ms)
         )
         self._model  = settings.google_model
         self._system = SYSTEM_PROMPT
