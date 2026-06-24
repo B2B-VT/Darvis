@@ -39,6 +39,29 @@ OUT_OF_SCOPE_TERMS: list[str] = []
 RISKY_WORD_REPLACEMENTS: dict[str, str] = {}
 
 
+# Patterns that mark an unwanted trailing sentence (conditional offers, redirects, etc.)
+_TRAILING_OFFER = re.compile(
+    r"^(if you (want|need|have|'re|are looking|would like|re looking)|"
+    r"let me know|you can also|you can always|feel free|don't hesitate|"
+    r"check (out|rate my professors|rmp)|for more (info|details|context)|"
+    r"head over to (rate|rmp)|want to compare|or let me know)",
+    re.IGNORECASE,
+)
+
+def _strip_trailing_offers(text: str) -> str:
+    """Remove trailing 'If you want…' / 'Let me know…' sentences the LLM still sneaks in."""
+    # Split on sentence boundaries while keeping the delimiter
+    parts = re.split(r'(?<=[.!?])\s+', text.strip())
+    while parts:
+        last = parts[-1].strip()
+        # Keep Courses-page redirects — those are explicitly approved in the system prompt
+        if _TRAILING_OFFER.match(last) and "Courses page" not in last:
+            parts.pop()
+        else:
+            break
+    return " ".join(parts).strip()
+
+
 def _strip_chain_of_thought(text: str) -> str:
     """
     Gemma externalises reasoning as asterisk-bullet lines before the actual answer.
@@ -112,6 +135,7 @@ def sanitize_answer(answer: str) -> str:
     if not answer or not answer.strip():
         return ""
     cleaned = _strip_chain_of_thought(answer)
+    cleaned = _strip_trailing_offers(cleaned)
     for old, new in RISKY_WORD_REPLACEMENTS.items():
         cleaned = cleaned.replace(old, new).replace(old.capitalize(), new.capitalize())
     return cleaned.strip()

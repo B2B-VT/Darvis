@@ -63,7 +63,12 @@ def _intent_framing(route: str, intent, original_question: str = "") -> str:
         elif asked_both:
             base = f"The student explicitly asked for BOTH grade data and RMP ratings for {course_label}. Combine both in your answer — don't just pick one."
         elif asked_rmp:
-            base = f"The student asked about RMP ratings for {course_label}. Lead with the RMP score and also include grade outcomes."
+            base = (
+                f"The student asked about RMP ratings for {course_label}. "
+                f"If RMP data is in the table, lead with it and add grade outcomes. "
+                f"If NO RMP data appears in the table, say so in one sentence and stop — "
+                f"do NOT pivot to grade data they didn't ask about."
+            )
         else:
             goal_framing = {
                 "highest_gpa":  f"The student wants the best professor for {course_label} by grade outcomes.",
