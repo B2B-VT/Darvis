@@ -306,7 +306,7 @@ class HybridRetriever:
             results = []
             for doc in res.docs:
                 meta = self._parse_metadata(getattr(doc, "metadata", "{}"))
-                doc_id = int(getattr(doc, "id_", 0) or 0)
+                doc_id = self._parse_id(getattr(doc, "id_", 0))
                 results.append(RetrievalResult(
                     id=doc_id,
                     content=getattr(doc, "content", ""),
@@ -340,6 +340,16 @@ class HybridRetriever:
                 return {}
         return {}
 
+    @staticmethod
+    def _parse_id(raw) -> int:
+        s = str(raw or "0")
+        # redisvl returns full Redis key e.g. "darvis_embeddings:doc:42"; take last segment
+        s = s.rsplit(":", 1)[-1]
+        try:
+            return int(s)
+        except ValueError:
+            return hash(s) & 0x7FFFFFFF
+
     def _row_to_result(
         self,
         row: dict,
@@ -347,7 +357,7 @@ class HybridRetriever:
         combined_score: float = 0.0,
     ) -> RetrievalResult:
         return RetrievalResult(
-            id=int(row.get("id", 0) or 0),
+            id=self._parse_id(row.get("id", 0)),
             content=str(row.get("content", "")),
             source_type=str(row.get("source_type", "")),
             source_id=str(row.get("source_id", "")),
