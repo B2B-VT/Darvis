@@ -131,6 +131,7 @@ class HybridRetriever:
         top_k: int | None = None,
         source_filter: str | None = None,
         alpha: float | None = None,
+        entity_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         """
         Main retrieval entry point. Uses hybrid search when possible,
@@ -141,6 +142,9 @@ class HybridRetriever:
             top_k: Override the default candidate count.
             source_filter: Restrict to a source type ("course", "grade", etc.)
             alpha: Vector weight override (0.0=keyword-only, 1.0=vector-only).
+            entity_filter: Narrow by indexed entity fields, e.g.
+                {"subject": "ECE", "course_number": "2004"}.
+                Applied as additional Tag filters on top of source_filter.
         """
         if self._index is None:
             return []
@@ -149,11 +153,11 @@ class HybridRetriever:
         a = alpha if alpha is not None else self._alpha
 
         if self._semantic_ready and self._fts_ready:
-            return self._hybrid(query, k, a, source_filter)
+            return self._hybrid(query, k, a, source_filter, entity_filter)
         if self._semantic_ready:
-            return self._vector_only(query, k, source_filter)
+            return self._vector_only(query, k, source_filter, entity_filter)
         if self._fts_ready:
-            return self._keyword_only(query, k, source_filter)
+            return self._keyword_only(query, k, source_filter, entity_filter)
 
         logger.warning("[retriever] No retrieval mode available — returning empty")
         return []
@@ -166,10 +170,11 @@ class HybridRetriever:
         top_k: int,
         alpha: float,
         source_filter: str | None,
+        entity_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         """Vector KNN + RediSearch FT query, fused via RRF."""
-        vec_results = self._vector_only(query, top_k, source_filter)
-        kw_results = self._keyword_only(query, top_k, source_filter)
+        vec_results = self._vector_only(query, top_k, source_filter, entity_filter)
+        kw_results = self._keyword_only(query, top_k, source_filter, entity_filter)
 
         if not vec_results and not kw_results:
             return []
@@ -212,18 +217,24 @@ class HybridRetriever:
         query: str,
         top_k: int,
         source_filter: str | None,
+        entity_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         """Vector KNN search via redisvl's VectorQuery."""
         vector = self._embedder.embed(query)
         if vector is None:
             logger.warning("[retriever] Embedding failed, falling back to keyword-only")
-            return self._keyword_only(query, top_k, source_filter)
+            return self._keyword_only(query, top_k, source_filter, entity_filter)
 
         try:
             from redisvl.query import VectorQuery
             from redisvl.query.filter import Tag
 
             filter_expression = Tag("source_type") == source_filter if source_filter else None
+            if entity_filter:
+                for field_name, value in entity_filter.items():
+                    if value:
+                        tag_f = Tag(field_name) == value
+                        filter_expression = (filter_expression & tag_f) if filter_expression else tag_f
             vq = VectorQuery(
                 vector=vector,
                 vector_field_name="embedding",
@@ -250,6 +261,7 @@ class HybridRetriever:
         query: str,
         top_k: int,
         source_filter: str | None,
+        entity_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         """
         RediSearch full-text query (BM25-style scoring) on the same index.
@@ -263,9 +275,9 @@ class HybridRetriever:
         if not terms:
             return []
 
-        results = self._run_fts(terms, top_k, source_filter, fuzzy=False)
+        results = self._run_fts(terms, top_k, source_filter, fuzzy=False, entity_filter=entity_filter)
         if not results:
-            results = self._run_fts(terms, top_k, source_filter, fuzzy=True)
+            results = self._run_fts(terms, top_k, source_filter, fuzzy=True, entity_filter=entity_filter)
         return results
 
     def _run_fts(
@@ -274,6 +286,7 @@ class HybridRetriever:
         top_k: int,
         source_filter: str | None,
         fuzzy: bool,
+        entity_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         try:
             from redis.commands.search.query import Query as FTQuery
@@ -282,6 +295,10 @@ class HybridRetriever:
             ft_q = f"@content:({pattern})"
             if source_filter:
                 ft_q = f"@source_type:{{{source_filter}}} {ft_q}"
+            if entity_filter:
+                for field_name, value in entity_filter.items():
+                    if value:
+                        ft_q = f"@{field_name}:{{{value}}} {ft_q}"
 
             q = FTQuery(ft_q).with_scores().paging(0, top_k)
             res = self._redis.ft(self._index_name).search(q)
@@ -364,6 +381,7 @@ class HybridRetriever:
             "course": "Course catalog",
             "requirement": "Major requirements",
             "instructor": "Instructor profile",
+            "section": "Fall 2026 section",
         }.get(r.source_type, "Context")
 
         meta = r.metadata or {}
@@ -396,6 +414,15 @@ class HybridRetriever:
             name = meta.get("name", "")
             if name:
                 entity_parts.append(name)
+
+        elif r.source_type == "section":
+            subj = meta.get("subject", "")
+            num  = meta.get("course_number", "")
+            instr = meta.get("instructor", "")
+            if subj and num:
+                entity_parts.append(f"{subj} {num}")
+            if instr and instr.lower() != "staff":
+                entity_parts.append(instr)
 
         if entity_parts:
             return f"{label} — {', '.join(entity_parts)}"

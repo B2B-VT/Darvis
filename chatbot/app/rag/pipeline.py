@@ -91,6 +91,7 @@ class RAGPipeline:
         n_results: int = 10,
         source_filter: str | None = None,
         route: str = "unknown",
+        entity_filter: dict | None = None,
     ) -> str:
         """
         Full RAG retrieval pipeline. Returns a formatted context string
@@ -120,6 +121,7 @@ class RAGPipeline:
                 rewritten.rewritten,
                 top_k=top_k_retrieve,
                 source_filter=source_filter,
+                entity_filter=entity_filter,
             )
 
         if not candidates:
@@ -153,6 +155,7 @@ class RAGPipeline:
         source_filter: str | None = None,
         route: str = "unknown",
         alpha: float | None = None,
+        entity_filter: dict | None = None,
     ) -> tuple[str, list[RetrievalResult]]:
         """
         Like retrieve() but also returns the reranked RetrievalResult list so
@@ -173,6 +176,7 @@ class RAGPipeline:
                 top_k=top_k_retrieve,
                 source_filter=source_filter,
                 alpha=alpha,
+                entity_filter=entity_filter,
             )
 
         if not candidates:

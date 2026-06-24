@@ -24,6 +24,8 @@ def build_schema(index_name: str, dim: int) -> dict:
             {"name": "id", "type": "numeric"},
             {"name": "source_type", "type": "tag"},
             {"name": "source_id", "type": "tag"},
+            {"name": "subject", "type": "tag"},
+            {"name": "course_number", "type": "tag"},
             {"name": "content", "type": "text"},
             {"name": "metadata", "type": "text"},
             {

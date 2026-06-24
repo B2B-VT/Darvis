@@ -93,14 +93,21 @@ def main() -> int:
     docs = []
     for row in rows:
         meta = row.get("metadata") or {}
-        if not isinstance(meta, str):
-            meta = json.dumps(meta)
+        if isinstance(meta, str):
+            try:
+                meta_dict = json.loads(meta)
+            except Exception:
+                meta_dict = {}
+        else:
+            meta_dict = meta
         docs.append({
             "id": row["id"],
             "source_type": row.get("source_type") or "",
             "source_id": row.get("source_id") or "",
+            "subject": str(meta_dict.get("subject") or ""),
+            "course_number": str(meta_dict.get("course_number") or ""),
             "content": row.get("content") or "",
-            "metadata": meta,
+            "metadata": json.dumps(meta_dict),
             "embedding": row["embedding"],
         })
 
@@ -113,7 +120,61 @@ def main() -> int:
 
     elapsed = time.time() - start
     logger.info("Done in %.1fs. Redis index %r now has %d documents.", elapsed, index_name, len(docs))
+
+    # ── Embed + load sections directly (not in Supabase embeddings table) ──────
+    _load_sections(supabase, index, index_name, dim)
+
     return 0
+
+
+def _load_sections(supabase, index, index_name: str, dim: int) -> None:
+    """Fetch Fall 2026 sections, chunk, embed, and load into Redis."""
+    try:
+        from app.rag.chunker import DocumentChunker
+        from app.rag.embedder import EmbeddingService
+
+        logger.info("Fetching sections from Supabase...")
+        resp = (
+            supabase.table("sections")
+            .select("crn, subject, course_number, instructor, days, start_time, end_time, location, seats, enrolled, credits, term")
+            .eq("term", "202609")
+            .execute()
+        )
+        sections = resp.data or []
+        if not sections:
+            logger.warning("No sections found for term 202609 — skipping section embedding")
+            return
+
+        chunks = DocumentChunker.chunk_sections(sections)
+        if not chunks:
+            return
+
+        embedder = EmbeddingService()
+        if not embedder.available:
+            logger.warning("Embedder unavailable — skipping section embedding")
+            return
+
+        sec_docs = []
+        for i, chunk in enumerate(chunks):
+            vec = embedder.embed(chunk.content)
+            if vec is None or len(vec) != dim:
+                continue
+            sec_docs.append({
+                "id": -(i + 1),  # negative IDs avoid collision with embeddings table IDs
+                "source_type": chunk.source_type,
+                "source_id": chunk.source_id,
+                "subject": chunk.metadata.get("subject") or "",
+                "course_number": chunk.metadata.get("course_number") or "",
+                "content": chunk.content,
+                "metadata": json.dumps(chunk.metadata),
+                "embedding": vec,
+            })
+
+        if sec_docs:
+            index.load(sec_docs, id_field="id")
+            logger.info("Loaded %d section chunks into Redis index %r", len(sec_docs), index_name)
+    except Exception as exc:
+        logger.error("Section embedding failed (non-fatal): %s", exc)
 
 
 if __name__ == "__main__":

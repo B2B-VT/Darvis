@@ -357,6 +357,64 @@ class DocumentChunker:
         logger.info("[chunker] Built %d instructor chunks", len(chunks))
         return chunks
 
+    # ── Section chunks ───────────────────────────────────────────────────────────
+
+    @staticmethod
+    def chunk_sections(sections: list[dict]) -> list["Chunk"]:
+        """
+        One chunk per (subject, course_number, instructor) group summarising
+        all Fall 2026 sections for that offering — so a question like
+        "what time does ECE 2004 meet?" or "who teaches CS 3114 in Fall 2026?"
+        retrieves a useful, compact context block.
+        """
+        if not sections:
+            return []
+
+        from collections import defaultdict
+        groups: dict[tuple, list[dict]] = defaultdict(list)
+        for sec in sections:
+            key = (
+                str(sec.get("subject") or ""),
+                str(sec.get("course_number") or ""),
+                str(sec.get("instructor") or "Staff"),
+            )
+            groups[key].append(sec)
+
+        chunks: list[Chunk] = []
+        for (subj, num, instr), secs in groups.items():
+            section_descs = []
+            for sec in secs:
+                days = sec.get("days") or []
+                days_str = "".join(days) if isinstance(days, list) else str(days)
+                start = str(sec.get("start_time") or "")[:5]
+                end = str(sec.get("end_time") or "")[:5]
+                location = sec.get("location") or "TBA"
+                crn = sec.get("crn") or ""
+                seats = int(sec.get("seats") or 0)
+                enrolled = int(sec.get("enrolled") or 0)
+                open_seats = max(0, seats - enrolled) if seats else 0
+                desc = f"CRN {crn}: {days_str} {start}-{end} {location}"
+                if open_seats:
+                    desc += f" ({open_seats} seats open)"
+                section_descs.append(desc)
+
+            credits = secs[0].get("credits") if secs else None
+            parts = [f"Fall 2026 section: {subj} {num} taught by {instr}."]
+            if credits:
+                parts.append(f"Credits: {credits}.")
+            parts.append("Sections: " + "; ".join(section_descs) + ".")
+
+            safe_instr = instr.lower().replace(",", "").replace(" ", "_")[:20]
+            chunks.append(Chunk(
+                source_type="section",
+                source_id=f"sec-{subj.lower()}-{num}-{safe_instr}",
+                content=" ".join(parts),
+                metadata={"subject": subj, "course_number": num, "instructor": instr},
+            ))
+
+        logger.info("[chunker] Built %d section chunks", len(chunks))
+        return chunks
+
     # ── Convenience: build all ───────────────────────────────────────────────────
 
     @classmethod
@@ -366,11 +424,14 @@ class DocumentChunker:
         courses_df: pd.DataFrame,
         requirements_df: pd.DataFrame,
         rmp_df: pd.DataFrame,
+        sections: list[dict] | None = None,
     ) -> list[Chunk]:
         all_chunks: list[Chunk] = []
         all_chunks.extend(cls.chunk_courses(courses_df))
         all_chunks.extend(cls.chunk_grades(grades_df))
         all_chunks.extend(cls.chunk_requirements(requirements_df))
         all_chunks.extend(cls.chunk_instructors(rmp_df, grades_df))
+        if sections:
+            all_chunks.extend(cls.chunk_sections(sections))
         logger.info("[chunker] Total chunks built: %d", len(all_chunks))
         return all_chunks
