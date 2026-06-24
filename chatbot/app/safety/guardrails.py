@@ -1,5 +1,4 @@
 import re
-import difflib
 
 GRADE_DATA_LIMITATION = "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience."
 
@@ -92,172 +91,16 @@ def out_of_scope_response() -> str:
     )
 
 
-# ── NLP normalization helpers ─────────────────────────────────────────────────
-
-# All known VT subject codes — used for fuzzy-matching garbled dept names.
-_VT_SUBJECTS = {
-    "CS", "ECE", "MATH", "STAT", "PHYS", "CHEM", "BIOL", "ENGL", "HIST",
-    "POLS", "PSYC", "SOC", "ECON", "FIN", "MGT", "MKTG", "ACIS", "BIT",
-    "ME", "AOE", "CEE", "MSE", "ISE", "BME", "CHE", "BSE", "ESM", "GEOS",
-    "AAEC", "APSC", "HORT", "PPWS", "HNFE", "NSCI", "HD", "NTR",
-    "ARCH", "BLD", "LARC", "UAPP", "ART", "THEA", "MUS", "COMM",
-    "PHIL", "REL", "CNST", "SPAN", "FREC", "SPIA", "PAPA",
-}
-
-# Curated typo dictionary — catches the most common mis-keyings without
-# a full spell-check library (which would add a dependency and latency).
-_TYPO_MAP: dict[str, str] = {
-    # question words
-    "wich": "which", "whcih": "which", "whihc": "which",
-    "wwich": "which", "wihch": "which",
-    "waht": "what", "wath": "what", "whats": "what",
-    "hwo": "who", "woh": "who", "hwo": "how",
-    # common small words
-    "teh": "the", "hte": "the", "tthe": "the",
-    "taht": "that", "tath": "that",
-    "fo": "for", "fro": "for",
-    "ot": "to", "tio": "to",
-    "nad": "and", "adn": "and",
-    # course / academic words
-    "coarses": "courses", "couses": "courses", "coures": "courses", "coruses": "courses",
-    "clases": "classes", "clasess": "classes",
-    "reqirements": "requirements", "requirments": "requirements",
-    "requiremnts": "requirements", "requrements": "requirements",
-    "requirment": "requirement", "requiremnt": "requirement",
-    "gradution": "graduation", "graduaton": "graduation", "graducation": "graduation",
-    "syllbus": "syllabus", "slylabus": "syllabus",
-    "prereq": "prerequisite", "prereqs": "prerequisites",
-    "elecive": "elective", "elctive": "elective",
-    "instrucor": "instructor", "instuctor": "instructor", "instructur": "instructor",
-    "professer": "professor", "proffesor": "professor", "proffessor": "professor",
-    "profssor": "professor", "proefssor": "professor",
-    # action words
-    "tought": "taught", "teches": "teaches", "teaach": "teach", "teahces": "teaches",
-    "graudate": "graduate", "graducate": "graduate",
-    "enrolment": "enrollment", "enroolment": "enrollment",
-    # difficulty / quality words
-    "hardist": "hardest", "harrdest": "hardest", "hardset": "hardest",
-    "easist": "easiest", "eaisest": "easiest", "esaiest": "easiest", "easeist": "easiest",
-    "diffucult": "difficult", "difficutl": "difficult", "difficlut": "difficult",
-    # common word typos relevant to Darvis queries
-    "computr": "computer", "compuer": "computer", "conputer": "computer",
-    "scienc": "science", "sceince": "science",
-    "gradse": "grades", "greades": "grades", "garde": "grade",
-    "degre": "degree", "degreee": "degree",
-    # outcome words
-    "failuire": "failure", "failiure": "failure", "failuer": "failure",
-    "withdrawl": "withdrawal", "withdawal": "withdrawal",
-    "gpa": "gpa",  # already fine, but protect it from uppercasing oddly
-    # VT-specific subject code typos / abbreviations
-    "mth": "math", "mtah": "math", "matj": "math",
-    "cse": "cs", "compsci": "cs",
-    # Note: "EE" → "ECE" is handled by _SUBJECT_EXPANSIONS via word-boundary regex
-    # slang / shorthand students actually type
-    "reqs": "requirements", "req": "requirement",
-    "profs": "professors",
-    "ez": "easy", "tuff": "tough",
-    "wat": "what", "wut": "what",
-    "scheduel": "schedule", "schedual": "schedule", "shedule": "schedule",
-    "calsses": "classes", "classs": "classes",
-    "requitements": "requirements", "requierments": "requirements",
-}
-
-# Subject code expansions (single-word → canonical VT code, uppercase input expected).
-_SUBJECT_EXPANSIONS: dict[str, str] = {
-    "COMPSCI": "CS", "COMP": "CS", "CSE": "CS",
-    "MTH": "MATH", "MATHMATICS": "MATH", "MATHEMATICS": "MATH",
-    "CALC": "MATH",
-    "EE": "ECE", "EECE": "ECE", "ELEC": "ECE",
-    "MECH": "ME", "MECHENG": "ME",
-    "STATS": "STAT", "STATISTICS": "STAT",
-    "BIO": "BIOL", "BIOLOGY": "BIOL",
-    "CHEM": "CHEM",  # already fine
-    "PHYS": "PHYS",  # already fine
-    "AERO": "AOE",
-    "CIVIL": "CEE",
-    "MATERIALS": "MSE",
-    "INDUSTRIAL": "ISE",
-    "BIOCHEM": "BCHS",
-}
-
-
-# Common English words that must never be fuzzy-matched to VT subject codes.
-_COMMON_ENGLISH = {
-    "the", "is", "in", "it", "at", "an", "as", "be", "by", "do", "go",
-    "he", "me", "my", "no", "of", "on", "or", "so", "to", "up", "us",
-    "we", "hi", "ok", "oh", "am", "if", "id", "age", "are", "for",
-    "and", "but", "not", "has", "had", "was", "did", "can", "get",
-    "got", "put", "set", "ran", "run", "let", "say", "see", "sit",
-    "all", "any", "few", "how", "old", "own", "who", "why", "yes",
-    "you", "her", "him", "his", "its", "our", "out", "per", "too",
-    "two", "via", "yet", "ago", "big", "bit", "due", "far", "low",
-    "new", "now", "off", "use", "way", "add", "end", "lot", "top",
-    "bad", "cut", "day", "fit", "hit", "key", "lay", "map", "pay",
-    "red", "try", "win", "ask", "buy", "eat", "fly", "mix", "own",
-}
-
-
-def _fix_typos(text: str) -> str:
-    """Word-by-word typo correction using _TYPO_MAP, then difflib fuzzy fallback
-    for words that look like garbled VT subject codes.
-
-    The fuzzy fallback only fires when ALL of the following are true:
-    - The word is 3-5 characters long (2-char words cause too many false positives)
-    - It is purely alphabetic
-    - It is not a common English word
-    - It is not already a known VT subject code
-    - It was not already corrected by _TYPO_MAP
-    """
-    words = text.split()
-    fixed = []
-    for w in words:
-        stripped = w.rstrip("?.,!;:")
-        punct = w[len(stripped):]
-        lower = stripped.lower()
-        corrected = _TYPO_MAP.get(lower, lower)
-        upper = lower.upper()
-        # Only attempt fuzzy subject-code matching on plausible-but-unrecognised tokens
-        if (
-            corrected == lower           # _TYPO_MAP didn't already fix it
-            and upper not in _VT_SUBJECTS
-            and lower not in _COMMON_ENGLISH
-            and 3 <= len(upper) <= 5
-            and upper.isalpha()
-        ):
-            matches = difflib.get_close_matches(upper, _VT_SUBJECTS, n=1, cutoff=0.85)
-            if matches:
-                corrected = matches[0].lower()
-        fixed.append(corrected + punct)
-    return " ".join(fixed)
-
+# ── NLP normalization ────────────────────────────────────────────────────────
 
 def normalize_question(question: str) -> str:
-    """
-    Light NLP normalization applied to every incoming question:
-    1. Strip leading/trailing whitespace.
-    2. Collapse multiple spaces into one.
-    3. Fix common typos and misspellings.
-    4. Expand subject code abbreviations (mth → math, cse → cs, etc.).
-    5. Re-attach spaced course codes ("CS 3 1 1 4" stays broken, but
-       "cs3114" → kept as-is; extract_course_parts already handles no-space).
-    """
+    """Basic whitespace cleanup only. The LLM handles typos, slang, and abbreviations."""
     if not question:
         return question
-
-    # Basic cleanup
     q = question.strip()
-    q = re.sub(r"\s+", " ", q)               # collapse whitespace
-    q = re.sub(r"[''`]", "'", q)             # normalize smart quotes
-    q = re.sub(r"[""«»]", '"', q)            # normalize smart double quotes
-
-    # Fix word-level typos
-    q = _fix_typos(q)
-
-    # Expand subject abbreviations that appear as standalone tokens
-    # (only when surrounded by word boundaries so "calc" in "calculus" stays)
-    for abbr, expansion in _SUBJECT_EXPANSIONS.items():
-        q = re.sub(rf"\b{re.escape(abbr)}\b", expansion, q, flags=re.IGNORECASE)
-
+    q = re.sub(r"\s+", " ", q)
+    q = re.sub(r"[''`]", "'", q)
+    q = re.sub(r"[""«»]", '"', q)
     return q
 
 
