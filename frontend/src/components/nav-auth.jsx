@@ -156,11 +156,17 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
           padding: 0,
           display: "flex", alignItems: "center", gap: 9,
         }}
-        onMouseEnter={e => { const img = e.currentTarget.querySelector("img"); if (img) img.style.transform = "rotate(-8deg) scale(1.08)"; }}
+        onMouseEnter={e => { const img = e.currentTarget.querySelector("img"); if (img) img.style.transform = "scale(1.08)"; }}
         onMouseLeave={e => { const img = e.currentTarget.querySelector("img"); if (img) img.style.transform = "none"; }}
         >
-          <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis"
-            style={{ width: 25, height: 25, transition: `transform 0.35s ${EASE}` }} />
+          <img src="/darvis-logo.png" alt="Darvis"
+            style={{
+              width: 30, height: 30,
+              borderRadius: 8,
+              objectFit: "cover",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+              transition: `transform 0.3s ${EASE}`,
+            }} />
           <span style={{
             fontWeight: 700, fontSize: 16.5, color: p.text,
             letterSpacing: "-0.4px",

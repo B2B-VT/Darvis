@@ -9,8 +9,19 @@ export const ACCENT_HOVER = "#9B2950";
 export const COPPER = "#C77B3F";        // warm secondary for highlights
 
 export const SERIF = "'Instrument Serif', Georgia, serif";
-export const SANS  = "'Plus Jakarta Sans', system-ui, sans-serif";
-export const MONO  = "'JetBrains Mono', 'SF Mono', Menlo, monospace";
+export const SANS  = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', system-ui, sans-serif";
+export const MONO  = "'SF Mono', 'JetBrains Mono', Menlo, monospace";
+
+// macOS-style radius scale
+export const RADIUS = { xs: 6, sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
+
+// macOS-style layered shadows
+export const SHADOW = {
+  sm:  "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
+  md:  "0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.07)",
+  lg:  "0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)",
+  xl:  "0 24px 48px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.10)",
+};
 
 export const EASE        = "cubic-bezier(0.22, 1, 0.36, 1)";
 export const EASE_SPRING = "cubic-bezier(0.34, 1.2, 0.64, 1)";
