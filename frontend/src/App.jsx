@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import Nav from "./components/nav-auth.jsx";
+import AppShell from "./components/app-shell.jsx";
 import LandingPage from "./components/landing.jsx";
 import CourseSearch, { CourseDetail } from "./components/courses.jsx";
 import ScheduleBuilder from "./components/schedule.jsx";
@@ -195,18 +196,18 @@ export default function App() {
       <AmbientBackdrop dark={darkMode} />
       <GrainOverlay dark={darkMode} />
 
-      <Nav
-        page={page} setPage={navigateTo}
-        schedule={schedule}
-        darkMode={darkMode} setDarkMode={setDarkMode}
-      />
-
-      <div key={page} style={{
-        position: "relative", zIndex: 1,
-        animation: "dvPageIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
-      }}>
-        {renderPage()}
-      </div>
+      {page === "landing" ? (
+        <>
+          <Nav page={page} setPage={navigateTo} schedule={schedule} darkMode={darkMode} setDarkMode={setDarkMode} />
+          <div key={page} style={{ position: "relative", zIndex: 1, animation: "dvPageIn 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+            {renderPage()}
+          </div>
+        </>
+      ) : (
+        <AppShell page={page} setPage={navigateTo} darkMode={darkMode} setDarkMode={setDarkMode} schedule={schedule}>
+          {renderPage()}
+        </AppShell>
+      )}
 
       {selectedCourse && (
         <CourseDetail
