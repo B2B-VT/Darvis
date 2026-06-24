@@ -107,25 +107,20 @@ def _intent_framing(route: str, intent, original_question: str = "") -> str:
 
 
 def _answer_instruction(route: str, intent) -> str:
-    """
-    Explicit closing instruction that tells Gemma HOW to respond.
-    This prevents Gemma from defaulting to generic data narration.
-    """
     sort_goal = getattr(intent, "sort_goal", None) if intent else None
 
-    # For routes where the student needs a decision, be prescriptive
     if route == "course_profile":
         if sort_goal in ("lowest_gpa", "highest_f_rate", "most_withdraws"):
-            return "Answer in 2-4 sentences. Lead with a clear, direct warning or identification by name. Support with the key numbers. Do not hedge or summarize all options equally."
-        return "Answer in 2-4 sentences. Lead with a clear, direct recommendation by name. Support with the key numbers (GPA, A rate, sample size). Do not just describe the table."
+            return "2-3 sentences. Name the professor directly. Give the 1-2 numbers that prove your point. No markdown, no advice they didn't ask for."
+        return "2-3 sentences. Name the professor directly. Give the 1-2 numbers that matter most. No markdown, no unsolicited study tips."
 
     elif route == "professor_profile":
-        return "Answer in 2-4 sentences. Give a direct characterization of this professor — what a student should expect. Weave in numbers naturally. Do not just list their stats."
+        return "2-3 sentences. Direct characterization — is this professor easy, hard, good? Back it up with the key number. No markdown."
 
     elif route == "natural_filter":
-        return "Answer in 2-4 sentences. Lead with the direct answer to what they asked. Name specific courses or professors. Don't summarize the table."
+        return "2-3 sentences. Name the course or professor directly. Give the 1-2 numbers that answer the question. No markdown, no trailing advice."
 
-    return "Answer the student's specific question directly in 2-4 sentences."
+    return "2-3 sentences. Answer their exact question directly. No markdown."
 
 
 def build_answer_prompt(
