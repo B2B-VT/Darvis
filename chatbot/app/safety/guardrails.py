@@ -41,10 +41,9 @@ RISKY_WORD_REPLACEMENTS: dict[str, str] = {}
 
 # Patterns that mark an unwanted trailing sentence (conditional offers, redirects, etc.)
 _TRAILING_OFFER = re.compile(
-    r"^(if you (want|need|have|'re|are looking|would like|re looking)|"
-    r"let me know|you can also|you can always|feel free|don't hesitate|"
-    r"check (out|rate my professors|rmp)|for more (info|details|context)|"
-    r"head over to (rate|rmp)|want to compare|or let me know)",
+    r"^(if you|so if you|let me know|you can also|you can always|feel free|"
+    r"don't hesitate|check rate my|check rmp|want to compare|or let me know|"
+    r"for more (info|details|context)|head over to rmp|head over to rate)",
     re.IGNORECASE,
 )
 
