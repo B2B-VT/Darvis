@@ -39,26 +39,22 @@ OUT_OF_SCOPE_TERMS: list[str] = []
 RISKY_WORD_REPLACEMENTS: dict[str, str] = {}
 
 
-# Patterns that mark an unwanted trailing sentence (conditional offers, redirects, etc.)
-_TRAILING_OFFER = re.compile(
-    r"^(if you|so if you|let me know|you can also|you can always|feel free|"
-    r"don't hesitate|check rate my|check rmp|want to compare|or let me know|"
-    r"for more (info|details|context)|head over to rmp|head over to rate)",
-    re.IGNORECASE,
+# Matches a trailing "If you..." / "Let me know..." sentence that follows a sentence boundary.
+# Uses re.sub on the full text — avoids sentence-splitting edge cases with decimals/abbrevs.
+# Keeps "Courses page" redirects which are explicitly approved in the system prompt.
+_TRAILING_OFFER_RE = re.compile(
+    r"(?<=[.!?])\s+"                          # must follow a sentence-ending punctuation
+    r"(?:if you|so if you|let me know|you can also|you can always|feel free|"
+    r"don't hesitate|check rate my|check rmp\b|for more (?:info|details|context)|"
+    r"head over to (?:rmp|rate my)|want to compare|or let me know)"
+    r"(?![\s\S]*Courses page)"                 # but not if remainder mentions Courses page
+    r"[\s\S]*$",                              # consume to end of string (DOTALL via flag)
+    re.IGNORECASE | re.DOTALL,
 )
 
 def _strip_trailing_offers(text: str) -> str:
-    """Remove trailing 'If you want…' / 'Let me know…' sentences the LLM still sneaks in."""
-    # Split on sentence boundaries while keeping the delimiter
-    parts = re.split(r'(?<=[.!?])\s+', text.strip())
-    while parts:
-        last = parts[-1].strip()
-        # Keep Courses-page redirects — those are explicitly approved in the system prompt
-        if _TRAILING_OFFER.match(last) and "Courses page" not in last:
-            parts.pop()
-        else:
-            break
-    return " ".join(parts).strip()
+    """Remove trailing 'If you…' / 'Let me know…' sentences the LLM still generates."""
+    return _TRAILING_OFFER_RE.sub("", text.strip()).strip()
 
 
 def _strip_chain_of_thought(text: str) -> str:
