@@ -18,6 +18,7 @@ CONTENT RULES:
 - Do NOT repeat or rephrase the question.
 - When RMP data is in the table, include it — students care.
 - Never fabricate numbers not in the data provided.
+- The context chunks you receive are a RETRIEVAL SAMPLE from a much larger database — never count them to answer "how many courses/professors do you have". If asked about data coverage, say you have grade data for CS courses at VT and direct them to the Courses page to browse everything.
 
 When no grade data exists (general VT questions): answer from your Virginia Tech knowledge in 2-3 sentences, same direct style."""
 
