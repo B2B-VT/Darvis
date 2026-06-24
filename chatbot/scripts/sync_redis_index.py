@@ -19,6 +19,7 @@ Run from the chatbot/ root:
 
 import json
 import logging
+import struct
 import sys
 import time
 from pathlib import Path
@@ -60,6 +61,17 @@ def fetch_all_embeddings(supabase) -> list[dict]:
     return rows
 
 
+def _parse_embedding(raw) -> list[float]:
+    if isinstance(raw, str):
+        return json.loads(raw)
+    return list(raw)
+
+
+def _to_bytes(raw) -> bytes:
+    floats = _parse_embedding(raw)
+    return struct.pack(f"{len(floats)}f", *floats)
+
+
 def main() -> int:
     settings = get_settings()
 
@@ -83,10 +95,19 @@ def main() -> int:
                       "Run build_embeddings.py / rebuild_embeddings.py first.")
         return 1
 
-    dim = len(rows[0]["embedding"])
+    first_emb = _parse_embedding(rows[0]["embedding"])
+    dim = len(first_emb)
     index_name = settings.rag_redis_index_name or INDEX_NAME
     schema = IndexSchema.from_dict(build_schema(index_name, dim))
     index = SearchIndex(schema, redis_url=settings.redis_url)
+    # Delete existing hash keys before recreating index to free memory
+    import redis as _redis
+    raw = _redis.from_url(settings.redis_url)
+    existing_keys = raw.keys(f"{index_name}:*")
+    if existing_keys:
+        raw.delete(*existing_keys)
+        logger.info("Deleted %d stale keys from Redis", len(existing_keys))
+
     index.create(overwrite=True, drop=True)
     logger.info("Created Redis index %r (dim=%d)", index_name, dim)
 
@@ -108,7 +129,7 @@ def main() -> int:
             "course_number": str(meta_dict.get("course_number") or ""),
             "content": row.get("content") or "",
             "metadata": json.dumps(meta_dict),
-            "embedding": row["embedding"],
+            "embedding": _to_bytes(row["embedding"]),
         })
 
     logger.info("Loading %d documents into Redis...", len(docs))
