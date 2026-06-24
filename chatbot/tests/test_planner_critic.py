@@ -101,3 +101,63 @@ class TestCritic:
         results = [_result("CS 3114 some data", combined=0.15)]
         d = self.c.evaluate("q", results, self.plan, 2, 2).decision
         assert d in ("ACCEPT", "FAIL")
+
+
+# ── Critic LLM-judgement fallback ─────────────────────────────────────────────
+
+class _FakeLLM:
+    """Stub GemmaAnswerClient — only judge_relevance() is used by the critic."""
+
+    def __init__(self, verdict: bool | None):
+        self._verdict = verdict
+        self.calls = 0
+
+    def judge_relevance(self, question: str, context: str) -> bool | None:
+        self.calls += 1
+        return self._verdict
+
+
+class TestCriticLLMJudge:
+    def setup_method(self):
+        self.plan = QueryPlan(primary_query="CS 3114", mentioned_course="CS 3114")
+        # combined=0.15 lands in the borderline band (above _THRESHOLD_WEAK=0.08,
+        # below _THRESHOLD_GOOD=0.35) on the last attempt for these fixtures.
+        self.borderline_results = [_result("CS 3114 some data", combined=0.15)]
+
+    def test_judge_yes_accepts(self):
+        c = RetrievalCriticAgent(llm_client=_FakeLLM(verdict=True))
+        result = c.evaluate("q", self.borderline_results, self.plan, 2, 2)
+        assert result.decision == "ACCEPT"
+        assert "llm-judged" in result.reason
+
+    def test_judge_no_fails(self):
+        c = RetrievalCriticAgent(llm_client=_FakeLLM(verdict=False))
+        result = c.evaluate("q", self.borderline_results, self.plan, 2, 2)
+        assert result.decision == "FAIL"
+        assert "llm-judged" in result.reason
+
+    def test_judge_undetermined_falls_back_to_heuristic_accept(self):
+        c = RetrievalCriticAgent(llm_client=_FakeLLM(verdict=None))
+        result = c.evaluate("q", self.borderline_results, self.plan, 2, 2)
+        assert result.decision == "ACCEPT"
+        assert "best available" in result.reason
+
+    def test_no_llm_client_skips_judge_entirely(self):
+        c = RetrievalCriticAgent()  # llm_client=None, same as before this feature
+        result = c.evaluate("q", self.borderline_results, self.plan, 2, 2)
+        assert result.decision == "ACCEPT"
+
+    def test_judge_not_called_on_clear_accept(self):
+        """Clear-quality results should never pay for the extra LLM call."""
+        llm = _FakeLLM(verdict=True)
+        c = RetrievalCriticAgent(llm_client=llm)
+        good_results = [_result("CS 3114 Hamouda GPA 3.1 A% 45", combined=0.8, rerank=0.9)]
+        c.evaluate("q", good_results, self.plan, 0, 2)
+        assert llm.calls == 0
+
+    def test_judge_not_called_on_no_results(self):
+        """No candidates at all should never pay for the extra LLM call either."""
+        llm = _FakeLLM(verdict=True)
+        c = RetrievalCriticAgent(llm_client=llm)
+        c.evaluate("q", [], self.plan, 2, 2)
+        assert llm.calls == 0

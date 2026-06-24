@@ -28,7 +28,26 @@ npm run dev        # http://localhost:5173
 - `frontend/src/App.jsx` — root component, page routing, global dark mode state
 - `frontend/src/api.js` — all Supabase calls from the frontend
 - `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
-- `frontend/src/components/` — one file per page/feature
+- `frontend/src/supabase.js` — Supabase client singleton
+- `frontend/src/theme.jsx` — dark/light theme tokens
+
+**Component map (`src/components/`):**
+| File | Page/feature |
+|------|-------------|
+| `landing.jsx` | Public marketing/landing page |
+| `courses.jsx` | Grade distribution browser + filters |
+| `instructors.jsx` | Professor listing with RMP ratings |
+| `dashboard-prof.jsx` | Professor detail view |
+| `schedule.jsx` | Schedule builder (Fall 2026 sections) |
+| `chatbot.jsx` | AI chat interface → `POST /chat` |
+| `forums.jsx` | Community forum (empty — no users yet) |
+| `profile-page.jsx` | User profile (Clerk user data) |
+| `profile-modal.jsx` | Profile edit modal |
+| `nav-auth.jsx` | Top nav with Clerk sign-in/out |
+| `auth-gate.jsx` | Wraps all auth-required pages |
+| `auth-modal.jsx` | Sign-in prompt modal |
+| `faqs.jsx` | FAQ page |
+| `icons.jsx` | Shared SVG icon components |
 
 **Auth:** Clerk. Users must be signed in to access courses, schedule, chatbot, and forums. Waitlist mode is enabled in the Clerk dashboard (Configure → Restrictions → Sign-up mode).
 
@@ -53,6 +72,7 @@ GOOGLE_API_KEY=...
 GOOGLE_MODEL=gemma-3-27b-it
 SUPABASE_URL=...
 SUPABASE_KEY=...           # service role key
+REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
 ALLOWED_ORIGINS=https://darvis.tech,...
 ```
 
@@ -102,7 +122,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 | `professors` | 65 | Legacy. Written by `import_rmp.js`, not read by app code — frontend `api.js` and chatbot both read `instructors` |
 | `majors` | 183 | Full list |
 | `major_requirements` | 16,151 | Full list |
-| `embeddings` | 4,576 | Vectors populated; `search_embeddings` RPC exists; semantic search ready |
+| `embeddings` | 4,576 | Vectors populated; this is the source of truth. Synced into a Redis (redisvl) index by `scripts/sync_redis_index.py` — retrieval queries Redis at runtime, not this table directly. Legacy `search_embeddings`/`hybrid_search` Postgres RPCs are no longer called by the chatbot but remain in the schema |
 | `grade_embeddings` | 0 | Dead/unused — left over from earlier architecture |
 | `forum_posts` | 0 | Empty — no users yet |
 | `forum_replies` | 0 | Empty |
@@ -132,6 +152,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 | Vercel | Frontend | https://darvis.tech |
 | Render | Chat-bot FastAPI | https://chat-bot-6dpo.onrender.com |
 | Supabase | Database | project ID rpmgcurhxrgtzbdixtay |
+| Redis Cloud | Vector + keyword search index (redisvl) | synced from Supabase `embeddings` via `scripts/sync_redis_index.py` |
 | Clerk | Auth | clerk.darvis.tech |
 
 Render free tier sleeps after inactivity — first request takes ~30 seconds. Upgrade to Render Starter ($7/month) to eliminate cold starts.

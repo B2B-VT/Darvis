@@ -10,6 +10,12 @@ pydantic-settings
 supabase
 slowapi
 
+# Redis vector store — semantic + keyword search at runtime (Redis Stack /
+# Redis Cloud with the search module). Supabase `embeddings` stays the
+# durable source of truth; redis stores the hot serving index.
+redisvl
+redis
+
 # RAG pipeline — semantic embeddings + reranking
 # Install all three; the pipeline auto-selects based on available API keys.
 openai>=1.0.0                  # text-embedding-3-small/large (needs OPENAI_API_KEY)

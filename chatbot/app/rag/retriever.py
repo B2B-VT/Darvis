@@ -1,26 +1,37 @@
 """
 app/rag/retriever.py
 
-Hybrid retrieval combining pgvector cosine search with Postgres full-text
-search (tsvector), fused via Reciprocal Rank Fusion (RRF).
+Hybrid retrieval combining a redisvl-managed vector index (semantic search)
+with a RediSearch full-text query (keyword search) on the same Redis index,
+fused via Reciprocal Rank Fusion (RRF) in Python.
 
 Why hybrid?
   - Vector search excels at semantic paraphrases ("which prof is brutal for
-    algorithms?" → retrieves CS 3114 grade docs by meaning).
+    algorithms?" -> retrieves CS 3114 grade docs by meaning).
   - Keyword search catches exact identifiers (course codes, instructor names,
     GPA values) that embeddings may dilute.
   - RRF fusion avoids score normalization issues between the two systems.
 
+The index itself is built by scripts/sync_redis_index.py from the Supabase
+`embeddings` table (the durable source of truth) — this module only queries
+it. Redis is a hot serving layer, not the system of record.
+
 Flow:
-  embed(query) → hybrid_search RPC → deduplicate → list[RetrievalResult]
+  embed(query) -> vector KNN query \
+                                      -> RRF fuse -> list[RetrievalResult]
+  query text   -> RediSearch FT query /
 """
 
 from __future__ import annotations
 
+import json
 import logging
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass
 
 logger = logging.getLogger("darvis.retriever")
+
+_RRF_K = 60  # standard Reciprocal Rank Fusion smoothing constant
 
 
 @dataclass
@@ -39,41 +50,67 @@ class RetrievalResult:
 
 class HybridRetriever:
     """
-    Executes hybrid (vector + keyword) retrieval against the Supabase
-    `embeddings` table using pre-built RPC functions from the migration.
+    Executes hybrid (vector + keyword) retrieval against the Redis index
+    built by scripts/sync_redis_index.py.
 
     Falls back gracefully:
-      - If embeddings unavailable → keyword-only search
-      - If FTS index unavailable → vector-only search
-      - If both fail → empty list (never raises)
+      - If the Redis index is unreachable/missing -> empty list (vector_store.py
+        then uses its own pandas keyword fallback)
+      - If semantic search is unavailable -> keyword-only search
+      - If keyword search is unavailable -> vector-only search
+      - Never raises.
     """
 
-    def __init__(self, supabase_client, embedder, settings=None):
+    def __init__(self, redis_url: str, embedder, settings=None):
         from app.config import get_settings
+        from app.rag.redis_schema import INDEX_NAME, build_schema
+
         cfg = settings or get_settings()
-        self._db = supabase_client
         self._embedder = embedder
         self._alpha: float = getattr(cfg, "rag_vector_weight", 0.7)
         self._top_k: int = getattr(cfg, "rag_top_k_retrieve", 20)
         self._min_similarity: float = getattr(cfg, "rag_min_similarity", 0.2)
+        self._index_name: str = getattr(cfg, "rag_redis_index_name", INDEX_NAME)
         self._semantic_ready: bool = False
         self._fts_ready: bool = False
         self._embedding_count: int = 0
-        self._check_readiness()
+        self._index = None
+        self._redis = None
+
+        if not redis_url:
+            logger.warning("[retriever] No REDIS_URL configured — retrieval disabled")
+            return
+
+        try:
+            from redisvl.index import SearchIndex
+            from redisvl.schema import IndexSchema
+
+            schema = IndexSchema.from_dict(build_schema(self._index_name, self._embedder.dim))
+            self._index = SearchIndex(schema, redis_url=redis_url)
+            self._redis = self._index.client
+            self._check_readiness()
+        except Exception as exc:
+            logger.error("[retriever] Redis index init failed: %s", exc)
+            self._index = None
+            self._redis = None
 
     def _check_readiness(self):
-        """Probe Supabase to see which retrieval modes are available."""
+        """Probe Redis to see which retrieval modes are available."""
         try:
-            result = self._db.table("embeddings").select("id", count="exact").limit(1).execute()
-            self._embedding_count = result.count or 0
+            info = self._index.info()
+            self._embedding_count = int(info.get("num_docs", 0))
             self._semantic_ready = self._embedding_count > 0 and self._embedder.available
-            self._fts_ready = self._embedding_count > 0  # FTS works as long as migration ran
+            self._fts_ready = self._embedding_count > 0
             logger.info(
-                "[retriever] Ready — %d embeddings, semantic=%s, fts=%s",
-                self._embedding_count, self._semantic_ready, self._fts_ready,
+                "[retriever] Ready — %d vectors in %r, semantic=%s, fts=%s",
+                self._embedding_count, self._index_name, self._semantic_ready, self._fts_ready,
             )
         except Exception as exc:
-            logger.error("[retriever] readiness check failed: %s", exc)
+            logger.error(
+                "[retriever] readiness check failed (index %r may not exist yet — "
+                "run scripts/sync_redis_index.py): %s",
+                self._index_name, exc,
+            )
             self._embedding_count = 0
 
     @property
@@ -85,7 +122,7 @@ class HybridRetriever:
         return self._fts_ready
 
     def embedding_count(self) -> int:
-        """Total number of embedded chunks in Supabase (used by /health)."""
+        """Total number of embedded chunks in the Redis index (used by /health)."""
         return self._embedding_count
 
     def retrieve(
@@ -105,6 +142,9 @@ class HybridRetriever:
             source_filter: Restrict to a source type ("course", "grade", etc.)
             alpha: Vector weight override (0.0=keyword-only, 1.0=vector-only).
         """
+        if self._index is None:
+            return []
+
         k = top_k or self._top_k
         a = alpha if alpha is not None else self._alpha
 
@@ -127,28 +167,45 @@ class HybridRetriever:
         alpha: float,
         source_filter: str | None,
     ) -> list[RetrievalResult]:
-        """Call the hybrid_search RPC (vector + FTS fused via RRF)."""
-        vector = self._embedder.embed(query)
-        if vector is None:
-            logger.warning("[retriever] Embedding failed, falling back to keyword-only")
-            return self._keyword_only(query, top_k, source_filter)
+        """Vector KNN + RediSearch FT query, fused via RRF."""
+        vec_results = self._vector_only(query, top_k, source_filter)
+        kw_results = self._keyword_only(query, top_k, source_filter)
 
-        try:
-            result = self._db.rpc(
-                "hybrid_search",
-                {
-                    "query_embedding": vector,
-                    "query_text": query,
-                    "match_count": top_k,
-                    "alpha": alpha,
-                    "source_filter": source_filter,
-                },
-            ).execute()
-            return [self._row_to_result(r) for r in (result.data or [])]
-        except Exception as exc:
-            logger.error("[retriever] hybrid_search RPC failed: %s", exc)
-            # Try vector-only fallback
-            return self._vector_only(query, top_k, source_filter)
+        if not vec_results and not kw_results:
+            return []
+        if not vec_results:
+            return kw_results[:top_k]
+        if not kw_results:
+            return vec_results[:top_k]
+        return self._rrf_fuse(vec_results, kw_results, alpha, top_k)
+
+    def _rrf_fuse(
+        self,
+        vec_results: list[RetrievalResult],
+        kw_results: list[RetrievalResult],
+        alpha: float,
+        top_k: int,
+    ) -> list[RetrievalResult]:
+        """Reciprocal Rank Fusion — avoids normalizing cosine vs. BM25 scores directly."""
+        scores: dict[int, float] = {}
+        by_id: dict[int, RetrievalResult] = {}
+
+        for rank, r in enumerate(vec_results):
+            scores[r.id] = scores.get(r.id, 0.0) + alpha * (1.0 / (_RRF_K + rank + 1))
+            by_id[r.id] = r
+
+        for rank, r in enumerate(kw_results):
+            scores[r.id] = scores.get(r.id, 0.0) + (1 - alpha) * (1.0 / (_RRF_K + rank + 1))
+            if r.id in by_id:
+                by_id[r.id].keyword_score = r.keyword_score
+            else:
+                by_id[r.id] = r
+
+        for rid, s in scores.items():
+            by_id[rid].combined_score = s
+
+        ranked = sorted(by_id.values(), key=lambda r: r.combined_score, reverse=True)
+        return ranked[:top_k]
 
     def _vector_only(
         self,
@@ -156,27 +213,37 @@ class HybridRetriever:
         top_k: int,
         source_filter: str | None,
     ) -> list[RetrievalResult]:
-        """Call search_embeddings RPC (cosine similarity only)."""
+        """Vector KNN search via redisvl's VectorQuery."""
         vector = self._embedder.embed(query)
         if vector is None:
-            return []
+            logger.warning("[retriever] Embedding failed, falling back to keyword-only")
+            return self._keyword_only(query, top_k, source_filter)
+
         try:
-            result = self._db.rpc(
-                "search_embeddings",
-                {
-                    "query_embedding": vector,
-                    "match_count": top_k,
-                    "min_similarity": self._min_similarity,
-                    "source_filter": source_filter,
-                },
-            ).execute()
-            return [
-                self._row_to_result(r, combined_from_similarity=True)
-                for r in (result.data or [])
-            ]
+            from redisvl.query import VectorQuery
+            from redisvl.query.filter import Tag
+
+            filter_expression = Tag("source_type") == source_filter if source_filter else None
+            vq = VectorQuery(
+                vector=vector,
+                vector_field_name="embedding",
+                return_fields=["id", "content", "source_type", "source_id", "metadata"],
+                num_results=top_k,
+                filter_expression=filter_expression,
+            )
+            rows = self._index.query(vq)
         except Exception as exc:
-            logger.error("[retriever] search_embeddings RPC failed: %s", exc)
+            logger.error("[retriever] vector query failed: %s", exc)
             return []
+
+        results = []
+        for row in rows:
+            distance = float(row.get("vector_distance", 1.0))
+            similarity = max(0.0, 1.0 - distance)
+            if similarity < self._min_similarity:
+                continue
+            results.append(self._row_to_result(row, vector_score=similarity, combined_score=similarity))
+        return results
 
     def _keyword_only(
         self,
@@ -185,87 +252,91 @@ class HybridRetriever:
         source_filter: str | None,
     ) -> list[RetrievalResult]:
         """
-        Call search_embeddings_fts RPC (Postgres full-text only).
-        Falls back to trigram similarity search when FTS returns no results —
-        this handles vague queries like "brutal for algorithms" where
-        plainto_tsquery produces no FTS matches.
+        RediSearch full-text query (BM25-style scoring) on the same index.
+        Falls back to a fuzzy (typo-tolerant) query when the exact match
+        returns nothing — mirrors the old trigram fallback for vague queries.
         """
-        try:
-            result = self._db.rpc(
-                "search_embeddings_fts",
-                {
-                    "query_text": query,
-                    "match_count": top_k,
-                    "source_filter": source_filter,
-                },
-            ).execute()
-            rows = result.data or []
-            if rows:
-                return [self._row_to_result(r, from_fts=True) for r in rows]
-        except Exception as exc:
-            logger.error("[retriever] FTS search failed: %s", exc)
+        if self._redis is None:
+            return []
 
-        # Trigram fallback: pg_trgm ILIKE search for queries that produce no
-        # FTS tokens (stop-word-only or very short queries).
-        return self._trigram_fallback(query, top_k, source_filter)
+        terms = self._tokenize(query)
+        if not terms:
+            return []
 
-    def _trigram_fallback(
+        results = self._run_fts(terms, top_k, source_filter, fuzzy=False)
+        if not results:
+            results = self._run_fts(terms, top_k, source_filter, fuzzy=True)
+        return results
+
+    def _run_fts(
         self,
-        query: str,
+        terms: list[str],
         top_k: int,
         source_filter: str | None,
+        fuzzy: bool,
     ) -> list[RetrievalResult]:
-        """
-        Trigram similarity fallback using the idx_embeddings_content_trgm index.
-        Returns results ordered by pg_trgm similarity to the query.
-        """
         try:
-            result = self._db.rpc(
-                "search_embeddings_trigram",
-                {
-                    "query_text": query,
-                    "match_count": top_k,
-                    "source_filter": source_filter,
-                },
-            ).execute()
-            return [
-                self._row_to_result(r, from_fts=True)
-                for r in (result.data or [])
-            ]
+            from redis.commands.search.query import Query as FTQuery
+
+            pattern = "|".join(f"%{t}%" if fuzzy else t for t in terms)
+            ft_q = f"@content:({pattern})"
+            if source_filter:
+                ft_q = f"@source_type:{{{source_filter}}} {ft_q}"
+
+            q = FTQuery(ft_q).with_scores().paging(0, top_k)
+            res = self._redis.ft(self._index_name).search(q)
+
+            results = []
+            for doc in res.docs:
+                meta = self._parse_metadata(getattr(doc, "metadata", "{}"))
+                doc_id = int(getattr(doc, "id_", 0) or 0)
+                results.append(RetrievalResult(
+                    id=doc_id,
+                    content=getattr(doc, "content", ""),
+                    source_type=getattr(doc, "source_type", ""),
+                    source_id=getattr(doc, "source_id", ""),
+                    metadata=meta,
+                    keyword_score=float(getattr(doc, "score", 0.0)),
+                    combined_score=float(getattr(doc, "score", 0.0)),
+                ))
+            return results
         except Exception as exc:
-            logger.debug("[retriever] Trigram fallback failed: %s", exc)
+            logger.debug("[retriever] FTS query failed (fuzzy=%s): %s", fuzzy, exc)
             return []
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _row_to_result(
-        row: dict,
-        combined_from_similarity: bool = False,
-        from_fts: bool = False,
-    ) -> RetrievalResult:
-        meta = row.get("metadata") or {}
-        if isinstance(meta, str):
-            import json
+    def _tokenize(query: str) -> list[str]:
+        """Strip RediSearch query-syntax special characters, return plain word tokens."""
+        cleaned = re.sub(r"[^\w\s]", " ", query)
+        return [t for t in cleaned.split() if len(t) >= 2]
+
+    @staticmethod
+    def _parse_metadata(raw) -> dict:
+        if isinstance(raw, dict):
+            return raw
+        if isinstance(raw, str) and raw:
             try:
-                meta = json.loads(meta)
+                return json.loads(raw)
             except Exception:
-                meta = {}
-        sim = float(row.get("similarity", 0.0))
-        kw = float(row.get("rank", 0.0)) if from_fts else float(row.get("keyword_score", 0.0))
-        vec = sim if combined_from_similarity else float(row.get("vector_score", 0.0))
-        combined = sim if combined_from_similarity else (
-            float(row.get("rank", 0.0)) if from_fts else float(row.get("combined_score", 0.0))
-        )
+                return {}
+        return {}
+
+    def _row_to_result(
+        self,
+        row: dict,
+        vector_score: float = 0.0,
+        combined_score: float = 0.0,
+    ) -> RetrievalResult:
         return RetrievalResult(
-            id=int(row.get("id", 0)),
+            id=int(row.get("id", 0) or 0),
             content=str(row.get("content", "")),
             source_type=str(row.get("source_type", "")),
             source_id=str(row.get("source_id", "")),
-            metadata=meta,
-            vector_score=vec,
-            keyword_score=kw,
-            combined_score=combined,
+            metadata=self._parse_metadata(row.get("metadata", "{}")),
+            vector_score=vector_score,
+            combined_score=combined_score,
         )
 
     def format_context(self, results: list[RetrievalResult]) -> str:

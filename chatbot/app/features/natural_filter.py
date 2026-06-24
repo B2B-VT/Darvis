@@ -65,6 +65,10 @@ def handle_natural_filter(
             answer = llm.answer(prompt)
             if answer:
                 return answer, [], [], {}
+        # No grade data and no RAG context — let Gemma answer from its own knowledge
+        answer = llm.answer(f"Student's question: {question}")
+        if answer:
+            return answer, [], [], {}
         return (
             "Darvis doesn't have grade data for that combination yet — "
             "only CS courses are in the dataset right now. "

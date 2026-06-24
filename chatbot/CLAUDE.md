@@ -26,9 +26,14 @@ GOOGLE_API_KEY=...
 GOOGLE_MODEL=gemma-3-27b-it
 SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=...           # service role key
+REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search
+RAG_REDIS_INDEX_NAME=darvis_embeddings
+RAG_ENABLE_LLM_JUDGE=true  # Gemma judges borderline retrieval quality before using it
 ALLOWED_ORIGINS=https://darvis.tech,http://localhost:3000
 SHOW_DOCS=true             # local only — enables /docs
 ```
+
+Run `python -m scripts.sync_redis_index` after seeding/rebuilding Supabase `embeddings`, or any time Redis comes up cold — it reads Supabase and (re)builds the Redis index that retrieval actually queries.
 
 ## File map
 
@@ -54,17 +59,18 @@ app/
 │   ├── gemma_client.py     Google AI Studio client — 30s timeout, returns None on failure
 │   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
-│   ├── retriever.py        Candidate retrieval (vector + keyword)
+│   ├── retriever.py        Hybrid retrieval against Redis (redisvl vector KNN + RediSearch FT, fused via RRF)
+│   ├── redis_schema.py     Shared redisvl index schema (retriever.py + scripts/sync_redis_index.py)
 │   ├── reranker.py         Reranks retrieved candidates
 │   ├── chunker.py          Splits source rows into embeddable chunks
 │   ├── embedder.py         fastembed embedding wrapper
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
 │   ├── agents/planner.py   Plans retrieval steps
-│   ├── agents/critic.py    Critiques/validates the drafted answer
+│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Gemma) on borderline final attempts
 │   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          SYSTEM_PROMPT reference + build_answer_prompt
-│   └── vector_store.py     Keyword search + optional pgvector semantic search via fastembed
+│   └── vector_store.py     Pandas keyword fallback + Redis-backed (redisvl) semantic search
 ├── safety/
 │   ├── guardrails.py       SYSTEM_GUARDRAIL, normalize_question, sanitize_answer, typo/subject maps
 │   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
@@ -143,7 +149,7 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 | `courses` | `load_courses_from_supabase()` | Course catalog, vector store context |
 | `major_requirements` | `load_requirements_from_supabase()` | Major requirement answers |
 | `sections` | Queried live in `schedule_builder.py` | Schedule building (Fall 2026, term 202609) |
-| `embeddings` | Checked at startup in `vector_store.py` | Semantic search (4,576 vectors) |
+| `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search (4,576 vectors). Retrieval queries Redis at runtime, not this table directly |
 | `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers |
 
 ## Known issues

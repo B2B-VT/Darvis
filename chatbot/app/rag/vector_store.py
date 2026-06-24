@@ -70,15 +70,21 @@ class GradeVectorStore:
 
     def set_clients(self, supabase: SupabaseClient, llm_client=None, google=None) -> None:
         """
-        Initialize the RAG pipeline with the Supabase client and optional LLM.
-        `llm_client` is passed to the query rewriter for LLM-powered expansion.
-        `google` is kept for backward compatibility but unused.
+        Initialize the RAG pipeline. `supabase` is kept for signature stability
+        and potential direct queries elsewhere; retrieval itself reads from the
+        Redis index (REDIS_URL in settings), synced from Supabase by
+        scripts/sync_redis_index.py. `llm_client` is passed to the query
+        rewriter for LLM-powered expansion AND to the retrieval critic for the
+        LLM-judgement fallback (does retrieved context actually answer the
+        question?). `google` is kept for backward compatibility but unused.
         """
         try:
+            from app.config import get_settings
             from app.rag.pipeline import RAGPipeline
             from app.rag.agentic_pipeline import AgenticRAGPipeline
-            self._pipeline = RAGPipeline(supabase_client=supabase, llm_client=llm_client)
-            self._agentic = AgenticRAGPipeline(self._pipeline)
+            settings = get_settings()
+            self._pipeline = RAGPipeline(redis_url=settings.redis_url, llm_client=llm_client)
+            self._agentic = AgenticRAGPipeline(self._pipeline, llm_client=llm_client)
             logger.info("[vector_store] Agentic RAG pipeline initialized: %s", self._agentic.status())
         except Exception as exc:
             logger.error("[vector_store] RAG pipeline init failed, keyword fallback only: %s", exc)

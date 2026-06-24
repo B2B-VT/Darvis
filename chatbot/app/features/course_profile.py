@@ -1,6 +1,6 @@
 import pandas as pd
 from app.data.analytics import course_profile, extract_course_parts
-from app.rag.prompts import build_answer_prompt
+from app.rag.prompts import build_answer_prompt, build_rag_only_prompt
 from app.utils.charts import table_spec, bar_chart, scatter_chart
 from app.config import get_settings
 from app.features.templated_answers import course_answer
@@ -84,7 +84,9 @@ def handle_course_profile(
         result = result_all.head(top_n)
 
     if result.empty:
-        answer = course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+        retrieved = vector_store.query(question, n_results=6)
+        prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
+        answer = llm.answer(prompt) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
         return answer, [], [], {"subject": subject, "course_no": course_no}
 
     # RMP question detection — prefer intent flag, fall back to keyword check

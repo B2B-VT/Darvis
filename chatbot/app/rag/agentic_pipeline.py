@@ -45,10 +45,10 @@ class AgenticRAGPipeline:
     Same question-in / context-string-out contract as RAGPipeline.retrieve().
     """
 
-    def __init__(self, base_pipeline: "RAGPipeline"):
+    def __init__(self, base_pipeline: "RAGPipeline", llm_client=None):
         self._base = base_pipeline
         self._planner = QueryPlannerAgent()
-        self._critic = RetrievalCriticAgent()
+        self._critic = RetrievalCriticAgent(llm_client=llm_client)
         logger.info("[agentic_pipeline] ready (max_attempts=%d)", _MAX_ATTEMPTS)
 
     # ── Public API ─────────────────────────────────────────────────────────────

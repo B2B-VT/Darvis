@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_key: str = Field(default="", alias="SUPABASE_KEY")
 
+    # ── Redis (redisvl vector store — semantic + keyword search at runtime) ────
+    # Supabase `embeddings` stays the durable source of truth; this is the hot
+    # serving index, populated by scripts/sync_redis_index.py.
+    redis_url: str = Field(default="", alias="REDIS_URL")
+    rag_redis_index_name: str = Field(default="darvis_embeddings", alias="RAG_REDIS_INDEX_NAME")
+
     # ── Optional embedding / reranking providers ────────────────────────────────
     # OpenAI: used for text-embedding-3-small or text-embedding-3-large.
     # Falls back to Google gemini-embedding-001, then fastembed if not set.
@@ -67,6 +73,12 @@ class Settings(BaseSettings):
     # Disable local cross-encoder reranker to save RAM on Render free tier.
     # When false, falls back to passthrough if Cohere is not configured.
     rag_enable_local_reranker: bool = Field(default=False, alias="RAG_ENABLE_LOCAL_RERANKER")
+
+    # LLM-judgement fallback: when retrieval quality is borderline on the last
+    # critic attempt, ask Gemma whether the context actually answers the
+    # question instead of blindly accepting "best available". Set false to
+    # restore the old heuristic-only behavior (e.g. to save the extra call).
+    rag_enable_llm_judge: bool = Field(default=True, alias="RAG_ENABLE_LLM_JUDGE")
 
     # Skip startup embedding-provider consistency validation.
     rag_skip_embedding_validation: bool = Field(default=False, alias="RAG_SKIP_EMBEDDING_VALIDATION")

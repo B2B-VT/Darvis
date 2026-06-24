@@ -2,9 +2,9 @@
 app/rag/agents/critic.py
 
 Retrieval Critic Agent — evaluates whether retrieved results are good enough
-to answer the user's question. Pure heuristics, no LLM. Fast.
+to answer the user's question.
 
-Scoring factors:
+Scoring factors (pure heuristics, no LLM, fast):
   1. Candidate count
   2. Top score (normalized per provider — cross-encoder logits vs 0-1 Cohere/cosine)
   3. Entity coverage (if "CS 3114" mentioned, is it in results?)
@@ -12,7 +12,17 @@ Scoring factors:
 Decision:
   ACCEPT  — quality sufficient, proceed to answer generation
   RETRY   — quality weak, try a different retrieval strategy
-  FAIL    — exhausted attempts, return best available or "not enough info"
+  FAIL    — exhausted attempts, return "" so the caller answers from the
+            LLM's own knowledge instead of weak/irrelevant RAG context
+
+LLM-judgement fallback:
+  On the final attempt, a borderline heuristic score (above _THRESHOLD_WEAK
+  but below _THRESHOLD_GOOD) used to auto-ACCEPT as "best available" — even
+  when the context didn't actually address the question. Now it asks the
+  LLM client (if one was provided) a direct yes/no: does this context answer
+  the question? This is the one explicit LLM-judgement call in the pipeline,
+  and it only fires on the borderline path — clear hits and clear misses
+  never pay for it.
 """
 
 from __future__ import annotations
@@ -43,6 +53,12 @@ class CritiqueResult:
 class RetrievalCriticAgent:
     """Evaluates retrieval quality and decides whether to accept, retry, or fail."""
 
+    def __init__(self, llm_client=None):
+        # llm_client is the GemmaAnswerClient instance (has judge_relevance()).
+        # None is valid — the critic just skips the LLM-judgement step and
+        # falls back to the old heuristic-only "best available" behavior.
+        self._llm = llm_client
+
     def evaluate(
         self,
         question: str,
@@ -70,11 +86,50 @@ class RetrievalCriticAgent:
 
         if attempt >= max_attempt:
             if adjusted > _THRESHOLD_WEAK:
-                # Marginally acceptable — accept best-effort on last attempt
+                # Borderline — don't blindly accept "best available" anymore.
+                # Ask the LLM whether this context actually answers the question.
+                verdict = self._judge(question, results)
+                if verdict is True:
+                    return CritiqueResult(
+                        "ACCEPT", adjusted, f"llm-judged useful (heuristic={adjusted:.2f})", attempt
+                    )
+                if verdict is False:
+                    return CritiqueResult(
+                        "FAIL", adjusted, f"llm-judged not useful (heuristic={adjusted:.2f})", attempt
+                    )
+                # verdict is None: no LLM client, judge disabled, or judge call
+                # failed — fall back to the old heuristic-only behavior so a
+                # missing/broken LLM never blocks an otherwise-working RAG path.
                 return CritiqueResult("ACCEPT", adjusted, f"best available after {attempt+1} attempts", attempt)
             return CritiqueResult("FAIL", adjusted, f"quality={adjusted:.2f} below minimum", attempt)
 
         return CritiqueResult("RETRY", adjusted, f"quality={adjusted:.2f} < {_THRESHOLD_GOOD}", attempt)
+
+    def _judge(self, question: str, results: list["RetrievalResult"]) -> bool | None:
+        """
+        Ask the LLM whether the retrieved context answers the question.
+        Returns None (undetermined) if there's no LLM client, the judge is
+        disabled via config, or the call itself fails — callers treat None
+        as "couldn't determine" and fall back to heuristic-only behavior.
+        """
+        if self._llm is None:
+            return None
+        try:
+            from app.config import get_settings
+            if not getattr(get_settings(), "rag_enable_llm_judge", True):
+                return None
+        except Exception:
+            pass
+
+        context = "\n\n".join(r.content for r in results[:5] if r.content)
+        if not context:
+            return False
+
+        try:
+            return self._llm.judge_relevance(question, context)
+        except Exception as exc:
+            logger.warning("[critic] LLM judge call failed: %s", exc)
+            return None
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 

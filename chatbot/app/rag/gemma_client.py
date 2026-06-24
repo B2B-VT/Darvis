@@ -74,3 +74,36 @@ class GemmaAnswerClient:
         output is JSON or keywords, not prose. Low temperature for determinism.
         """
         return self._generate(prompt, max_tokens, use_system=False)
+
+    def judge_relevance(self, question: str, context: str) -> bool | None:
+        """
+        Ask Gemma whether the retrieved context actually answers the question.
+
+        Used by RetrievalCriticAgent as the explicit LLM-judgement step for
+        borderline retrieval quality — this is what lets the chatbot skip a
+        weak/irrelevant RAG context and answer from general knowledge instead
+        of forcing a bad answer out of unrelated grade data.
+
+        Returns None on any failure (no client, timeout, unparseable output)
+        so callers can fall back to their own default rather than treating
+        "couldn't determine" as either YES or NO.
+        """
+        if not context or not context.strip():
+            return False
+        prompt = (
+            "Question: " + question.strip() + "\n\n"
+            "Retrieved context:\n" + context.strip()[:2000] + "\n\n"
+            "Does the retrieved context above contain information that "
+            "directly answers the question? Reply with exactly one word: "
+            "YES or NO."
+        )
+        raw = self._generate(prompt, max_tokens=10, use_system=False)
+        if raw is None:
+            return None
+        verdict = raw.strip().upper()
+        if verdict.startswith("YES"):
+            return True
+        if verdict.startswith("NO"):
+            return False
+        logger.warning("[GemmaClient] judge_relevance got unexpected output: %r", raw[:50])
+        return None

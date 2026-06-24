@@ -45,7 +45,7 @@ class RAGPipeline:
 
     def __init__(
         self,
-        supabase_client,
+        redis_url: str = "",
         llm_client=None,
         settings=None,
     ):
@@ -58,7 +58,7 @@ class RAGPipeline:
 
         # Initialize pipeline stages
         self._embedder = EmbeddingService(settings=cfg)
-        self._retriever = HybridRetriever(supabase_client, self._embedder, settings=cfg)
+        self._retriever = HybridRetriever(redis_url or getattr(cfg, "redis_url", ""), self._embedder, settings=cfg)
         self._reranker = Reranker(settings=cfg)
         self._rewriter = QueryRewriter(llm_client=llm_client, settings=cfg)
 
@@ -200,6 +200,7 @@ class RAGPipeline:
         return {
             "embedding_provider": self._embedder.provider,
             "embedding_dim": self._embedder.dim,
+            "vector_backend": "redis",
             "semantic_ready": self._retriever.semantic_ready,
             "fts_ready": self._retriever.fts_ready,
             "reranker": self._reranker.provider,

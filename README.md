@@ -18,7 +18,7 @@ Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence 
 | Frontend | React 18 + Vite, CSS-in-JS, Clerk auth |
 | Chatbot backend | FastAPI (Python), Pandas, Google AI Studio (Gemma) |
 | Data scripts | Node.js (scrapers + importers) |
-| Database | Supabase (Postgres + pgvector) |
+| Database | Supabase (Postgres) — embeddings source of truth, synced into Redis (redisvl) for retrieval |
 | Frontend hosting | Vercel |
 | Chatbot hosting | Render |
 | Auth | Clerk (waitlist/beta mode) |

@@ -17,7 +17,13 @@ GOOGLE_API_KEY=your_google_ai_studio_key
 GOOGLE_MODEL=gemma-3-27b-it
 SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=your_service_role_key
+REDIS_URL=redis://default:password@host:port   # Redis Stack / Redis Cloud — needed for semantic search
 ALLOWED_ORIGINS=https://darvis.tech,http://localhost:3000
+```
+
+After the embeddings table is populated in Supabase, push it into Redis with:
+```bash
+python -m scripts.sync_redis_index
 ```
 
 Set `SHOW_DOCS=true` locally to enable `/docs` (disabled in production).
@@ -54,19 +60,20 @@ app/
 │   ├── schedule_builder.py "Build me a schedule" requests
 │   └── templated_answers.py Template fallbacks when LLM is unavailable or quota'd
 ├── rag/
-│   ├── gemma_client.py     Google AI Studio client (30s HTTP timeout, template fallback on error)
+│   ├── gemma_client.py     Google AI Studio client (30s HTTP timeout, judge_relevance() for LLM-judgement fallback)
 │   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
-│   ├── retriever.py        Candidate retrieval (vector + keyword)
+│   ├── retriever.py        Hybrid retrieval against Redis (redisvl vector + RediSearch FT, fused via RRF)
+│   ├── redis_schema.py     Shared redisvl index schema (retriever + sync_redis_index.py)
 │   ├── reranker.py         Reranks retrieved candidates
 │   ├── chunker.py          Splits source rows into embeddable chunks
 │   ├── embedder.py         fastembed embedding wrapper
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
-│   ├── agents/             planner.py (plans retrieval) + critic.py (validates answer)
+│   ├── agents/             planner.py (plans retrieval) + critic.py (validates answer, LLM-judgement fallback)
 │   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          System prompt reference + build_answer_prompt
-│   └── vector_store.py     Keyword search + optional pgvector semantic search
+│   └── vector_store.py     Keyword fallback + Redis-backed semantic search
 ├── safety/
 │   ├── guardrails.py       SYSTEM_GUARDRAIL prompt, NLP normalization, answer sanitization, typo map
 │   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
@@ -144,7 +151,9 @@ Runs the full retrieval pipeline for a question and returns candidate chunks, ve
 
 ## Semantic search
 
-`embeddings` table in Supabase has 4,576 rows with pgvector vectors. `search_embeddings` RPC exists. Semantic search activates automatically at startup if `fastembed` is installed and the embeddings table is non-empty. Falls back to keyword search silently if unavailable.
+Retrieval runs against a Redis index built with [redisvl](https://github.com/redis/redis-vl-python) — vector KNN for semantic search plus a RediSearch full-text query for keyword search, fused via RRF (`app/rag/retriever.py`). Supabase `embeddings` (4,576 rows) stays the durable source of truth; `python -m scripts.sync_redis_index` reads it and (re)builds the Redis index. Without `REDIS_URL` set, the pipeline falls back to the pandas keyword search in `vector_store.py`.
+
+A retrieval critic (`agents/critic.py`) scores every attempt; on a borderline last attempt it asks Gemma directly whether the retrieved context answers the question (`RAG_ENABLE_LLM_JUDGE`, default on) before using it — clear hits/misses skip this extra call entirely. See `RAG_ARCHITECTURE.md` for the full flow.
 
 `grade_embeddings` is a separate dead table with 0 rows — ignore it.
 

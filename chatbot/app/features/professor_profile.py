@@ -1,7 +1,7 @@
 import pandas as pd
 from app.data.analytics import professor_profile
 from app.features.router import extract_professor_name_from_profile_question
-from app.rag.prompts import build_answer_prompt
+from app.rag.prompts import build_answer_prompt, build_rag_only_prompt
 from app.utils.charts import table_spec, bar_chart, scatter_chart
 from app.config import get_settings
 from app.features.templated_answers import professor_answer
@@ -81,7 +81,9 @@ def handle_professor_profile(
     rmp = _lookup_rmp(name, rmp_df)
 
     if result.empty:
-        answer = professor_answer(question, result, name, rmp=rmp)
+        retrieved = vector_store.query(question, n_results=6)
+        prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
+        answer = llm.answer(prompt) or professor_answer(question, result, name, rmp=rmp)
         return answer, [], [], {"professor_query": name, "rmp": rmp}
 
     table_text = result[PROF_COLS].to_string(index=False)
