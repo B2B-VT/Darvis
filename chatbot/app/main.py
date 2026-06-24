@@ -29,7 +29,7 @@ from app.features.natural_filter import handle_natural_filter
 from app.features.general_chat import handle_general_chat
 from app.features.schedule_builder import handle_schedule_builder
 from app.features.major_requirements import handle_major_requirements
-from app.safety.guardrails import default_warnings, out_of_scope_response, normalize_question
+from app.safety.guardrails import default_warnings, out_of_scope_response, normalize_question, sanitize_answer
 from app.safety.privacy import privacy_warnings
 from app.safety.entity_resolver import EntityResolver
 
@@ -340,6 +340,8 @@ def chat(request: Request, body: ChatRequest):
         "min_students": body.min_students,
         "top_n": body.top_n,
     })
+
+    answer = sanitize_answer(answer) or answer
 
     return ChatResponse(
         answer=answer,
