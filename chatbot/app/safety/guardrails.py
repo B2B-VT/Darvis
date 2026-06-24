@@ -39,22 +39,29 @@ OUT_OF_SCOPE_TERMS: list[str] = []
 RISKY_WORD_REPLACEMENTS: dict[str, str] = {}
 
 
-# Matches a trailing "If you..." / "Let me know..." sentence that follows a sentence boundary.
-# Uses re.sub on the full text — avoids sentence-splitting edge cases with decimals/abbrevs.
-# Keeps "Courses page" redirects which are explicitly approved in the system prompt.
-_TRAILING_OFFER_RE = re.compile(
-    r"(?<=[.!?])\s+"                          # must follow a sentence-ending punctuation
-    r"(?:if you|so if you|let me know|you can also|you can always|feel free|"
-    r"don't hesitate|check rate my|check rmp\b|for more (?:info|details|context)|"
-    r"head over to (?:rmp|rate my)|want to compare|or let me know)"
-    r"(?![\s\S]*Courses page)"                 # but not if remainder mentions Courses page
-    r"[\s\S]*$",                              # consume to end of string (DOTALL via flag)
-    re.IGNORECASE | re.DOTALL,
-)
+_OFFER_STARTERS = [
+    "if you", "so if you", "let me know", "you can also", "you can always",
+    "feel free", "don't hesitate", "check rate my", "or let me know",
+    "for more info", "for more details", "want to compare",
+]
 
 def _strip_trailing_offers(text: str) -> str:
-    """Remove trailing 'If you…' / 'Let me know…' sentences the LLM still generates."""
-    return _TRAILING_OFFER_RE.sub("", text.strip()).strip()
+    """Remove a trailing 'If you…' / 'Let me know…' sentence after the last real sentence."""
+    text = text.strip()
+    lower = text.lower()
+    best = -1
+    for starter in _OFFER_STARTERS:
+        for punct in ".!?":
+            needle = punct + " " + starter
+            idx = lower.rfind(needle)
+            if idx != -1 and idx > best:
+                suffix = lower[idx + 1:]
+                # Keep Courses-page redirects — explicitly approved in system prompt
+                if "courses page" not in suffix:
+                    best = idx
+    if best != -1:
+        text = text[: best + 1].rstrip()
+    return text
 
 
 def _strip_chain_of_thought(text: str) -> str:
