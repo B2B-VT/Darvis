@@ -320,7 +320,7 @@ def chat(request: Request, body: ChatRequest):
             )
         elif route == "schedule_builder":
             answer, tables, charts, metadata = handle_schedule_builder(
-                question, user_profile=body.user_profile, intent=intent,
+                question, user_profile=body.user_profile, intent=intent, df=df,
             )
         elif route == "out_of_scope":
             answer, tables, charts, metadata = out_of_scope_response(), [], [], {}

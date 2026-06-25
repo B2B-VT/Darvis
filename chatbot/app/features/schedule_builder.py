@@ -139,6 +139,13 @@ def parse_time_constraints(question: str) -> tuple[str, str]:
 
     start = _to_24h(*before.groups()) if before else "07:00"
     end   = _to_24h(*after.groups()) if after else "22:00"
+
+    # "after noon" / "after 12" without am/pm
+    if re.search(r"\bafter\s+noon\b", q) or re.search(r"\bafter\s+12\b", q):
+        start = max(start, "12:00")
+    if re.search(r"\bbefore\s+noon\b", q):
+        end = min(end, "12:00")
+
     return start, end
 
 
@@ -232,6 +239,7 @@ def handle_schedule_builder(
     question: str,
     user_profile: dict | None = None,
     intent=None,
+    df=None,
 ) -> tuple[str, list, list, dict]:
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
@@ -297,11 +305,19 @@ def handle_schedule_builder(
         except Exception:
             pass  # Catalog table may not be populated yet; fall back gracefully
 
-    # ── Fetch all sections for the current term ────────────────────────────────
-    res = client.table("sections").select(
+    # ── Fetch sections for the current term ───────────────────────────────────
+    # Push subject filter to DB to stay well under Supabase's 1000-row default.
+    q = client.table("sections").select(
         "crn, subject, course_number, instructor, days, start_time, end_time, "
         "location, seats, enrolled, credits"
-    ).eq("term", CURRENT_TERM).execute()
+    ).eq("term", CURRENT_TERM)
+    if question_subject_filter:
+        q = q.eq("subject", question_subject_filter)
+    elif requested_courses:
+        subjects = list({s for s, _ in requested_courses})
+        if len(subjects) == 1:
+            q = q.eq("subject", subjects[0])
+    res = q.limit(10000).execute()
 
     all_sections = res.data or []
 
@@ -361,17 +377,65 @@ def handle_schedule_builder(
             "Try the Schedule page to browse and add sections manually."
         ), [], [], {}
 
+    # ── Build instructor GPA map from grades df ────────────────────────────────
+    # Used when the user asks for "easiest" professors.
+    sort_goal = getattr(intent, "sort_goal", "highest_gpa") if intent else "highest_gpa"
+    q_low = question.lower()
+    wants_easy = sort_goal == "highest_gpa" or any(
+        w in q_low for w in ["easiest", "easy", "best grades", "highest gpa"]
+    )
+    wants_hard = sort_goal == "lowest_gpa" or any(
+        w in q_low for w in ["hardest", "tough", "brutal", "lowest gpa"]
+    )
+
+    inst_gpa: dict[str, float] = {}
+    if df is not None and (wants_easy or wants_hard):
+        try:
+            import pandas as pd
+            gpa_df = df.copy()
+            if question_subject_filter:
+                gpa_df = gpa_df[gpa_df["Subject"].str.upper() == question_subject_filter]
+            gpa_df = gpa_df.dropna(subset=["GPA", "Graded Enrollment"])
+            for _, row in gpa_df.iterrows():
+                last = _last(str(row["Instructor"]))
+                if not last:
+                    continue
+                enroll = float(row["Graded Enrollment"] or 0)
+                gpa    = float(row["GPA"] or 0)
+                if last not in inst_gpa:
+                    inst_gpa[last] = gpa * enroll
+                    inst_gpa[last + "_n"] = enroll  # type: ignore[assignment]
+                else:
+                    inst_gpa[last] += gpa * enroll
+                    inst_gpa[last + "_n"] += enroll  # type: ignore[assignment]
+            # Finalize weighted averages
+            for last in [k for k in inst_gpa if not k.endswith("_n")]:
+                n = inst_gpa.get(last + "_n", 0)
+                inst_gpa[last] = round(inst_gpa[last] / n, 3) if n else 0.0
+            # Remove the _n accumulator keys
+            inst_gpa = {k: v for k, v in inst_gpa.items() if not k.endswith("_n")}
+        except Exception:
+            inst_gpa = {}
+
+    def _inst_gpa(s: dict) -> float:
+        last = _last(s.get("instructor") or "")
+        return inst_gpa.get(last, 0.0)
+
     # ── Group by course, pick best section per course ──────────────────────────
     by_course: dict[str, list] = defaultdict(list)
     for sec in filtered:
         by_course[f"{sec['subject']} {sec['course_number']}"].append(sec)
 
-    # Score each section: prefer more open seats, then earlier start (for variety)
-    def _score(s: dict) -> int:
-        return (s.get("seats") or 0) - (s.get("enrolled") or 0)
+    # Score each section: instructor GPA (if known) then open seats
+    def _score(s: dict) -> tuple:
+        gpa = _inst_gpa(s)
+        seats_open = (s.get("seats") or 0) - (s.get("enrolled") or 0)
+        if wants_hard:
+            return (gpa, seats_open)         # lower GPA first → use min
+        return (-gpa if gpa else 1.0, -seats_open)  # higher GPA first
 
     candidates = [
-        max(secs, key=_score)
+        (min if wants_hard else max)(secs, key=_score)
         for secs in by_course.values()
     ]
 
@@ -389,11 +453,14 @@ def handle_schedule_builder(
         # Tier 2: interest keyword match
         interest_match = int(any(i in subj.lower() or i in title for i in interests))
 
-        # Tier 3: open seats
-        open_seats = _score(s)
+        # Tier 3: instructor GPA (easiest → highest GPA first)
+        gpa = _inst_gpa(s)
+        gpa_rank = -(gpa) if (wants_easy and gpa) else (gpa if wants_hard else 0.0)
 
-        # Sort ascending: required first (-1 so required=1 sorts before required=0)
-        return (-is_required, major_rank, -interest_match, -open_seats)
+        # Tier 4: open seats
+        seats_open = (s.get("seats") or 0) - (s.get("enrolled") or 0)
+
+        return (-is_required, major_rank, -interest_match, gpa_rank, -seats_open)
 
     candidates.sort(key=_relevance_score)
 
