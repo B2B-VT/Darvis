@@ -298,6 +298,11 @@ def chat(request: Request, body: ChatRequest):
                 question, STATE.get("requirements_df"), llm, vector_store=vector_store,
                 intent=intent,
             )
+        elif route == "section_lookup":
+            from app.features.section_lookup import handle_section_lookup
+            answer, tables, charts, metadata = handle_section_lookup(
+                question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
+            )
         elif route == "schedule_builder":
             answer, tables, charts, metadata = handle_schedule_builder(
                 question, user_profile=body.user_profile, intent=intent,

@@ -36,6 +36,21 @@ def route_question(question: str) -> str:
     if is_out_of_scope(question):
         return "out_of_scope"
 
+    # Section lookup — "who is teaching X", "what times for X", "when does X teach Y"
+    section_signals = [
+        "who is teaching", "who's teaching", "who teaches",
+        "what time does", "what times are", "what times is",
+        "when does", "what days does",
+        "teaching this semester", "teaching this fall", "teaching this upcoming",
+        "teaching next semester", "teaching fall 2026",
+        "of the professors teaching", "of professors teaching",
+        "which professors are teaching", "what professors are teaching",
+        "available this semester", "available this fall", "available fall 2026",
+        "sections available", "section times", "class times for",
+    ]
+    if any(sig in q for sig in section_signals):
+        return "section_lookup"
+
     # Major requirements — "what do I need for X major?", "CS requirements", etc.
     major_req_phrases = [
         "requirements for", "required for", "courses for", "courses needed for",

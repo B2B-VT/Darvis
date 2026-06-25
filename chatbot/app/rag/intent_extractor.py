@@ -76,6 +76,7 @@ ROUTES:
 - "natural_filter": ranking/filtering/comparing courses or professors without a specific one
 - "major_requirements": graduation requirements, what courses needed for a degree/major
 - "schedule_builder": building or creating a class schedule
+- "section_lookup": who is teaching a course this semester, what times/days is a course offered, when does a specific professor teach a course, or comparing professors currently teaching a course by grades/RMP
 - "general_rag": general VT questions, campus info, anything else
 
 VT COURSE NICKNAMES (use these to fill course_no):
@@ -224,7 +225,8 @@ class IntentExtractor:
         """Safely coerce the parsed JSON dict into a ChatIntent."""
         valid_routes = {
             "course_profile", "professor_profile", "natural_filter",
-            "major_requirements", "schedule_builder", "general_rag", "out_of_scope",
+            "major_requirements", "schedule_builder", "section_lookup",
+            "general_rag", "out_of_scope",
         }
         valid_sort_goals = {
             "highest_gpa", "lowest_gpa", "highest_f_rate", "lowest_f_rate",
