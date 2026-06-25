@@ -59,6 +59,12 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
 
     course_label = f"{subject} {course_no}".strip() if course_no else subject
 
+    if not course_no:
+        return (
+            "I need a specific course to look up the schedule — which course are you asking about?",
+            [], [], {}
+        )
+
     # ── Live Supabase query ────────────────────────────────────────────────────
     try:
         client = create_client(settings.supabase_url, settings.supabase_key)
@@ -229,6 +235,7 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
             "Times":      time_str,
             "GPA":        gpa,
             "A (%)":      a_rate,
+            "A_str":      f"{a_rate:.1f}%" if a_rate is not None else "No data",
             "Students":   students,
             "RMP":        rmp_rating,
         })
@@ -242,7 +249,7 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
         rows=[[
             r["Instructor"], r["Times"],
             r["GPA"] if r["GPA"] is not None else "No data",
-            f"{r['A (%)']:.1f}%" if r["A (%)"] is not None else "No data",
+            r["A_str"],
             r["Students"] or "No data",
             r["RMP"] if r["RMP"] is not None else "No data",
         ] for r in rows_out],
@@ -253,8 +260,7 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
         "Instructor | Times | Avg GPA | A Rate | Students | RMP\n"
         + "\n".join(
             f"{r['Instructor']} | {r['Times']} | "
-            f"{r['GPA'] or 'no data'} | "
-            f"{f\"{r['A (%)']:.1f}%\" if r['A (%)'] is not None else 'no data'} | "
+            f"{r['GPA'] or 'no data'} | {r['A_str'].lower()} | "
             f"{r['Students'] or 'no data'} | {r['RMP'] or 'no data'}"
             for r in rows_out
         )
