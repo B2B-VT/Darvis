@@ -76,7 +76,7 @@ const LP_CSS = `
 .lp-mq:hover { z-index: 6; }
 .lp-mq-track { display: flex; width: max-content; padding: 10px 0; }
 .lp-mq-r .lp-mq-track { animation: lpMqRight 48s linear infinite; }
-.lp-mq-l .lp-mq-track { animation: lpMqLeft 54s linear infinite; }
+.lp-mq-l .lp-mq-track { animation: lpMqLeft 48s linear infinite; }
 .lp-mq:hover .lp-mq-track { animation-play-state: paused; }
 .lp-card { position: relative; transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
 .lp-card:hover { transform: translateY(-5px); border-color: rgba(134,31,65,0.55) !important;
@@ -809,8 +809,8 @@ function DataMarquees({ dark, t }) {
           ))}
         </div>
       </div>
-      {/* Instructors — drift right, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-r" style={{ marginTop: -25, zIndex: 1 }}>
+      {/* Instructors — drift left, slightly overlapping the row above */}
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -25, zIndex: 1 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
