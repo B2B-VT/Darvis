@@ -140,6 +140,10 @@ class EntityResolver:
             "best", "worst", "good", "bad", "hard", "easy", "this", "that",
             "grade", "grades", "class", "course", "courses", "gpa", "rate",
             "prof", "professor", "instructor", "cs", "ece", "math",
+            # sort/quality adjectives — never a professor name
+            "hardest", "easiest", "toughest", "harder", "easier", "tougher",
+            "better", "worse", "brutal", "difficult", "top", "great",
+            "terrible", "awful", "strongest", "weakest",
         }
         tokens = re.findall(r"\b[A-Za-z]{3,}\b", question)
         for token in tokens:

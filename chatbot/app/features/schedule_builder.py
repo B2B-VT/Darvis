@@ -92,17 +92,28 @@ def _major_subject_set(major: str, minor: str = "") -> list[str]:
 # ── Time parsing ──────────────────────────────────────────────────────────────
 
 def _pad_time(t: str) -> str:
-    """Normalize a DB time string to zero-padded HH:MM for reliable string comparison.
-
-    Handles "9:00", "09:00", and "09:00:00" (PostgreSQL time type) uniformly.
-    """
+    """Normalize a DB time string to zero-padded HH:MM for reliable string comparison."""
     if not t:
         return t
-    t = t[:5]  # drop seconds if present ("09:00:00" → "09:00")
+    t = t[:5]
     parts = t.split(":")
     if len(parts) == 2:
         return f"{int(parts[0]):02d}:{parts[1]}"
     return t
+
+
+def _fmt_time_12h(t: str) -> str:
+    """Convert 'HH:MM' or 'H:MM' to '12-hour AM/PM' for display."""
+    if not t:
+        return t
+    try:
+        parts = t[:5].split(":")
+        h, m = int(parts[0]), int(parts[1])
+        period = "AM" if h < 12 else "PM"
+        h12 = h % 12 or 12
+        return f"{h12}:{m:02d} {period}"
+    except Exception:
+        return t
 
 
 def _to_24h(hour: str, minute: str | None, ampm: str) -> str:
@@ -363,7 +374,7 @@ def handle_schedule_builder(
         filtered.append(sec)
 
     if not filtered:
-        time_str = f"{start_limit}–{end_limit}"
+        time_str = f"{_fmt_time_12h(start_limit)}–{_fmt_time_12h(end_limit)}"
         subj_str = f" {question_subject_filter}" if question_subject_filter else ""
         if requested_courses:
             course_str = ", ".join(f"{s} {n}" for s, n in requested_courses)
@@ -499,9 +510,12 @@ def handle_schedule_builder(
 
     total_credits = sum(s["credits"] for s in schedule_actions)
     course_list   = ", ".join(
-        f"{s['subject']} {s['courseNumber']} ({s['startTime']}–{s['endTime']})"
+        f"{s['subject']} {s['courseNumber']} "
+        f"({_fmt_time_12h(s['startTime'])}–{_fmt_time_12h(s['endTime'])})"
         for s in schedule_actions
     )
+
+    window = f"{_fmt_time_12h(start_limit)}–{_fmt_time_12h(end_limit)}"
 
     if question_subject_filter:
         context_line = f" Here's a {question_subject_filter}-only schedule"
@@ -510,10 +524,14 @@ def handle_schedule_builder(
     else:
         context_line = " I've built a schedule"
 
+    easy_note = " with the highest-GPA instructors available" if wants_easy else (
+        " with the toughest instructors" if wants_hard else ""
+    )
+
     answer = (
-        f"{context_line} with {len(schedule)} courses "
+        f"{context_line}{easy_note} with {len(schedule)} courses "
         f"({total_credits:.0f} credits total) that fits entirely within "
-        f"{start_limit}–{end_limit} with no conflicts: {course_list}. "
+        f"{window} with no conflicts: {course_list}. "
         "I've added them to your Schedule tab — you can swap any section out from there."
     ).strip()
 

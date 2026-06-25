@@ -106,6 +106,12 @@ SORT GOAL — pick the most fitting one:
 - "largest_sample": most data, most students, most reliable
 - "times_taught": most experienced, taught most often
 
+IMPORTANT RULES:
+- professor_name must be a PERSON'S last name (e.g., "Hamouda", "Wang", "Senger"). NEVER put sort adjectives (hardest, easiest, best, worst, toughest, hardest, brutal) in professor_name — those belong in sort_goal.
+- When a course number appears without a subject code (e.g., "2505", "3114"), default subject to "CS" unless context clearly indicates another department.
+- "who is the hardest professor for CS 2505" → route=course_profile, course_no="2505", sort_goal="lowest_gpa", professor_name=null
+- "who is the best professor" → route=natural_filter, sort_goal="highest_gpa", professor_name=null
+
 DISPLAY HINT:
 - 3 for ranking questions ("who is best", "top professors")
 - 1 for single profile lookups
@@ -252,6 +258,22 @@ class IntentExtractor:
                 return f"{int(h):02d}:{m}"
             return None
 
+        # Strip sort/quality adjectives that the LLM may have put in professor_name
+        _SORT_ADJECTIVES = {
+            "hardest", "easier", "easiest", "harder", "toughest", "tough",
+            "best", "worst", "better", "worse", "brutal", "hard", "easy",
+            "difficult", "top", "great", "terrible", "awful",
+        }
+        raw_prof = str(data.get("professor_name", "") or "").strip()
+        if raw_prof.lower() in _SORT_ADJECTIVES:
+            raw_prof = ""
+
+        # When only a bare course number appears (no subject), default to CS
+        raw_subject = str(data.get("subject", "") or "").strip().upper()
+        raw_course_no = str(data.get("course_no", "") or "").strip()
+        if raw_course_no and not raw_subject:
+            raw_subject = "CS"
+
         # Parse requested_courses — accept [["CS","3114"]] or [{"subject":"CS","no":"3114"}]
         raw_courses = data.get("requested_courses") or []
         requested_courses = []
@@ -267,10 +289,10 @@ class IntentExtractor:
         return ChatIntent(
             route=route,
             confidence=float(data.get("confidence", 0.8)),
-            subject=(data.get("subject") or "").upper() or None,
-            course_no=str(data.get("course_no", "") or "").strip() or None,
+            subject=raw_subject or None,
+            course_no=raw_course_no or None,
             wants_rmp=bool(data.get("wants_rmp", False)),
-            professor_name=str(data.get("professor_name", "") or "").strip() or None,
+            professor_name=raw_prof or None,
             sort_goal=sort_goal,
             min_students=int(data.get("min_students") or 30),
             min_gpa=float(data["min_gpa"]) if data.get("min_gpa") is not None else None,
