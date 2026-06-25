@@ -227,6 +227,15 @@ def parse_subject_filter(question: str) -> str | None:
     return None
 
 
+def _last(name: str) -> str:
+    """Extract lowercase last name from 'Last, First', 'First Last', or bare 'Last'."""
+    n = (name or "").strip()
+    if "," in n:
+        return n.split(",")[0].strip().lower()
+    parts = n.split()
+    return parts[-1].lower() if parts else ""
+
+
 # ── Conflict detection ─────────────────────────────────────────────────────────
 
 def _conflicts(a: dict, b: dict) -> bool:
