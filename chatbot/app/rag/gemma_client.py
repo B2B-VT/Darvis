@@ -21,12 +21,25 @@ class GemmaAnswerClient:
         self._model = settings.anthropic_model
         self._system = SYSTEM_PROMPT
 
-    def _generate(self, prompt: str, max_tokens: int, use_system: bool = True) -> str | None:
+    def _generate(
+        self,
+        prompt: str,
+        max_tokens: int,
+        use_system: bool = True,
+        history: list | None = None,
+    ) -> str | None:
         try:
+            messages = []
+            for msg in (history or []):
+                role = msg.get("role") if isinstance(msg, dict) else getattr(msg, "role", None)
+                content = msg.get("content") if isinstance(msg, dict) else getattr(msg, "content", None)
+                if role in ("user", "assistant") and content:
+                    messages.append({"role": role, "content": str(content)[:1000]})
+            messages.append({"role": "user", "content": prompt})
             kwargs: dict = {
                 "model": self._model,
                 "max_tokens": max_tokens,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": messages,
                 "temperature": 0.2 if use_system else 0.1,
             }
             if use_system:
@@ -42,8 +55,8 @@ class GemmaAnswerClient:
             logger.error("[LLMClient] error (%s): %s", type(exc).__name__, exc)
             return None
 
-    def answer(self, prompt: str, max_tokens: int = 800) -> str | None:
-        raw = self._generate(prompt, max_tokens, use_system=True)
+    def answer(self, prompt: str, max_tokens: int = 800, history: list | None = None) -> str | None:
+        raw = self._generate(prompt, max_tokens, use_system=True, history=history)
         if not raw:
             return None
         result = sanitize_answer(raw)

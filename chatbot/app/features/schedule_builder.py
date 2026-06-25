@@ -260,6 +260,7 @@ def handle_schedule_builder(
     user_profile: dict | None = None,
     intent=None,
     df=None,
+    history: list | None = None,
 ) -> tuple[str, list, list, dict]:
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
@@ -484,12 +485,27 @@ def handle_schedule_builder(
 
     candidates.sort(key=_relevance_score)
 
+    # ── Resolve target credits ─────────────────────────────────────────────────
+    target_credits = getattr(intent, "target_credits", None)
+    if not target_credits:
+        # Regex fallback: "19 credits", "19-credit", "19cr"
+        m = re.search(r"\b(\d{1,2})\s*(?:credit|cr)\b", question.lower())
+        if m:
+            target_credits = int(m.group(1))
+
     # ── Greedy conflict-free schedule ──────────────────────────────────────────
     schedule: list[dict] = []
+    credits_so_far = 0.0
     for cand in candidates:
         if not any(_conflicts(cand, s) for s in schedule):
             schedule.append(cand)
-        if len(schedule) >= MAX_COURSES:
+            credits_so_far += float(cand.get("credits") or 3)
+        if target_credits:
+            if credits_so_far >= target_credits:
+                break
+            if len(schedule) >= 10:  # hard safety cap when chasing a credit target
+                break
+        elif len(schedule) >= MAX_COURSES:
             break
 
     if not schedule:

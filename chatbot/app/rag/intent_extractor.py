@@ -62,6 +62,8 @@ class ChatIntent:
     requested_courses: list = field(default_factory=list)
     # display hint
     display_n: int | None = None
+    # schedule credit target ("make a 19-credit schedule")
+    target_credits: int | None = None
     # confidence (0–1): low means fallback to keywords
     confidence: float = 1.0
 
@@ -137,8 +139,11 @@ Return this JSON shape (omit fields that don't apply):
   "time_end": null,
   "subject_filter": null,
   "requested_courses": [],
-  "display_n": null
+  "display_n": null,
+  "target_credits": null
 }
+
+- target_credits: integer credit hours the user wants in their schedule (e.g. "19 credits" → 19). null if not specified.
 
 Question: """
 
@@ -306,6 +311,7 @@ class IntentExtractor:
             subject_filter=(data.get("subject_filter") or "").upper() or None,
             requested_courses=requested_courses,
             display_n=int(data["display_n"]) if data.get("display_n") is not None else None,
+            target_credits=int(data["target_credits"]) if data.get("target_credits") is not None else None,
         )
 
     # ── Keyword fallback ──────────────────────────────────────────────────────

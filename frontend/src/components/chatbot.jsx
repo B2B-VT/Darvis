@@ -635,10 +635,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     const timeoutId = setTimeout(() => controller.abort(), 50000);
 
     try {
+      const history = messages
+        .filter(m => !m.isError && (m.role === "user" || m.role === "bot"))
+        .slice(-10)
+        .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" }))
+        .filter(m => m.content);
+
       const res = await fetch(CHAT_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null }),
+        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -709,7 +715,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const res = await fetch(CHAT_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null }),
+        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history: messages.slice(0, botMsgIdx).filter(m => !m.isError && (m.role === "user" || m.role === "bot")).slice(-10).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content) }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);

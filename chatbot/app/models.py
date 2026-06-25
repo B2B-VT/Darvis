@@ -2,12 +2,18 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=800)
     use_recency: bool = True
     min_students: int = Field(default=30, ge=0, le=10000)
     top_n: int = Field(default=10, ge=1, le=25)
-    user_profile: dict | None = None  # major, interests, coursesTaken from Clerk unsafeMetadata
+    user_profile: dict | None = None
+    history: list[ChatMessage] = Field(default_factory=list)  # prior turns, newest last
 
 
 class TableSpec(BaseModel):
