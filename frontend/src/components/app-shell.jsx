@@ -6,34 +6,6 @@ import { palette, ACCENT, SANS, MONO } from "../theme.jsx";
 const SIDEBAR_W   = 220;
 const SIDEBAR_COL = 52;  // collapsed icon-only width
 
-// ── macOS traffic lights ───────────────────────────────────────────────────────
-function TrafficLights({ onHome, darkMode }) {
-  const [hov, setHov] = useState(false);
-  const lights = [
-    { bg: "#FF5F57", title: "Forward", sym: "›", action: () => window.history.forward() },
-    { bg: "#FEBC2E", title: "Back",    sym: "‹", action: () => window.history.back()    },
-    { bg: "#28C840", title: "Home",    sym: "⌂", action: onHome                          },
-  ];
-  return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}
-      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
-      {lights.map(({ bg, title, sym, action }) => (
-        <button key={title} onClick={action} title={title} style={{
-          width: 12, height: 12, borderRadius: "50%",
-          background: hov ? bg : (darkMode ? "#4a4a4a" : "#c8c8c8"),
-          border: "none", cursor: "pointer", padding: 0, flexShrink: 0,
-          boxShadow: "0 0 0 0.5px rgba(0,0,0,0.18) inset",
-          transition: "background 0.15s",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 7, fontWeight: 900, color: "rgba(0,0,0,0.45)", lineHeight: 1,
-        }}>
-          {hov ? sym : ""}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 // ── Collapse chevron ──────────────────────────────────────────────────────────
 const CollapseIcon = ({ collapsed }) => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
@@ -212,14 +184,11 @@ export default function AppShell({
         justifyContent: collapsed ? "center" : "flex-start",
       }}>
         {!collapsed && (
-          <>
-            <TrafficLights onHome={() => setPage("landing")} darkMode={darkMode} />
-            <button onClick={() => setPage("landing")} style={{
-              flex: 1, background: "none", border: "none", cursor: "pointer", padding: 0,
-              fontFamily: SANS, fontWeight: 600, fontSize: 13,
-              color: p.textMute, letterSpacing: "-0.2px", textAlign: "left",
-            }}>Darvis</button>
-          </>
+          <button onClick={() => setPage("landing")} style={{
+            flex: 1, background: "none", border: "none", cursor: "pointer", padding: 0,
+            fontFamily: SANS, fontWeight: 600, fontSize: 13,
+            color: p.textMute, letterSpacing: "-0.2px", textAlign: "left",
+          }}>Darvis</button>
         )}
         <button
           onClick={() => setCollapsed(c => !c)}
