@@ -333,7 +333,7 @@ def chat(request: Request, body: ChatRequest):
                 intent=intent,
             )
             if result is None:
-                answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history])
+                answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
             else:
                 answer, tables, charts, metadata = result
         elif route == "professor_profile":
@@ -350,7 +350,7 @@ def chat(request: Request, body: ChatRequest):
                 intent=intent,
             )
         else:
-            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history])
+            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
     except Exception as exc:
         # Log the full traceback server-side; return a generic message to the client
         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())
