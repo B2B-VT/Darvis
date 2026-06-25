@@ -271,7 +271,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
         marginTop: 2, overflow: "hidden",
       }}>
-        <img src="/darvis-logo.png" alt="Darvis" style={{ width: 20, height: 20, borderRadius: 4 }} />
+        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -897,7 +897,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
                     overflow: "hidden",
                   }}>
-                    <img src="/darvis-logo.png" alt="Darvis" style={{ width: 20, height: 20, borderRadius: 4 }} />
+                    <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
                   </div>
                   <div style={{
                     background: dm ? "rgba(255,255,255,0.04)" : "white",
