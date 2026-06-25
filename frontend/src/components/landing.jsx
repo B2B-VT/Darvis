@@ -74,6 +74,7 @@ const LP_CSS = `
   mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
 }
 .lp-mq:hover { z-index: 6; }
+.lp-mq-r:hover { z-index: auto; }
 .lp-mq-track { display: flex; width: max-content; padding: 10px 0; }
 .lp-mq-r .lp-mq-track { animation: lpMqRight 48s linear infinite; }
 .lp-mq-l .lp-mq-track { animation: lpMqLeft 48s linear infinite; }
