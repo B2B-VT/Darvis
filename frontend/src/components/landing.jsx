@@ -73,8 +73,10 @@ const LP_CSS = `
   -webkit-mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
   mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
 }
-.lp-mq:hover { z-index: 6; }
-.lp-mq-r:hover { z-index: auto; }
+.lp-mq-r { z-index: 2; }
+.lp-mq-l { z-index: 1; }
+.lp-mq-r:hover { z-index: 2; }
+.lp-mq-l:hover { z-index: 6; }
 .lp-mq-track { display: flex; width: max-content; padding: 10px 0; }
 .lp-mq-r .lp-mq-track { animation: lpMqRight 48s linear infinite; }
 .lp-mq-l .lp-mq-track { animation: lpMqLeft 48s linear infinite; }
