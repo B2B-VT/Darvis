@@ -1,7 +1,6 @@
 // Main App component
 import { useState, useEffect } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import Nav from "./components/nav-auth.jsx";
 import AppShell from "./components/app-shell.jsx";
 import LandingPage from "./components/landing.jsx";
 import CourseSearch, { CourseDetail } from "./components/courses.jsx";
@@ -25,7 +24,9 @@ export default function App() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { user, isLoaded: userLoaded } = useUser();
 
-  const [page, setPage] = useState("landing");
+  const [page, setPage] = useState(() => {
+    try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }
+  });
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem("hokieDarvis_theme") !== "light"; } catch { return true; }
   });
@@ -39,6 +40,10 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Persist schedule and theme
+  useEffect(() => {
+    try { localStorage.setItem("hokieDarvis_page", page); } catch {}
+  }, [page]);
+
   useEffect(() => {
     try { localStorage.setItem("hokieDarvis_schedule", JSON.stringify(schedule)); } catch {}
   }, [schedule]);
@@ -196,18 +201,15 @@ export default function App() {
       <AmbientBackdrop dark={darkMode} />
       <GrainOverlay dark={darkMode} />
 
-      {page === "landing" ? (
-        <>
-          <Nav page={page} setPage={navigateTo} schedule={schedule} darkMode={darkMode} setDarkMode={setDarkMode} />
-          <div key={page} style={{ position: "relative", zIndex: 1, animation: "dvPageIn 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-            {renderPage()}
-          </div>
-        </>
-      ) : (
-        <AppShell page={page} setPage={navigateTo} darkMode={darkMode} setDarkMode={setDarkMode} schedule={schedule}>
-          {renderPage()}
-        </AppShell>
-      )}
+      <AppShell
+        page={page} setPage={navigateTo}
+        darkMode={darkMode} setDarkMode={setDarkMode}
+        schedule={schedule}
+        isSignedIn={!!isSignedIn}
+        onSignIn={() => { setPendingPage("search"); setShowAuthModal(true); }}
+      >
+        {renderPage()}
+      </AppShell>
 
       {selectedCourse && (
         <CourseDetail

@@ -158,7 +158,7 @@ function DataSpine({ dark }) {
   const track = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.12)";
   return (
     <div aria-hidden="true" style={{
-      position: "fixed", left: 26, top: "16vh", bottom: "16vh",
+      position: "fixed", right: 20, top: "16vh", bottom: "16vh",
       width: 14, zIndex: 5, pointerEvents: "none",
       display: "flex", justifyContent: "center",
     }}>

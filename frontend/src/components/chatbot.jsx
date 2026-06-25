@@ -271,7 +271,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
         marginTop: 2, overflow: "hidden",
       }}>
-        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
+        <img src="/darvis-logo.png" alt="Darvis" style={{ width: 20, height: 20, borderRadius: 4 }} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -430,7 +430,7 @@ function SessionItem({ session, active, onSelect, onDelete, c }) {
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────
-function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, open, onClose, isMobile }) {
+function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, open, onClose, isMobile, collapsed }) {
   const dm = darkMode;
   const c = dm ? {
     bg:     "#111111",
@@ -453,17 +453,19 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
   const panelStyle = isMobile ? {
     position: "fixed",
     top: 60,
-    left: 0,
+    right: 0,
     bottom: 0,
     width: 260,
     zIndex: 200,
-    transform: open ? "translateX(0)" : "translateX(-100%)",
+    transform: open ? "translateX(0)" : "translateX(100%)",
     transition: "transform 0.22s ease",
-    boxShadow: open ? "6px 0 24px rgba(0,0,0,0.22)" : "none",
+    boxShadow: open ? "-6px 0 24px rgba(0,0,0,0.22)" : "none",
   } : {
-    width: 240,
+    width: collapsed ? 0 : 240,
     flexShrink: 0,
-    borderRight: `1px solid ${c.border}`,
+    borderLeft: `1px solid ${c.border}`,
+    overflow: "hidden",
+    transition: "width 0.2s ease",
   };
 
   return (
@@ -472,10 +474,7 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
       {isMobile && open && (
         <div
           onClick={onClose}
-          style={{
-            position: "fixed", inset: 0, top: 60,
-            background: "rgba(0,0,0,0.40)", zIndex: 199,
-          }}
+          style={{ position: "fixed", inset: 0, top: 60, background: "rgba(0,0,0,0.40)", zIndex: 199 }}
         />
       )}
 
@@ -546,6 +545,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [showSettings,      setShowSettings]     = useState(false);
   const [isMobile,          setIsMobile]         = useState(() => window.innerWidth < 768);
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
+  const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
   const dm = darkMode;
@@ -756,24 +756,11 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   return (
     <div style={{
       display: "flex",
-      height: "calc(100vh - 76px)",
+      height: "100%",
       background: "transparent",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       overflow: "hidden",
     }}>
-
-      {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <Sidebar
-        sessions={sessions}
-        currentId={currentSessionId}
-        onSelect={selectSession}
-        onNew={startNewChat}
-        onDelete={deleteSession}
-        darkMode={dm}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        isMobile={isMobile}
-      />
 
       {/* ── Chat area ───────────────────────────────────────────── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
@@ -791,7 +778,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 background: "none", border: "none", cursor: "pointer",
                 color: c.sub, padding: 4, fontSize: 18, lineHeight: 1,
               }}
-              aria-label="Open chat history"
+              aria-label="Toggle chat history"
             >☰</button>
             <span style={{
               fontSize: 11, fontWeight: 800, color: c.faint,
@@ -806,6 +793,32 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >+ New</button>
+          </div>
+        )}
+
+        {/* ── Desktop header with history toggle ─────────────── */}
+        {!isMobile && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "flex-end",
+            padding: "8px 16px", borderBottom: `1px solid ${c.border}`,
+            flexShrink: 0, background: c.bg,
+          }}>
+            <button
+              onClick={() => setSidebarVisible(v => !v)}
+              title={sidebarVisible ? "Hide history" : "Show history"}
+              style={{
+                background: "none", border: `1px solid ${c.border}`,
+                borderRadius: 8, padding: "5px 12px", cursor: "pointer",
+                color: c.sub, fontSize: 11, fontWeight: 600,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                <rect x="1" y="1" width="12" height="12" rx="2"/><line x1="9" y1="1" x2="9" y2="13"/>
+              </svg>
+              {sidebarVisible ? "Hide History" : "History"}
+            </button>
           </div>
         )}
 
@@ -884,7 +897,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
                     overflow: "hidden",
                   }}>
-                    <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
+                    <img src="/darvis-logo.png" alt="Darvis" style={{ width: 20, height: 20, borderRadius: 4 }} />
                   </div>
                   <div style={{
                     background: dm ? "rgba(255,255,255,0.04)" : "white",
@@ -1021,6 +1034,22 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           </div>
         </div>
       </div>
+
+      {/* ── Sidebar (right side) ────────────────────────────────── */}
+      {(!isMobile || sidebarOpen) && (
+        <Sidebar
+          sessions={sessions}
+          currentId={currentSessionId}
+          onSelect={selectSession}
+          onNew={startNewChat}
+          onDelete={deleteSession}
+          darkMode={dm}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isMobile={isMobile}
+          collapsed={!sidebarVisible}
+        />
+      )}
 
       <style>{`
         @keyframes bounce {
