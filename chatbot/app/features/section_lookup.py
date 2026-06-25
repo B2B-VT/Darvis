@@ -128,11 +128,11 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
             })
     section_rows.sort(key=lambda r: (r["Instructor"], r["Start"]))
 
+    _sec_cols = ["Instructor", "Days", "Start", "End", "Location", "Seats", "Enrolled"]
     tbl = table_spec(
-        title=f"{course_label} — {TERM_LABEL} Sections",
-        columns=["Instructor", "Days", "Start", "End", "Location", "Seats", "Enrolled"],
-        rows=[[r["Instructor"], r["Days"], r["Start"], r["End"],
-               r["Location"], r["Seats"], r["Enrolled"]] for r in section_rows],
+        f"{course_label} — {TERM_LABEL} Sections",
+        pd.DataFrame(section_rows)[_sec_cols],
+        _sec_cols,
     )
 
     table_text = (
@@ -243,16 +243,19 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
     # Sort: instructors with grade data first, then descending GPA
     rows_out.sort(key=lambda r: (r["GPA"] is None, -(r["GPA"] or 0)))
 
+    _comb_cols = ["Instructor", "Times", "Avg GPA", "A Rate", "Students", "RMP"]
+    _comb_df = pd.DataFrame([{
+        "Instructor": r["Instructor"],
+        "Times":      r["Times"],
+        "Avg GPA":    r["GPA"] if r["GPA"] is not None else "No data",
+        "A Rate":     r["A_str"],
+        "Students":   r["Students"] or "No data",
+        "RMP":        r["RMP"] if r["RMP"] is not None else "No data",
+    } for r in rows_out])
     tbl = table_spec(
-        title=f"{course_label} — {TERM_LABEL} Instructors: Grades & RMP",
-        columns=["Instructor", "Times", "Avg GPA", "A Rate", "Students", "RMP"],
-        rows=[[
-            r["Instructor"], r["Times"],
-            r["GPA"] if r["GPA"] is not None else "No data",
-            r["A_str"],
-            r["Students"] or "No data",
-            r["RMP"] if r["RMP"] is not None else "No data",
-        ] for r in rows_out],
+        f"{course_label} — {TERM_LABEL} Instructors: Grades & RMP",
+        _comb_df,
+        _comb_cols,
     )
 
     table_text = (
