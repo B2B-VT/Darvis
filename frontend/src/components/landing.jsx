@@ -802,7 +802,7 @@ function DataMarquees({ dark, t }) {
   return (
     <div aria-label="Example of how Darvis displays course and instructor data (sample data)">
       {/* Courses — drift right, hover to pause + unfold grade data */}
-      <div className="lp-mq lp-mq-r" style={{ zIndex: 2 }}>
+      <div className="lp-mq lp-mq-r">
         <div className="lp-mq-track">
           {[...FAKE_COURSES, ...FAKE_COURSES].map((c, i) => (
             <CourseCard key={i} c={c} t={t} dark={dark} />
@@ -810,7 +810,7 @@ function DataMarquees({ dark, t }) {
         </div>
       </div>
       {/* Instructors — drift left, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-l" style={{ marginTop: -25, zIndex: 1 }}>
+      <div className="lp-mq lp-mq-l" style={{ marginTop: -25 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
