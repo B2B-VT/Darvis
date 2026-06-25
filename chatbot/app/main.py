@@ -282,6 +282,21 @@ def chat(request: Request, body: ChatRequest):
                     intent.professor_name = resolved_prof
 
         route = intent.route
+        # Hard override: section signals take precedence over LLM route.
+        # LLM sees a course number and routes to course_profile; we need section_lookup.
+        _q = question.lower()
+        _section_signals = [
+            "who is teaching", "who's teaching", "who teaches",
+            "teaching this semester", "teaching this fall", "teaching this upcoming",
+            "teaching next semester", "teaching fall 2026",
+            "of the professors teaching", "of professors teaching",
+            "which professors are teaching", "what professors are teaching",
+            "what time does", "what times are", "what times is",
+            "available this semester", "available this fall", "available fall 2026",
+            "sections available", "class times for",
+        ]
+        if any(sig in _q for sig in _section_signals):
+            route = "section_lookup"
         logger.info(
             "intent route=%s conf=%.2f subj=%s course=%s prof=%s sort=%s",
             route, intent.confidence,
