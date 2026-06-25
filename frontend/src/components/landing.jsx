@@ -809,8 +809,8 @@ function DataMarquees({ dark, t }) {
           ))}
         </div>
       </div>
-      {/* Instructors — drift left, slightly overlapping the row above */}
-      <div className="lp-mq lp-mq-l" style={{ marginTop: -25, zIndex: 1 }}>
+      {/* Instructors — drift right, slightly overlapping the row above */}
+      <div className="lp-mq lp-mq-r" style={{ marginTop: -25, zIndex: 1 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
             <ProfCard key={i} pr={pr} t={t} dark={dark} />
