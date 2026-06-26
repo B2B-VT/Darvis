@@ -8,7 +8,8 @@
     "import-grades":       "node scripts/import_grades.js",
     "import-timetable":   "node scripts/import_timetable.js",
     "scrape-catalog":     "node scrapers/catalog_scraper.js",
-    "import-descriptions": "node scripts/import_descriptions.js"
+    "import-descriptions": "node scripts/import_descriptions.js",
+    "scrape-grades":       "node scrapers/udc_playwright_scraper.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
