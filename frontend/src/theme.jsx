@@ -26,6 +26,37 @@ export const SHADOW = {
 export const EASE        = "cubic-bezier(0.22, 1, 0.36, 1)";
 export const EASE_SPRING = "cubic-bezier(0.34, 1.2, 0.64, 1)";
 
+// ── Liquid Glass utilities ─────────────────────────────────────────────────────
+export function glassCard(dark) {
+  return dark ? {
+    background: "rgba(255,255,255,0.045)",
+    backdropFilter: "blur(24px) saturate(160%)",
+    WebkitBackdropFilter: "blur(24px) saturate(160%)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.07)",
+  } : {
+    background: "rgba(255,255,255,0.78)",
+    backdropFilter: "blur(24px) saturate(160%)",
+    WebkitBackdropFilter: "blur(24px) saturate(160%)",
+    border: "1px solid rgba(255,255,255,0.70)",
+    boxShadow: "0 4px 24px rgba(26,18,15,0.07), inset 0 1px 0 rgba(255,255,255,0.95)",
+  };
+}
+
+export function glassInput(dark) {
+  return dark ? {
+    background: "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.10)",
+  } : {
+    background: "rgba(255,255,255,0.90)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    border: "1px solid rgba(26,18,15,0.10)",
+  };
+}
+
 // ── Palette ───────────────────────────────────────────────────────────────────
 export function palette(dark) {
   return dark ? {

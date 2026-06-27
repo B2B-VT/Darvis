@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { MOCK } from "../mock-data.js";
 import { API } from "../api.js";
 import { StarRating } from "./nav-auth.jsx";
+import { glassCard, glassInput } from "../theme.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────
 // "14:30" → "2:30 PM"
@@ -779,18 +780,19 @@ function CourseCard({ course, darkMode, onClick, onProfClick }) {
   // Seat availability requires a live sections query — shown in the detail modal instead.
   const sectionCount = course.totalSections || 0;
 
+  const glass = glassCard(dm);
   const c = dm ? {
-    bg:       "transparent",
-    bgHov:    "rgba(255,255,255,0.02)",
-    border:   "rgba(255,255,255,0.08)",
+    bg:       glass.background,
+    bgHov:    "rgba(255,255,255,0.07)",
+    border:   "rgba(255,255,255,0.09)",
     text:     "#f0edf3",
     sub:      "rgba(255,255,255,0.40)",
     faint:    "rgba(255,255,255,0.22)",
-    divider:  "rgba(255,255,255,0.06)",
+    divider:  "rgba(255,255,255,0.07)",
   } : {
-    bg:       "transparent",
-    bgHov:    "rgba(20,16,12,0.025)",
-    border:   "rgba(20,16,12,0.10)",
+    bg:       glass.background,
+    bgHov:    "rgba(255,255,255,0.92)",
+    border:   "rgba(255,255,255,0.70)",
     text:     "#1a1210",
     sub:      "rgba(20,16,12,0.55)",
     faint:    "rgba(20,16,12,0.32)",
@@ -809,11 +811,13 @@ function CourseCard({ course, darkMode, onClick, onProfClick }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
+        ...glass,
         background: hov ? c.bgHov : c.bg,
         border: `1px solid ${hov ? "rgba(134,31,65,0.55)" : c.border}`,
-        borderRadius: 14, padding: "22px 22px 18px", cursor: "pointer",
-        transition: "border-color 0.18s ease, background 0.18s ease, transform 0.18s ease",
-        transform: hov ? "translateY(-2px)" : "none",
+        borderRadius: 16, padding: "22px 22px 18px", cursor: "pointer",
+        transition: "border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease",
+        transform: hov ? "translateY(-3px)" : "none",
+        boxShadow: hov ? "0 16px 40px rgba(134,31,65,0.12), 0 4px 12px rgba(0,0,0,0.12)" : glass.boxShadow,
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         display: "flex", flexDirection: "column",
       }}
@@ -1136,6 +1140,9 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [coursePool, setCoursePool]             = useState([]);
+  const [showSuggestions, setShowSuggestions]   = useState(false);
+  const searchWrapRef = useRef(null);
   const debounceRef = useRef(null);
   const topRef = useRef(null);
   const dm = darkMode;
@@ -1153,6 +1160,33 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   useEffect(() => {
     API.getSubjects().then(setSubjects).catch(console.error);
   }, []);
+
+  // Load autocomplete pool on mount (all courses, no filters)
+  useEffect(() => {
+    API.getCourses({}).then(setCoursePool).catch(() => {});
+  }, []);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = e => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target))
+        setShowSuggestions(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const searchSuggestions = useMemo(() => {
+    if (!query.trim() || query.trim().length < 2) return [];
+    const lower = query.trim().toLowerCase();
+    return coursePool
+      .filter(c =>
+        `${c.subject} ${c.number}`.toLowerCase().includes(lower) ||
+        c.title.toLowerCase().includes(lower) ||
+        c.subject.toLowerCase().startsWith(lower)
+      )
+      .slice(0, 8);
+  }, [coursePool, query]);
 
   // Fetch courses from Supabase whenever query or filterable fields change (300ms debounce)
   useEffect(() => {
@@ -1262,25 +1296,97 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
             : `${filtered.length} courses · grade data · RMP ratings.`}
         </p>
 
-        {/* Search */}
-        <div style={{ position: "relative", maxWidth: 560 }}>
-          <input
-            value={query}
-            onChange={e => setQuery(sanitizeQuery(e.target.value))}
-            placeholder="Search by name, number, subject, or CRN"
-            style={{
-              width: "100%", padding: "14px 16px 14px 0",
-              border: "none",
-              borderBottom: `1px solid ${c.divider}`,
-              background: c.inputBg, color: c.text,
-              fontSize: 16, fontWeight: 500,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              boxSizing: "border-box", outline: "none",
-              transition: "border-color 0.2s ease",
-            }}
-            onFocus={e => e.currentTarget.style.borderBottomColor = "#861F41"}
-            onBlur={e => e.currentTarget.style.borderBottomColor = c.divider}
-          />
+        {/* Search with autocomplete */}
+        <div ref={searchWrapRef} style={{ position: "relative", maxWidth: 600 }}>
+          <div style={{
+            display: "flex", alignItems: "center",
+            ...glassInput(dm),
+            borderRadius: showSuggestions && searchSuggestions.length > 0 ? "14px 14px 0 0" : 14,
+            padding: "0 16px",
+            transition: "border-radius 0.15s, box-shadow 0.2s",
+            boxShadow: showSuggestions && searchSuggestions.length > 0
+              ? "0 2px 0 rgba(134,31,65,0.4)" : "none",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke={dm ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.35)"}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ flexShrink: 0 }}>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              value={query}
+              onChange={e => { setQuery(sanitizeQuery(e.target.value)); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="Search by name, number, subject, or CRN…"
+              style={{
+                flex: 1, padding: "14px 12px",
+                border: "none", background: "transparent", color: c.text,
+                fontSize: 15, fontWeight: 500,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                outline: "none", minWidth: 0,
+              }}
+            />
+            {query && (
+              <button onClick={() => { setQuery(""); setShowSuggestions(false); }}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: c.faint, fontSize: 16, padding: "0 4px", lineHeight: 1,
+                  flexShrink: 0,
+                }}>✕</button>
+            )}
+          </div>
+
+          {/* Autocomplete dropdown */}
+          {showSuggestions && searchSuggestions.length > 0 && (
+            <div style={{
+              position: "absolute", top: "100%", left: 0, right: 0, zIndex: 200,
+              ...glassCard(dm),
+              borderRadius: "0 0 14px 14px",
+              border: `1px solid ${dm ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.70)"}`,
+              borderTop: "none",
+              overflow: "hidden",
+            }}>
+              {searchSuggestions.map((course, i) => (
+                <button
+                  key={course.id}
+                  onMouseDown={() => {
+                    setQuery(`${course.subject} ${course.number}`);
+                    setShowSuggestions(false);
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    width: "100%", padding: "11px 16px",
+                    background: "transparent", border: "none",
+                    borderTop: i > 0 ? `1px solid ${dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` : "none",
+                    cursor: "pointer", textAlign: "left",
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = dm ? "rgba(134,31,65,0.12)" : "rgba(134,31,65,0.06)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <span style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 11, fontWeight: 700, color: "#861F41",
+                    minWidth: 72, flexShrink: 0,
+                  }}>
+                    {course.subject} {course.number}
+                  </span>
+                  <span style={{
+                    fontSize: 13, fontWeight: 500, color: c.text,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{course.title}</span>
+                  {course.avgGpa > 0 && (
+                    <span style={{
+                      marginLeft: "auto", fontSize: 11, fontWeight: 700,
+                      color: course.avgGpa >= 3.3 ? "#16a34a" : course.avgGpa >= 3.0 ? "#b45309" : "#dc2626",
+                      flexShrink: 0,
+                    }}>{course.avgGpa.toFixed(2)}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 

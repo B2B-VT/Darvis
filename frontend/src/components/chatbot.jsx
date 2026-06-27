@@ -822,8 +822,10 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [isMobile,          setIsMobile]         = useState(() => window.innerWidth < 768);
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
-  const bottomRef = useRef(null);
-  const inputRef  = useRef(null);
+  const [attachments,       setAttachments]      = useState([]);
+  const bottomRef  = useRef(null);
+  const inputRef   = useRef(null);
+  const fileRef    = useRef(null);
   const dm = darkMode;
 
   useEffect(() => {
@@ -863,6 +865,22 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     setInput("");
     setShowSettings(false);
     setSidebarOpen(false);
+    setAttachments([]);
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setAttachments(prev => [...prev, {
+          name: file.name, type: file.type,
+          dataUrl: ev.target.result, size: file.size,
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
   };
 
   const selectSession = (session) => {
@@ -896,13 +914,18 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   };
 
   const send = useCallback(async (questionOverride) => {
-    const question = normalizeInput(questionOverride || input);
+    const baseText = questionOverride || input;
+    const attachSuffix = attachments.length > 0
+      ? `\n\n[Attached: ${attachments.map(a => a.name).join(", ")}]`
+      : "";
+    const question = normalizeInput(baseText + attachSuffix) || normalizeInput(baseText);
     if (!question || loading) return;
 
     setInput("");
+    setAttachments([]);
     setServerDown(false);
 
-    const userMsg = { role: "user", content: question };
+    const userMsg = { role: "user", content: question, attachments: attachments.length > 0 ? [...attachments] : undefined };
     const withUser = [...messages, userMsg];
     setMessages(withUser);
     setLoading(true);
@@ -1164,12 +1187,35 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               {messages.map((msg, i) => (
                 msg.role === "user" ? (
                   <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
-                    <div style={{
-                      background: "#861F41", color: "white",
-                      borderRadius: "14px 4px 14px 14px",
-                      padding: "12px 16px", fontSize: 14, lineHeight: 1.5,
-                      maxWidth: "75%", fontWeight: 500,
-                    }}>{msg.content}</div>
+                    <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                      {msg.attachments?.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "flex-end" }}>
+                          {msg.attachments.map((att, ai) => (
+                            att.type.startsWith("image/") ? (
+                              <img key={ai} src={att.dataUrl} alt={att.name}
+                                style={{ maxWidth: 200, maxHeight: 140, borderRadius: 10, objectFit: "cover", border: "2px solid rgba(255,255,255,0.25)" }} />
+                            ) : (
+                              <div key={ai} style={{
+                                background: "rgba(134,31,65,0.85)", color: "white",
+                                borderRadius: 10, padding: "8px 14px",
+                                fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6,
+                              }}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                                {att.name}
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      )}
+                      <div style={{
+                        background: "#861F41", color: "white",
+                        borderRadius: "14px 4px 14px 14px",
+                        padding: "12px 16px", fontSize: 14, lineHeight: 1.5,
+                        fontWeight: 500, whiteSpace: "pre-wrap",
+                      }}>{msg.content}</div>
+                    </div>
                   </div>
                 ) : (
                   <BotMessage
@@ -1280,8 +1326,87 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               </div>
             )}
 
+            {/* Attachment previews */}
+            {attachments.length > 0 && (
+              <div style={{
+                display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10,
+                padding: "10px 12px",
+                background: c.surface, borderRadius: 10,
+                border: `1px solid ${c.border}`,
+              }}>
+                {attachments.map((att, i) => (
+                  <div key={i} style={{
+                    position: "relative", display: "flex", alignItems: "center", gap: 6,
+                    background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                    border: `1px solid ${c.border}`,
+                    borderRadius: 8, padding: att.type.startsWith("image/") ? 4 : "6px 10px",
+                    maxWidth: 200,
+                  }}>
+                    {att.type.startsWith("image/") ? (
+                      <img src={att.dataUrl} alt={att.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 6 }} />
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c.sub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: c.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130 }}>{att.name}</span>
+                      </>
+                    )}
+                    <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))} style={{
+                      position: "absolute", top: -6, right: -6,
+                      width: 16, height: 16, borderRadius: "50%",
+                      background: "#861F41", color: "white", border: "none",
+                      cursor: "pointer", fontSize: 9, fontWeight: 700,
+                      display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                    }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Input */}
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+              {/* Hidden file input */}
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf,.txt,.csv,.doc,.docx"
+                onChange={handleFileSelect}
+                style={{ display: "none" }}
+              />
+
+              {/* Paperclip button */}
+              <button
+                onClick={() => fileRef.current?.click()}
+                title="Attach file"
+                style={{
+                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                  background: "none",
+                  border: `1px solid ${c.border}`,
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: attachments.length > 0 ? "#861F41" : c.faint,
+                  transition: "all 0.15s",
+                  position: "relative",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#861F41"; e.currentTarget.style.color = "#861F41"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = attachments.length > 0 ? "#861F41" : c.faint; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+                {attachments.length > 0 && (
+                  <span style={{
+                    position: "absolute", top: -5, right: -5,
+                    background: "#861F41", color: "white",
+                    borderRadius: "50%", width: 16, height: 16,
+                    fontSize: 9, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>{attachments.length}</span>
+                )}
+              </button>
+
               <textarea
                 ref={inputRef}
                 value={input}
@@ -1306,11 +1431,11 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               />
               <button
                 onClick={() => send()}
-                disabled={!input.trim() || loading}
+                disabled={(!input.trim() && attachments.length === 0) || loading}
                 style={{
                   width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                  background: input.trim() && !loading ? "#861F41" : "rgba(134,31,65,0.2)",
-                  border: "none", cursor: input.trim() && !loading ? "pointer" : "default",
+                  background: (input.trim() || attachments.length > 0) && !loading ? "#861F41" : "rgba(134,31,65,0.2)",
+                  border: "none", cursor: (input.trim() || attachments.length > 0) && !loading ? "pointer" : "default",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "all 0.15s ease",
                 }}
