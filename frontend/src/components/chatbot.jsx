@@ -16,27 +16,15 @@ const SUGGESTED = [
 ];
 
 // ── Input sanitization & NLP normalization ────────────────────────
-// Cleans raw user input before it hits the backend:
-//   1. Strips control characters and excessive whitespace
-//   2. Caps length at 500 characters
-//   3. Normalizes VT course codes (cs3114, cs-3114, CS3114 → CS 3114)
-//   4. Title-cases common professor name patterns
 function sanitizeInput(raw) {
   if (!raw) return "";
-  // Strip non-printable control chars (except newline/tab which are valid in chat)
   let s = raw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-  // Collapse runs of whitespace
   s = s.replace(/[ \t]+/g, " ").trim();
-  // Cap length
   if (s.length > 500) s = s.slice(0, 500).trim();
   return s;
 }
 
-// Normalizes VT-specific shorthand:
-//   "cs3114" or "cs-3114" or "CS3114" → "CS 3114"
-//   "ece 2604" stays as-is
 function normalizeCourseCode(s) {
-  // Match 2-5 letters immediately followed (optional hyphen) by exactly 4 digits
   return s.replace(/\b([A-Za-z]{2,5})-?(\d{4})\b/g, (_, subj, num) => {
     return subj.toUpperCase() + " " + num;
   });
@@ -353,7 +341,8 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
 }
 
 // ── Session storage helpers ───────────────────────────────────────
-const STORAGE_KEY = "darvis_chat_sessions";
+const STORAGE_KEY  = "darvis_chat_sessions";
+const PROJECTS_KEY = "darvis_chat_projects";
 const MAX_SESSIONS = 40;
 
 function loadSessions() {
@@ -369,8 +358,25 @@ function saveSessions(sessions) {
   } catch {}
 }
 
+function loadProjects() {
+  try {
+    const raw = localStorage.getItem(PROJECTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveProjects(projects) {
+  try {
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  } catch {}
+}
+
 function newSessionId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function newProjectId() {
+  return "proj_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 }
 
 function relativeTime(ts) {
@@ -386,21 +392,23 @@ function relativeTime(ts) {
 }
 
 // ── Session list item ─────────────────────────────────────────────
-function SessionItem({ session, active, onSelect, onDelete, c }) {
-  const [hov, setHov] = useState(false);
+function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c, indent }) {
+  const [hov, setHov]       = useState(false);
+  const [moveDd, setMoveDd] = useState(false);
+
   return (
     <div
       onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseLeave={() => { setHov(false); setMoveDd(false); }}
       style={{
-        display: "flex", alignItems: "center",
+        display: "flex", alignItems: "center", position: "relative",
         background: active ? c.active : hov ? c.hover : "transparent",
         borderLeft: `2px solid ${active ? "#861F41" : "transparent"}`,
-        paddingRight: 10,
+        paddingRight: 8,
         transition: "background 0.12s, border-color 0.12s",
       }}
     >
-      <div onClick={onSelect} style={{ flex: 1, padding: "9px 0 9px 14px", minWidth: 0, cursor: "pointer" }}>
+      <div onClick={onSelect} style={{ flex: 1, padding: `9px 0 9px ${indent ? 22 : 14}px`, minWidth: 0, cursor: "pointer" }}>
         <div style={{
           fontSize: 12, fontWeight: active ? 700 : 500,
           color: active ? c.text : c.sub,
@@ -411,26 +419,180 @@ function SessionItem({ session, active, onSelect, onDelete, c }) {
           {relativeTime(session.createdAt)}
         </div>
       </div>
+
       {hov && (
-        <button
-          onClick={e => { e.stopPropagation(); onDelete(); }}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: "3px 5px", marginLeft: 4, flexShrink: 0,
-            color: c.faint, fontSize: 13, lineHeight: 1, borderRadius: 4,
-            fontFamily: "sans-serif",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
-          onMouseLeave={e => e.currentTarget.style.color = c.faint}
-          title="Delete chat"
-        >✕</button>
+        <div style={{ display: "flex", gap: 1, flexShrink: 0, alignItems: "center" }}>
+          {/* Move to project */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={e => { e.stopPropagation(); setMoveDd(d => !d); }}
+              title="Move to project"
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                padding: "3px 5px", color: c.faint, lineHeight: 1, borderRadius: 4,
+                display: "flex", alignItems: "center",
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = c.text}
+              onMouseLeave={e => e.currentTarget.style.color = c.faint}
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 13H2.454l-.257-7.819A2 2 0 0 1 4.19 3h1.668l.714-1.428A1 1 0 0 1 7.465 1h1.07a1 1 0 0 1 .894.553L9.828 3zm-2.95.702.681-1.29a.5.5 0 0 1 .447-.276h.988a.5.5 0 0 1 .447.276l.68 1.29H6.878z"/>
+              </svg>
+            </button>
+            {moveDd && (
+              <div style={{
+                position: "absolute", right: 0, top: "100%", zIndex: 400,
+                background: c.bg, border: `1px solid ${c.border}`,
+                borderRadius: 8, padding: "4px 0", minWidth: 148,
+                boxShadow: "0 6px 20px rgba(0,0,0,0.22)",
+              }}>
+                {projects.length === 0 && (
+                  <div style={{ padding: "8px 12px", fontSize: 11, color: c.faint }}>
+                    No projects yet
+                  </div>
+                )}
+                {projects.map(p => (
+                  <div
+                    key={p.id}
+                    onClick={e => { e.stopPropagation(); onMove(p.id); setMoveDd(false); setHov(false); }}
+                    style={{
+                      padding: "7px 12px", fontSize: 12, cursor: "pointer",
+                      color: session.projectId === p.id ? "#861F41" : c.text,
+                      fontWeight: session.projectId === p.id ? 700 : 500,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = c.hover}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >{p.name}</div>
+                ))}
+                {session.projectId && (
+                  <>
+                    <div style={{ height: 1, background: c.border, margin: "3px 0" }} />
+                    <div
+                      onClick={e => { e.stopPropagation(); onMove(null); setMoveDd(false); setHov(false); }}
+                      style={{ padding: "7px 12px", fontSize: 12, cursor: "pointer", color: c.faint }}
+                      onMouseEnter={e => e.currentTarget.style.background = c.hover}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >Remove from project</div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Delete */}
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(); }}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: "3px 5px", color: c.faint, fontSize: 13, lineHeight: 1, borderRadius: 4,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
+            onMouseLeave={e => e.currentTarget.style.color = c.faint}
+            title="Delete chat"
+          >✕</button>
+        </div>
       )}
     </div>
   );
 }
 
+// ── Project group ─────────────────────────────────────────────────
+function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteSession, onMoveSession, onDeleteProject, onRenameProject, projects, c }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [hov, setHov]             = useState(false);
+  const [renaming, setRenaming]   = useState(false);
+  const [renameVal, setRenameVal] = useState(project.name);
+
+  return (
+    <div>
+      {/* Header */}
+      <div
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          display: "flex", alignItems: "center",
+          padding: "5px 8px 5px 10px",
+          background: hov ? c.hover : "transparent",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        <span
+          onClick={() => setCollapsed(v => !v)}
+          style={{ fontSize: 8, color: c.faint, marginRight: 5, flexShrink: 0, width: 10 }}
+        >{collapsed ? "▶" : "▼"}</span>
+
+        {renaming ? (
+          <input
+            autoFocus
+            value={renameVal}
+            onChange={e => setRenameVal(e.target.value)}
+            onBlur={() => { onRenameProject(project.id, renameVal || project.name); setRenaming(false); }}
+            onKeyDown={e => {
+              if (e.key === "Enter") { onRenameProject(project.id, renameVal || project.name); setRenaming(false); }
+              if (e.key === "Escape") { setRenameVal(project.name); setRenaming(false); }
+              e.stopPropagation();
+            }}
+            onClick={e => e.stopPropagation()}
+            style={{
+              flex: 1, background: "none", border: "none",
+              borderBottom: `1px solid ${c.border}`,
+              color: c.text, fontSize: 11, fontWeight: 700,
+              outline: "none", padding: "1px 2px",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
+          />
+        ) : (
+          <span
+            onClick={() => setCollapsed(v => !v)}
+            onDoubleClick={e => { e.stopPropagation(); setRenaming(true); }}
+            style={{
+              flex: 1, fontSize: 11, fontWeight: 700,
+              color: c.text, letterSpacing: "0.2px",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}
+          >{project.name}</span>
+        )}
+
+        <span style={{ fontSize: 10, color: c.faint, marginLeft: 4, flexShrink: 0 }}>
+          {sessions.length}
+        </span>
+
+        {hov && !renaming && (
+          <button
+            onClick={e => { e.stopPropagation(); onDeleteProject(project.id); }}
+            title="Delete project"
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: "2px 4px", marginLeft: 4, color: c.faint,
+              fontSize: 11, lineHeight: 1, borderRadius: 3, flexShrink: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
+            onMouseLeave={e => e.currentTarget.style.color = c.faint}
+          >✕</button>
+        )}
+      </div>
+
+      {/* Sessions inside project */}
+      {!collapsed && sessions.map(session => (
+        <SessionItem
+          key={session.id}
+          session={session}
+          active={session.id === currentId}
+          onSelect={() => onSelectSession(session)}
+          onDelete={() => onDeleteSession(session.id)}
+          onMove={projectId => onMoveSession(session.id, projectId)}
+          projects={projects}
+          c={c}
+          indent
+        />
+      ))}
+    </div>
+  );
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────
-function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, open, onClose, isMobile, collapsed }) {
+function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed }) {
   const dm = darkMode;
   const c = dm ? {
     bg:     "#111111",
@@ -450,6 +612,9 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
     active: "rgba(134,31,65,0.07)",
   };
 
+  const [addingProj, setAddingProj]   = useState(false);
+  const [newProjName, setNewProjName] = useState("");
+
   const panelStyle = isMobile ? {
     position: "fixed",
     top: 60,
@@ -466,6 +631,26 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
     borderLeft: `1px solid ${c.border}`,
     overflow: "hidden",
     transition: "width 0.2s ease",
+  };
+
+  // Group sessions by project
+  const byProject = {};
+  const unorganized = [];
+  for (const s of sessions) {
+    if (s.projectId) {
+      if (!byProject[s.projectId]) byProject[s.projectId] = [];
+      byProject[s.projectId].push(s);
+    } else {
+      unorganized.push(s);
+    }
+  }
+
+  const handleCreateProject = () => {
+    const name = newProjName.trim();
+    if (!name) return;
+    onCreateProject(name);
+    setNewProjName("");
+    setAddingProj(false);
   };
 
   return (
@@ -495,16 +680,71 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
             fontSize: 10, fontWeight: 700, color: "#861F41",
             letterSpacing: "1.5px", textTransform: "uppercase",
           }}>History</span>
-          <button
-            onClick={onNew}
-            style={{
-              background: "#861F41", color: "white", border: "none",
-              borderRadius: 8, padding: "5px 12px",
-              fontWeight: 700, fontSize: 11, cursor: "pointer",
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-            }}
-          >+ New</button>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <button
+              onClick={() => { setAddingProj(v => !v); setNewProjName(""); }}
+              title="New project"
+              style={{
+                background: "none", border: `1px solid ${c.border}`,
+                borderRadius: 7, padding: "4px 8px", cursor: "pointer",
+                color: c.sub, display: "flex", alignItems: "center", gap: 4,
+                fontSize: 11, fontWeight: 600,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 13H2.454l-.257-7.819A2 2 0 0 1 4.19 3h1.668l.714-1.428A1 1 0 0 1 7.465 1h1.07a1 1 0 0 1 .894.553L9.828 3zm-2.95.702.681-1.29a.5.5 0 0 1 .447-.276h.988a.5.5 0 0 1 .447.276l.68 1.29H6.878z"/>
+              </svg>
+              +
+            </button>
+            <button
+              onClick={onNew}
+              style={{
+                background: "#861F41", color: "white", border: "none",
+                borderRadius: 8, padding: "5px 12px",
+                fontWeight: 700, fontSize: 11, cursor: "pointer",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >+ New</button>
+          </div>
         </div>
+
+        {/* New project input */}
+        {addingProj && (
+          <div style={{
+            padding: "8px 12px", borderBottom: `1px solid ${c.border}`,
+            display: "flex", gap: 6,
+          }}>
+            <input
+              autoFocus
+              value={newProjName}
+              onChange={e => setNewProjName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter") handleCreateProject();
+                if (e.key === "Escape") { setNewProjName(""); setAddingProj(false); }
+              }}
+              placeholder="Project name…"
+              style={{
+                flex: 1, background: c.hover,
+                border: `1px solid ${c.border}`, borderRadius: 6,
+                padding: "5px 8px", fontSize: 12, color: c.text,
+                outline: "none", fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = "#861F41"}
+              onBlur={e => e.currentTarget.style.borderColor = c.border}
+            />
+            <button
+              onClick={handleCreateProject}
+              disabled={!newProjName.trim()}
+              style={{
+                background: newProjName.trim() ? "#861F41" : "rgba(134,31,65,0.2)",
+                color: "white", border: "none", borderRadius: 6,
+                padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >Create</button>
+          </div>
+        )}
 
         {/* Session list */}
         <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
@@ -515,16 +755,51 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
             }}>
               No past chats yet.<br />Ask something to get started.
             </div>
-          ) : sessions.map(session => (
-            <SessionItem
-              key={session.id}
-              session={session}
-              active={session.id === currentId}
-              onSelect={() => onSelect(session)}
-              onDelete={() => onDelete(session.id)}
-              c={c}
-            />
-          ))}
+          ) : (
+            <>
+              {/* Projects */}
+              {projects.map(project => (
+                <ProjectGroup
+                  key={project.id}
+                  project={project}
+                  sessions={byProject[project.id] || []}
+                  currentId={currentId}
+                  onSelectSession={onSelect}
+                  onDeleteSession={onDelete}
+                  onMoveSession={onMoveSession}
+                  onDeleteProject={onDeleteProject}
+                  onRenameProject={onRenameProject}
+                  projects={projects}
+                  c={c}
+                />
+              ))}
+
+              {/* Unorganized sessions */}
+              {unorganized.length > 0 && (
+                <>
+                  {projects.length > 0 && (
+                    <div style={{
+                      padding: "8px 12px 3px",
+                      fontSize: 10, fontWeight: 700, color: c.faint,
+                      letterSpacing: "0.8px", textTransform: "uppercase",
+                    }}>Other</div>
+                  )}
+                  {unorganized.map(session => (
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      active={session.id === currentId}
+                      onSelect={() => onSelect(session)}
+                      onDelete={() => onDelete(session.id)}
+                      onMove={projectId => onMoveSession(session.id, projectId)}
+                      projects={projects}
+                      c={c}
+                    />
+                  ))}
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>
@@ -534,6 +809,7 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, darkMode, ope
 // ── Main chatbot page ─────────────────────────────────────────────
 export default function ChatbotPage({ darkMode, addSection, setPage, userProfile }) {
   const [sessions,          setSessions]         = useState(() => loadSessions());
+  const [projects,          setProjects]         = useState(() => loadProjects());
   const [currentSessionId,  setCurrentSessionId] = useState(null);
   const [messages,          setMessages]         = useState([]);
   const [input,             setInput]            = useState("");
@@ -556,10 +832,9 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     return () => window.removeEventListener("resize", handler);
   }, []);
 
-  // Persist whenever sessions change
   useEffect(() => { saveSessions(sessions); }, [sessions]);
+  useEffect(() => { saveProjects(projects); }, [projects]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -603,6 +878,23 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     if (currentSessionId === id) startNewChat();
   };
 
+  const createProject = (name) => {
+    setProjects(prev => [...prev, { id: newProjectId(), name, createdAt: Date.now() }]);
+  };
+
+  const deleteProject = (id) => {
+    setProjects(prev => prev.filter(p => p.id !== id));
+    setSessions(prev => prev.map(s => s.projectId === id ? { ...s, projectId: null } : s));
+  };
+
+  const renameProject = (id, name) => {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, name } : p));
+  };
+
+  const moveSession = (sessionId, projectId) => {
+    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, projectId: projectId || null } : s));
+  };
+
   const send = useCallback(async (questionOverride) => {
     const question = normalizeInput(questionOverride || input);
     if (!question || loading) return;
@@ -615,13 +907,12 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     setMessages(withUser);
     setLoading(true);
 
-    // Create a new session on the first message
     let sessionId = currentSessionId;
     if (!sessionId) {
       sessionId = newSessionId();
       const title = question.length > 55 ? question.slice(0, 52) + "…" : question;
       setSessions(prev => [
-        { id: sessionId, title, messages: withUser, createdAt: Date.now() },
+        { id: sessionId, title, messages: withUser, createdAt: Date.now(), projectId: null },
         ...prev,
       ]);
       setCurrentSessionId(sessionId);
@@ -656,7 +947,6 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
 
       const data = await res.json();
 
-      // Handle schedule actions — add sections to scheduler then navigate
       if (data.schedule_actions && data.schedule_actions.length > 0 && addSection) {
         data.schedule_actions.forEach(sec => addSection(sec));
         setTimeout(() => setPage?.("schedule"), 1200);
@@ -694,14 +984,11 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     }
   }, [input, loading, useRecency, minStudents, topN, messages, currentSessionId]);
 
-  // Retry: re-fetches a response for an existing question and replaces the
-  // bot message at botMsgIdx in-place — does NOT append a new user message.
   const retry = useCallback(async (question, botMsgIdx) => {
     if (loading) return;
     setLoading(true);
     setServerDown(false);
 
-    // Replace the bot message with a temporary loading placeholder
     const withPlaceholder = messages.map((m, i) =>
       i === botMsgIdx ? { role: "bot", _retrying: true, answer: "", tables: [], charts: [], warnings: [] } : m
     );
@@ -1045,10 +1332,15 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       {(!isMobile || sidebarOpen) && (
         <Sidebar
           sessions={sessions}
+          projects={projects}
           currentId={currentSessionId}
           onSelect={selectSession}
           onNew={startNewChat}
           onDelete={deleteSession}
+          onMoveSession={moveSession}
+          onCreateProject={createProject}
+          onDeleteProject={deleteProject}
+          onRenameProject={renameProject}
           darkMode={dm}
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -1061,6 +1353,10 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         @keyframes bounce {
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-6px); }
+        }
+        ::selection {
+          background: lightblue;
+          color: #1a1210;
         }
       `}</style>
     </div>
