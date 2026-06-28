@@ -28,6 +28,17 @@ const INTEREST_SUGGESTIONS = [
   "Cloud Computing","Competitive Programming","Finance / Quant","Product Management",
 ];
 
+const BANNER_PRESETS = [
+  { key: "vt-default",  label: "VT Maroon",   style: "linear-gradient(135deg, #4a0e25 0%, #861F41 45%, #a02850 70%, #c47340 100%)" },
+  { key: "midnight",    label: "Midnight",     style: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" },
+  { key: "ocean",       label: "Ocean",        style: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" },
+  { key: "forest",      label: "Forest",       style: "linear-gradient(135deg, #134e5e 0%, #1a6b4a 50%, #71b280 100%)" },
+  { key: "sunset",      label: "Sunset",       style: "linear-gradient(135deg, #f7971e 0%, #e05c6a 50%, #6b1883 100%)" },
+  { key: "slate",       label: "Slate",        style: "linear-gradient(135deg, #1c1c2e 0%, #2d2d44 50%, #3a3a5c 100%)" },
+  { key: "rose",        label: "Rose",         style: "linear-gradient(135deg, #c94b4b 0%, #4b134f 100%)" },
+  { key: "copper",      label: "Copper",       style: "linear-gradient(135deg, #b8860b 0%, #c47340 50%, #8b4513 100%)" },
+];
+
 const HOBBY_SUGGESTIONS = [
   "Hiking","Photography","Reading","Gaming","Music","Cooking","Travel","Art","Sports",
   "Fitness","Chess","Podcasts","Writing","Volunteering","Woodworking",
@@ -343,6 +354,19 @@ export default function ProfilePage({ darkMode }) {
   const [error, setError]                 = useState("");
   const [courseSuggestions, setCourseSugs] = useState([]);
   const [isMobile, setIsMobile]           = useState(() => window.innerWidth < 768);
+  const [bannerEditing, setBannerEditing] = useState(false);
+  const [bannerSaving, setBannerSaving]   = useState(false);
+
+  useEffect(() => {
+    if (!bannerEditing) return;
+    const close = (e) => {
+      if (!e.target.closest("[data-banner-picker]") && !e.target.closest("[data-banner-trigger]")) {
+        setBannerEditing(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [bannerEditing]);
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -418,9 +442,127 @@ export default function ProfilePage({ darkMode }) {
     <div style={{ minHeight: "calc(100vh - 60px)", fontFamily: SANS, paddingBottom: 80 }}>
 
       {/* Cover banner */}
-      <div style={{ background: "linear-gradient(135deg, #4a0e25 0%, #861F41 45%, #a02850 70%, #c47340 100%)", height: isMobile ? 120 : 180, position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />
-      </div>
+      {(() => {
+        const preset = BANNER_PRESETS.find(b => b.key === meta.bannerPreset) || BANNER_PRESETS[0];
+        const bannerBg = meta.bannerUrl
+          ? `url(${meta.bannerUrl}) center/cover no-repeat`
+          : preset.style;
+        return (
+          <div data-banner-trigger style={{ background: bannerBg, height: isMobile ? 120 : 180, position: "relative", cursor: "pointer" }}
+            onClick={() => setBannerEditing(v => !v)}>
+            {!meta.bannerUrl && (
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />
+            )}
+            {/* Edit banner hint */}
+            <div style={{
+              position: "absolute", bottom: 10, right: 14,
+              background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)",
+              borderRadius: 8, padding: "5px 12px",
+              fontSize: 12, fontWeight: 600, color: "white",
+              display: "flex", alignItems: "center", gap: 6,
+              opacity: bannerEditing ? 1 : 0, transition: "opacity 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+            onMouseLeave={e => { if (!bannerEditing) e.currentTarget.style.opacity = "0"; }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit banner
+            </div>
+
+            {/* Banner picker popover */}
+            {bannerEditing && (
+              <div
+                data-banner-picker
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: "absolute", bottom: -8, right: 14,
+                  transform: "translateY(100%)",
+                  zIndex: 50,
+                  background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)",
+                  backdropFilter: "blur(20px)",
+                  border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
+                  borderRadius: 14,
+                  padding: "16px",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
+                  minWidth: 280,
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
+
+                {/* Preset grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
+                  {BANNER_PRESETS.map(b => {
+                    const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
+                    return (
+                      <button key={b.key} title={b.label}
+                        onClick={async () => {
+                          setBannerSaving(true);
+                          try {
+                            await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } });
+                          } finally { setBannerSaving(false); }
+                        }}
+                        style={{
+                          height: 36, borderRadius: 8, cursor: "pointer",
+                          background: b.style,
+                          border: active ? "2.5px solid white" : "2px solid transparent",
+                          boxShadow: active ? "0 0 0 2px #861F41" : "none",
+                          transition: "all 0.12s",
+                          padding: 0,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Custom URL */}
+                <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 6 }}>Or paste an image URL</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input
+                    placeholder="https://…"
+                    defaultValue={meta.bannerUrl || ""}
+                    id="banner-url-input"
+                    style={{
+                      flex: 1, padding: "7px 10px",
+                      background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                      border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
+                      borderRadius: 8, color: p.text, fontSize: 12,
+                      fontFamily: SANS, outline: "none",
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = ACCENT}
+                    onBlur={e => e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}
+                  />
+                  <button
+                    disabled={bannerSaving}
+                    onClick={async () => {
+                      const url = document.getElementById("banner-url-input")?.value?.trim();
+                      setBannerSaving(true);
+                      try {
+                        await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } });
+                      } finally { setBannerSaving(false); }
+                    }}
+                    style={{
+                      background: ACCENT, color: "white", border: "none",
+                      borderRadius: 8, padding: "7px 12px",
+                      fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer",
+                      fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1,
+                    }}>
+                    {bannerSaving ? "…" : "Apply"}
+                  </button>
+                </div>
+
+                <button onClick={() => setBannerEditing(false)} style={{
+                  marginTop: 12, width: "100%", background: "none",
+                  border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                  borderRadius: 8, padding: "6px", color: p.textSub,
+                  fontSize: 12, cursor: "pointer", fontFamily: SANS,
+                }}>Done</button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Profile header */}
       <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "0 16px" : "0 40px" }}>
