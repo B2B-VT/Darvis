@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS courses (
   title           TEXT,
   credits         NUMERIC(3,1),
   description     TEXT,
+  prerequisites   TEXT,
   avg_gpa         NUMERIC(4,2),
   pathways        TEXT[]      DEFAULT '{}',
   a_pct           NUMERIC(5,1),
