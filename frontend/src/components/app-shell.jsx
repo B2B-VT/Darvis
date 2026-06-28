@@ -161,14 +161,20 @@ export default function AppShell({
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Account";
   const initials    = ([user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || user?.username?.[0] || "?").toUpperCase();
 
-  const sidebarBg     = darkMode ? "rgba(16,12,10,0.90)" : "rgba(238,235,232,0.92)";
-  const sidebarBorder = darkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)";
+  const sidebarBorder = darkMode ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.55)";
 
-  const asideCss = {
-    background: sidebarBg,
-    backdropFilter: "blur(28px) saturate(1.9)", WebkitBackdropFilter: "blur(28px) saturate(1.9)",
-    borderRight: `1px solid ${sidebarBorder}`,
-    boxShadow: darkMode ? "2px 0 16px rgba(0,0,0,0.40)" : "2px 0 16px rgba(0,0,0,0.07)",
+  const asideCss = darkMode ? {
+    background: "rgba(8,6,5,0.48)",
+    backdropFilter: "blur(48px) saturate(200%) brightness(0.9)",
+    WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(0.9)",
+    borderRight: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "2px 0 32px rgba(0,0,0,0.45), inset -1px 0 0 rgba(255,255,255,0.04)",
+  } : {
+    background: "rgba(255,255,255,0.42)",
+    backdropFilter: "blur(48px) saturate(200%) brightness(1.08)",
+    WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(1.08)",
+    borderRight: "1px solid rgba(255,255,255,0.60)",
+    boxShadow: "2px 0 32px rgba(0,0,0,0.06), inset -1px 0 0 rgba(255,255,255,0.85)",
   };
 
   // ── Sidebar interior ────────────────────────────────────────────────────────
@@ -456,11 +462,9 @@ export default function AppShell({
         <div onClick={() => setDrawerOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.42)", animation: "fadeOverlay 0.2s ease both" }} />
         <aside style={{
           position: "fixed", top: 0, left: 0, bottom: 0, width: SIDEBAR_W, zIndex: 201,
-          background: darkMode ? "rgba(16,12,10,0.97)" : "rgba(242,238,235,0.97)",
-          backdropFilter: "blur(28px) saturate(1.9)", WebkitBackdropFilter: "blur(28px) saturate(1.9)",
-          borderRight: `1px solid ${sidebarBorder}`,
+          ...asideCss,
           animation: "slideInLeft 0.28s cubic-bezier(0.22,1,0.36,1) both",
-          boxShadow: "4px 0 28px rgba(0,0,0,0.28)",
+          boxShadow: "4px 0 40px rgba(0,0,0,0.32)",
         }}>
           <SidebarContent />
         </aside>

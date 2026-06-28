@@ -1,7 +1,11 @@
 // Profile page — LinkedIn-style with posts, experience, education, LinkedIn import
 import { useState, useEffect, useRef } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
-import JSZip from "jszip";
+import * as pdfjsLib from "pdfjs-dist";
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).href;
 import { API } from "../api.js";
 import { glassCard, palette, ACCENT, SANS, SERIF } from "../theme.jsx";
 
@@ -48,91 +52,120 @@ const POST_TYPES = [
   { key: "experience", label: "Experience", color: "#f59e0b" },
 ];
 
-// ── LinkedIn ZIP parser ───────────────────────────────────────────
-function parseCSV(text) {
-  const rows = [];
-  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const cells = [];
-    let cur = "", inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === "," && !inQ) { cells.push(cur.trim()); cur = ""; }
-      else { cur += c; }
-    }
-    cells.push(cur.trim());
-    rows.push(cells);
+// ── LinkedIn PDF parser ───────────────────────────────────────────
+const LI_SECTIONS = [
+  "Contact","Top Skills","Summary","Experience","Education","Skills",
+  "Languages","Certifications","Publications","Projects","Volunteer Experience",
+  "Honors-Awards","Licenses & Certifications","Recommendations received","Courses",
+];
+const LI_SECTION_RE = new RegExp(
+  `^(${LI_SECTIONS.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`
+);
+
+async function parseLinkedInPDF(file) {
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = "";
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.filter(it => "str" in it && it.str.trim()).map(it => it.str).join("\n") + "\n";
   }
-  return rows;
+  return parseLinkedInText(text);
 }
 
-async function parseLinkedInZip(file) {
-  const zip = await JSZip.loadAsync(file);
+function parseLinkedInText(rawText) {
+  const lines = rawText.split("\n").map(l => l.trim()).filter(Boolean);
   const result = {};
 
-  const find = (name) => {
-    const key = Object.keys(zip.files).find(k => k.toLowerCase().endsWith(name.toLowerCase()));
-    return key ? zip.files[key] : null;
-  };
-  const csv = async (name) => {
-    const f = find(name);
-    if (!f) return null;
-    const text = await f.async("text");
-    const rows = parseCSV(text);
-    if (rows.length < 2) return null;
-    const headers = rows[0];
-    const get = (row, col) => {
-      const idx = headers.findIndex(h => h.toLowerCase().includes(col.toLowerCase()));
-      return idx >= 0 ? (row[idx] || "").trim() : "";
-    };
-    return { headers, rows: rows.slice(1), get };
+  const sectionIdx = {};
+  lines.forEach((line, i) => {
+    if (LI_SECTION_RE.test(line) && !(line in sectionIdx)) sectionIdx[line] = i;
+  });
+
+  const getSection = (name) => {
+    const start = sectionIdx[name];
+    if (start === undefined) return [];
+    const next = Object.values(sectionIdx).sort((a, b) => a - b).find(i => i > start) ?? lines.length;
+    return lines.slice(start + 1, next);
   };
 
-  const profile = await csv("Profile.csv");
-  if (profile) {
-    const r = profile.rows[0];
-    result.firstName = profile.get(r, "First Name");
-    result.lastName  = profile.get(r, "Last Name");
-    result.headline  = profile.get(r, "Headline");
-    result.bio       = profile.get(r, "Summary");
-    result.location  = profile.get(r, "Address") || profile.get(r, "Geo Location");
+  // Name + Headline: scan lines before first section (capped at 20)
+  const firstSection = Math.min(...Object.values(sectionIdx).filter(Boolean), 20);
+  for (let i = 0; i < Math.min(firstSection, lines.length); i++) {
+    const line = lines[i];
+    if (LI_SECTION_RE.test(line) || line.match(/[@/]/) || line.match(/^\+?[\d\s\-().]{7,}$/)) continue;
+    if (!result.firstName && line.match(/^[A-ZÀ-ž][a-zÀ-ž\-']+(\s[A-ZÀ-ž][a-zÀ-ž\-'.]+){1,3}$/)) {
+      const parts = line.split(" ");
+      result.firstName = parts[0];
+      result.lastName  = parts.slice(1).join(" ");
+    } else if (result.firstName && !result.headline && line.length >= 5) {
+      const sep = line.includes("·") ? "·" : line.includes("•") ? "•" : null;
+      if (sep) { const idx = line.lastIndexOf(sep); result.headline = line.slice(0, idx).trim(); result.location = line.slice(idx + 1).trim(); }
+      else if (!line.match(/^\d{4}/)) result.headline = line;
+    }
   }
 
-  const pos = await csv("Positions.csv");
-  if (pos) {
-    result.experience = pos.rows
-      .filter(r => r.some(c => c))
-      .map(r => ({
-        company:     pos.get(r, "Company Name"),
-        title:       pos.get(r, "Title"),
-        location:    pos.get(r, "Location"),
-        startDate:   pos.get(r, "Started On"),
-        endDate:     pos.get(r, "Finished On"),
-        current:     !pos.get(r, "Finished On"),
-        description: pos.get(r, "Description"),
-      }))
-      .filter(e => e.company || e.title);
+  // Summary / Bio
+  const summaryLines = getSection("Summary");
+  if (summaryLines.length) result.bio = summaryLines.join(" ").trim();
+
+  // Experience
+  const expLines = getSection("Experience");
+  if (expLines.length) {
+    const entries = [];
+    let cur = null;
+    const isDate = l => /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|\d{4})\b/.test(l) && /[-–]/.test(l);
+    for (const line of expLines) {
+      if (isDate(line)) {
+        if (cur) {
+          const raw = line.split("·")[0].trim().split(/[-–]/);
+          cur.startDate = raw[0]?.trim() || "";
+          cur.endDate   = raw[1]?.trim() || "";
+          cur.current   = /present/i.test(line);
+        }
+      } else if ((line.includes("·") || line.includes("•")) && cur && !cur.company) {
+        cur.company = line.split(/[·•]/)[0].trim();
+      } else if (!isDate(line) && !line.includes("·") && !line.includes("•")) {
+        if (!cur || (cur.company && cur.startDate)) {
+          cur = { title: line, company: "", location: "", startDate: "", endDate: "", current: false, description: "" };
+          entries.push(cur);
+        } else if (cur && !cur.company) {
+          cur.company = line;
+        }
+      }
+    }
+    result.experience = entries.filter(e => e.title || e.company).slice(0, 10);
   }
 
-  const edu = await csv("Education.csv");
-  if (edu) {
-    result.education = edu.rows
-      .filter(r => r.some(c => c))
-      .map(r => ({
-        school:    edu.get(r, "School Name"),
-        degree:    edu.get(r, "Degree Name"),
-        field:     edu.get(r, "Field"),
-        startYear: edu.get(r, "Start Date"),
-        endYear:   edu.get(r, "End Date"),
-      }))
-      .filter(e => e.school);
+  // Education
+  const eduLines = getSection("Education");
+  if (eduLines.length) {
+    const entries = [];
+    let cur = null;
+    const isDegree = l => /\b(bachelor|master|doctor|phd|associate|mba|b\.?s|m\.?s|b\.?a)\b/i.test(l);
+    const hasYears = l => /\d{4}/.test(l) && /[-–]/.test(l);
+    for (const line of eduLines) {
+      if (hasYears(line) && cur) {
+        const years = line.match(/\d{4}/g) || [];
+        cur.startYear = years[0] || "";
+        cur.endYear   = years[1] || (/present/i.test(line) ? "Present" : "");
+      } else if (isDegree(line) && cur) {
+        const parts = line.split(/[,·•\-]/).map(s => s.trim()).filter(Boolean);
+        cur.degree = parts[0] || "";
+        cur.field  = parts[1] || "";
+      } else if (!hasYears(line) && !isDegree(line) && line.length > 2) {
+        if (!cur || cur.degree) { cur = { school: line, degree: "", field: "", startYear: "", endYear: "" }; entries.push(cur); }
+        else if (!cur.field) cur.field = line;
+      }
+    }
+    result.education = entries.filter(e => e.school).slice(0, 5);
   }
 
-  const skills = await csv("Skills.csv");
-  if (skills) {
-    result.interests = skills.rows.map(r => r[0]).filter(Boolean).slice(0, 20);
+  // Skills
+  const skillLines = getSection("Skills").length ? getSection("Skills") : getSection("Top Skills");
+  if (skillLines.length) {
+    result.interests = skillLines.filter(l => l.length > 1 && l.length < 60 && !l.match(/^\d+/)).slice(0, 20);
   }
 
   return result;
@@ -242,7 +275,7 @@ function LinkedInImport({ onImport, dm }) {
     const file = e.target.files[0]; if (!file) return;
     setStatus("parsing");
     try {
-      const data = await parseLinkedInZip(file);
+      const data = await parseLinkedInPDF(file);
       if (!data.firstName && !data.headline && !data.bio && !data.experience?.length) {
         setStatus("error");
       } else {
@@ -257,19 +290,19 @@ function LinkedInImport({ onImport, dm }) {
 
   return (
     <div>
-      <input ref={fileRef} type="file" accept=".zip" onChange={handleFile} style={{ display: "none" }} />
+      <input ref={fileRef} type="file" accept=".pdf" onChange={handleFile} style={{ display: "none" }} />
       {status === "idle" && (
         <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "1.5px solid rgba(0,119,181,0.5)", background: "rgba(0,119,181,0.08)", color: "#0077b5", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: SANS }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,119,181,0.15)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,119,181,0.08)"; }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-          Import from LinkedIn (Data Export ZIP)
+          Import from LinkedIn Profile PDF
         </button>
       )}
-      {status === "parsing" && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>Parsing your LinkedIn export…</div>}
+      {status === "parsing" && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>Reading your LinkedIn PDF…</div>}
       {status === "error" && (
         <div style={{ fontSize: 13, color: "#e74c3c", fontFamily: SANS }}>
-          Couldn't parse the ZIP. Upload LinkedIn's "Download your data" ZIP (not a PDF).{" "}
+          Couldn't extract profile data. Make sure you uploaded a LinkedIn profile PDF (Save to PDF from your profile page).{" "}
           <button onClick={() => setStatus("idle")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 13, padding: 0, fontFamily: SANS }}>Try again</button>
         </div>
       )}
@@ -292,7 +325,7 @@ function LinkedInImport({ onImport, dm }) {
         </div>
       )}
       <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, lineHeight: 1.5 }}>
-        On LinkedIn: Me → Settings → Data privacy → Get a copy of your data → Download larger data archive
+        On LinkedIn: open your profile → More → Save to PDF
       </div>
     </div>
   );
