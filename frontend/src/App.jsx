@@ -1,6 +1,7 @@
 // Main App component
 import { useState, useEffect } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import { setSupabaseToken } from "./supabase.js";
 import AppShell from "./components/app-shell.jsx";
 import LandingPage from "./components/landing.jsx";
 import CourseSearch, { CourseDetail } from "./components/courses.jsx";
@@ -21,8 +22,13 @@ injectGlobalStyles();
 const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors"]);
 
 export default function App() {
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn, isLoaded: authLoaded, getToken } = useAuth();
   const { user, isLoaded: userLoaded } = useUser();
+
+  // Register Clerk token getter so the Supabase client can attach JWT on every request
+  useEffect(() => {
+    if (authLoaded) setSupabaseToken(isSignedIn ? getToken : null);
+  }, [authLoaded, isSignedIn, getToken]);
 
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }

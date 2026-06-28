@@ -143,3 +143,36 @@ CREATE POLICY "Public read access" ON professors
 
 CREATE POLICY "Public read access" ON sections
   FOR SELECT USING (true);
+
+-- ── Profile posts ──────────────────────────────────────────────────
+-- user_id stores the Clerk user ID string (e.g. "user_abc123").
+-- Supabase verifies the Clerk JWT and exposes the sub claim as auth.uid().
+CREATE TABLE IF NOT EXISTS profile_posts (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      TEXT        NOT NULL,
+  display_name TEXT,
+  headline     TEXT,
+  content      TEXT        NOT NULL,
+  post_type    TEXT        DEFAULT 'general',
+  image_url    TEXT        DEFAULT '',
+  link_url     TEXT        DEFAULT '',
+  link_title   TEXT        DEFAULT '',
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_profile_posts_user
+  ON profile_posts (user_id, created_at DESC);
+
+ALTER TABLE profile_posts ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read posts (public activity feed)
+CREATE POLICY "Public read" ON profile_posts
+  FOR SELECT USING (true);
+
+-- Only the authenticated owner can insert their own posts
+CREATE POLICY "Owner insert" ON profile_posts
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+-- Only the authenticated owner can delete their own posts
+CREATE POLICY "Owner delete" ON profile_posts
+  FOR DELETE USING (auth.uid()::text = user_id);
