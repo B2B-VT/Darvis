@@ -428,9 +428,10 @@ export default function ProfilePage({ darkMode }) {
           display: "flex", flexDirection: isMobile ? "column" : "row",
           alignItems: isMobile ? "flex-start" : "flex-end",
           gap: isMobile ? 12 : 20,
-          marginTop: isMobile ? -40 : -52,
+          marginTop: isMobile ? -44 : -56,
           paddingBottom: 20,
           borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+          position: "relative", zIndex: 2,
         }}>
           <div style={{ border: `4px solid ${dm ? "#0A0908" : "#FAF6F0"}`, borderRadius: "50%", flexShrink: 0 }}>
             <Avatar user={user} size={isMobile ? 72 : 96} />
