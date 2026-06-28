@@ -217,6 +217,38 @@ export const API = {
     }));
     return course;
   },
+
+  // ── Profile posts ──────────────────────────────────────────────────
+
+  async createPost({ userId, displayName, headline, content, postType = 'general', imageUrl = '', linkUrl = '', linkTitle = '' }) {
+    const { data, error } = await db.from('profile_posts').insert([{
+      user_id:      userId,
+      display_name: displayName,
+      headline,
+      content,
+      post_type:    postType,
+      image_url:    imageUrl,
+      link_url:     linkUrl,
+      link_title:   linkTitle,
+    }]).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getPosts(userId) {
+    const { data, error } = await db
+      .from('profile_posts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async deletePost(id) {
+    const { error } = await db.from('profile_posts').delete().eq('id', id);
+    if (error) throw error;
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────

@@ -1,9 +1,11 @@
-// Profile page — LinkedIn-style with transcript upload + liquid glass
+// Profile page — LinkedIn-style with posts, experience, education, LinkedIn import
 import { useState, useEffect, useRef } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
-import { db } from "../supabase.js";
-import { glassCard, glassInput, palette, ACCENT, SANS, SERIF } from "../theme.jsx";
+import JSZip from "jszip";
+import { API } from "../api.js";
+import { glassCard, palette, ACCENT, SANS, SERIF } from "../theme.jsx";
 
+// ── Constants ─────────────────────────────────────────────────────
 const MAJORS = [
   "Aerospace Engineering","Agriculture","Animal & Poultry Sciences","Architecture","Biochemistry",
   "Biological Sciences","Biomedical Engineering","Building Construction","Business Information Technology",
@@ -17,43 +19,133 @@ const MAJORS = [
   "Philosophy","Physics","Political Science","Psychology","Public Health","Real Estate","Sociology",
   "Statistics","Theatre Arts","Urban Affairs & Planning",
 ];
-
 const YEARS      = ["Freshman","Sophomore","Junior","Senior","Graduate","Other"];
 const TERMS      = ["Fall 2024","Spring 2025","Summer 2025","Fall 2025","Spring 2026","Summer 2026"];
 const GRAD_TERMS = ["Spring 2025","Summer 2025","Fall 2025","Spring 2026","Fall 2026","Spring 2027","Fall 2027","Spring 2028"];
-
 const INTEREST_SUGGESTIONS = [
   "Machine Learning","Web Development","Systems Programming","Cybersecurity","Data Science",
   "Mobile Apps","Game Development","Robotics","Research","Startups","Open Source",
   "Cloud Computing","Competitive Programming","Finance / Quant","Product Management",
 ];
-
-const BANNER_PRESETS = [
-  { key: "vt-default",  label: "VT Maroon",   style: "linear-gradient(135deg, #4a0e25 0%, #861F41 45%, #a02850 70%, #c47340 100%)" },
-  { key: "midnight",    label: "Midnight",     style: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" },
-  { key: "ocean",       label: "Ocean",        style: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" },
-  { key: "forest",      label: "Forest",       style: "linear-gradient(135deg, #134e5e 0%, #1a6b4a 50%, #71b280 100%)" },
-  { key: "sunset",      label: "Sunset",       style: "linear-gradient(135deg, #f7971e 0%, #e05c6a 50%, #6b1883 100%)" },
-  { key: "slate",       label: "Slate",        style: "linear-gradient(135deg, #1c1c2e 0%, #2d2d44 50%, #3a3a5c 100%)" },
-  { key: "rose",        label: "Rose",         style: "linear-gradient(135deg, #c94b4b 0%, #4b134f 100%)" },
-  { key: "copper",      label: "Copper",       style: "linear-gradient(135deg, #b8860b 0%, #c47340 50%, #8b4513 100%)" },
-];
-
 const HOBBY_SUGGESTIONS = [
   "Hiking","Photography","Reading","Gaming","Music","Cooking","Travel","Art","Sports",
   "Fitness","Chess","Podcasts","Writing","Volunteering","Woodworking",
 ];
+const BANNER_PRESETS = [
+  { key: "vt-default", style: "linear-gradient(135deg, #4a0e25 0%, #861F41 45%, #a02850 70%, #c47340 100%)" },
+  { key: "midnight",   style: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" },
+  { key: "ocean",      style: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" },
+  { key: "forest",     style: "linear-gradient(135deg, #134e5e 0%, #1a6b4a 50%, #71b280 100%)" },
+  { key: "sunset",     style: "linear-gradient(135deg, #f7971e 0%, #e05c6a 50%, #6b1883 100%)" },
+  { key: "slate",      style: "linear-gradient(135deg, #1c1c2e 0%, #2d2d44 50%, #3a3a5c 100%)" },
+  { key: "rose",       style: "linear-gradient(135deg, #c94b4b 0%, #4b134f 100%)" },
+  { key: "copper",     style: "linear-gradient(135deg, #b8860b 0%, #c47340 50%, #8b4513 100%)" },
+];
+const POST_TYPES = [
+  { key: "general",    label: "Update",     color: "#6366f1" },
+  { key: "project",    label: "Project",    color: "#0ea5e9" },
+  { key: "research",   label: "Research",   color: "#10b981" },
+  { key: "experience", label: "Experience", color: "#f59e0b" },
+];
+
+// ── LinkedIn ZIP parser ───────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cells = [];
+    let cur = "", inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === "," && !inQ) { cells.push(cur.trim()); cur = ""; }
+      else { cur += c; }
+    }
+    cells.push(cur.trim());
+    rows.push(cells);
+  }
+  return rows;
+}
+
+async function parseLinkedInZip(file) {
+  const zip = await JSZip.loadAsync(file);
+  const result = {};
+
+  const find = (name) => {
+    const key = Object.keys(zip.files).find(k => k.toLowerCase().endsWith(name.toLowerCase()));
+    return key ? zip.files[key] : null;
+  };
+  const csv = async (name) => {
+    const f = find(name);
+    if (!f) return null;
+    const text = await f.async("text");
+    const rows = parseCSV(text);
+    if (rows.length < 2) return null;
+    const headers = rows[0];
+    const get = (row, col) => {
+      const idx = headers.findIndex(h => h.toLowerCase().includes(col.toLowerCase()));
+      return idx >= 0 ? (row[idx] || "").trim() : "";
+    };
+    return { headers, rows: rows.slice(1), get };
+  };
+
+  const profile = await csv("Profile.csv");
+  if (profile) {
+    const r = profile.rows[0];
+    result.firstName = profile.get(r, "First Name");
+    result.lastName  = profile.get(r, "Last Name");
+    result.headline  = profile.get(r, "Headline");
+    result.bio       = profile.get(r, "Summary");
+    result.location  = profile.get(r, "Address") || profile.get(r, "Geo Location");
+  }
+
+  const pos = await csv("Positions.csv");
+  if (pos) {
+    result.experience = pos.rows
+      .filter(r => r.some(c => c))
+      .map(r => ({
+        company:     pos.get(r, "Company Name"),
+        title:       pos.get(r, "Title"),
+        location:    pos.get(r, "Location"),
+        startDate:   pos.get(r, "Started On"),
+        endDate:     pos.get(r, "Finished On"),
+        current:     !pos.get(r, "Finished On"),
+        description: pos.get(r, "Description"),
+      }))
+      .filter(e => e.company || e.title);
+  }
+
+  const edu = await csv("Education.csv");
+  if (edu) {
+    result.education = edu.rows
+      .filter(r => r.some(c => c))
+      .map(r => ({
+        school:    edu.get(r, "School Name"),
+        degree:    edu.get(r, "Degree Name"),
+        field:     edu.get(r, "Field"),
+        startYear: edu.get(r, "Start Date"),
+        endYear:   edu.get(r, "End Date"),
+      }))
+      .filter(e => e.school);
+  }
+
+  const skills = await csv("Skills.csv");
+  if (skills) {
+    result.interests = skills.rows.map(r => r[0]).filter(Boolean).slice(0, 20);
+  }
+
+  return result;
+}
 
 // ── Tag input ─────────────────────────────────────────────────────
 function TagInput({ tags, onChange, placeholder, suggestions = [], dm, id }) {
-  const [input, setInput]   = useState("");
+  const [input, setInput] = useState("");
   const [showSugg, setShowSugg] = useState(false);
   const p = palette(dm);
   const filtered = suggestions.filter(s => s.toLowerCase().includes(input.toLowerCase()) && !tags.includes(s));
-
-  const add = val => { const v = val.trim(); if (v && !tags.includes(v)) onChange([...tags, v]); setInput(""); setShowSugg(false); };
-  const remove = tag => onChange(tags.filter(t => t !== tag));
-
+  const add = v => { v = v.trim(); if (v && !tags.includes(v)) onChange([...tags, v]); setInput(""); setShowSugg(false); };
+  const remove = t => onChange(tags.filter(x => x !== t));
   return (
     <div style={{ position: "relative" }}>
       <div style={{
@@ -62,14 +154,9 @@ function TagInput({ tags, onChange, placeholder, suggestions = [], dm, id }) {
         borderRadius: 10, background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
         minHeight: 44, alignItems: "center", cursor: "text",
       }} onClick={() => document.getElementById(id)?.focus()}>
-        {tags.map(tag => (
-          <span key={tag} style={{
-            background: "rgba(134,31,65,0.2)", color: dm ? "#f5a0b5" : "#861F41",
-            borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700,
-            display: "flex", alignItems: "center", gap: 4,
-          }}>
-            {tag}
-            <button onClick={e => { e.stopPropagation(); remove(tag); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit", fontSize: 13, lineHeight: 1 }}>×</button>
+        {tags.map(t => (
+          <span key={t} style={{ background: "rgba(134,31,65,0.2)", color: dm ? "#f5a0b5" : ACCENT, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+            {t}<button onClick={e => { e.stopPropagation(); remove(t); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit", fontSize: 13, lineHeight: 1 }}>×</button>
           </span>
         ))}
         <input id={id} value={input}
@@ -78,25 +165,16 @@ function TagInput({ tags, onChange, placeholder, suggestions = [], dm, id }) {
             if ((e.key === "Enter" || e.key === ",") && input.trim()) { e.preventDefault(); add(input); }
             if (e.key === "Backspace" && !input && tags.length) remove(tags[tags.length - 1]);
           }}
-          onFocus={() => setShowSugg(true)}
-          onBlur={() => setTimeout(() => setShowSugg(false), 150)}
+          onFocus={() => setShowSugg(true)} onBlur={() => setTimeout(() => setShowSugg(false), 150)}
           placeholder={tags.length === 0 ? placeholder : ""}
-          style={{ background: "none", border: "none", outline: "none", color: p.text, fontSize: 13, fontFamily: SANS, flex: 1, minWidth: 100 }}
-        />
+          style={{ background: "none", border: "none", outline: "none", color: p.text, fontSize: 13, fontFamily: SANS, flex: 1, minWidth: 100 }} />
       </div>
       {showSugg && input && filtered.length > 0 && (
-        <div style={{
-          position: "absolute", top: "100%", left: 0, right: 0, zIndex: 10,
-          ...glassCard(dm), borderRadius: 10, marginTop: 4, overflow: "hidden",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-        }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 10, ...glassCard(dm), borderRadius: 10, marginTop: 4, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
           {filtered.slice(0, 6).map(s => (
-            <button key={s} onMouseDown={() => add(s)} style={{
-              width: "100%", textAlign: "left", background: "none", border: "none",
-              padding: "9px 14px", color: p.text, fontSize: 13, fontFamily: SANS, cursor: "pointer",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(134,31,65,0.12)"}
-            onMouseLeave={e => e.currentTarget.style.background = "none"}>{s}</button>
+            <button key={s} onMouseDown={() => add(s)} style={{ width: "100%", textAlign: "left", background: "none", border: "none", padding: "9px 14px", color: p.text, fontSize: 13, fontFamily: SANS, cursor: "pointer" }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(134,31,65,0.12)"}
+              onMouseLeave={e => e.currentTarget.style.background = "none"}>{s}</button>
           ))}
         </div>
       )}
@@ -104,89 +182,48 @@ function TagInput({ tags, onChange, placeholder, suggestions = [], dm, id }) {
   );
 }
 
-// ── Transcript upload / parser ────────────────────────────────────
+// ── Transcript upload ─────────────────────────────────────────────
 function TranscriptUpload({ onCoursesFound, dm }) {
-  const [status, setStatus]     = useState("idle");
-  const [found, setFound]       = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [status, setStatus] = useState("idle");
+  const [found, setFound]   = useState([]);
+  const [sel, setSel]       = useState([]);
   const fileRef = useRef(null);
-
   const parseText = text => {
     const pattern = /\b([A-Z]{2,5})[\s\-](\d{4}[A-Z]?)\b/g;
-    const matches = new Set();
-    let m;
+    const matches = new Set(); let m;
     while ((m = pattern.exec(text)) !== null) matches.add(`${m[1]} ${m[2]}`);
     return [...matches];
   };
-
   const handleFile = async e => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     setStatus("reading");
-    try {
-      const text = await file.text();
-      const courses = parseText(text);
-      if (courses.length === 0) { setStatus("error"); }
-      else { setFound(courses); setSelected(courses); setStatus("results"); }
-    } catch { setStatus("error"); }
+    try { const c = parseText(await file.text()); if (!c.length) setStatus("error"); else { setFound(c); setSel(c); setStatus("results"); } }
+    catch { setStatus("error"); }
     e.target.value = "";
   };
-
   return (
     <div>
       <input ref={fileRef} type="file" accept=".txt,.pdf,.csv" onChange={handleFile} style={{ display: "none" }} />
       {status === "idle" && (
-        <button onClick={() => fileRef.current?.click()} style={{
-          display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10,
-          border: `1.5px dashed ${dm ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.18)"}`,
-          background: "transparent", color: dm ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)",
-          fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: SANS, transition: "all 0.15s",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.18)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)"; }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
+        <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: `1.5px dashed ${dm ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.18)"}`, background: "transparent", color: dm ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: SANS }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.18)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)"; }}>
           Upload transcript to auto-import courses
         </button>
       )}
-      {status === "reading" && <div style={{ fontSize: 13, color: palette(dm).textSub, fontFamily: SANS }}>Reading file…</div>}
-      {status === "error" && (
-        <div style={{ fontSize: 13, color: "#e74c3c", fontFamily: SANS }}>
-          Couldn't extract courses. Try saving your transcript as a .txt file.{" "}
-          <button onClick={() => setStatus("idle")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 13, padding: 0, fontFamily: SANS }}>Try again</button>
-        </div>
-      )}
+      {status === "reading" && <div style={{ fontSize: 13, color: palette(dm).textSub }}>Reading…</div>}
+      {status === "error" && <div style={{ fontSize: 13, color: "#e74c3c" }}>Couldn't extract courses. Save as .txt and try again. <button onClick={() => setStatus("idle")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 13, padding: 0, fontFamily: SANS }}>Retry</button></div>}
       {status === "results" && (
-        <div style={{ ...glassCard(dm), borderRadius: 12, padding: "16px", marginTop: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: palette(dm).text, marginBottom: 10 }}>
-            Found {found.length} course{found.length !== 1 ? "s" : ""} — select which to add:
-          </div>
+        <div style={{ ...glassCard(dm), borderRadius: 12, padding: 16, marginTop: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: palette(dm).text, marginBottom: 10 }}>Found {found.length} courses — select which to add:</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-            {found.map(c => {
-              const on = selected.includes(c);
-              return (
-                <button key={c} onClick={() => setSelected(prev => on ? prev.filter(x => x !== c) : [...prev, c])} style={{
-                  padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700,
-                  border: `1px solid ${on ? ACCENT : (dm ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)")}`,
-                  background: on ? "rgba(134,31,65,0.18)" : "transparent",
-                  color: on ? ACCENT : palette(dm).textSub, cursor: "pointer", fontFamily: SANS,
-                }}>{c}</button>
-              );
-            })}
+            {found.map(c => { const on = sel.includes(c); return (
+              <button key={c} onClick={() => setSel(prev => on ? prev.filter(x => x !== c) : [...prev, c])} style={{ padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${on ? ACCENT : "rgba(255,255,255,0.15)"}`, background: on ? "rgba(134,31,65,0.18)" : "transparent", color: on ? ACCENT : palette(dm).textSub, cursor: "pointer", fontFamily: SANS }}>{c}</button>
+            ); })}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { onCoursesFound(selected); setStatus("idle"); setFound([]); setSelected([]); }}
-              disabled={selected.length === 0} style={{
-              background: ACCENT, color: "white", border: "none", borderRadius: 8,
-              padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: selected.length === 0 ? "default" : "pointer",
-              fontFamily: SANS, opacity: selected.length === 0 ? 0.5 : 1,
-            }}>Add {selected.length} course{selected.length !== 1 ? "s" : ""}</button>
-            <button onClick={() => { setStatus("idle"); setFound([]); setSelected([]); }} style={{
-              background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-              color: palette(dm).textSub, borderRadius: 8, padding: "7px 14px",
-              fontSize: 13, cursor: "pointer", fontFamily: SANS,
-            }}>Cancel</button>
+            <button onClick={() => { onCoursesFound(sel); setStatus("idle"); setFound([]); setSel([]); }} disabled={!sel.length} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS, opacity: sel.length ? 1 : 0.5 }}>Add {sel.length} course{sel.length !== 1 ? "s" : ""}</button>
+            <button onClick={() => { setStatus("idle"); setFound([]); setSel([]); }} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: palette(dm).textSub, borderRadius: 8, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
           </div>
         </div>
       )}
@@ -194,23 +231,84 @@ function TranscriptUpload({ onCoursesFound, dm }) {
   );
 }
 
-// ── Glass section card ─────────────────────────────────────────────
+// ── LinkedIn import ────────────────────────────────────────────────
+function LinkedInImport({ onImport, dm }) {
+  const [status, setStatus]   = useState("idle");
+  const [preview, setPreview] = useState(null);
+  const fileRef = useRef(null);
+  const p = palette(dm);
+
+  const handleFile = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    setStatus("parsing");
+    try {
+      const data = await parseLinkedInZip(file);
+      if (!data.firstName && !data.headline && !data.bio && !data.experience?.length) {
+        setStatus("error");
+      } else {
+        setPreview(data); setStatus("preview");
+      }
+    } catch (err) {
+      console.error("LinkedIn parse error:", err);
+      setStatus("error");
+    }
+    e.target.value = "";
+  };
+
+  return (
+    <div>
+      <input ref={fileRef} type="file" accept=".zip" onChange={handleFile} style={{ display: "none" }} />
+      {status === "idle" && (
+        <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "1.5px solid rgba(0,119,181,0.5)", background: "rgba(0,119,181,0.08)", color: "#0077b5", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: SANS }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,119,181,0.15)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,119,181,0.08)"; }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          Import from LinkedIn (Data Export ZIP)
+        </button>
+      )}
+      {status === "parsing" && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>Parsing your LinkedIn export…</div>}
+      {status === "error" && (
+        <div style={{ fontSize: 13, color: "#e74c3c", fontFamily: SANS }}>
+          Couldn't parse the ZIP. Upload LinkedIn's "Download your data" ZIP (not a PDF).{" "}
+          <button onClick={() => setStatus("idle")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 13, padding: 0, fontFamily: SANS }}>Try again</button>
+        </div>
+      )}
+      {status === "preview" && preview && (
+        <div style={{ ...glassCard(dm), borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#0077b5", marginBottom: 12 }}>LINKEDIN IMPORT PREVIEW</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {preview.firstName && <div style={{ fontSize: 13, color: p.text }}><b>Name:</b> {preview.firstName} {preview.lastName}</div>}
+            {preview.headline  && <div style={{ fontSize: 13, color: p.text }}><b>Headline:</b> {preview.headline}</div>}
+            {preview.location  && <div style={{ fontSize: 13, color: p.text }}><b>Location:</b> {preview.location}</div>}
+            {preview.bio       && <div style={{ fontSize: 13, color: p.text }}><b>Bio:</b> {preview.bio.slice(0, 120)}{preview.bio.length > 120 ? "…" : ""}</div>}
+            {preview.experience?.length > 0 && <div style={{ fontSize: 13, color: p.text }}><b>Experience:</b> {preview.experience.length} position{preview.experience.length !== 1 ? "s" : ""}</div>}
+            {preview.education?.length  > 0 && <div style={{ fontSize: 13, color: p.text }}><b>Education:</b> {preview.education.length} entr{preview.education.length !== 1 ? "ies" : "y"}</div>}
+            {preview.interests?.length  > 0 && <div style={{ fontSize: 13, color: p.text }}><b>Skills:</b> {preview.interests.slice(0, 5).join(", ")}{preview.interests.length > 5 ? ` +${preview.interests.length - 5} more` : ""}</div>}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => { onImport(preview); setStatus("idle"); setPreview(null); }} style={{ background: "#0077b5", color: "white", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Apply to profile</button>
+            <button onClick={() => { setStatus("idle"); setPreview(null); }} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: p.textSub, borderRadius: 8, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
+          </div>
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, lineHeight: 1.5 }}>
+        On LinkedIn: Me → Settings → Data privacy → Get a copy of your data → Download larger data archive
+      </div>
+    </div>
+  );
+}
+
+// ── Glass section card ────────────────────────────────────────────
 function SCard({ title, dm, onEdit, children }) {
-  const glass = glassCard(dm);
   const p = palette(dm);
   return (
-    <div style={{ ...glass, borderRadius: 16, padding: "22px 24px", marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "20px 24px", marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <span style={{ fontSize: 15, fontWeight: 800, color: p.text, fontFamily: SANS }}>{title}</span>
         {onEdit && (
-          <button onClick={onEdit} style={{
-            background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`,
-            borderRadius: 8, padding: "5px 12px",
-            color: dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)",
-            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: SANS, transition: "all 0.15s",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)"; }}>Edit</button>
+          <button onClick={onEdit} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, padding: "5px 12px", color: dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: SANS }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)"; }}>Edit</button>
         )}
       </div>
       {children}
@@ -220,55 +318,167 @@ function SCard({ title, dm, onEdit, children }) {
 
 // ── Avatar ────────────────────────────────────────────────────────
 function Avatar({ user, size = 80 }) {
-  const initials = [user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("")
-    || (user?.username?.[0] || "?").toUpperCase();
+  const initials = [user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || (user?.username?.[0] || "?").toUpperCase();
   if (user?.imageUrl && !user.imageUrl.includes("gravatar") && !user.imageUrl.endsWith("default")) {
-    return <img src={user.imageUrl} alt="Profile"
-      style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0 }} />;
+    return <img src={user.imageUrl} alt="Profile" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0 }} />;
   }
   return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)",
-      color: "white", fontWeight: 700, fontSize: Math.round(size * 0.34),
-      display: "flex", alignItems: "center", justifyContent: "center",
-      border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0,
-    }}>{initials}</div>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white", fontWeight: 700, fontSize: Math.round(size * 0.34), display: "flex", alignItems: "center", justifyContent: "center", border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>{initials}</div>
+  );
+}
+
+// ── Post card ─────────────────────────────────────────────────────
+function PostCard({ post, dm, onDelete }) {
+  const p = palette(dm);
+  const typeInfo = POST_TYPES.find(t => t.key === post.post_type) || POST_TYPES[0];
+  const ago = ts => {
+    const d = Date.now() - new Date(ts).getTime();
+    const m = Math.floor(d / 60000), h = Math.floor(d / 3600000), dy = Math.floor(d / 86400000);
+    if (m < 1) return "just now"; if (m < 60) return `${m}m`; if (h < 24) return `${h}h`; if (dy < 7) return `${dy}d`;
+    return new Date(ts).toLocaleDateString();
+  };
+  return (
+    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "18px 20px", marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #6b1833, #861F41)", color: "white", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {(post.display_name || "?")[0]}
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: p.text }}>{post.display_name}</div>
+            <div style={{ fontSize: 11, color: p.textSub }}>{post.headline} · {ago(post.created_at)}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ background: `${typeInfo.color}20`, color: typeInfo.color, border: `1px solid ${typeInfo.color}40`, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{typeInfo.label}</span>
+          <button onClick={onDelete} style={{ background: "none", border: "none", cursor: "pointer", color: p.textMute, fontSize: 14, padding: "2px 4px", borderRadius: 6 }}
+            onMouseEnter={e => e.currentTarget.style.color = "#e74c3c"}
+            onMouseLeave={e => e.currentTarget.style.color = p.textMute}>✕</button>
+        </div>
+      </div>
+      <p style={{ margin: "0 0 12px", fontSize: 14, color: p.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{post.content}</p>
+      {post.image_url && (
+        <img src={post.image_url} alt="" style={{ width: "100%", borderRadius: 10, maxHeight: 320, objectFit: "cover", marginBottom: 10 }}
+          onError={e => { e.currentTarget.style.display = "none"; }} />
+      )}
+      {post.link_url && (
+        <a href={post.link_url.startsWith("http") ? post.link_url : `https://${post.link_url}`} target="_blank" rel="noreferrer"
+          style={{ display: "block", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: 10, border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, textDecoration: "none", fontSize: 13, color: p.textSub }}>
+          🔗 {post.link_title || post.link_url}
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ── Post composer ─────────────────────────────────────────────────
+function PostComposer({ user, dm, onPost }) {
+  const p = palette(dm);
+  const [open, setOpen]        = useState(false);
+  const [content, setContent]  = useState("");
+  const [type, setType]        = useState("general");
+  const [imageUrl, setImgUrl]  = useState("");
+  const [linkUrl, setLinkUrl]  = useState("");
+  const [linkTitle, setLTitle] = useState("");
+  const [posting, setPosting]  = useState(false);
+  const IS = { width: "100%", padding: "8px 12px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, color: p.text, fontSize: 13, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
+
+  const submit = async () => {
+    if (!content.trim() || posting) return;
+    setPosting(true);
+    try {
+      const post = await API.createPost({
+        userId: user.id,
+        displayName: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "User",
+        headline: user.unsafeMetadata?.headline || user.unsafeMetadata?.major || "",
+        content: content.trim(), postType: type,
+        imageUrl: imageUrl.trim(), linkUrl: linkUrl.trim(), linkTitle: linkTitle.trim(),
+      });
+      onPost(post);
+      setContent(""); setType("general"); setImgUrl(""); setLinkUrl(""); setLTitle(""); setOpen(false);
+    } catch (e) { console.error(e); }
+    setPosting(false);
+  };
+
+  return (
+    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "18px 20px", marginBottom: 16 }}>
+      {!open ? (
+        <div style={{ display: "flex", gap: 12, alignItems: "center", cursor: "text" }} onClick={() => setOpen(true)}>
+          <Avatar user={user} size={38} />
+          <div style={{ flex: 1, padding: "10px 16px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 24, color: p.textSub, fontSize: 14, fontFamily: SANS }}>
+            Share an update, project, or research…
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {POST_TYPES.map(t => (
+              <button key={t.key} onClick={() => setType(t.key)} style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${type === t.key ? t.color : (dm ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)")}`, background: type === t.key ? `${t.color}18` : "transparent", color: type === t.key ? t.color : p.textSub, cursor: "pointer", fontFamily: SANS }}>{t.label}</button>
+            ))}
+          </div>
+          <textarea
+            autoFocus value={content} onChange={e => setContent(e.target.value)}
+            placeholder="What are you working on? Share a project, paper, experience, or update…"
+            rows={4} style={{ ...IS, resize: "vertical", lineHeight: 1.6, padding: "12px 14px" }}
+          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Image URL (optional)</div>
+              <input value={imageUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://…" style={IS} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Link URL (optional)</div>
+              <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="github.com/…" style={IS} />
+            </div>
+          </div>
+          {linkUrl && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Link title</div>
+              <input value={linkTitle} onChange={e => setLTitle(e.target.value)} placeholder="e.g. View on GitHub" style={IS} />
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button onClick={() => setOpen(false)} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: p.textSub, borderRadius: 10, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
+            <button onClick={submit} disabled={!content.trim() || posting} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "8px 20px", fontWeight: 700, fontSize: 13, cursor: content.trim() && !posting ? "pointer" : "default", fontFamily: SANS, opacity: content.trim() && !posting ? 1 : 0.5 }}>{posting ? "Posting…" : "Post"}</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 // ── Edit modal ────────────────────────────────────────────────────
-function EditModal({ dm, onClose, onSave, saving, error, form, set, courseSuggestions }) {
+function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInImport }) {
   const p = palette(dm);
-  const glass = glassCard(dm);
-
-  const IS = {
-    width: "100%", padding: "10px 14px",
-    background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
-    border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-    borderRadius: 10, color: p.text, fontSize: 14, fontFamily: SANS,
-    outline: "none", boxSizing: "border-box", transition: "border-color 0.15s",
-  };
+  const IS = { width: "100%", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 10, color: p.text, fontSize: 14, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
   const LS = { fontSize: 11, fontWeight: 700, color: p.textSub, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 6, display: "block" };
-  const SL = ({ children }) => (
-    <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginTop: 16, marginBottom: 12, paddingTop: 16, borderTop: `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` }}>{children}</div>
-  );
+  const SL = ({ children }) => <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginTop: 20, marginBottom: 12, paddingTop: 16, borderTop: `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` }}>{children}</div>;
   const onF = e => { e.currentTarget.style.borderColor = ACCENT; };
   const onB = e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"; };
+
+  const addExp = () => set("experience", [...(form.experience || []), { company: "", title: "", location: "", startDate: "", endDate: "", current: false, description: "" }]);
+  const updExp = (i, k, v) => set("experience", form.experience.map((e, idx) => idx === i ? { ...e, [k]: v } : e));
+  const delExp = (i) => set("experience", form.experience.filter((_, idx) => idx !== i));
+  const addEdu = () => set("education", [...(form.education || []), { school: "", degree: "", field: "", startYear: "", endYear: "" }]);
+  const updEdu = (i, k, v) => set("education", form.education.map((e, idx) => idx === i ? { ...e, [k]: v } : e));
+  const delEdu = (i) => set("education", form.education.filter((_, idx) => idx !== i));
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ ...glass, borderRadius: 20, width: "100%", maxWidth: 680, maxHeight: "90vh", overflowY: "auto", padding: "32px", fontFamily: SANS }}>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+      <div style={{ ...glassCard(dm), borderRadius: 20, width: "100%", maxWidth: 680, maxHeight: "90vh", overflowY: "auto", padding: "32px", fontFamily: SANS }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: p.text }}>Edit Profile</h2>
           <button onClick={onClose} style={{ background: dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", border: "none", borderRadius: 8, width: 34, height: 34, cursor: "pointer", fontSize: 16, color: p.textSub }}>✕</button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ marginBottom: 20, padding: "14px 16px", background: "rgba(0,119,181,0.06)", border: "1px solid rgba(0,119,181,0.15)", borderRadius: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#0077b5", marginBottom: 10 }}>AUTO-FILL FROM LINKEDIN</div>
+          <LinkedInImport dm={dm} onImport={onLinkedInImport} />
+        </div>
 
-          {/* Identity */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <SL>Identity</SL>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>First name</label><input value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="First name" style={IS} onFocus={onF} onBlur={onB} /></div>
             <div><label style={LS}>Last name</label><input value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Last name" style={IS} onFocus={onF} onBlur={onB} /></div>
@@ -317,21 +527,68 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, courseSugges
               </select></div>
           </div>
 
+          <SL>Experience</SL>
+          {(form.experience || []).map((exp, i) => (
+            <div key={i} style={{ padding: "14px 16px", background: dm ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", borderRadius: 12, border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: p.textSub }}>Position {i + 1}</span>
+                <button onClick={() => delExp(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: 13, padding: 0, fontFamily: SANS }}>Remove</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><label style={LS}>Company</label><input value={exp.company} onChange={e => updExp(i, "company", e.target.value)} placeholder="Google" style={IS} onFocus={onF} onBlur={onB} /></div>
+                <div><label style={LS}>Title</label><input value={exp.title} onChange={e => updExp(i, "title", e.target.value)} placeholder="SWE Intern" style={IS} onFocus={onF} onBlur={onB} /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                <div><label style={LS}>Start</label><input value={exp.startDate} onChange={e => updExp(i, "startDate", e.target.value)} placeholder="Jun 2025" style={IS} onFocus={onF} onBlur={onB} /></div>
+                <div><label style={LS}>End</label><input value={exp.endDate} onChange={e => updExp(i, "endDate", e.target.value)} placeholder="Aug 2025" disabled={exp.current} style={{ ...IS, opacity: exp.current ? 0.5 : 1 }} onFocus={onF} onBlur={onB} /></div>
+                <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: p.textSub }}>
+                    <input type="checkbox" checked={exp.current} onChange={e => updExp(i, "current", e.target.checked)} style={{ accentColor: ACCENT }} />
+                    Current
+                  </label>
+                </div>
+              </div>
+              <div><label style={LS}>Description</label><textarea value={exp.description} onChange={e => updExp(i, "description", e.target.value)} placeholder="What did you do?" rows={2} style={{ ...IS, resize: "vertical", lineHeight: 1.5 }} onFocus={onF} onBlur={onB} /></div>
+            </div>
+          ))}
+          <button onClick={addExp} style={{ background: "none", border: `1.5px dashed ${dm ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)"}`, borderRadius: 10, padding: "9px", color: p.textSub, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: SANS, width: "100%" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)"; e.currentTarget.style.color = p.textSub; }}>+ Add experience</button>
+
+          <SL>Education</SL>
+          {(form.education || []).map((edu, i) => (
+            <div key={i} style={{ padding: "14px 16px", background: dm ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", borderRadius: 12, border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: p.textSub }}>Education {i + 1}</span>
+                <button onClick={() => delEdu(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: 13, padding: 0, fontFamily: SANS }}>Remove</button>
+              </div>
+              <div><label style={LS}>School</label><input value={edu.school} onChange={e => updEdu(i, "school", e.target.value)} placeholder="Virginia Tech" style={IS} onFocus={onF} onBlur={onB} /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><label style={LS}>Degree</label><input value={edu.degree} onChange={e => updEdu(i, "degree", e.target.value)} placeholder="B.S." style={IS} onFocus={onF} onBlur={onB} /></div>
+                <div><label style={LS}>Field of Study</label><input value={edu.field} onChange={e => updEdu(i, "field", e.target.value)} placeholder="Computer Science" style={IS} onFocus={onF} onBlur={onB} /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><label style={LS}>Start Year</label><input value={edu.startYear} onChange={e => updEdu(i, "startYear", e.target.value)} placeholder="2023" style={IS} onFocus={onF} onBlur={onB} /></div>
+                <div><label style={LS}>End Year</label><input value={edu.endYear} onChange={e => updEdu(i, "endYear", e.target.value)} placeholder="2027" style={IS} onFocus={onF} onBlur={onB} /></div>
+              </div>
+            </div>
+          ))}
+          <button onClick={addEdu} style={{ background: "none", border: `1.5px dashed ${dm ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)"}`, borderRadius: 10, padding: "9px", color: p.textSub, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: SANS, width: "100%" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)"; e.currentTarget.style.color = p.textSub; }}>+ Add education</button>
+
           <SL>Skills & Interests</SL>
-          <TagInput tags={form.interests} onChange={val => set("interests", val)} placeholder="Type an interest, press Enter…" suggestions={INTEREST_SUGGESTIONS} dm={dm} id="interests-input" />
+          <TagInput tags={form.interests} onChange={v => set("interests", v)} placeholder="Type an interest, press Enter…" suggestions={INTEREST_SUGGESTIONS} dm={dm} id="interests-input" />
 
           <SL>Hobbies</SL>
-          <TagInput tags={form.hobbies} onChange={val => set("hobbies", val)} placeholder="Type a hobby, press Enter…" suggestions={HOBBY_SUGGESTIONS} dm={dm} id="hobbies-input" />
+          <TagInput tags={form.hobbies} onChange={v => set("hobbies", v)} placeholder="Type a hobby, press Enter…" suggestions={HOBBY_SUGGESTIONS} dm={dm} id="hobbies-input" />
 
           <SL>Courses Taken</SL>
-          <TagInput tags={form.coursesTaken} onChange={val => set("coursesTaken", val)} placeholder="e.g. CS 2114, MATH 2224…" suggestions={courseSuggestions} dm={dm} id="courses-taken-input" />
-          <div style={{ fontSize: 11, color: p.textSub }}>Press Enter or comma after each course code.</div>
+          <TagInput tags={form.coursesTaken} onChange={v => set("coursesTaken", v)} placeholder="e.g. CS 2114, MATH 2224…" dm={dm} id="courses-taken-input" />
           <TranscriptUpload dm={dm} onCoursesFound={courses => set("coursesTaken", [...new Set([...form.coursesTaken, ...courses])])} />
         </div>
 
-        {error && (
-          <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 8, color: "#e74c3c", fontSize: 13 }}>{error}</div>
-        )}
+        {error && <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 8, color: "#e74c3c", fontSize: 13 }}>{error}</div>}
 
         <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
           <button onClick={onSave} disabled={saving} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 12, padding: "12px 28px", fontWeight: 700, fontSize: 14, cursor: saving ? "default" : "pointer", fontFamily: SANS, opacity: saving ? 0.7 : 1 }}>{saving ? "Saving…" : "Save changes"}</button>
@@ -352,21 +609,10 @@ export default function ProfilePage({ darkMode }) {
   const [editing, setEditing]             = useState(false);
   const [saving, setSaving]               = useState(false);
   const [error, setError]                 = useState("");
-  const [courseSuggestions, setCourseSugs] = useState([]);
   const [isMobile, setIsMobile]           = useState(() => window.innerWidth < 768);
   const [bannerEditing, setBannerEditing] = useState(false);
   const [bannerSaving, setBannerSaving]   = useState(false);
-
-  useEffect(() => {
-    if (!bannerEditing) return;
-    const close = (e) => {
-      if (!e.target.closest("[data-banner-picker]") && !e.target.closest("[data-banner-trigger]")) {
-        setBannerEditing(false);
-      }
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [bannerEditing]);
+  const [posts, setPosts]                 = useState([]);
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -375,9 +621,18 @@ export default function ProfilePage({ darkMode }) {
   }, []);
 
   useEffect(() => {
-    db.rpc("get_distinct_course_codes")
-      .then(({ data }) => { if (data) setCourseSugs(data.map(r => r.course_code)); });
-  }, []);
+    if (!bannerEditing) return;
+    const close = e => {
+      if (!e.target.closest("[data-banner-picker]") && !e.target.closest("[data-banner-trigger]")) setBannerEditing(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [bannerEditing]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    API.getPosts(user.id).then(setPosts).catch(() => {});
+  }, [user?.id]);
 
   const meta = user?.unsafeMetadata || {};
 
@@ -391,10 +646,26 @@ export default function ProfilePage({ darkMode }) {
     bio: meta.bio || "", location: meta.location || "",
     headline: meta.headline || "", hobbies: meta.hobbies || [],
     linkedIn: meta.linkedIn || "", github: meta.github || "", website: meta.website || "",
+    experience: meta.experience || [],
+    education:  meta.education  || [],
   });
 
   const [form, setForm] = useState(freshForm);
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  const handleLinkedInImport = (data) => {
+    setForm(f => ({
+      ...f,
+      firstName:  data.firstName || f.firstName,
+      lastName:   data.lastName  || f.lastName,
+      headline:   data.headline  || f.headline,
+      bio:        data.bio       || f.bio,
+      location:   data.location  || f.location,
+      interests:  data.interests?.length ? [...new Set([...f.interests, ...data.interests])] : f.interests,
+      experience: data.experience?.length ? data.experience : f.experience,
+      education:  data.education?.length  ? data.education  : f.education,
+    }));
+  };
 
   const save = async () => {
     setSaving(true); setError("");
@@ -412,6 +683,8 @@ export default function ProfilePage({ darkMode }) {
           bio: form.bio, location: form.location, headline: form.headline,
           hobbies: form.hobbies, linkedIn: form.linkedIn,
           github: form.github, website: form.website,
+          experience: form.experience,
+          education:  form.education,
         },
       });
       setEditing(false);
@@ -427,184 +700,106 @@ export default function ProfilePage({ darkMode }) {
   const gpaNum = parseFloat(meta.gpa);
   const gpaColor = !isNaN(gpaNum) ? (gpaNum >= 3.5 ? "#22a84a" : gpaNum >= 3.0 ? "#b45309" : "#c0392b") : ACCENT;
   const autoHeadline = meta.headline || [meta.major, meta.year ? `${meta.year} at Virginia Tech` : "Virginia Tech"].filter(Boolean).join(" · ");
+  const startEdit = () => { setForm(freshForm()); setError(""); setEditing(true); };
 
   const Chip = ({ children }) => (
     <span style={{ background: "rgba(134,31,65,0.15)", color: ACCENT, border: "1px solid rgba(134,31,65,0.28)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>{children}</span>
   );
 
-  const CoursePill = ({ code }) => (
-    <span style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: p.text, fontFamily: "'JetBrains Mono', monospace" }}>{code}</span>
-  );
-
-  const startEdit = () => { setForm(freshForm()); setError(""); setEditing(true); };
+  const bannerPreset = BANNER_PRESETS.find(b => b.key === meta.bannerPreset) || BANNER_PRESETS[0];
+  const bannerBg = meta.bannerUrl ? `url(${meta.bannerUrl}) center/cover no-repeat` : bannerPreset.style;
 
   return (
     <div style={{ minHeight: "calc(100vh - 60px)", fontFamily: SANS, paddingBottom: 80 }}>
 
       {/* Cover banner */}
-      {(() => {
-        const preset = BANNER_PRESETS.find(b => b.key === meta.bannerPreset) || BANNER_PRESETS[0];
-        const bannerBg = meta.bannerUrl
-          ? `url(${meta.bannerUrl}) center/cover no-repeat`
-          : preset.style;
-        return (
-          <div data-banner-trigger style={{ background: bannerBg, height: isMobile ? 120 : 180, position: "relative", cursor: "pointer" }}
-            onClick={() => setBannerEditing(v => !v)}>
-            {!meta.bannerUrl && (
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />
-            )}
-            {/* Edit banner hint */}
-            <div style={{
-              position: "absolute", bottom: 10, right: 14,
-              background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)",
-              borderRadius: 8, padding: "5px 12px",
-              fontSize: 12, fontWeight: 600, color: "white",
-              display: "flex", alignItems: "center", gap: 6,
-              opacity: bannerEditing ? 1 : 0, transition: "opacity 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.opacity = "1"}
-            onMouseLeave={e => { if (!bannerEditing) e.currentTarget.style.opacity = "0"; }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              Edit banner
+      <div data-banner-trigger style={{ background: bannerBg, height: isMobile ? 120 : 180, position: "relative", cursor: "pointer" }}
+        onClick={() => setBannerEditing(v => !v)}>
+        {!meta.bannerUrl && <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />}
+        {bannerEditing && (
+          <div data-banner-picker onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: -8, right: 14, transform: "translateY(100%)", zIndex: 50, background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 14, padding: 16, boxShadow: "0 12px 40px rgba(0,0,0,0.35)", minWidth: 280 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
+              {BANNER_PRESETS.map(b => {
+                const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
+                return <button key={b.key} title={b.key} onClick={async () => { setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } }); } finally { setBannerSaving(false); } }} style={{ height: 36, borderRadius: 8, cursor: "pointer", background: b.style, border: active ? "2.5px solid white" : "2px solid transparent", boxShadow: active ? "0 0 0 2px #861F41" : "none", padding: 0 }} />;
+              })}
             </div>
-
-            {/* Banner picker popover */}
-            {bannerEditing && (
-              <div
-                data-banner-picker
-                onClick={e => e.stopPropagation()}
-                style={{
-                  position: "absolute", bottom: -8, right: 14,
-                  transform: "translateY(100%)",
-                  zIndex: 50,
-                  background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)",
-                  backdropFilter: "blur(20px)",
-                  border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
-                  borderRadius: 14,
-                  padding: "16px",
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
-                  minWidth: 280,
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
-
-                {/* Preset grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
-                  {BANNER_PRESETS.map(b => {
-                    const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
-                    return (
-                      <button key={b.key} title={b.label}
-                        onClick={async () => {
-                          setBannerSaving(true);
-                          try {
-                            await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } });
-                          } finally { setBannerSaving(false); }
-                        }}
-                        style={{
-                          height: 36, borderRadius: 8, cursor: "pointer",
-                          background: b.style,
-                          border: active ? "2.5px solid white" : "2px solid transparent",
-                          boxShadow: active ? "0 0 0 2px #861F41" : "none",
-                          transition: "all 0.12s",
-                          padding: 0,
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Custom URL */}
-                <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 6 }}>Or paste an image URL</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <input
-                    placeholder="https://…"
-                    defaultValue={meta.bannerUrl || ""}
-                    id="banner-url-input"
-                    style={{
-                      flex: 1, padding: "7px 10px",
-                      background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-                      border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-                      borderRadius: 8, color: p.text, fontSize: 12,
-                      fontFamily: SANS, outline: "none",
-                    }}
-                    onFocus={e => e.currentTarget.style.borderColor = ACCENT}
-                    onBlur={e => e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}
-                  />
-                  <button
-                    disabled={bannerSaving}
-                    onClick={async () => {
-                      const url = document.getElementById("banner-url-input")?.value?.trim();
-                      setBannerSaving(true);
-                      try {
-                        await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } });
-                      } finally { setBannerSaving(false); }
-                    }}
-                    style={{
-                      background: ACCENT, color: "white", border: "none",
-                      borderRadius: 8, padding: "7px 12px",
-                      fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer",
-                      fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1,
-                    }}>
-                    {bannerSaving ? "…" : "Apply"}
-                  </button>
-                </div>
-
-                <button onClick={() => setBannerEditing(false)} style={{
-                  marginTop: 12, width: "100%", background: "none",
-                  border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-                  borderRadius: 8, padding: "6px", color: p.textSub,
-                  fontSize: 12, cursor: "pointer", fontFamily: SANS,
-                }}>Done</button>
-              </div>
-            )}
+            <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 6 }}>Or paste an image URL</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input placeholder="https://…" defaultValue={meta.bannerUrl || ""} id="banner-url-input" style={{ flex: 1, padding: "7px 10px", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 8, color: p.text, fontSize: 12, fontFamily: SANS, outline: "none" }} />
+              <button disabled={bannerSaving} onClick={async () => { const url = document.getElementById("banner-url-input")?.value?.trim(); setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } }); } finally { setBannerSaving(false); } }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer", fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1 }}>{bannerSaving ? "…" : "Apply"}</button>
+            </div>
+            <button onClick={() => setBannerEditing(false)} style={{ marginTop: 10, width: "100%", background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: 8, padding: "6px", color: p.textSub, fontSize: 12, cursor: "pointer", fontFamily: SANS }}>Done</button>
           </div>
-        );
-      })()}
+        )}
+      </div>
 
       {/* Profile header */}
       <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "0 16px" : "0 40px" }}>
-        <div style={{
-          display: "flex", flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobile ? "flex-start" : "flex-end",
-          gap: isMobile ? 12 : 20,
-          marginTop: isMobile ? -44 : -56,
-          paddingBottom: 20,
-          borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-          position: "relative", zIndex: 2,
-        }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: isMobile ? 12 : 20, marginTop: isMobile ? -44 : -56, paddingBottom: 20, borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, position: "relative", zIndex: 2 }}>
           <div style={{ border: `4px solid ${dm ? "#0A0908" : "#FAF6F0"}`, borderRadius: "50%", flexShrink: 0 }}>
             <Avatar user={user} size={isMobile ? 72 : 96} />
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: isMobile ? 0 : 4 }}>
             <h1 style={{ margin: "0 0 4px", color: p.text, fontWeight: 400, fontSize: isMobile ? 22 : 28, fontFamily: SERIF, letterSpacing: "-0.4px" }}>{displayName}</h1>
             <div style={{ color: p.textSub, fontSize: 14, marginBottom: 4, fontWeight: 500 }}>{autoHeadline}</div>
-            {meta.location && (
-              <div style={{ color: p.textMute, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {meta.location}
-              </div>
-            )}
+            {meta.location && <div style={{ color: p.textMute, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {meta.location}
+            </div>}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
-            <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
-              onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-              onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Edit profile</button>
+            <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Edit profile</button>
             <button onClick={() => openUserProfile()} style={{ background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`, color: p.textSub, borderRadius: 10, padding: "9px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Account</button>
             <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: p.textMute, borderRadius: 10, padding: "9px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Sign out</button>
           </div>
         </div>
 
-        {/* Two-column layout */}
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 300px", gap: 16, marginTop: 16, alignItems: "start" }}>
 
           {/* Main column */}
           <div>
+            <PostComposer user={user} dm={dm} onPost={post => setPosts(prev => [post, ...prev])} />
+
             {meta.bio && (
               <SCard title="About" dm={dm} onEdit={startEdit}>
                 <p style={{ margin: 0, fontSize: 14, color: p.text, lineHeight: 1.75 }}>{meta.bio}</p>
+              </SCard>
+            )}
+
+            {(meta.experience || []).length > 0 && (
+              <SCard title="Experience" dm={dm} onEdit={startEdit}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {meta.experience.map((exp, i) => (
+                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.experience.length - 1 ? 16 : 0, borderBottom: i < meta.experience.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🏢</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text }}>{exp.title}</div>
+                        <div style={{ fontSize: 13, color: p.textSub }}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</div>
+                        <div style={{ fontSize: 12, color: p.textMute, marginTop: 2 }}>{exp.startDate}{exp.endDate || exp.current ? ` — ${exp.current ? "Present" : exp.endDate}` : ""}</div>
+                        {exp.description && <p style={{ margin: "6px 0 0", fontSize: 13, color: p.textSub, lineHeight: 1.6 }}>{exp.description}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SCard>
+            )}
+
+            {(meta.education || []).length > 0 && (
+              <SCard title="Education" dm={dm} onEdit={startEdit}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {meta.education.map((edu, i) => (
+                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.education.length - 1 ? 16 : 0, borderBottom: i < meta.education.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text }}>{edu.school}</div>
+                        <div style={{ fontSize: 13, color: p.textSub }}>{[edu.degree, edu.field].filter(Boolean).join(" · ")}</div>
+                        {(edu.startYear || edu.endYear) && <div style={{ fontSize: 12, color: p.textMute, marginTop: 2 }}>{edu.startYear}{edu.endYear ? ` — ${edu.endYear}` : ""}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </SCard>
             )}
 
@@ -612,7 +807,7 @@ export default function ProfilePage({ darkMode }) {
               {(meta.interests || []).length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{meta.interests.map(t => <Chip key={t}>{t}</Chip>)}</div>
               ) : (
-                <div style={{ color: p.textSub, fontSize: 14 }}>No interests added yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add some →</button></div>
+                <div style={{ color: p.textSub, fontSize: 14 }}>No interests yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add some →</button></div>
               )}
             </SCard>
 
@@ -628,15 +823,31 @@ export default function ProfilePage({ darkMode }) {
 
             <SCard title="Courses Taken" dm={dm} onEdit={startEdit}>
               {(meta.coursesTaken || []).length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{meta.coursesTaken.map(c => <CoursePill key={c} code={c} />)}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {meta.coursesTaken.map(c => (
+                    <span key={c} style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: p.text, fontFamily: "'JetBrains Mono', monospace" }}>{c}</span>
+                  ))}
+                </div>
               ) : (
-                <div style={{ color: p.textSub, fontSize: 14 }}>No courses added yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add or upload transcript →</button></div>
+                <div style={{ color: p.textSub, fontSize: 14 }}>No courses yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add or upload transcript →</button></div>
               )}
             </SCard>
 
-            {!meta.bio && (
+            {posts.length > 0 && (
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: p.text, marginBottom: 12, fontFamily: SANS }}>Activity</div>
+                {posts.map(post => (
+                  <PostCard key={post.id} post={post} dm={dm} onDelete={async () => {
+                    await API.deletePost(post.id).catch(() => {});
+                    setPosts(prev => prev.filter(q => q.id !== post.id));
+                  }} />
+                ))}
+              </div>
+            )}
+
+            {!meta.bio && !meta.experience?.length && !meta.education?.length && (
               <div style={{ ...glassCard(dm), borderRadius: 16, padding: "22px 24px", marginBottom: 12, textAlign: "center" }}>
-                <div style={{ color: p.textSub, fontSize: 14, marginBottom: 12 }}>Your profile is looking bare. Add a bio, interests, and your courses taken.</div>
+                <div style={{ color: p.textSub, fontSize: 14, marginBottom: 12 }}>Your profile is looking bare. Add a bio, experience, and courses.</div>
                 <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Complete your profile</button>
               </div>
             )}
@@ -672,7 +883,7 @@ export default function ProfilePage({ darkMode }) {
                     { href: meta.github, label: "GitHub", show: !!meta.github },
                     { href: meta.website, label: "Website", show: !!meta.website },
                   ].filter(l => l.show).map(({ href, label }) => (
-                    <a key={label} href={href?.startsWith("http") ? href : href?.startsWith("mailto") ? href : `https://${href}`}
+                    <a key={label} href={href?.startsWith("http") || href?.startsWith("mailto") ? href : `https://${href}`}
                       target={href?.startsWith("mailto") ? "_self" : "_blank"} rel="noreferrer"
                       style={{ color: p.textSub, fontSize: 13, textDecoration: "none", fontFamily: SANS }}
                       onMouseEnter={e => e.currentTarget.style.color = ACCENT}
@@ -691,7 +902,7 @@ export default function ProfilePage({ darkMode }) {
       </div>
 
       {editing && (
-        <EditModal dm={dm} onClose={() => setEditing(false)} onSave={save} saving={saving} error={error} form={form} set={set} courseSuggestions={courseSuggestions} />
+        <EditModal dm={dm} onClose={() => setEditing(false)} onSave={save} saving={saving} error={error} form={form} set={set} onLinkedInImport={handleLinkedInImport} />
       )}
     </div>
   );
