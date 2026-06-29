@@ -1,8 +1,7 @@
 // Landing Page v7 — "Observatory" · editorial futurism · treated photo hero ·
 // scroll-driven SVG · light/dark
 import { useState, useEffect, useRef } from "react";
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
-import { db } from "../supabase.js";
+import { SignedIn, SignedOut, useSignUp } from "@clerk/clerk-react";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
@@ -1446,6 +1445,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const statsRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
 
   // Waitlist form
   const [wlEmail, setWlEmail] = useState("");
@@ -1455,15 +1455,20 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
 
   const handleWaitlist = async (e) => {
     e.preventDefault();
-    if (!wlEmail.trim()) return;
+    if (!wlEmail.trim() || !signUpLoaded) return;
     setWlStep("loading");
     try {
-      const { error } = await db.from("waitlist").insert({ email: wlEmail.trim().toLowerCase() });
-      if (error && error.code !== "23505") throw error; // 23505 = duplicate email, still show success
+      await signUp.create({ emailAddress: wlEmail.trim().toLowerCase() });
       setWlStep("success");
-    } catch {
-      setWlStep("error");
-      setWlError("Something went wrong. Try again.");
+    } catch (err) {
+      const msg = err?.errors?.[0]?.message || "";
+      // "already on waitlist" or "already exists" — treat as success
+      if (/waitlist|already/i.test(msg)) {
+        setWlStep("success");
+      } else {
+        setWlStep("error");
+        setWlError(msg || "Something went wrong. Try again.");
+      }
     }
   };
 
