@@ -88,6 +88,31 @@ const Icons = {
 function SidebarItem({ label, icon, active, darkMode, badge, onClick, collapsed }) {
   const p = palette(darkMode);
   const [hovered, setHovered] = useState(false);
+
+  const activeStyle = darkMode ? {
+    background: "linear-gradient(135deg, rgba(134,31,65,0.28) 0%, rgba(134,31,65,0.10) 100%)",
+    border: "1px solid rgba(134,31,65,0.40)",
+    boxShadow: "0 2px 16px rgba(134,31,65,0.20), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.12)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+  } : {
+    background: "linear-gradient(135deg, rgba(134,31,65,0.14) 0%, rgba(134,31,65,0.05) 100%)",
+    border: "1px solid rgba(134,31,65,0.28)",
+    boxShadow: "0 2px 12px rgba(134,31,65,0.10), inset 0 1px 0 rgba(255,255,255,0.70), inset 0 -1px 0 rgba(134,31,65,0.06)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+  };
+
+  const hoverStyle = darkMode ? {
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 6px rgba(0,0,0,0.10)",
+  } : {
+    background: "rgba(255,255,255,0.55)",
+    border: "1px solid rgba(255,255,255,0.75)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.90), 0 1px 6px rgba(0,0,0,0.04)",
+  };
+
   return (
     <button
       onClick={onClick}
@@ -100,28 +125,24 @@ function SidebarItem({ label, icon, active, darkMode, badge, onClick, collapsed 
         gap: collapsed ? 0 : 10,
         padding: collapsed ? "7px 0" : "7px 10px",
         justifyContent: collapsed ? "center" : "flex-start",
-        marginBottom: 2,
-        background: active
-          ? (darkMode ? "rgba(134,31,65,0.22)" : "rgba(134,31,65,0.10)")
-          : hovered
-            ? (darkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)")
-            : "transparent",
-        border: active
-          ? `1px solid ${darkMode ? "rgba(134,31,65,0.38)" : "rgba(134,31,65,0.22)"}`
-          : "1px solid transparent",
-        borderRadius: 8, cursor: "pointer",
+        marginBottom: 3,
+        ...(active ? activeStyle : hovered ? hoverStyle : { background: "transparent", border: "1px solid transparent", boxShadow: "none" }),
+        borderRadius: 10, cursor: "pointer",
         color: active ? (darkMode ? "#fff" : ACCENT) : (hovered ? p.text : p.textSub),
         fontFamily: SANS, fontWeight: active ? 600 : 500, fontSize: 13.5,
         textAlign: "left",
-        transition: "background 0.12s, color 0.12s, border-color 0.12s, padding 0.18s",
+        transition: "background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, padding 0.20s",
       }}
     >
-      <span style={{ flexShrink: 0, opacity: active ? 1 : 0.75, display: "flex" }}>{icon}</span>
+      <span style={{ flexShrink: 0, opacity: active ? 1 : hovered ? 0.90 : 0.70, display: "flex", transition: "opacity 0.15s" }}>{icon}</span>
       {!collapsed && <span style={{ flex: 1 }}>{label}</span>}
       {!collapsed && badge > 0 && (
         <span style={{
-          background: ACCENT, color: "#fff", borderRadius: 999,
-          padding: "1px 7px", fontSize: 10.5, fontWeight: 700, fontFamily: MONO, flexShrink: 0,
+          background: active ? ACCENT : darkMode ? "rgba(134,31,65,0.55)" : "rgba(134,31,65,0.18)",
+          color: active ? "#fff" : ACCENT,
+          borderRadius: 999, padding: "1px 7px",
+          fontSize: 10.5, fontWeight: 700, fontFamily: MONO, flexShrink: 0,
+          border: `1px solid ${active ? "transparent" : "rgba(134,31,65,0.30)"}`,
         }}>{badge}</span>
       )}
     </button>
@@ -161,25 +182,51 @@ export default function AppShell({
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Account";
   const initials    = ([user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || user?.username?.[0] || "?").toUpperCase();
 
-  const sidebarBorder = darkMode ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.55)";
+  const sidebarBorder = darkMode ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.65)";
 
   const asideCss = darkMode ? {
-    background: "rgba(8,6,5,0.48)",
-    backdropFilter: "blur(48px) saturate(200%) brightness(0.9)",
-    WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(0.9)",
+    background: "rgba(8,5,4,0.22)",
+    backdropFilter: "blur(100px) saturate(180%) brightness(0.80) contrast(1.08)",
+    WebkitBackdropFilter: "blur(100px) saturate(180%) brightness(0.80) contrast(1.08)",
     borderRight: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "2px 0 32px rgba(0,0,0,0.45), inset -1px 0 0 rgba(255,255,255,0.04)",
+    boxShadow: [
+      "6px 0 60px rgba(0,0,0,0.55)",
+      "inset -1px 0 0 rgba(255,255,255,0.05)",
+      "inset 1px 0 0 rgba(255,255,255,0.02)",
+    ].join(", "),
   } : {
-    background: "rgba(255,255,255,0.42)",
-    backdropFilter: "blur(48px) saturate(200%) brightness(1.08)",
-    WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(1.08)",
-    borderRight: "1px solid rgba(255,255,255,0.60)",
-    boxShadow: "2px 0 32px rgba(0,0,0,0.06), inset -1px 0 0 rgba(255,255,255,0.85)",
+    background: "rgba(255,255,255,0.18)",
+    backdropFilter: "blur(100px) saturate(220%) brightness(1.12)",
+    WebkitBackdropFilter: "blur(100px) saturate(220%) brightness(1.12)",
+    borderRight: "1px solid rgba(255,255,255,0.72)",
+    boxShadow: [
+      "6px 0 40px rgba(0,0,0,0.06)",
+      "inset -1px 0 0 rgba(255,255,255,0.95)",
+      "inset 1px 0 0 rgba(255,255,255,0.60)",
+    ].join(", "),
   };
 
   // ── Sidebar interior ────────────────────────────────────────────────────────
   const SidebarContent = () => (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", userSelect: "none", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", userSelect: "none", overflow: "hidden", position: "relative" }}>
+      {/* Specular sheen — top-down highlight simulating light on glass */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "40%",
+        pointerEvents: "none", zIndex: 0,
+        background: darkMode
+          ? "linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0) 100%)"
+          : "linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0) 100%)",
+      }} />
+      {/* Bottom ambient glow */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: "30%",
+        pointerEvents: "none", zIndex: 0,
+        background: darkMode
+          ? "linear-gradient(0deg, rgba(134,31,65,0.05) 0%, rgba(134,31,65,0) 100%)"
+          : "linear-gradient(0deg, rgba(134,31,65,0.04) 0%, rgba(134,31,65,0) 100%)",
+      }} />
+      {/* All content sits above sheen */}
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1, overflow: "hidden" }}>
 
       {/* Title bar */}
       <div style={{
@@ -257,8 +304,13 @@ export default function AppShell({
         ))}
       </nav>
 
-      {/* Divider */}
-      <div style={{ height: 1, margin: "0 12px", background: sidebarBorder, flexShrink: 0 }} />
+      {/* Divider — gradient shimmer instead of solid line */}
+      <div style={{
+        height: 1, margin: "0 12px", flexShrink: 0,
+        background: darkMode
+          ? "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.10) 40%, rgba(255,255,255,0.10) 60%, transparent 100%)"
+          : "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.80) 40%, rgba(255,255,255,0.80) 60%, transparent 100%)",
+      }} />
 
       {/* User section */}
       <div style={{ padding: collapsed ? "10px 6px 12px" : "10px 8px 12px", flexShrink: 0 }}>
@@ -306,12 +358,21 @@ export default function AppShell({
             {/* Theme + sign out */}
             {collapsed ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
-                <button onClick={() => setDarkMode(m => !m)} title={darkMode ? "Light mode" : "Dark mode"} style={{ background: "none", border: `1px solid ${darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 7, padding: 5, cursor: "pointer", color: p.textMute, display: "flex" }}>
-                  {darkMode ? Icons.sun : Icons.moon}
-                </button>
-                <button onClick={() => signOut()} title="Sign out" style={{ background: "none", border: `1px solid ${darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 7, padding: 5, cursor: "pointer", color: p.textMute, display: "flex" }}>
-                  {Icons.signout}
-                </button>
+                {[
+                  { title: darkMode ? "Light mode" : "Dark mode", icon: darkMode ? Icons.sun : Icons.moon, action: () => setDarkMode(m => !m) },
+                  { title: "Sign out", icon: Icons.signout, action: () => signOut() },
+                ].map(({ title, icon, action }) => (
+                  <button key={title} onClick={action} title={title} style={{
+                    background: darkMode ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.50)",
+                    border: darkMode ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(255,255,255,0.70)",
+                    boxShadow: darkMode ? "inset 0 1px 0 rgba(255,255,255,0.07)" : "inset 0 1px 0 rgba(255,255,255,0.90)",
+                    borderRadius: 8, padding: 6, cursor: "pointer", color: p.textMute, display: "flex",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(134,31,65,0.40)"; e.currentTarget.style.color = ACCENT; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.70)"; e.currentTarget.style.color = p.textMute; }}
+                  >{icon}</button>
+                ))}
               </div>
             ) : (
               <div style={{ display: "flex", gap: 6 }}>
@@ -321,19 +382,22 @@ export default function AppShell({
                 ].map(({ label, icon, action, danger }) => (
                   <button key={label} onClick={action} style={{
                     flex: 1, height: 30, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                    background: "transparent",
-                    border: `1px solid ${darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
-                    borderRadius: 7, cursor: "pointer",
+                    background: darkMode ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.50)",
+                    border: darkMode ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(255,255,255,0.70)",
+                    boxShadow: darkMode ? "inset 0 1px 0 rgba(255,255,255,0.07)" : "inset 0 1px 0 rgba(255,255,255,0.90)",
+                    borderRadius: 8, cursor: "pointer",
                     color: p.textMute, fontSize: 11, fontFamily: SANS, fontWeight: 500,
-                    transition: "all 0.12s",
+                    transition: "all 0.15s",
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.color = danger ? ACCENT : p.text;
-                    e.currentTarget.style.borderColor = danger ? "rgba(134,31,65,0.4)" : (darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.20)");
+                    e.currentTarget.style.borderColor = danger ? "rgba(134,31,65,0.40)" : (darkMode ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.90)");
+                    e.currentTarget.style.background = danger ? "rgba(134,31,65,0.08)" : (darkMode ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.70)");
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.color = p.textMute;
-                    e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)";
+                    e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.70)";
+                    e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.50)";
                   }}
                   >{icon}<span>{label}</span></button>
                 ))}
@@ -360,6 +424,7 @@ export default function AppShell({
           </button>
         )}
       </div>
+      </div> {/* close inner content wrapper */}
     </div>
   );
 
