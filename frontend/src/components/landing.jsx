@@ -1753,13 +1753,9 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             <Btn label="Browse courses →" primary onClick={onEnter} />
           </SignedIn>
           <SignedOut>
-            {wlStep === "success" ? (
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: "#4ade80" }}>You're on the list.</div>
-            ) : (
-              <SignUpButton mode="modal">
-                <Btn label="Join the waitlist →" primary />
-              </SignUpButton>
-            )}
+            <SignUpButton mode="modal">
+              <Btn label="Join the waitlist →" primary />
+            </SignUpButton>
           </SignedOut>
         </Reveal>
         </div>
