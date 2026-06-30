@@ -31,6 +31,16 @@ export default function App() {
     if (authLoaded) setSupabaseToken(isSignedIn ? getToken : null);
   }, [authLoaded, isSignedIn, getToken]);
 
+  const [page, setPage] = useState(() => {
+    try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }
+  });
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem("hokieDarvis_theme") !== "light"; } catch { return true; }
+  });
+  const [schedule, setSchedule] = useState(() => {
+    try { const s = localStorage.getItem("hokieDarvis_schedule"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+
   // Schedule sync — load from Supabase on sign-in, clear on sign-out
   const scheduleInitialized = useRef(false);
   const scheduleSaveTimer   = useRef(null);
@@ -56,16 +66,6 @@ export default function App() {
     }, 1500);
     return () => clearTimeout(scheduleSaveTimer.current);
   }, [schedule]);
-
-  const [page, setPage] = useState(() => {
-    try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }
-  });
-  const [darkMode, setDarkMode] = useState(() => {
-    try { return localStorage.getItem("hokieDarvis_theme") !== "light"; } catch { return true; }
-  });
-  const [schedule, setSchedule] = useState(() => {
-    try { const s = localStorage.getItem("hokieDarvis_schedule"); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedProf,   setSelectedProf]   = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
