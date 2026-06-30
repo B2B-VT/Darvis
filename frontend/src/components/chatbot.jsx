@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Chart, registerables } from "chart.js";
 import { DARVIS_CONFIG } from "../config.js";
+import { MONO, SERIF, SANS, ACCENT, palette, glassCard, glassInput, RADIUS, SHADOW, EASE } from "../theme.jsx";
 
 Chart.register(...registerables);
 
@@ -40,6 +41,7 @@ function normalizeInput(raw) {
 function ChartWidget({ spec, darkMode }) {
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
+  const dm = darkMode;
 
   useEffect(() => {
     if (!canvasRef.current || !spec?.data?.length) return;
@@ -47,10 +49,9 @@ function ChartWidget({ spec, darkMode }) {
 
     const ctx = canvasRef.current.getContext("2d");
     const { chart_type, x_key, y_key, orientation, data } = spec;
-    const dm = darkMode;
     const gridColor  = dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
     const tickColor  = dm ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.45)";
-    const tickFont   = { family: "'Plus Jakarta Sans', sans-serif", size: 11 };
+    const tickFont   = { family: SANS, size: 11 };
 
     let config;
 
@@ -63,7 +64,7 @@ function ChartWidget({ spec, darkMode }) {
           datasets: [{
             data: data.map(d => d[x_key]),
             backgroundColor: "rgba(134,31,65,0.82)",
-            borderColor: "#861F41",
+            borderColor: ACCENT,
             borderWidth: 1,
             borderRadius: 4,
           }],
@@ -92,7 +93,7 @@ function ChartWidget({ spec, darkMode }) {
           datasets: [{
             data: data.map(d => ({ x: d[x_key], y: d[y_key] })),
             backgroundColor: "rgba(134,31,65,0.75)",
-            borderColor: "#861F41",
+            borderColor: ACCENT,
             pointRadius: 6,
             pointHoverRadius: 9,
           }],
@@ -132,17 +133,21 @@ function ChartWidget({ spec, darkMode }) {
   if (!spec?.data?.length) return null;
   return (
     <div style={{
-      marginTop: 14, borderRadius: 10, padding: "14px 16px",
-      background: darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.025)",
-      border: `1px solid ${darkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
+      ...glassCard(dm),
+      marginTop: 14, borderRadius: RADIUS.md, padding: "14px 16px",
     }}>
       <div style={{
-        fontSize: 10, fontWeight: 800, color: "#861F41",
+        fontSize: 10, fontWeight: 800, color: ACCENT,
         textTransform: "uppercase", letterSpacing: "1.2px", marginBottom: 12,
+        fontFamily: MONO,
       }}>{spec.title}</div>
       <canvas ref={canvasRef} />
       {spec.description && (
-        <div style={{ fontSize: 11, marginTop: 8, color: darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.38)", fontStyle: "italic" }}>
+        <div style={{
+          fontSize: 11, marginTop: 8,
+          color: dm ? "rgba(244,239,233,0.38)" : "rgba(26,18,15,0.45)",
+          fontStyle: "italic", fontFamily: SANS,
+        }}>
           {spec.description}
         </div>
       )}
@@ -154,12 +159,13 @@ function ChartWidget({ spec, darkMode }) {
 function TableWidget({ table, darkMode }) {
   if (!table?.rows?.length) return null;
   const dm = darkMode;
+  const p = palette(dm);
   const c = {
-    border:    dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
-    headerBg:  dm ? "rgba(255,255,255,0.04)" : "#f0edf8",
-    text:      dm ? "#f0edf3" : "#1a1210",
-    sub:       dm ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.42)",
-    rowAlt:    dm ? "rgba(255,255,255,0.018)" : "rgba(0,0,0,0.018)",
+    border:   p.line,
+    headerBg: dm ? "rgba(255,255,255,0.04)" : "#f0edf8",
+    text:     p.text,
+    sub:      p.textSub,
+    rowAlt:   dm ? "rgba(255,255,255,0.018)" : "rgba(0,0,0,0.018)",
   };
 
   const confidence = v => {
@@ -171,11 +177,12 @@ function TableWidget({ table, darkMode }) {
   return (
     <div style={{ marginTop: 14 }}>
       <div style={{
-        fontSize: 10, fontWeight: 800, color: "#861F41",
+        fontSize: 10, fontWeight: 800, color: ACCENT,
         textTransform: "uppercase", letterSpacing: "1.2px", marginBottom: 8,
+        fontFamily: MONO,
       }}>{table.title}</div>
-      <div style={{ overflowX: "auto", borderRadius: 8, border: `1px solid ${c.border}` }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div style={{ overflowX: "auto", borderRadius: RADIUS.sm, border: `1px solid ${c.border}` }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: SANS }}>
           <thead>
             <tr>
               {table.columns.map(col => (
@@ -221,6 +228,7 @@ function TableWidget({ table, darkMode }) {
 // ── Bot message ───────────────────────────────────────────────────
 function BotMessage({ msg, darkMode, question, onRetry }) {
   const dm = darkMode;
+  const p = palette(dm);
   const [chartsOpen, setChartsOpen] = useState(false);
   const [copied, setCopied]         = useState(false);
 
@@ -243,11 +251,11 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
 
   const btnBase = {
     background: "none",
-    border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
-    borderRadius: 20, padding: "3px 11px",
-    color: dm ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.38)",
+    border: `1px solid ${p.line}`,
+    borderRadius: RADIUS.pill, padding: "3px 11px",
+    color: p.textMute,
     fontSize: 11, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontFamily: SANS,
     transition: "all 0.15s",
   };
 
@@ -256,7 +264,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
       {/* Avatar */}
       <div style={{
         width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-        background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
+        background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center",
         marginTop: 2, overflow: "hidden",
       }}>
         <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
@@ -265,15 +273,13 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Answer text */}
         <div style={{
-          background: msg.isError
-            ? (dm ? "rgba(248,113,113,0.06)" : "rgba(220,38,38,0.04)")
-            : (dm ? "rgba(255,255,255,0.04)" : "white"),
-          border: `1px solid ${msg.isError
-            ? (dm ? "rgba(248,113,113,0.20)" : "rgba(220,38,38,0.15)")
-            : (dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)")}`,
+          ...(msg.isError ? {
+            background: dm ? "rgba(248,113,113,0.06)" : "rgba(220,38,38,0.04)",
+            border: `1px solid ${dm ? "rgba(248,113,113,0.20)" : "rgba(220,38,38,0.15)"}`,
+          } : glassCard(dm)),
           borderRadius: "4px 14px 14px 14px",
           padding: "14px 16px",
-          color: dm ? "#f0edf3" : "#1a1210",
+          color: p.text,
           fontSize: 14, lineHeight: 1.65, fontWeight: 450,
         }}>
           {msg.answer}
@@ -282,7 +288,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         {/* Warnings */}
         {msg.warnings?.length > 0 && (
           <div style={{
-            marginTop: 6, fontSize: 11, color: dm ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.38)",
+            marginTop: 6, fontSize: 11, color: p.textMute,
             fontStyle: "italic", lineHeight: 1.5,
           }}>
             {msg.warnings[0]}
@@ -298,11 +304,11 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
             <button
               onClick={() => setChartsOpen(o => !o)}
               style={{
-                background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-                borderRadius: 20, padding: "4px 14px",
-                color: dm ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.5)",
+                background: "none", border: `1px solid ${p.line}`,
+                borderRadius: RADIUS.pill, padding: "4px 14px",
+                color: p.textSub,
                 fontSize: 11, fontWeight: 700, cursor: "pointer",
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: SANS,
                 letterSpacing: "0.3px",
               }}
             >
@@ -318,9 +324,9 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
           <button
             onClick={handleCopy}
-            style={{ ...btnBase, color: copied ? "#861F41" : btnBase.color, borderColor: copied ? "rgba(134,31,65,0.35)" : btnBase.borderColor }}
-            onMouseEnter={e => { e.currentTarget.style.color = dm ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.6)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = copied ? "#861F41" : (dm ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.38)"); }}
+            style={{ ...btnBase, color: copied ? ACCENT : btnBase.color, borderColor: copied ? "rgba(134,31,65,0.35)" : p.line }}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; }}
+            onMouseLeave={e => { e.currentTarget.style.color = copied ? ACCENT : p.textMute; }}
           >
             {copied ? "Copied!" : "Copy"}
           </button>
@@ -328,8 +334,8 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
             <button
               onClick={() => onRetry(question)}
               style={btnBase}
-              onMouseEnter={e => { e.currentTarget.style.color = "#861F41"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.35)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = dm ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.38)"; e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"; }}
+              onMouseEnter={e => { e.currentTarget.style.color = ACCENT; e.currentTarget.style.borderColor = "rgba(134,31,65,0.35)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = p.textMute; e.currentTarget.style.borderColor = p.line; }}
             >
               ↺ Retry
             </button>
@@ -403,7 +409,7 @@ function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c,
       style={{
         display: "flex", alignItems: "center", position: "relative",
         background: active ? c.active : hov ? c.hover : "transparent",
-        borderLeft: `2px solid ${active ? "#861F41" : "transparent"}`,
+        borderLeft: `2px solid ${active ? ACCENT : "transparent"}`,
         paddingRight: 8,
         transition: "background 0.12s, border-color 0.12s",
       }}
@@ -443,8 +449,8 @@ function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c,
               <div style={{
                 position: "absolute", right: 0, top: "100%", zIndex: 400,
                 background: c.bg, border: `1px solid ${c.border}`,
-                borderRadius: 8, padding: "4px 0", minWidth: 148,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.22)",
+                borderRadius: RADIUS.sm, padding: "4px 0", minWidth: 148,
+                boxShadow: SHADOW.lg,
               }}>
                 {projects.length === 0 && (
                   <div style={{ padding: "8px 12px", fontSize: 11, color: c.faint }}>
@@ -457,7 +463,7 @@ function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c,
                     onClick={e => { e.stopPropagation(); onMove(p.id); setMoveDd(false); setHov(false); }}
                     style={{
                       padding: "7px 12px", fontSize: 12, cursor: "pointer",
-                      color: session.projectId === p.id ? "#861F41" : c.text,
+                      color: session.projectId === p.id ? ACCENT : c.text,
                       fontWeight: session.projectId === p.id ? 700 : 500,
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = c.hover}
@@ -539,7 +545,7 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
               borderBottom: `1px solid ${c.border}`,
               color: c.text, fontSize: 11, fontWeight: 700,
               outline: "none", padding: "1px 2px",
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontFamily: SANS,
             }}
           />
         ) : (
@@ -594,22 +600,15 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
 // ── Sidebar ───────────────────────────────────────────────────────
 function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed }) {
   const dm = darkMode;
-  const c = dm ? {
-    bg:     "#111111",
-    border: "rgba(255,255,255,0.07)",
-    text:   "#f0edf3",
-    sub:    "rgba(255,255,255,0.40)",
-    faint:  "rgba(255,255,255,0.18)",
-    hover:  "rgba(255,255,255,0.05)",
-    active: "rgba(134,31,65,0.14)",
-  } : {
-    bg:     "#f0ede9",
-    border: "rgba(0,0,0,0.08)",
-    text:   "#1a1210",
-    sub:    "rgba(0,0,0,0.50)",
-    faint:  "rgba(0,0,0,0.28)",
-    hover:  "rgba(0,0,0,0.04)",
-    active: "rgba(134,31,65,0.07)",
+  const p = palette(dm);
+  const c = {
+    bg:     p.bgRaised,
+    border: p.line,
+    text:   p.text,
+    sub:    p.textSub,
+    faint:  p.textMute,
+    hover:  p.cardHover,
+    active: dm ? "rgba(134,31,65,0.14)" : "rgba(134,31,65,0.07)",
   };
 
   const [addingProj, setAddingProj]   = useState(false);
@@ -623,7 +622,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     width: 260,
     zIndex: 200,
     transform: open ? "translateX(0)" : "translateX(100%)",
-    transition: "transform 0.22s ease",
+    transition: `transform 0.22s ${EASE}`,
     boxShadow: open ? "-6px 0 24px rgba(0,0,0,0.22)" : "none",
   } : {
     width: collapsed ? 0 : 240,
@@ -653,6 +652,8 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     setAddingProj(false);
   };
 
+  const gc = glassCard(dm);
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -665,7 +666,9 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 
       <div style={{
         ...panelStyle,
-        background: c.bg,
+        background: gc.background,
+        backdropFilter: gc.backdropFilter,
+        WebkitBackdropFilter: gc.WebkitBackdropFilter,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
       }}>
@@ -677,8 +680,9 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
           flexShrink: 0,
         }}>
           <span style={{
-            fontSize: 10, fontWeight: 700, color: "#861F41",
+            fontSize: 10, fontWeight: 700, color: ACCENT,
             letterSpacing: "1.5px", textTransform: "uppercase",
+            fontFamily: MONO,
           }}>History</span>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <button
@@ -686,10 +690,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
               title="New project"
               style={{
                 background: "none", border: `1px solid ${c.border}`,
-                borderRadius: 7, padding: "4px 8px", cursor: "pointer",
+                borderRadius: RADIUS.xs, padding: "4px 8px", cursor: "pointer",
                 color: c.sub, display: "flex", alignItems: "center", gap: 4,
                 fontSize: 11, fontWeight: 600,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: SANS,
               }}
             >
               <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
@@ -700,10 +704,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
             <button
               onClick={onNew}
               style={{
-                background: "#861F41", color: "white", border: "none",
-                borderRadius: 8, padding: "5px 12px",
+                background: ACCENT, color: "white", border: "none",
+                borderRadius: RADIUS.xs, padding: "5px 12px",
                 fontWeight: 700, fontSize: 11, cursor: "pointer",
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: SANS,
               }}
             >+ New</button>
           </div>
@@ -726,21 +730,21 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
               placeholder="Project name…"
               style={{
                 flex: 1, background: c.hover,
-                border: `1px solid ${c.border}`, borderRadius: 6,
+                border: `1px solid ${c.border}`, borderRadius: RADIUS.xs,
                 padding: "5px 8px", fontSize: 12, color: c.text,
-                outline: "none", fontFamily: "'Plus Jakarta Sans', sans-serif",
+                outline: "none", fontFamily: SANS,
               }}
-              onFocus={e => e.currentTarget.style.borderColor = "#861F41"}
+              onFocus={e => e.currentTarget.style.borderColor = ACCENT}
               onBlur={e => e.currentTarget.style.borderColor = c.border}
             />
             <button
               onClick={handleCreateProject}
               disabled={!newProjName.trim()}
               style={{
-                background: newProjName.trim() ? "#861F41" : "rgba(134,31,65,0.2)",
-                color: "white", border: "none", borderRadius: 6,
+                background: newProjName.trim() ? ACCENT : "rgba(134,31,65,0.2)",
+                color: "white", border: "none", borderRadius: RADIUS.xs,
                 padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: SANS,
               }}
             >Create</button>
           </div>
@@ -751,7 +755,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
           {sessions.length === 0 ? (
             <div style={{
               padding: "28px 16px", textAlign: "center",
-              color: c.faint, fontSize: 12, lineHeight: 1.6,
+              color: c.faint, fontSize: 12, lineHeight: 1.6, fontFamily: SANS,
             }}>
               No past chats yet.<br />Ask something to get started.
             </div>
@@ -782,6 +786,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                       padding: "8px 12px 3px",
                       fontSize: 10, fontWeight: 700, color: c.faint,
                       letterSpacing: "0.8px", textTransform: "uppercase",
+                      fontFamily: MONO,
                     }}>Other</div>
                   )}
                   {unorganized.map(session => (
@@ -827,6 +832,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const inputRef   = useRef(null);
   const fileRef    = useRef(null);
   const dm = darkMode;
+  const p = palette(dm);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -840,24 +846,6 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
-
-  const c = dm ? {
-    bg:      "#0a0a0a",
-    surface: "rgba(255,255,255,0.03)",
-    border:  "rgba(255,255,255,0.08)",
-    text:    "#f0edf3",
-    sub:     "rgba(255,255,255,0.40)",
-    faint:   "rgba(255,255,255,0.20)",
-    inputBg: "rgba(255,255,255,0.05)",
-  } : {
-    bg:      "#fbf8f4",
-    surface: "rgba(0,0,0,0.025)",
-    border:  "rgba(0,0,0,0.09)",
-    text:    "#1a1210",
-    sub:     "rgba(0,0,0,0.50)",
-    faint:   "rgba(0,0,0,0.28)",
-    inputBg: "white",
-  };
 
   const startNewChat = () => {
     setMessages([]);
@@ -901,12 +889,12 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   };
 
   const deleteProject = (id) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
+    setProjects(prev => prev.filter(proj => proj.id !== id));
     setSessions(prev => prev.map(s => s.projectId === id ? { ...s, projectId: null } : s));
   };
 
   const renameProject = (id, name) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, name } : p));
+    setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, name } : proj));
   };
 
   const moveSession = (sessionId, projectId) => {
@@ -1074,7 +1062,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       display: "flex",
       height: "100%",
       background: "transparent",
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      fontFamily: SANS,
       overflow: "hidden",
     }}>
 
@@ -1085,28 +1073,28 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         {isMobile && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "12px 16px", borderBottom: `1px solid ${c.border}`,
-            background: c.bg, flexShrink: 0,
+            padding: "12px 16px", borderBottom: `1px solid ${p.line}`,
+            background: p.bg, flexShrink: 0,
           }}>
             <button
               onClick={() => setSidebarOpen(o => !o)}
               style={{
                 background: "none", border: "none", cursor: "pointer",
-                color: c.sub, padding: 4, fontSize: 18, lineHeight: 1,
+                color: p.textSub, padding: 4, fontSize: 18, lineHeight: 1,
               }}
               aria-label="Toggle chat history"
             >☰</button>
             <span style={{
-              fontSize: 11, fontWeight: 800, color: c.faint,
-              letterSpacing: "1px", textTransform: "uppercase",
+              fontSize: 11, fontWeight: 800, color: p.textMute,
+              letterSpacing: "1px", textTransform: "uppercase", fontFamily: MONO,
             }}>Darvis AI</span>
             <button
               onClick={startNewChat}
               style={{
-                background: "none", border: `1px solid ${c.border}`,
-                borderRadius: 7, padding: "5px 10px", cursor: "pointer",
-                color: c.sub, fontSize: 11, fontWeight: 700,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                background: "none", border: `1px solid ${p.line}`,
+                borderRadius: RADIUS.xs, padding: "5px 10px", cursor: "pointer",
+                color: p.textSub, fontSize: 11, fontWeight: 700,
+                fontFamily: SANS,
               }}
             >+ New</button>
           </div>
@@ -1116,17 +1104,17 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         {!isMobile && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "flex-end",
-            padding: "8px 16px", borderBottom: `1px solid ${c.border}`,
-            flexShrink: 0, background: c.bg,
+            padding: "8px 16px", borderBottom: `1px solid ${p.line}`,
+            flexShrink: 0, background: p.bg,
           }}>
             <button
               onClick={() => setSidebarVisible(v => !v)}
               title={sidebarVisible ? "Hide history" : "Show history"}
               style={{
-                background: "none", border: `1px solid ${c.border}`,
-                borderRadius: 8, padding: "5px 12px", cursor: "pointer",
-                color: c.sub, fontSize: 11, fontWeight: 600,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                background: "none", border: `1px solid ${p.line}`,
+                borderRadius: RADIUS.sm, padding: "5px 12px", cursor: "pointer",
+                color: p.textSub, fontSize: 11, fontWeight: 600,
+                fontFamily: SANS,
                 display: "flex", alignItems: "center", gap: 6,
               }}
             >
@@ -1147,33 +1135,40 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
             overflowY: "auto",
           }}>
             <div style={{
-              fontSize: 10, fontWeight: 700, color: "#861F41",
+              fontSize: 10, fontWeight: 700, color: ACCENT,
               letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 20,
+              fontFamily: MONO,
             }}>Darvis AI</div>
             <h1 style={{
               margin: "0 0 12px", fontSize: isMobile ? "clamp(28px, 8vw, 38px)" : "clamp(28px, 4vw, 48px)",
-              fontWeight: 700, color: c.text, letterSpacing: "-2px", textAlign: "center",
+              fontWeight: 700, color: p.text, letterSpacing: "-2px", textAlign: "center",
+              fontFamily: SANS,
             }}>
-              Ask about <span style={{ color: "#861F41" }}>any course.</span>
+              Ask about <span style={{ color: ACCENT }}>any course.</span>
             </h1>
             <p style={{
-              margin: "0 0 32px", fontSize: isMobile ? 14 : 15, color: c.sub,
-              maxWidth: 440, textAlign: "center", lineHeight: 1.7,
+              margin: "0 0 32px", fontSize: isMobile ? 14 : 15, color: p.textSub,
+              maxWidth: 440, textAlign: "center", lineHeight: 1.7, fontFamily: SANS,
             }}>
               Grade distributions, professor comparisons, and historical trends. All from real institutional data.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: isMobile ? "100%" : 600 }}>
               {SUGGESTED.map(q => (
                 <button key={q} onClick={() => send(q)} style={{
-                  background: c.surface,
-                  border: `1px solid ${c.border}`,
-                  borderRadius: 20, padding: "8px 14px",
-                  color: c.sub, fontSize: isMobile ? 12 : 13, fontWeight: 600,
-                  cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  transition: "all 0.15s ease", textAlign: "left",
+                  background: p.card,
+                  border: `1px solid ${p.line}`,
+                  borderRadius: RADIUS.pill,
+                  padding: "8px 14px",
+                  color: p.textSub,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: SANS,
+                  transition: `all 0.15s ${EASE}`,
+                  textAlign: "left",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#861F41"; e.currentTarget.style.color = "#861F41"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.sub; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}
                 >{q}</button>
               ))}
             </div>
@@ -1210,7 +1205,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                         </div>
                       )}
                       <div style={{
-                        background: "#861F41", color: "white",
+                        background: ACCENT, color: "white",
                         borderRadius: "14px 4px 14px 14px",
                         padding: "12px 16px", fontSize: 14, lineHeight: 1.5,
                         fontWeight: 500, whiteSpace: "pre-wrap",
@@ -1233,14 +1228,13 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                   <div style={{
                     width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-                    background: "#861F41", display: "flex", alignItems: "center", justifyContent: "center",
+                    background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center",
                     overflow: "hidden",
                   }}>
                     <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
                   </div>
                   <div style={{
-                    background: dm ? "rgba(255,255,255,0.04)" : "white",
-                    border: `1px solid ${c.border}`,
+                    ...glassCard(dm),
                     borderRadius: "4px 14px 14px 14px",
                     padding: "14px 18px",
                     display: "flex", gap: 5, alignItems: "center",
@@ -1248,7 +1242,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     {[0,1,2].map(i => (
                       <div key={i} style={{
                         width: 7, height: 7, borderRadius: "50%",
-                        background: "#861F41", opacity: 0.7,
+                        background: ACCENT, opacity: 0.7,
                         animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
                       }} />
                     ))}
@@ -1262,8 +1256,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
 
         {/* ── Input bar ───────────────────────────────────────── */}
         <div style={{
-          background: c.bg,
-          borderTop: `1px solid ${c.border}`,
+          background: p.bg,
+          borderTop: `1px solid ${p.line}`,
           padding: isMobile ? "10px 12px 16px" : "16px 24px 20px",
           flexShrink: 0,
         }}>
@@ -1275,9 +1269,9 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 onClick={() => setShowSettings(s => !s)}
                 style={{
                   background: "none", border: "none", padding: 0,
-                  color: c.faint, fontSize: 11, fontWeight: 700,
+                  color: p.textMute, fontSize: 11, fontWeight: 700,
                   cursor: "pointer", letterSpacing: "0.5px",
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontFamily: SANS,
                 }}
               >{showSettings ? "▾" : "▸"} Settings</button>
 
@@ -1292,16 +1286,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               <div style={{
                 display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center",
                 marginBottom: 12, padding: "12px 14px",
-                background: c.surface, borderRadius: 10,
-                border: `1px solid ${c.border}`,
-                fontSize: 12, color: c.sub,
+                background: p.card, borderRadius: RADIUS.sm,
+                border: `1px solid ${p.line}`,
+                fontSize: 12, color: p.textSub,
               }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={useRecency}
                     onChange={e => setUseRecency(e.target.checked)}
-                    style={{ accentColor: "#861F41", width: 14, height: 14, cursor: "pointer" }}
+                    style={{ accentColor: ACCENT, width: 14, height: 14, cursor: "pointer" }}
                   />
                   <span style={{ fontWeight: 600 }}>Weight recent terms</span>
                 </label>
@@ -1311,7 +1305,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     type="range" min="0" max="100" step="5"
                     value={minStudents}
                     onChange={e => setMinStudents(Number(e.target.value))}
-                    style={{ width: 80, accentColor: "#861F41" }}
+                    style={{ width: 80, accentColor: ACCENT }}
                   />
                 </label>
                 <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1320,7 +1314,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     type="range" min="3" max="25" step="1"
                     value={topN}
                     onChange={e => setTopN(Number(e.target.value))}
-                    style={{ width: 80, accentColor: "#861F41" }}
+                    style={{ width: 80, accentColor: ACCENT }}
                   />
                 </label>
               </div>
@@ -1331,31 +1325,31 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               <div style={{
                 display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10,
                 padding: "10px 12px",
-                background: c.surface, borderRadius: 10,
-                border: `1px solid ${c.border}`,
+                background: p.card, borderRadius: RADIUS.sm,
+                border: `1px solid ${p.line}`,
               }}>
                 {attachments.map((att, i) => (
                   <div key={i} style={{
                     position: "relative", display: "flex", alignItems: "center", gap: 6,
                     background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
-                    border: `1px solid ${c.border}`,
-                    borderRadius: 8, padding: att.type.startsWith("image/") ? 4 : "6px 10px",
+                    border: `1px solid ${p.line}`,
+                    borderRadius: RADIUS.xs, padding: att.type.startsWith("image/") ? 4 : "6px 10px",
                     maxWidth: 200,
                   }}>
                     {att.type.startsWith("image/") ? (
                       <img src={att.dataUrl} alt={att.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 6 }} />
                     ) : (
                       <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c.sub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.textSub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                         </svg>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: c.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130 }}>{att.name}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: p.textSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130 }}>{att.name}</span>
                       </>
                     )}
                     <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))} style={{
                       position: "absolute", top: -6, right: -6,
                       width: 16, height: 16, borderRadius: "50%",
-                      background: "#861F41", color: "white", border: "none",
+                      background: ACCENT, color: "white", border: "none",
                       cursor: "pointer", fontSize: 9, fontWeight: 700,
                       display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
                     }}>✕</button>
@@ -1381,17 +1375,17 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 onClick={() => fileRef.current?.click()}
                 title="Attach file"
                 style={{
-                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                  width: 40, height: 40, borderRadius: RADIUS.xs, flexShrink: 0,
                   background: "none",
-                  border: `1px solid ${c.border}`,
+                  border: `1px solid ${p.line}`,
                   cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: attachments.length > 0 ? "#861F41" : c.faint,
-                  transition: "all 0.15s",
+                  color: attachments.length > 0 ? ACCENT : p.textMute,
+                  transition: `all 0.15s ${EASE}`,
                   position: "relative",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#861F41"; e.currentTarget.style.color = "#861F41"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = attachments.length > 0 ? "#861F41" : c.faint; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = attachments.length > 0 ? ACCENT : p.textMute; }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
@@ -1399,7 +1393,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 {attachments.length > 0 && (
                   <span style={{
                     position: "absolute", top: -5, right: -5,
-                    background: "#861F41", color: "white",
+                    background: ACCENT, color: "white",
                     borderRadius: "50%", width: 16, height: 16,
                     fontSize: 9, fontWeight: 800,
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -1416,28 +1410,28 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                 rows={1}
                 style={{
                   flex: 1, padding: "12px 16px",
-                  border: `1px solid ${c.border}`,
-                  borderRadius: 12, resize: "none",
-                  background: c.inputBg, color: c.text,
+                  ...glassInput(dm),
+                  borderRadius: RADIUS.sm, resize: "none",
+                  color: p.text,
                   fontSize: 14, fontWeight: 500,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontFamily: SANS,
                   outline: "none", lineHeight: 1.5,
                   transition: "border-color 0.15s ease",
                   overflowY: "hidden",
                 }}
-                onFocus={e => e.currentTarget.style.borderColor = "#861F41"}
-                onBlur={e => e.currentTarget.style.borderColor = c.border}
+                onFocus={e => e.currentTarget.style.borderColor = ACCENT}
+                onBlur={e => e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}
                 onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
               />
               <button
                 onClick={() => send()}
                 disabled={(!input.trim() && attachments.length === 0) || loading}
                 style={{
-                  width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                  background: (input.trim() || attachments.length > 0) && !loading ? "#861F41" : "rgba(134,31,65,0.2)",
+                  width: 44, height: 44, borderRadius: RADIUS.sm, flexShrink: 0,
+                  background: (input.trim() || attachments.length > 0) && !loading ? ACCENT : "rgba(134,31,65,0.2)",
                   border: "none", cursor: (input.trim() || attachments.length > 0) && !loading ? "pointer" : "default",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "all 0.15s ease",
+                  transition: `all 0.15s ${EASE}`,
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1446,7 +1440,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               </button>
             </div>
 
-            <div style={{ fontSize: 11, color: c.faint, marginTop: 8, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, textAlign: "center", fontFamily: SANS }}>
               Based on historical grade data only · Enter to send
             </div>
           </div>
