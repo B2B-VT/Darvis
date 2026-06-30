@@ -488,6 +488,18 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
 }
 
 // ── Course Card ───────────────────────────────────────────────────
+// Returns a clean time string or null for placeholder/arranged values
+function cleanTime(days, startTime) {
+  const isPlaceholder = v => !v || /^\s*$/.test(v) || /^[\s\-(ARR)]+$/.test(v) || /^-+$/.test(v) || v.trim() === "(ARR)";
+  const dStr = (days || []).join("");
+  const tStr = (startTime || "").replace(/:00$/, "");
+  if (isPlaceholder(dStr) && isPlaceholder(tStr)) return null; // fully arranged
+  if (isPlaceholder(dStr)) return isPlaceholder(tStr) ? null : tStr;
+  return isPlaceholder(tStr) ? dStr : `${dStr} ${tStr}`;
+}
+
+const SECTION_LIMIT = 5;
+
 function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
   const dm = darkMode;
   const p = palette(dm);
@@ -495,6 +507,7 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
   const gpa = course.avgGpa || 0;
   const ref = useRef(null);
   const [sections, setSections] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([entry]) => {
@@ -509,17 +522,26 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
     return () => obs.disconnect();
   }, [course.subject, course.number]);
 
+  // Group by instructor, collect unique real times
   const byInstructor = sections
     ? Object.values(
         sections.reduce((acc, sec) => {
           const name = sec.instructor || "Staff";
           if (!acc[name]) acc[name] = { name, rmp: instructorMap?.[name] || null, times: [] };
-          const t = [(sec.days || []).join(""), sec.startTime ? sec.startTime.replace(/:00$/, "") : "TBA"].filter(Boolean).join(" ");
+          const t = cleanTime(sec.days, sec.startTime);
           if (t && !acc[name].times.includes(t)) acc[name].times.push(t);
           return acc;
         }, {})
-      )
+      ).sort((a, b) => {
+        // Sort by RMP rating desc, then by having any RMP at all
+        const rA = a.rmp?.rmpRating ?? -1;
+        const rB = b.rmp?.rmpRating ?? -1;
+        return rB - rA;
+      })
     : null;
+
+  const overflow = byInstructor ? Math.max(0, byInstructor.length - SECTION_LIMIT) : 0;
+  const visible  = showAll ? byInstructor : byInstructor?.slice(0, SECTION_LIMIT);
 
   const rmpColor = r => r >= 4 ? "#22c55e" : r >= 3 ? "#f59e0b" : "#ef4444";
 
@@ -549,39 +571,56 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
         <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 10 }}>
           Fall 2026 Sections
         </div>
+
         {byInstructor === null ? (
           <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>Loading…</div>
         ) : byInstructor.length === 0 ? (
           <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>No sections for Fall 2026.</div>
         ) : (
-          byInstructor.map(({ name, rmp, times }) => (
-            <div key={name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: `1px solid ${p.lineSoft}` }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <button onClick={() => onProfClick?.({ name })} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: p.text, transition: "color 0.15s" }}
-                    onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-                    onMouseLeave={e => e.currentTarget.style.color = p.text}
-                  >{name}</span>
-                </button>
-                {times.length > 0 && (
+          <>
+            {visible.map(({ name, rmp, times }) => (
+              <div key={name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: `1px solid ${p.lineSoft}` }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <button onClick={() => onProfClick?.({ name })} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+                    <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: p.text, transition: "color 0.15s" }}
+                      onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+                      onMouseLeave={e => e.currentTarget.style.color = p.text}
+                    >{name}</span>
+                  </button>
                   <div style={{ fontFamily: MONO, fontSize: 10, color: p.textMute, marginTop: 2 }}>
-                    {times.slice(0, 3).join(" · ")}{times.length > 3 ? ` +${times.length - 3}` : ""}
+                    {times.length > 0
+                      ? times.slice(0, 3).join(" · ") + (times.length > 3 ? ` +${times.length - 3}` : "")
+                      : "Times arranged — see registrar"}
                   </div>
+                </div>
+                {rmp?.rmpRating != null ? (
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 700, lineHeight: 1, color: rmpColor(rmp.rmpRating) }}>{rmp.rmpRating.toFixed(1)}</div>
+                    <div style={{ fontFamily: SANS, fontSize: 9, color: p.textMute, marginTop: 2 }}>RMP{rmp.rmpCount ? ` · ${rmp.rmpCount}` : ""}</div>
+                    {rmp.rmpDifficulty != null && <div style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint }}>Diff {rmp.rmpDifficulty.toFixed(1)}/5</div>}
+                  </div>
+                ) : (
+                  <span style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint, flexShrink: 0 }}>No RMP</span>
                 )}
               </div>
-              {rmp?.rmpRating != null ? (
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 700, lineHeight: 1, color: rmpColor(rmp.rmpRating) }}>{rmp.rmpRating.toFixed(1)}</div>
-                  <div style={{ fontFamily: SANS, fontSize: 9, color: p.textMute, marginTop: 2 }}>RMP{rmp.rmpCount ? ` · ${rmp.rmpCount}` : ""}</div>
-                  {rmp.rmpDifficulty != null && <div style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint }}>Diff {rmp.rmpDifficulty.toFixed(1)}/5</div>}
-                </div>
-              ) : (
-                <span style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint, flexShrink: 0 }}>No RMP</span>
-              )}
-            </div>
-          ))
+            ))}
+
+            {/* Dropdown toggle for overflow */}
+            {overflow > 0 && (
+              <button
+                onClick={() => setShowAll(s => !s)}
+                style={{ marginTop: 8, background: "none", border: `1px solid ${p.line}`, borderRadius: RADIUS.sm, padding: "5px 12px", cursor: "pointer", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textSub, display: "flex", alignItems: "center", gap: 6, transition: "border-color 0.15s, color 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}
+              >
+                <span style={{ display: "inline-block", transform: showAll ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+                {showAll ? "Show less" : `+${overflow} more instructor${overflow !== 1 ? "s" : ""}`}
+              </button>
+            )}
+          </>
         )}
-        <button onClick={() => onClick(course)} style={{ marginTop: 10, background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 12, color: p.textMute, transition: "color 0.15s" }}
+
+        <button onClick={() => onClick(course)} style={{ marginTop: 10, background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 12, color: p.textMute, transition: "color 0.15s", display: "block" }}
           onMouseEnter={e => e.currentTarget.style.color = ACCENT}
           onMouseLeave={e => e.currentTarget.style.color = p.textMute}
         >View grade history →</button>
