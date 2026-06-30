@@ -488,26 +488,46 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
 }
 
 // ── Course Card ───────────────────────────────────────────────────
-// Returns a clean time string or null for placeholder/arranged values
-function cleanTime(days, startTime) {
-  const isPlaceholder = v => !v || /^\s*$/.test(v) || /^[\s\-(ARR)]+$/.test(v) || /^-+$/.test(v) || v.trim() === "(ARR)";
-  const dStr = (days || []).join("");
-  const tStr = (startTime || "").replace(/:00$/, "");
-  if (isPlaceholder(dStr) && isPlaceholder(tStr)) return null; // fully arranged
-  if (isPlaceholder(dStr)) return isPlaceholder(tStr) ? null : tStr;
-  return isPlaceholder(tStr) ? dStr : `${dStr} ${tStr}`;
+
+function isPlaceholder(v) {
+  return !v || /^\s*$/.test(v) || /^-+$/.test(v) || v.trim() === "(ARR)";
+}
+
+function fmtTime(t) {
+  if (!t || isPlaceholder(t)) return null;
+  // "09:30" → "9:30am", "14:30" → "2:30pm"
+  const [hStr, mStr] = t.split(":");
+  let h = parseInt(hStr, 10);
+  const m = mStr || "00";
+  const ampm = h >= 12 ? "pm" : "am";
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return `${h}:${m}${ampm}`;
+}
+
+function lookupRmp(name, map) {
+  if (!map || !name) return null;
+  if (map[name]) return map[name];
+  const norm = name.trim().replace(/\s+/g, " ");
+  if (map[norm]) return map[norm];
+  const lastName = norm.split(/\s+/).pop().toLowerCase();
+  return map[`_ln_${lastName}`] || null;
+}
+
+function rmpColor(r) {
+  return r >= 4 ? "#22c55e" : r >= 3 ? "#f59e0b" : "#ef4444";
 }
 
 const SECTION_LIMIT = 5;
 
 function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
   const dm = darkMode;
-  const p = palette(dm);
+  const p  = palette(dm);
   const glass = glassCard(dm);
   const gpa = course.avgGpa || 0;
   const ref = useRef(null);
   const [sections, setSections] = useState(null);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll,  setShowAll]  = useState(false);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([entry]) => {
@@ -522,109 +542,142 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
     return () => obs.disconnect();
   }, [course.subject, course.number]);
 
-  // Group by instructor, collect unique real times
-  const byInstructor = sections
-    ? Object.values(
-        sections.reduce((acc, sec) => {
-          const name = sec.instructor || "Staff";
-          if (!acc[name]) acc[name] = { name, rmp: instructorMap?.[name] || null, times: [] };
-          const t = cleanTime(sec.days, sec.startTime);
-          if (t && !acc[name].times.includes(t)) acc[name].times.push(t);
-          return acc;
-        }, {})
-      ).sort((a, b) => {
-        // Sort by RMP rating desc, then by having any RMP at all
-        const rA = a.rmp?.rmpRating ?? -1;
-        const rB = b.rmp?.rmpRating ?? -1;
-        return rB - rA;
-      })
+  // Attach RMP to each section, sort by RMP rating desc
+  const enriched = sections
+    ? sections
+        .map(sec => ({ ...sec, rmp: lookupRmp(sec.instructor, instructorMap) }))
+        .sort((a, b) => (b.rmp?.rmpRating ?? -1) - (a.rmp?.rmpRating ?? -1))
     : null;
 
-  const overflow = byInstructor ? Math.max(0, byInstructor.length - SECTION_LIMIT) : 0;
-  const visible  = showAll ? byInstructor : byInstructor?.slice(0, SECTION_LIMIT);
-
-  const rmpColor = r => r >= 4 ? "#22c55e" : r >= 3 ? "#f59e0b" : "#ef4444";
+  const overflow = enriched ? Math.max(0, enriched.length - SECTION_LIMIT) : 0;
+  const visible  = showAll ? enriched : enriched?.slice(0, SECTION_LIMIT);
 
   return (
-    <div ref={ref} style={{ ...glass, borderRadius: RADIUS.lg, padding: "20px 24px 16px", fontFamily: SANS }}>
-      {/* Course header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase" }}>
-            {course.subject} {course.number}
-          </span>
-          <h3
-            onClick={() => onClick(course)}
-            style={{ margin: "4px 0 0", fontSize: 16, fontWeight: 400, fontFamily: SERIF, color: p.text, cursor: "pointer", lineHeight: 1.35, letterSpacing: "-0.2px", transition: "color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-            onMouseLeave={e => e.currentTarget.style.color = p.text}
-          >{course.title}</h3>
-        </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0, marginLeft: 16 }}>
-          {gpa > 0 && <GpaBadge gpa={gpa} darkMode={dm} />}
-          <span style={{ fontFamily: MONO, fontSize: 10, color: p.textMute }}>{course.credits} cr</span>
-        </div>
+    <div ref={ref} style={{ ...glass, borderRadius: RADIUS.lg, padding: "20px 22px 18px", fontFamily: SANS }}>
+
+      {/* ── Header row ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <span style={{ background: ACCENT, color: "#fff", borderRadius: RADIUS.pill, padding: "3px 10px", fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.5px" }}>
+          {course.subject} {course.number}
+        </span>
+        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub }}>
+          {course.credits} {course.credits === 1 ? "Credit" : "Credits"}
+        </span>
+        {gpa > 0 && <GpaBadge gpa={gpa} darkMode={dm} />}
       </div>
 
-      {/* Fall 2026 sections */}
-      <div style={{ borderTop: `1px solid ${p.lineSoft}`, paddingTop: 12 }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 10 }}>
-          Fall 2026 Sections
-        </div>
+      {/* ── Title ── */}
+      <h3
+        onClick={() => onClick(course)}
+        style={{ margin: "0 0 10px", fontSize: 18, fontWeight: 600, fontFamily: SANS, color: p.text, cursor: "pointer", lineHeight: 1.3, letterSpacing: "-0.3px", transition: "color 0.15s" }}
+        onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+        onMouseLeave={e => e.currentTarget.style.color = p.text}
+      >{course.title}</h3>
 
-        {byInstructor === null ? (
-          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>Loading…</div>
-        ) : byInstructor.length === 0 ? (
-          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>No sections for Fall 2026.</div>
+      {/* ── Description ── */}
+      {course.description && (
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: p.textMute, lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {course.description}
+        </p>
+      )}
+
+      {/* ── Sections ── */}
+      <div style={{ borderTop: `1px solid ${p.lineSoft}`, paddingTop: 12 }}>
+        {enriched === null ? (
+          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute }}>Loading sections…</div>
+        ) : enriched.length === 0 ? (
+          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute }}>No sections for Fall 2026.</div>
         ) : (
           <>
-            {visible.map(({ name, rmp, times }) => (
-              <div key={name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: `1px solid ${p.lineSoft}` }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <button onClick={() => onProfClick?.({ name })} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-                    <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: p.text, transition: "color 0.15s" }}
-                      onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-                      onMouseLeave={e => e.currentTarget.style.color = p.text}
-                    >{name}</span>
-                  </button>
-                  <div style={{ fontFamily: MONO, fontSize: 10, color: p.textMute, marginTop: 2 }}>
-                    {times.length > 0
-                      ? times.slice(0, 3).join(" · ") + (times.length > 3 ? ` +${times.length - 3}` : "")
-                      : "Times arranged — see registrar"}
-                  </div>
-                </div>
-                {rmp?.rmpRating != null ? (
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 700, lineHeight: 1, color: rmpColor(rmp.rmpRating) }}>{rmp.rmpRating.toFixed(1)}</div>
-                    <div style={{ fontFamily: SANS, fontSize: 9, color: p.textMute, marginTop: 2 }}>RMP{rmp.rmpCount ? ` · ${rmp.rmpCount}` : ""}</div>
-                    {rmp.rmpDifficulty != null && <div style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint }}>Diff {rmp.rmpDifficulty.toFixed(1)}/5</div>}
-                  </div>
-                ) : (
-                  <span style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint, flexShrink: 0 }}>No RMP</span>
-                )}
-              </div>
-            ))}
+            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: p.textSub, marginBottom: 8 }}>
+              {enriched.length} section{enriched.length !== 1 ? "s" : ""}
+            </div>
 
-            {/* Dropdown toggle for overflow */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {visible.map(sec => {
+                const days     = (sec.days || []).join("");
+                const start    = fmtTime(sec.startTime);
+                const end      = fmtTime(sec.endTime);
+                const timeStr  = start && end ? `${start}–${end}` : start || null;
+                const hasDays  = !isPlaceholder(days);
+                const isOpen   = sec.seats > 0 ? sec.enrolled < sec.seats : true;
+                const rmp      = sec.rmp;
+
+                return (
+                  <div key={sec.crn} style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: "10px 14px", background: dm ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                    {/* Row 1: CRN + status + seats */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                      <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, color: p.text }}>{sec.crn}</span>
+                      <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: isOpen ? "#22c55e" : "#ef4444", background: isOpen ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", borderRadius: RADIUS.pill, padding: "2px 8px" }}>
+                        {isOpen ? "Open" : "Closed"}
+                      </span>
+                      <div style={{ flex: 1 }} />
+                      {sec.seats > 0 && (
+                        <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: ACCENT }}>
+                          {sec.enrolled}/{sec.seats}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Row 2: days · time · location */}
+                    <div style={{ fontFamily: MONO, fontSize: 10, color: p.textMute, display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 6 }}>
+                      {hasDays && <span>{days}</span>}
+                      {timeStr && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          {timeStr}
+                        </span>
+                      )}
+                      {!hasDays && !timeStr && <span style={{ color: p.textFaint }}>Times arranged</span>}
+                      {sec.location && sec.location !== "TBA" && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          {sec.location}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Row 3: instructor + RMP */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <button
+                        onClick={() => onProfClick?.({ name: sec.instructor })}
+                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub, transition: "color 0.15s" }}
+                        onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+                        onMouseLeave={e => e.currentTarget.style.color = p.textSub}
+                      >
+                        {sec.instructor}
+                      </button>
+                      {rmp?.rmpRating != null && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 3, fontFamily: MONO, fontSize: 12, fontWeight: 700, color: rmpColor(rmp.rmpRating) }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill={rmpColor(rmp.rmpRating)} stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                          {rmp.rmpRating.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
             {overflow > 0 && (
               <button
                 onClick={() => setShowAll(s => !s)}
-                style={{ marginTop: 8, background: "none", border: `1px solid ${p.line}`, borderRadius: RADIUS.sm, padding: "5px 12px", cursor: "pointer", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textSub, display: "flex", alignItems: "center", gap: 6, transition: "border-color 0.15s, color 0.15s" }}
+                style={{ marginTop: 8, background: "none", border: `1px solid ${p.line}`, borderRadius: RADIUS.sm, padding: "5px 14px", cursor: "pointer", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textSub, display: "flex", alignItems: "center", gap: 6, transition: "border-color 0.15s, color 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}
               >
-                <span style={{ display: "inline-block", transform: showAll ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
-                {showAll ? "Show less" : `+${overflow} more instructor${overflow !== 1 ? "s" : ""}`}
+                <span style={{ transform: showAll ? "rotate(180deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▾</span>
+                {showAll ? "Show less" : `+${overflow} more section${overflow !== 1 ? "s" : ""}`}
               </button>
             )}
           </>
         )}
-
-        <button onClick={() => onClick(course)} style={{ marginTop: 10, background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 12, color: p.textMute, transition: "color 0.15s", display: "block" }}
-          onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-          onMouseLeave={e => e.currentTarget.style.color = p.textMute}
-        >View grade history →</button>
       </div>
+
+      <button onClick={() => onClick(course)} style={{ marginTop: 12, background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 12, color: p.textMute, transition: "color 0.15s" }}
+        onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+        onMouseLeave={e => e.currentTarget.style.color = p.textMute}
+      >View grade history →</button>
     </div>
   );
 }
@@ -788,7 +841,13 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   useEffect(() => {
     API.getInstructors().then(list => {
       const map = {};
-      list.forEach(i => { map[i.name] = i; });
+      list.forEach(i => {
+        map[i.name] = i;
+        // Also index by last name so timetable format ("KA Shinpaugh") can match
+        // grades format ("Kathleen Shinpaugh") — last token is always the surname
+        const lastName = i.name.trim().split(/\s+/).pop().toLowerCase();
+        if (!map[`_ln_${lastName}`]) map[`_ln_${lastName}`] = i;
+      });
       setInstructorMap(map);
     }).catch(() => {});
   }, []);
