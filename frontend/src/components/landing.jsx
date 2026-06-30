@@ -1,7 +1,7 @@
 // Landing Page v7 — "Observatory" · editorial futurism · treated photo hero ·
 // scroll-driven SVG · light/dark
 import { useState, useEffect, useRef } from "react";
-import { SignedIn, SignedOut, useSignUp } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
@@ -1445,32 +1445,6 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
   const statsRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const { signUp, isLoaded: signUpLoaded } = useSignUp();
-
-  // Waitlist form
-  const [wlEmail, setWlEmail] = useState("");
-  const [wlOpen, setWlOpen] = useState(false);
-  const [wlStep, setWlStep] = useState("idle"); // idle | loading | success | error
-  const [wlError, setWlError] = useState("");
-
-  const handleWaitlist = async (e) => {
-    e.preventDefault();
-    if (!wlEmail.trim() || !signUpLoaded) return;
-    setWlStep("loading");
-    try {
-      await signUp.create({ emailAddress: wlEmail.trim().toLowerCase() });
-      setWlStep("success");
-    } catch (err) {
-      const msg = err?.errors?.[0]?.message || "";
-      // "already on waitlist" or "already exists" — treat as success
-      if (/waitlist|already/i.test(msg)) {
-        setWlStep("success");
-      } else {
-        setWlStep("error");
-        setWlError(msg || "Something went wrong. Try again.");
-      }
-    }
-  };
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -1611,61 +1585,12 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
               <Btn label="Browse courses →" primary onClick={onEnter} />
             </SignedIn>
             <SignedOut>
-              {wlStep === "success" ? (
-                <div style={{
-                  display: "inline-flex", alignItems: "center", gap: 10,
-                  border: "1px solid rgba(74,222,128,0.35)",
-                  borderRadius: 999, padding: "13px 24px",
-                }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 12.5l5 5L20 6.5" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#4ade80" }}>
-                    You're on the list — we'll email you.
-                  </span>
-                </div>
-              ) : wlOpen ? (
-                <div>
-                  <form onSubmit={handleWaitlist} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                    <input
-                      type="email" placeholder="your@email.com" value={wlEmail}
-                      onChange={e => setWlEmail(e.target.value)} autoFocus required
-                      style={{
-                        height: 48, padding: "0 20px", fontSize: 14, fontWeight: 500,
-                        background: t.input,
-                        border: `1px solid ${t.line}`,
-                        borderRadius: 999, color: t.text, outline: "none", minWidth: 235,
-                        fontFamily: SANS, transition: "border-color 0.2s ease",
-                      }}
-                      onFocus={e => e.currentTarget.style.borderColor = "rgba(134,31,65,0.6)"}
-                      onBlur={e => e.currentTarget.style.borderColor = t.line}
-                    />
-                    <button type="submit" disabled={wlStep === "loading"} style={{
-                      height: 48, padding: "0 26px",
-                      background: ACCENT, color: "white", border: "none",
-                      borderRadius: 999, fontWeight: 600, fontSize: 14, cursor: "pointer",
-                      fontFamily: SANS, opacity: wlStep === "loading" ? 0.7 : 1,
-                      boxShadow: "0 2px 18px rgba(134,31,65,0.3)",
-                    }}>
-                      {wlStep === "loading" ? "Joining…" : "Join →"}
-                    </button>
-                    <button type="button" onClick={() => { setWlOpen(false); setWlStep("idle"); }} style={{
-                      height: 48, padding: "0 20px", background: "transparent",
-                      border: `1px solid ${t.line}`, borderRadius: 999,
-                      color: t.textSub, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                      fontFamily: SANS,
-                    }}>Cancel</button>
-                  </form>
-                  {wlStep === "error" && (
-                    <div style={{ marginTop: 10, fontSize: 12.5, color: "#f87171", fontWeight: 600 }}>{wlError}</div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <Btn label="Join the waitlist →" primary onClick={() => setWlOpen(true)} />
-                  <Btn label="Browse courses" onClick={onEnter} />
-                </div>
-              )}
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <SignUpButton mode="modal">
+                  <Btn label="Join the waitlist →" primary />
+                </SignUpButton>
+                <Btn label="Browse courses" onClick={onEnter} />
+              </div>
             </SignedOut>
           </div>
         </div>
@@ -1831,7 +1756,9 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             {wlStep === "success" ? (
               <div style={{ fontSize: 14.5, fontWeight: 600, color: "#4ade80" }}>You're on the list.</div>
             ) : (
-              <Btn label="Join the waitlist →" primary onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => setWlOpen(true), 500); }} />
+              <SignUpButton mode="modal">
+                <Btn label="Join the waitlist →" primary />
+              </SignUpButton>
             )}
           </SignedOut>
         </Reveal>
