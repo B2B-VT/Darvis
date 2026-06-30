@@ -44,15 +44,27 @@ export default function App() {
   // Schedule sync — load from Supabase on sign-in, clear on sign-out
   const scheduleInitialized = useRef(false);
   const scheduleSaveTimer   = useRef(null);
+  // Refs so the logout flush always sees the latest data without stale closures
+  const lastUserIdRef       = useRef(null);
+  const lastScheduleRef     = useRef([]);
+
+  useEffect(() => { lastScheduleRef.current = schedule; }, [schedule]);
 
   useEffect(() => {
     if (!authLoaded) return;
     if (isSignedIn && userLoaded && user) {
+      lastUserIdRef.current = user.id;
       scheduleInitialized.current = false;
       API.getSchedule(user.id)
         .then(sections => { setSchedule(sections); scheduleInitialized.current = true; })
         .catch(() => { scheduleInitialized.current = true; });
     } else if (!isSignedIn) {
+      // Flush immediately — the debounce timer would be cancelled by the re-render
+      clearTimeout(scheduleSaveTimer.current);
+      if (lastUserIdRef.current && lastScheduleRef.current.length > 0) {
+        API.saveSchedule(lastUserIdRef.current, lastScheduleRef.current).catch(() => {});
+      }
+      lastUserIdRef.current = null;
       setSchedule([]);
       scheduleInitialized.current = false;
     }
@@ -63,7 +75,7 @@ export default function App() {
     clearTimeout(scheduleSaveTimer.current);
     scheduleSaveTimer.current = setTimeout(() => {
       API.saveSchedule(user.id, schedule).catch(() => {});
-    }, 1500);
+    }, 600);
     return () => clearTimeout(scheduleSaveTimer.current);
   }, [schedule]);
   const [selectedCourse, setSelectedCourse] = useState(null);
