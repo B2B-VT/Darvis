@@ -64,13 +64,15 @@ def handle_professor_profile(
     use_recency: bool,
     rmp_df: pd.DataFrame | None = None,
     intent=None,
+    history: list | None = None,
+    user_profile: dict | None = None,
 ):
     settings = get_settings()
     # Use LLM-extracted name if available; fall back to regex
     name = (intent.professor_name if intent is not None and intent.professor_name else None) \
            or extract_professor_name_from_profile_question(question)
     if name is None:
-        answer = llm.answer(f"Question: {question}") or (
+        answer = llm.answer(f"Question: {question}", history=history) or (
             "I couldn't identify a professor name in your question. "
             "Try asking with just the last name — for example, \"Hamouda\" or \"Professor Shaffer\"."
         )
@@ -83,14 +85,14 @@ def handle_professor_profile(
     if result.empty:
         retrieved = vector_store.query(question, n_results=6)
         prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
-        answer = llm.answer(prompt) or professor_answer(question, result, name, rmp=rmp)
+        answer = llm.answer(prompt, history=history) or professor_answer(question, result, name, rmp=rmp)
         return answer, [], [], {"professor_query": name, "rmp": rmp}
 
     table_text = result[PROF_COLS].to_string(index=False)
     rmp_text   = _rmp_summary(rmp)
     retrieved  = vector_store.query(question, n_results=5)
     prompt     = build_answer_prompt(question, "professor_profile", table_text + rmp_text, retrieved, intent=intent)
-    answer     = llm.answer(prompt) or professor_answer(question, result, name, rmp=rmp)
+    answer     = llm.answer(prompt, history=history) or professor_answer(question, result, name, rmp=rmp)
 
     charts = [
         bar_chart(

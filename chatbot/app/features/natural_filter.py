@@ -17,6 +17,8 @@ def handle_natural_filter(
     top_n: int,
     use_recency: bool,
     intent=None,
+    history: list | None = None,
+    user_profile: dict | None = None,
 ):
     settings = get_settings()
 
@@ -62,11 +64,11 @@ def handle_natural_filter(
         retrieved = vector_store.query(question, n_results=6)
         if retrieved:
             prompt = build_answer_prompt(question, "natural_filter", "", retrieved)
-            answer = llm.answer(prompt)
+            answer = llm.answer(prompt, history=history)
             if answer:
                 return answer, [], [], {}
         # No grade data and no RAG context — let Gemma answer from its own knowledge
-        answer = llm.answer(f"Student's question: {question}")
+        answer = llm.answer(f"Student's question: {question}", history=history)
         if answer:
             return answer, [], [], {}
         return (
@@ -83,7 +85,7 @@ def handle_natural_filter(
     retrieved = vector_store.query(question, n_results=5)
     table_text = result[cols].to_string(index=False)
     prompt = build_answer_prompt(question, "natural_filter", table_text, retrieved, intent=intent)
-    answer = llm.answer(prompt) or filter_answer(question, result)
+    answer = llm.answer(prompt, history=history) or filter_answer(question, result)
 
     # Map sort goal → (DataFrame column, human-readable chart title).
     # Both ascending and descending GPA sorts use "Avg GPA" as the column but

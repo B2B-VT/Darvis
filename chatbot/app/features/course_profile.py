@@ -48,6 +48,8 @@ def handle_course_profile(
     use_recency: bool,
     rmp_df: pd.DataFrame | None = None,
     intent=None,
+    history: list | None = None,
+    user_profile: dict | None = None,
 ):
     settings = get_settings()
 
@@ -86,7 +88,7 @@ def handle_course_profile(
     if result.empty:
         retrieved = vector_store.query(question, n_results=6)
         prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
-        answer = llm.answer(prompt) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+        answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
         return answer, [], [], {"subject": subject, "course_no": course_no}
 
     # RMP question detection — prefer intent flag, fall back to keyword check
@@ -121,7 +123,7 @@ def handle_course_profile(
 
     retrieved = vector_store.query(question, n_results=5)
     prompt = build_answer_prompt(question, "course_profile", table_text, retrieved, intent=intent)
-    answer = llm.answer(prompt) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+    answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
 
     charts = [
         bar_chart(f"Average GPA by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Avg GPA", ascending=True), "Avg GPA", "Instructor", "Recency-weighted when requested."),

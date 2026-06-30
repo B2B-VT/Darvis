@@ -1,7 +1,8 @@
 // Main App component
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { setSupabaseToken } from "./supabase.js";
+import { API } from "./api.js";
 import AppShell from "./components/app-shell.jsx";
 import LandingPage from "./components/landing.jsx";
 import CourseSearch, { CourseDetail } from "./components/courses.jsx";
@@ -29,6 +30,32 @@ export default function App() {
   useEffect(() => {
     if (authLoaded) setSupabaseToken(isSignedIn ? getToken : null);
   }, [authLoaded, isSignedIn, getToken]);
+
+  // Schedule sync — load from Supabase on sign-in, clear on sign-out
+  const scheduleInitialized = useRef(false);
+  const scheduleSaveTimer   = useRef(null);
+
+  useEffect(() => {
+    if (!authLoaded) return;
+    if (isSignedIn && userLoaded && user) {
+      scheduleInitialized.current = false;
+      API.getSchedule(user.id)
+        .then(sections => { setSchedule(sections); scheduleInitialized.current = true; })
+        .catch(() => { scheduleInitialized.current = true; });
+    } else if (!isSignedIn) {
+      setSchedule([]);
+      scheduleInitialized.current = false;
+    }
+  }, [isSignedIn, userLoaded, authLoaded]);
+
+  useEffect(() => {
+    if (!isSignedIn || !user || !scheduleInitialized.current) return;
+    clearTimeout(scheduleSaveTimer.current);
+    scheduleSaveTimer.current = setTimeout(() => {
+      API.saveSchedule(user.id, schedule).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(scheduleSaveTimer.current);
+  }, [schedule]);
 
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }

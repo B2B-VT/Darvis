@@ -249,6 +249,20 @@ export const API = {
     const { error } = await db.from('profile_posts').delete().eq('id', id);
     if (error) throw error;
   },
+
+  // ── Schedule sync ──────────────────────────────────────────────────
+  async getSchedule(userId) {
+    const { data } = await db.from('user_schedules').select('sections').eq('user_id', userId).maybeSingle();
+    return Array.isArray(data?.sections) ? data.sections : [];
+  },
+
+  async saveSchedule(userId, sections) {
+    const { error } = await db.from('user_schedules').upsert(
+      { user_id: userId, sections, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+    if (error) throw error;
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────

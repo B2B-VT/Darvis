@@ -331,6 +331,8 @@ def chat(request: Request, body: ChatRequest):
                 body.min_students, body.top_n, body.use_recency,
                 rmp_df=STATE.get("rmp_df"),
                 intent=intent,
+                history=[m.model_dump() for m in body.history],
+                user_profile=body.user_profile,
             )
             if result is None:
                 answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
@@ -342,12 +344,16 @@ def chat(request: Request, body: ChatRequest):
                 body.min_students, body.top_n, body.use_recency,
                 rmp_df=STATE.get("rmp_df"),
                 intent=intent,
+                history=[m.model_dump() for m in body.history],
+                user_profile=body.user_profile,
             )
         elif route == "natural_filter":
             answer, tables, charts, metadata = handle_natural_filter(
                 question, df, llm, vector_store,
                 body.top_n, body.use_recency,
                 intent=intent,
+                history=[m.model_dump() for m in body.history],
+                user_profile=body.user_profile,
             )
         else:
             answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)

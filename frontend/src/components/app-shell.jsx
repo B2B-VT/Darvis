@@ -153,7 +153,7 @@ export default function AppShell({
   const navItems = [
     { id: "search",      label: "Courses",    icon: Icons.courses     },
     { id: "instructors", label: "Instructors", icon: Icons.instructors },
-    { id: "schedule",    label: "Schedule",   icon: Icons.schedule, badge: schedule?.length || 0 },
+    { id: "schedule",    label: "Schedule",   icon: Icons.schedule, badge: isSignedIn ? (schedule?.length || 0) : 0 },
     { id: "chatbot",     label: "AI Advisor", icon: Icons.chatbot     },
     { id: "forums",      label: "Forums",     icon: Icons.forums      },
   ];
