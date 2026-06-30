@@ -945,69 +945,95 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
         </div>
       </header>
 
-      <div ref={topRef} style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "40px 64px 96px", boxSizing: "border-box", display: "grid", gridTemplateColumns: (!isMobile && showFilters) ? "220px 1fr" : "1fr", gap: 56, alignItems: "start" }}>
-        {!isMobile && showFilters && <FilterPanel subjects={subjects} selectedSubjects={selSubjects} setSelectedSubjects={setSelSubjects} sortMode={sortMode} setSortMode={setSortMode} creditsFilter={creditsFilter} setCreditsFilter={setCreditsFilter} gpaOnly={gpaOnly} setGpaOnly={setGpaOnly} darkMode={dm} isMobile={false} onClear={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); }} />}
-        {isMobile && showFilters && <div style={{ marginBottom: 16 }}><FilterPanel subjects={subjects} selectedSubjects={selSubjects} setSelectedSubjects={setSelSubjects} sortMode={sortMode} setSortMode={setSortMode} creditsFilter={creditsFilter} setCreditsFilter={setCreditsFilter} gpaOnly={gpaOnly} setGpaOnly={setGpaOnly} darkMode={dm} isMobile={true} onClear={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); }} /></div>}
-
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 12 : 0, paddingBottom: 18, marginBottom: 24, borderBottom: `1px solid ${p.line}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-              <button onClick={() => setShowFilters(!showFilters)}
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: MONO, fontWeight: 600, fontSize: 11, letterSpacing: "1.2px", textTransform: "uppercase", color: p.textFaint, transition: "color 0.15s" }}
-                onMouseEnter={e => e.currentTarget.style.color = p.text}
-                onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
-              >
-                {showFilters ? "Hide" : "Show"} filters
-                {activeFilters > 0 && <span style={{ marginLeft: 6, color: ACCENT }}>· {activeFilters}</span>}
-              </button>
-              <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint }}>{filtered.length} results</span>
+      {/* ── Horizontal filter bar ── */}
+      <div style={{ borderBottom: `1px solid ${p.line}` }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "14px 16px" : "16px 64px", boxSizing: "border-box" }}>
+          {/* Row 1: subject search + sort + result count */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            {/* Subject multi-select — compact inline version */}
+            <div style={{ position: "relative", minWidth: 180, flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+              <SubjectSearch subjects={subjects} selected={selSubjects} onChange={v => { setSelSubjects(v); setPage(1); }} darkMode={dm} />
             </div>
-            <select value={sortMode} onChange={e => setSortMode(e.target.value)}
-              style={{ padding: "5px 10px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: p.textSub, fontFamily: MONO, fontSize: 10, cursor: "pointer", outline: "none" }}>
-              <option value="alpha">A→Z</option>
+
+            {/* Sort */}
+            <select value={sortMode} onChange={e => { setSortMode(e.target.value); setPage(1); }}
+              style={{ padding: "7px 10px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", color: p.text, fontFamily: MONO, fontSize: 11, cursor: "pointer", outline: "none", flexShrink: 0 }}>
+              <option value="alpha">A → Z</option>
               <option value="gpa_desc">GPA ↓</option>
               <option value="gpa_asc">GPA ↑</option>
-              <option value="sections_desc">Sections ↓</option>
-              <option value="sections_asc">Sections ↑</option>
+              <option value="sections_desc">Most Sections</option>
+              <option value="sections_asc">Fewest Sections</option>
             </select>
+
+            <div style={{ flex: 1 }} />
+            <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, flexShrink: 0 }}>{filtered.length} results</span>
+            {activeFilters > 0 && (
+              <button onClick={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); setPage(1); }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: MONO, fontWeight: 600, fontSize: 11, color: p.textFaint, flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+                onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
+              >Clear · {activeFilters}</button>
+            )}
           </div>
 
-          {loading ? (
-            <div style={{ padding: "120px 0", textAlign: "center", fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, letterSpacing: "2px", textTransform: "uppercase" }}>Loading the catalog…</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ padding: "120px 0", textAlign: "center" }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14 }}>No matches</div>
-              <div style={{ fontFamily: SERIF, fontSize: 22, color: p.text, marginBottom: 8 }}>Nothing fits those filters.</div>
-              <div style={{ fontFamily: SANS, fontSize: 14, color: p.textSub }}>Try loosening a constraint or clearing the search.</div>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {pageCourses.map(course => <CourseCard key={course.id} course={course} darkMode={dm} onClick={onCourseClick} onProfClick={onProfClick} instructorMap={instructorMap} />)}
-              </div>
-              {totalPages > 1 && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 48, paddingTop: 24, borderTop: `1px solid ${p.line}` }}>
-                  <span style={{ fontFamily: MONO, fontSize: 11, color: p.textFaint, fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <button onClick={() => goToPage(page - 1)} disabled={page === 1} style={{ padding: "6px 12px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: page === 1 ? p.textFaint : p.text, fontFamily: MONO, fontWeight: 600, fontSize: 12, cursor: page === 1 ? "default" : "pointer", opacity: page === 1 ? 0.4 : 1 }}>←</button>
-                    {(() => {
-                      const pages = []; const delta = 2, left = Math.max(1, page - delta), right = Math.min(totalPages, page + delta);
-                      if (left > 1) { pages.push(1); if (left > 2) pages.push("…"); }
-                      for (let i = left; i <= right; i++) pages.push(i);
-                      if (right < totalPages) { if (right < totalPages - 1) pages.push("…"); pages.push(totalPages); }
-                      return pages.map((pg, i) => pg === "…" ? (
-                        <span key={`e-${i}`} style={{ padding: "6px 4px", color: p.textFaint, fontFamily: MONO, fontSize: 12 }}>…</span>
-                      ) : (
-                        <button key={pg} onClick={() => goToPage(pg)} style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${pg === page ? ACCENT : p.line}`, background: pg === page ? ACCENT : "transparent", color: pg === page ? "white" : p.text, fontFamily: MONO, fontWeight: pg === page ? 700 : 500, fontSize: 12, cursor: pg === page ? "default" : "pointer" }}>{pg}</button>
-                      ));
-                    })()}
-                    <button onClick={() => goToPage(page + 1)} disabled={page === totalPages} style={{ padding: "6px 12px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: page === totalPages ? p.textFaint : p.text, fontFamily: MONO, fontWeight: 600, fontSize: 12, cursor: page === totalPages ? "default" : "pointer", opacity: page === totalPages ? 0.4 : 1 }}>→</button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+          {/* Row 2: credits pills + GPA toggle */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textFaint, textTransform: "uppercase", letterSpacing: "1px", marginRight: 4 }}>Credits</span>
+            {["1","2","3","4+"].map(cr => {
+              const on = creditsFilter.includes(cr);
+              return (
+                <button key={cr} onClick={() => { setCreditsFilter(f => on ? f.filter(x => x !== cr) : [...f, cr]); setPage(1); }}
+                  style={{ fontFamily: MONO, fontSize: 11, fontWeight: on ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", border: `1px solid ${on ? "rgba(134,31,65,0.40)" : p.line}`, background: on ? "rgba(134,31,65,0.12)" : "transparent", color: on ? ACCENT : p.textSub, transition: "all 0.14s" }}>
+                  {cr}
+                </button>
+              );
+            })}
+            <div style={{ width: 1, height: 18, background: p.line, margin: "0 4px", flexShrink: 0 }} />
+            <button onClick={() => { setGpaOnly(v => !v); setPage(1); }}
+              style={{ fontFamily: MONO, fontSize: 11, fontWeight: gpaOnly ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", border: `1px solid ${gpaOnly ? "rgba(134,31,65,0.40)" : p.line}`, background: gpaOnly ? "rgba(134,31,65,0.12)" : "transparent", color: gpaOnly ? ACCENT : p.textSub, transition: "all 0.14s" }}>
+              Has GPA data
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* ── Card grid ── */}
+      <div ref={topRef} style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "36px 64px 96px", boxSizing: "border-box" }}>
+        {loading ? (
+          <div style={{ padding: "120px 0", textAlign: "center", fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, letterSpacing: "2px", textTransform: "uppercase" }}>Loading the catalog…</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: "120px 0", textAlign: "center" }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14 }}>No matches</div>
+            <div style={{ fontFamily: SERIF, fontSize: 22, color: p.text, marginBottom: 8 }}>Nothing fits those filters.</div>
+            <div style={{ fontFamily: SANS, fontSize: 14, color: p.textSub }}>Try loosening a constraint or clearing the search.</div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 16 }}>
+              {pageCourses.map(course => <CourseCard key={course.id} course={course} darkMode={dm} onClick={onCourseClick} onProfClick={onProfClick} instructorMap={instructorMap} />)}
+            </div>
+            {totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 48, paddingTop: 24, borderTop: `1px solid ${p.line}` }}>
+                <span style={{ fontFamily: MONO, fontSize: 11, color: p.textFaint, fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <button onClick={() => goToPage(page - 1)} disabled={page === 1} style={{ padding: "6px 12px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: page === 1 ? p.textFaint : p.text, fontFamily: MONO, fontWeight: 600, fontSize: 12, cursor: page === 1 ? "default" : "pointer", opacity: page === 1 ? 0.4 : 1 }}>←</button>
+                  {(() => {
+                    const pages = []; const delta = 2, left = Math.max(1, page - delta), right = Math.min(totalPages, page + delta);
+                    if (left > 1) { pages.push(1); if (left > 2) pages.push("…"); }
+                    for (let i = left; i <= right; i++) pages.push(i);
+                    if (right < totalPages) { if (right < totalPages - 1) pages.push("…"); pages.push(totalPages); }
+                    return pages.map((pg, i) => pg === "…" ? (
+                      <span key={`e-${i}`} style={{ padding: "6px 4px", color: p.textFaint, fontFamily: MONO, fontSize: 12 }}>…</span>
+                    ) : (
+                      <button key={pg} onClick={() => goToPage(pg)} style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${pg === page ? ACCENT : p.line}`, background: pg === page ? ACCENT : "transparent", color: pg === page ? "white" : p.text, fontFamily: MONO, fontWeight: pg === page ? 700 : 500, fontSize: 12, cursor: pg === page ? "default" : "pointer" }}>{pg}</button>
+                    ));
+                  })()}
+                  <button onClick={() => goToPage(page + 1)} disabled={page === totalPages} style={{ padding: "6px 12px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: page === totalPages ? p.textFaint : p.text, fontFamily: MONO, fontWeight: 600, fontSize: 12, cursor: page === totalPages ? "default" : "pointer", opacity: page === totalPages ? 0.4 : 1 }}>→</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
