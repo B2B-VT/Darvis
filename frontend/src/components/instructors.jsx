@@ -1,6 +1,7 @@
 // Browse Instructors page — card grid with autocomplete search + liquid glass
 import { useState, useEffect, useMemo, useRef } from "react";
 import { API } from "../api.js";
+import { db } from "../supabase.js";
 import { GpaBadge } from "./courses.jsx";
 import { StarRating } from "./nav-auth.jsx";
 import {
@@ -35,7 +36,7 @@ function Avatar({ name, size = 52 }) {
 }
 
 // ── Instructor Card ───────────────────────────────────────────────
-function InstructorCard({ instructor, darkMode, onClick }) {
+function InstructorCard({ instructor, darkMode, onClick, courseList }) {
   const p = palette(darkMode);
   const [hov, setHov] = useState(false);
   const hasRmp = instructor.rmpRating != null;
@@ -102,10 +103,22 @@ function InstructorCard({ instructor, darkMode, onClick }) {
         </div>
       )}
 
+      {/* Course pills */}
+      {courseList && courseList.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
+          {courseList.slice(0, 4).map(c => (
+            <span key={c} style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textSub, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 8px", letterSpacing: "0.3px" }}>{c}</span>
+          ))}
+          {courseList.length > 4 && (
+            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textFaint, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 8px" }}>+{courseList.length - 4}</span>
+          )}
+        </div>
+      )}
+
       {/* Footer */}
       <div style={{ paddingTop: 12, borderTop: `1px solid ${p.lineSoft}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textFaint, letterSpacing: "0.5px", textTransform: "uppercase" }}>
-          {instructor.totalCourses ? `${instructor.totalCourses} course${instructor.totalCourses !== 1 ? "s" : ""}` : "View profile"}
+          {courseList && courseList.length > 0 ? `${courseList.length} course${courseList.length !== 1 ? "s" : ""} · Fall 2026` : "View profile"}
         </span>
         <span style={{ fontSize: 13, color: p.textFaint }}>›</span>
       </div>
@@ -118,10 +131,10 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [deptFilter, setDeptFilter] = useState("");
   const [rmpOnly, setRmpOnly] = useState(false);
   const [sortBy, setSortBy] = useState("name");
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+  const [instructorCourseMap, setInstructorCourseMap] = useState({});
   const searchRef = useRef(null);
   const dm = darkMode;
   const p = palette(dm);
@@ -139,26 +152,46 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       .catch(() => setLoading(false));
   }, []);
 
-  const departments = useMemo(() => {
-    return [...new Set(instructors.map(i => i.department).filter(Boolean))].sort();
-  }, [instructors]);
+  useEffect(() => {
+    db.from("sections")
+      .select("instructor, subject, course_number")
+      .eq("term", "202609")
+      .then(({ data }) => {
+        const map = {};
+        (data || []).forEach(sec => {
+          const name = sec.instructor || "";
+          if (!name) return;
+          const course = `${sec.subject} ${sec.course_number}`;
+          const lastName = `_ln_${name.trim().split(/\s+/).pop().toLowerCase()}`;
+          [name, lastName].forEach(key => {
+            if (!map[key]) map[key] = new Set();
+            map[key].add(course);
+          });
+        });
+        setInstructorCourseMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     let list = [...instructors];
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      list = list.filter(i => i.name.toLowerCase().includes(q) || (i.department || "").toLowerCase().includes(q));
+      list = list.filter(i => i.name.toLowerCase().includes(q));
     }
-    if (deptFilter) list = list.filter(i => i.department === deptFilter);
     if (rmpOnly) list = list.filter(i => i.rmpRating != null);
     list.sort((a, b) => {
-      if (sortBy === "rmp")        { const ar = a.rmpRating ?? -1,        br = b.rmpRating ?? -1;        return br - ar; }
-      if (sortBy === "difficulty") { const ad = a.rmpDifficulty ?? 99,    bd = b.rmpDifficulty ?? 99;    return ad - bd; }
-      if (sortBy === "gpa")        return (b.avgGpa || 0) - (a.avgGpa || 0);
+      if (sortBy === "rmp_desc") return (b.rmpRating ?? -1) - (a.rmpRating ?? -1);
+      if (sortBy === "rmp_asc")  return (a.rmpRating ?? 99) - (b.rmpRating ?? 99);
+      if (sortBy === "courses") {
+        const aC = (instructorCourseMap[a.name] || instructorCourseMap[`_ln_${a.name.trim().split(/\s+/).pop().toLowerCase()}`] || new Set()).size;
+        const bC = (instructorCourseMap[b.name] || instructorCourseMap[`_ln_${b.name.trim().split(/\s+/).pop().toLowerCase()}`] || new Set()).size;
+        return bC - aC;
+      }
       return a.name.localeCompare(b.name);
     });
     return list;
-  }, [instructors, query, deptFilter, rmpOnly, sortBy]);
+  }, [instructors, query, rmpOnly, sortBy, instructorCourseMap]);
 
   const chipStyle = (active) => ({
     fontFamily: MONO, fontSize: 10, fontWeight: active ? 600 : 400,
@@ -196,19 +229,11 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
 
         {/* Filter row */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${p.line}` }}>
-          <button onClick={() => setRmpOnly(v => !v)} style={chipStyle(rmpOnly)}>RMP only</button>
+          <button onClick={() => setRmpOnly(v => !v)} style={chipStyle(rmpOnly)}>Has RMP rating</button>
 
-          {departments.length > 0 && (
-            <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
-              style={{ padding: "5px 10px", borderRadius: RADIUS.xs, border: `1px solid ${deptFilter ? "rgba(134,31,65,0.35)" : p.line}`, background: deptFilter ? "rgba(134,31,65,0.12)" : "transparent", color: deptFilter ? ACCENT : p.textSub, fontFamily: MONO, fontSize: 10, fontWeight: deptFilter ? 600 : 400, cursor: "pointer", outline: "none" }}>
-              <option value="">All departments</option>
-              {departments.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          )}
-
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textFaint, letterSpacing: "1.5px", textTransform: "uppercase" }}>Sort</span>
-            {[["name","Name"],["rmp","RMP"],["difficulty","Diff"],["gpa","GPA"]].map(([val, label]) => (
+            {[["name","Name A→Z"],["rmp_desc","RMP ↓"],["rmp_asc","RMP ↑"],["courses","Most Courses"]].map(([val, label]) => (
               <button key={val} onClick={() => setSortBy(val)} style={{ background: "none", border: "none", padding: "4px 0", color: sortBy === val ? p.text : p.textFaint, fontFamily: MONO, fontWeight: sortBy === val ? 600 : 400, fontSize: 10, letterSpacing: "0.5px", cursor: "pointer", borderBottom: `1.5px solid ${sortBy === val ? ACCENT : "transparent"}`, transition: "color 0.15s, border-color 0.15s" }}>{label}</button>
             ))}
           </div>
@@ -225,9 +250,12 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
-            {filtered.map(instr => (
-              <InstructorCard key={instr.id || instr.name} instructor={instr} darkMode={dm} onClick={onProfClick} />
-            ))}
+            {filtered.map(instr => {
+              const lastName = `_ln_${instr.name.trim().split(/\s+/).pop().toLowerCase()}`;
+              const courseSet = instructorCourseMap[instr.name] || instructorCourseMap[lastName] || new Set();
+              const courseList = [...courseSet].sort();
+              return <InstructorCard key={instr.id || instr.name} instructor={instr} darkMode={dm} onClick={onProfClick} courseList={courseList} />;
+            })}
           </div>
         )}
       </div>

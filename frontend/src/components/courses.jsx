@@ -740,70 +740,69 @@ function SubjectSearch({ subjects, selected, onChange, darkMode }) {
 }
 
 // ── FilterPanel ───────────────────────────────────────────────────
-function FilterPanel({ filters, setFilters, darkMode, subjects, isMobile }) {
+function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode, setSortMode, creditsFilter, setCreditsFilter, gpaOnly, setGpaOnly, darkMode, isMobile, onClear }) {
   const dm = darkMode;
-  const p = palette(dm);
+  const p  = palette(dm);
+  const hasActive = selectedSubjects.length > 0 || creditsFilter.length > 0 || gpaOnly;
 
   const S = ({ title, children }) => (
     <FilterSection title={title} accentColor={ACCENT} lineColor={p.line}>{children}</FilterSection>
   );
 
-  const chipStyle = (active) => ({
-    fontFamily: MONO, fontSize: 11, borderRadius: RADIUS.xs, cursor: "pointer",
+  const pillStyle = (active) => ({
+    fontFamily: MONO, fontSize: 11, fontWeight: active ? 600 : 400,
+    borderRadius: RADIUS.xs, cursor: "pointer",
     transition: "all 0.15s", border: `1px solid ${active ? "rgba(134,31,65,0.35)" : p.line}`,
     background: active ? "rgba(134,31,65,0.12)" : "transparent",
-    color: active ? ACCENT : p.textSub, fontWeight: active ? 600 : 400,
+    color: active ? ACCENT : p.textSub,
   });
 
   return (
     <div style={{ fontFamily: SANS, ...(isMobile ? {} : { position: "sticky", top: 80, maxHeight: "calc(100vh - 120px)", overflowY: "auto" }), paddingRight: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingBottom: 14 }}>
         <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase" }}>Filters</span>
-        <button onClick={() => setFilters({ subjects: [], minGpa: "", maxDiff: "", minCredits: "", maxCredits: "", pathway: "", days: [] })}
-          style={{ background: "none", border: "none", color: p.textFaint, fontSize: 11, fontFamily: MONO, fontWeight: 600, cursor: "pointer", padding: 0 }}
-          onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-          onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
-        >Clear all</button>
+        {hasActive && (
+          <button onClick={onClear} style={{ background: "none", border: "none", color: p.textFaint, fontSize: 11, fontFamily: MONO, fontWeight: 600, cursor: "pointer", padding: 0 }}
+            onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+            onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
+          >Clear all</button>
+        )}
       </div>
 
       <S title="Subject">
-        <SubjectSearch subjects={subjects} selected={filters.subjects} onChange={subs => setFilters(f => ({ ...f, subjects: subs }))} darkMode={dm} />
+        <SubjectSearch subjects={subjects} selected={selectedSubjects} onChange={setSelectedSubjects} darkMode={dm} />
       </S>
-      <S title={`Min GPA · ${parseFloat(filters.minGpa || 0).toFixed(2)}`}>
-        <input type="range" min="0" max="4" step="0.01" value={filters.minGpa || 0} onChange={e => setFilters(f => ({ ...f, minGpa: e.target.value }))} style={{ width: "100%", accentColor: ACCENT }} />
+
+      <S title="Sort by">
+        <select value={sortMode} onChange={e => setSortMode(e.target.value)}
+          style={{ width: "100%", padding: "7px 10px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", color: p.text, fontFamily: SANS, fontSize: 12, cursor: "pointer", outline: "none" }}>
+          <option value="alpha">Alphabetical (A→Z)</option>
+          <option value="gpa_desc">GPA: High → Low</option>
+          <option value="gpa_asc">GPA: Low → High</option>
+          <option value="sections_desc">Most Sections</option>
+          <option value="sections_asc">Fewest Sections</option>
+        </select>
       </S>
+
       <S title="Credits">
         <div style={{ display: "flex", gap: 6 }}>
-          {["1","2","3","4"].map(cr => {
-            const active = filters.minCredits === cr;
-            return <button key={cr} onClick={() => setFilters(f => ({ ...f, minCredits: f.minCredits === cr ? "" : cr }))} style={{ ...chipStyle(active), flex: 1, padding: "7px 0", textAlign: "center" }}>{cr === "4" ? "4+" : cr}</button>;
-          })}
-        </div>
-      </S>
-      <S title={`Max Difficulty · ${parseFloat(filters.maxDiff || 5).toFixed(1)}`}>
-        <input type="range" min="1" max="5" step="0.1" value={filters.maxDiff || 5} onChange={e => setFilters(f => ({ ...f, maxDiff: e.target.value }))} style={{ width: "100%", accentColor: ACCENT }} />
-      </S>
-      <S title="Pathways">
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {MOCK.pathwaysOptions.filter(pw => !pw.suspended).map(pw => {
-            const active = filters.pathway === pw.code;
+          {["1","2","3","4+"].map(cr => {
+            const active = creditsFilter.includes(cr);
             return (
-              <button key={pw.code} onClick={() => setFilters(f => ({ ...f, pathway: f.pathway === pw.code ? "" : pw.code }))}
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 4px", paddingLeft: active ? 10 : 12, cursor: "pointer", textAlign: "left", border: "none", borderLeft: `2px solid ${active ? ACCENT : "transparent"}`, background: "transparent", fontFamily: SANS, transition: "all 0.15s" }}>
-                <span style={{ flexShrink: 0, fontSize: 10, fontFamily: MONO, fontWeight: 600, color: active ? ACCENT : p.textFaint, minWidth: 22 }}>{pw.code}</span>
-                <span style={{ fontSize: 12, color: active ? p.text : p.textSub, fontFamily: SANS }}>{pw.label}</span>
-              </button>
+              <button key={cr}
+                onClick={() => setCreditsFilter(f => active ? f.filter(x => x !== cr) : [...f, cr])}
+                style={{ ...pillStyle(active), flex: 1, padding: "7px 0", textAlign: "center" }}
+              >{cr}</button>
             );
           })}
         </div>
       </S>
-      <S title="Days">
-        <div style={{ display: "flex", gap: 6 }}>
-          {["M","T","W","R","F"].map(d => {
-            const active = filters.days.includes(d);
-            return <button key={d} onClick={() => setFilters(f => ({ ...f, days: f.days.includes(d) ? f.days.filter(x => x !== d) : [...f.days, d] }))} style={{ ...chipStyle(active), flex: 1, padding: "7px 0", textAlign: "center", fontWeight: 700 }}>{d}</button>;
-          })}
-        </div>
+
+      <S title="Grade data">
+        <button
+          onClick={() => setGpaOnly(v => !v)}
+          style={{ ...pillStyle(gpaOnly), width: "100%", textAlign: "center", padding: "7px 12px" }}
+        >Has GPA data</button>
       </S>
     </div>
   );
@@ -813,9 +812,11 @@ function FilterPanel({ filters, setFilters, darkMode, subjects, isMobile }) {
 const PAGE_SIZE = 24;
 
 export default function CourseSearch({ darkMode, schedule, onCourseClick, onProfClick }) {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState({ subjects: [], minGpa: "", maxDiff: "", minCredits: "", maxCredits: "", pathway: "", days: [] });
-  const [sort, setSort] = useState("subject");
+  const [query, setQuery]               = useState("");
+  const [selSubjects, setSelSubjects]   = useState([]);
+  const [sortMode, setSortMode]         = useState("alpha");
+  const [creditsFilter, setCreditsFilter] = useState([]);
+  const [gpaOnly, setGpaOnly]           = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   const [courses, setCourses] = useState([]);
@@ -867,30 +868,45 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setLoading(true); setPage(1);
-      API.getCourses({ q: query, subjects: filters.subjects, minGpa: filters.minGpa, minCredits: filters.minCredits, pathway: filters.pathway })
+      API.getCourses({ q: query, subjects: selSubjects })
         .then(data => { setCourses(data); setLoading(false); })
         .catch(err => { console.error(err); setLoading(false); });
     }, 300);
-  }, [query, filters.subjects, filters.minGpa, filters.minCredits, filters.pathway]);
+  }, [query, selSubjects]);
 
   const filtered = useMemo(() => {
-    return [...courses].sort((a, b) => {
-      if (sort === "gpa") return b.avgGpa - a.avgGpa;
-      if (sort === "subject") return `${a.subject}${a.number}`.localeCompare(`${b.subject}${b.number}`);
-      if (sort === "title") return a.title.localeCompare(b.title);
-      return 0;
+    let list = [...courses];
+    if (creditsFilter.length > 0) {
+      list = list.filter(c => creditsFilter.some(f =>
+        f === "4+" ? c.credits >= 4 : Math.round(c.credits) === parseInt(f, 10)
+      ));
+    }
+    if (gpaOnly) list = list.filter(c => c.avgGpa > 0);
+    list.sort((a, b) => {
+      const alpha = `${a.subject}${a.number}`.localeCompare(`${b.subject}${b.number}`);
+      if (sortMode === "gpa_desc") {
+        if (a.avgGpa > 0 && b.avgGpa > 0) return b.avgGpa - a.avgGpa;
+        if (a.avgGpa > 0) return -1;
+        if (b.avgGpa > 0) return 1;
+        return alpha;
+      }
+      if (sortMode === "gpa_asc") {
+        if (a.avgGpa > 0 && b.avgGpa > 0) return a.avgGpa - b.avgGpa;
+        if (a.avgGpa > 0) return -1;
+        if (b.avgGpa > 0) return 1;
+        return alpha;
+      }
+      if (sortMode === "sections_desc") return (b.totalSections || 0) - (a.totalSections || 0);
+      if (sortMode === "sections_asc")  return (a.totalSections || 0) - (b.totalSections || 0);
+      return alpha;
     });
-  }, [courses, sort]);
+    return list;
+  }, [courses, sortMode, creditsFilter, gpaOnly]);
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageCourses = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const goToPage = pg => { setPage(pg); topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
-  const activeFilters = filters.subjects.length + (filters.minGpa ? 1 : 0) + (filters.minCredits ? 1 : 0) + (filters.pathway ? 1 : 0) + (filters.days.length ? 1 : 0) + (filters.maxDiff && parseFloat(filters.maxDiff) < 5 ? 1 : 0);
-
-  const SortBtn = ({ value, label }) => {
-    const active = sort === value;
-    return <button onClick={() => setSort(value)} style={{ background: "none", border: "none", padding: "4px 0", color: active ? p.text : p.textFaint, fontFamily: MONO, fontWeight: active ? 600 : 400, fontSize: 11, letterSpacing: "0.5px", cursor: "pointer", borderBottom: `1.5px solid ${active ? ACCENT : "transparent"}`, transition: "color 0.15s, border-color 0.15s" }}>{label}</button>;
-  };
+  const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0);
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: SANS }}>
@@ -930,8 +946,8 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       </header>
 
       <div ref={topRef} style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "40px 64px 96px", boxSizing: "border-box", display: "grid", gridTemplateColumns: (!isMobile && showFilters) ? "220px 1fr" : "1fr", gap: 56, alignItems: "start" }}>
-        {!isMobile && showFilters && <FilterPanel filters={filters} setFilters={setFilters} darkMode={dm} subjects={subjects} isMobile={false} />}
-        {isMobile && showFilters && <div style={{ marginBottom: 16 }}><FilterPanel filters={filters} setFilters={setFilters} darkMode={dm} subjects={subjects} isMobile={true} /></div>}
+        {!isMobile && showFilters && <FilterPanel subjects={subjects} selectedSubjects={selSubjects} setSelectedSubjects={setSelSubjects} sortMode={sortMode} setSortMode={setSortMode} creditsFilter={creditsFilter} setCreditsFilter={setCreditsFilter} gpaOnly={gpaOnly} setGpaOnly={setGpaOnly} darkMode={dm} isMobile={false} onClear={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); }} />}
+        {isMobile && showFilters && <div style={{ marginBottom: 16 }}><FilterPanel subjects={subjects} selectedSubjects={selSubjects} setSelectedSubjects={setSelSubjects} sortMode={sortMode} setSortMode={setSortMode} creditsFilter={creditsFilter} setCreditsFilter={setCreditsFilter} gpaOnly={gpaOnly} setGpaOnly={setGpaOnly} darkMode={dm} isMobile={true} onClear={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); }} /></div>}
 
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 12 : 0, paddingBottom: 18, marginBottom: 24, borderBottom: `1px solid ${p.line}` }}>
@@ -946,12 +962,14 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
               </button>
               <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint }}>{filtered.length} results</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textFaint, letterSpacing: "1.5px", textTransform: "uppercase" }}>Sort</span>
-              <SortBtn value="subject" label="Subject" />
-              <SortBtn value="gpa" label="Avg GPA" />
-              <SortBtn value="title" label="Title" />
-            </div>
+            <select value={sortMode} onChange={e => setSortMode(e.target.value)}
+              style={{ padding: "5px 10px", borderRadius: RADIUS.xs, border: `1px solid ${p.line}`, background: "transparent", color: p.textSub, fontFamily: MONO, fontSize: 10, cursor: "pointer", outline: "none" }}>
+              <option value="alpha">A→Z</option>
+              <option value="gpa_desc">GPA ↓</option>
+              <option value="gpa_asc">GPA ↑</option>
+              <option value="sections_desc">Sections ↓</option>
+              <option value="sections_asc">Sections ↑</option>
+            </select>
           </div>
 
           {loading ? (
