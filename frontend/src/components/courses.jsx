@@ -488,34 +488,103 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
 }
 
 // ── Course Card ───────────────────────────────────────────────────
-function CourseCard({ course, darkMode, onClick, onProfClick }) {
+function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
   const dm = darkMode;
   const p = palette(dm);
   const glass = glassCard(dm);
-  const sectionCount = course.totalSections || 0;
   const gpa = course.avgGpa || 0;
-  const [hov, setHov] = useState(false);
+  const ref = useRef(null);
+  const [sections, setSections] = useState(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        API.getSections(course.subject, course.number)
+          .then(setSections)
+          .catch(() => setSections([]));
+        obs.disconnect();
+      }
+    }, { rootMargin: "150px" });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [course.subject, course.number]);
+
+  const byInstructor = sections
+    ? Object.values(
+        sections.reduce((acc, sec) => {
+          const name = sec.instructor || "Staff";
+          if (!acc[name]) acc[name] = { name, rmp: instructorMap?.[name] || null, times: [] };
+          const t = [(sec.days || []).join(""), sec.startTime ? sec.startTime.replace(/:00$/, "") : "TBA"].filter(Boolean).join(" ");
+          if (t && !acc[name].times.includes(t)) acc[name].times.push(t);
+          return acc;
+        }, {})
+      )
+    : null;
+
+  const rmpColor = r => r >= 4 ? "#22c55e" : r >= 3 ? "#f59e0b" : "#ef4444";
 
   return (
-    <div onClick={() => onClick(course)} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ ...glass, background: hov ? p.cardHover : p.card, border: `1px solid ${hov ? "rgba(134,31,65,0.40)" : p.line}`, borderRadius: RADIUS.lg, padding: "20px 20px 16px", cursor: "pointer", transition: `border-color 0.18s ${EASE}, background 0.18s ${EASE}, transform 0.18s ${EASE}, box-shadow 0.18s ${EASE}`, transform: hov ? "translateY(-2px)" : "none", boxShadow: hov ? SHADOW.lg : SHADOW.sm, fontFamily: SANS, display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase" }}>{course.subject} {course.number}</span>
-        {gpa > 0 && <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: gpaColor(gpa) || p.textMute }}>{gpa.toFixed(2)}</span>}
-      </div>
-      <h3 style={{ margin: "0 0 auto", fontSize: 15, fontWeight: 400, fontFamily: SERIF, color: p.text, lineHeight: 1.4, letterSpacing: "-0.2px", paddingBottom: 14 }}>{course.title}</h3>
-      {course.pathways && course.pathways.length > 0 && (
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10, fontSize: 9, fontFamily: MONO, fontWeight: 600, letterSpacing: "1px", color: p.textFaint, textTransform: "uppercase" }}>
-          {course.pathways.map(code => {
-            const pw = MOCK.pathwaysOptions.find(po => po.code === code);
-            if (!pw) return null;
-            return <span key={code} title={pw.label}>· Concept {code}{pw.suspended ? " ✦" : ""}</span>;
-          })}
+    <div ref={ref} style={{ ...glass, borderRadius: RADIUS.lg, padding: "20px 24px 16px", fontFamily: SANS }}>
+      {/* Course header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase" }}>
+            {course.subject} {course.number}
+          </span>
+          <h3
+            onClick={() => onClick(course)}
+            style={{ margin: "4px 0 0", fontSize: 16, fontWeight: 400, fontFamily: SERIF, color: p.text, cursor: "pointer", lineHeight: 1.35, letterSpacing: "-0.2px", transition: "color 0.15s" }}
+            onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+            onMouseLeave={e => e.currentTarget.style.color = p.text}
+          >{course.title}</h3>
         </div>
-      )}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: `1px solid ${p.lineSoft}`, fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textMute, letterSpacing: "0.5px" }}>
-        <span>{course.credits} cr</span>
-        <span>{sectionCount} section{sectionCount !== 1 ? "s" : ""}</span>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0, marginLeft: 16 }}>
+          {gpa > 0 && <GpaBadge gpa={gpa} darkMode={dm} />}
+          <span style={{ fontFamily: MONO, fontSize: 10, color: p.textMute }}>{course.credits} cr</span>
+        </div>
+      </div>
+
+      {/* Fall 2026 sections */}
+      <div style={{ borderTop: `1px solid ${p.lineSoft}`, paddingTop: 12 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 10 }}>
+          Fall 2026 Sections
+        </div>
+        {byInstructor === null ? (
+          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>Loading…</div>
+        ) : byInstructor.length === 0 ? (
+          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute, padding: "4px 0" }}>No sections for Fall 2026.</div>
+        ) : (
+          byInstructor.map(({ name, rmp, times }) => (
+            <div key={name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: `1px solid ${p.lineSoft}` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <button onClick={() => onProfClick?.({ name })} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: p.text, transition: "color 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+                    onMouseLeave={e => e.currentTarget.style.color = p.text}
+                  >{name}</span>
+                </button>
+                {times.length > 0 && (
+                  <div style={{ fontFamily: MONO, fontSize: 10, color: p.textMute, marginTop: 2 }}>
+                    {times.slice(0, 3).join(" · ")}{times.length > 3 ? ` +${times.length - 3}` : ""}
+                  </div>
+                )}
+              </div>
+              {rmp?.rmpRating != null ? (
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 700, lineHeight: 1, color: rmpColor(rmp.rmpRating) }}>{rmp.rmpRating.toFixed(1)}</div>
+                  <div style={{ fontFamily: SANS, fontSize: 9, color: p.textMute, marginTop: 2 }}>RMP{rmp.rmpCount ? ` · ${rmp.rmpCount}` : ""}</div>
+                  {rmp.rmpDifficulty != null && <div style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint }}>Diff {rmp.rmpDifficulty.toFixed(1)}/5</div>}
+                </div>
+              ) : (
+                <span style={{ fontFamily: MONO, fontSize: 9, color: p.textFaint, flexShrink: 0 }}>No RMP</span>
+              )}
+            </div>
+          ))
+        )}
+        <button onClick={() => onClick(course)} style={{ marginTop: 10, background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 12, color: p.textMute, transition: "color 0.15s" }}
+          onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+          onMouseLeave={e => e.currentTarget.style.color = p.textMute}
+        >View grade history →</button>
       </div>
     </div>
   );
@@ -663,6 +732,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [page, setPage] = useState(1);
   const [coursePool, setCoursePool] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [instructorMap, setInstructorMap] = useState({});
   const searchWrapRef = useRef(null);
   const debounceRef = useRef(null);
   const topRef = useRef(null);
@@ -676,6 +746,13 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   }, []);
   useEffect(() => { API.getSubjects().then(setSubjects).catch(console.error); }, []);
   useEffect(() => { API.getCourses({}).then(setCoursePool).catch(() => {}); }, []);
+  useEffect(() => {
+    API.getInstructors().then(list => {
+      const map = {};
+      list.forEach(i => { map[i.name] = i; });
+      setInstructorMap(map);
+    }).catch(() => {});
+  }, []);
   useEffect(() => {
     const handler = e => { if (searchWrapRef.current && !searchWrapRef.current.contains(e.target)) setShowSuggestions(false); };
     document.addEventListener("mousedown", handler);
@@ -789,8 +866,8 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
             </div>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-                {pageCourses.map(course => <CourseCard key={course.id} course={course} darkMode={dm} onClick={onCourseClick} onProfClick={onProfClick} />)}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {pageCourses.map(course => <CourseCard key={course.id} course={course} darkMode={dm} onClick={onCourseClick} onProfClick={onProfClick} instructorMap={instructorMap} />)}
               </div>
               {totalPages > 1 && (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 48, paddingTop: 24, borderTop: `1px solid ${p.line}` }}>
