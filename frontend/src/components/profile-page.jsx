@@ -7,7 +7,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).href;
 import { API } from "../api.js";
-import { glassCard, palette, ACCENT, SANS, SERIF } from "../theme.jsx";
+import { glassCard, palette, ACCENT, SANS, SERIF, MONO, RADIUS, SHADOW } from "../theme.jsx";
 
 // ── Constants ─────────────────────────────────────────────────────
 const MAJORS = [
@@ -308,7 +308,7 @@ function LinkedInImport({ onImport, dm }) {
       )}
       {status === "preview" && preview && (
         <div style={{ ...glassCard(dm), borderRadius: 12, padding: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#0077b5", marginBottom: 12 }}>LINKEDIN IMPORT PREVIEW</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: "#0077b5", marginBottom: 12, letterSpacing: "1.4px", textTransform: "uppercase" }}>LinkedIn Import Preview</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
             {preview.firstName && <div style={{ fontSize: 13, color: p.text }}><b>Name:</b> {preview.firstName} {preview.lastName}</div>}
             {preview.headline  && <div style={{ fontSize: 13, color: p.text }}><b>Headline:</b> {preview.headline}</div>}
@@ -335,13 +335,23 @@ function LinkedInImport({ onImport, dm }) {
 function SCard({ title, dm, onEdit, children }) {
   const p = palette(dm);
   return (
-    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "20px 24px", marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <span style={{ fontSize: 15, fontWeight: 800, color: p.text, fontFamily: SANS }}>{title}</span>
+    <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "20px 24px", marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <span style={{
+          fontFamily: MONO, fontSize: 10, fontWeight: 600,
+          letterSpacing: "1.4px", textTransform: "uppercase",
+          color: ACCENT,
+        }}>{title}</span>
         {onEdit && (
-          <button onClick={onEdit} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, padding: "5px 12px", color: dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: SANS }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)"; }}>Edit</button>
+          <button onClick={onEdit} style={{
+            background: "none",
+            border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`,
+            borderRadius: RADIUS.sm, padding: "4px 10px",
+            color: dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)",
+            fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: SANS,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)"; }}>Edit</button>
         )}
       </div>
       {children}
@@ -371,32 +381,46 @@ function PostCard({ post, dm, onDelete }) {
     return new Date(ts).toLocaleDateString();
   };
   return (
-    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "18px 20px", marginBottom: 12 }}>
+    <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "18px 20px", marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #6b1833, #861F41)", color: "white", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {(post.display_name || "?")[0]}
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: p.text }}>{post.display_name}</div>
-            <div style={{ fontSize: 11, color: p.textSub }}>{post.headline} · {ago(post.created_at)}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: p.text, fontFamily: SANS }}>{post.display_name}</div>
+            <div style={{ fontSize: 11, color: p.textSub, fontFamily: SANS }}>{post.headline} · {ago(post.created_at)}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ background: `${typeInfo.color}20`, color: typeInfo.color, border: `1px solid ${typeInfo.color}40`, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{typeInfo.label}</span>
-          <button onClick={onDelete} style={{ background: "none", border: "none", cursor: "pointer", color: p.textMute, fontSize: 14, padding: "2px 4px", borderRadius: 6 }}
+          <span style={{
+            background: `${typeInfo.color}18`,
+            color: typeInfo.color,
+            border: `1px solid ${typeInfo.color}35`,
+            borderRadius: RADIUS.pill,
+            padding: "3px 10px",
+            fontSize: 10,
+            fontWeight: 600,
+            fontFamily: MONO,
+            letterSpacing: "0.8px",
+            textTransform: "uppercase",
+          }}>{typeInfo.label}</span>
+          <button onClick={onDelete} style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: p.textMute, fontSize: 16, padding: "2px 4px", lineHeight: 1,
+          }}
             onMouseEnter={e => e.currentTarget.style.color = "#e74c3c"}
-            onMouseLeave={e => e.currentTarget.style.color = p.textMute}>✕</button>
+            onMouseLeave={e => e.currentTarget.style.color = p.textMute}>×</button>
         </div>
       </div>
-      <p style={{ margin: "0 0 12px", fontSize: 14, color: p.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{post.content}</p>
+      <p style={{ margin: "0 0 12px", fontSize: 14, color: p.text, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: SANS }}>{post.content}</p>
       {post.image_url && (
-        <img src={post.image_url} alt="" style={{ width: "100%", borderRadius: 10, maxHeight: 320, objectFit: "cover", marginBottom: 10 }}
+        <img src={post.image_url} alt="" style={{ width: "100%", borderRadius: RADIUS.md, maxHeight: 320, objectFit: "cover", marginBottom: 10 }}
           onError={e => { e.currentTarget.style.display = "none"; }} />
       )}
       {post.link_url && (
         <a href={post.link_url.startsWith("http") ? post.link_url : `https://${post.link_url}`} target="_blank" rel="noreferrer"
-          style={{ display: "block", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: 10, border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, textDecoration: "none", fontSize: 13, color: p.textSub }}>
+          style={{ display: "block", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: RADIUS.sm, border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, textDecoration: "none", fontSize: 13, color: p.textSub, fontFamily: SANS }}>
           🔗 {post.link_title || post.link_url}
         </a>
       )}
@@ -434,7 +458,7 @@ function PostComposer({ user, dm, onPost }) {
   };
 
   return (
-    <div style={{ ...glassCard(dm), borderRadius: 16, padding: "18px 20px", marginBottom: 16 }}>
+    <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "18px 20px", marginBottom: 16 }}>
       {!open ? (
         <div style={{ display: "flex", gap: 12, alignItems: "center", cursor: "text" }} onClick={() => setOpen(true)}>
           <Avatar user={user} size={38} />
@@ -456,23 +480,23 @@ function PostComposer({ user, dm, onPost }) {
           />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Image URL (optional)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4, fontFamily: SANS }}>Image URL (optional)</div>
               <input value={imageUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://…" style={IS} />
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Link URL (optional)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4, fontFamily: SANS }}>Link URL (optional)</div>
               <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="github.com/…" style={IS} />
             </div>
           </div>
           {linkUrl && (
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4 }}>Link title</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4, fontFamily: SANS }}>Link title</div>
               <input value={linkTitle} onChange={e => setLTitle(e.target.value)} placeholder="e.g. View on GitHub" style={IS} />
             </div>
           )}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button onClick={() => setOpen(false)} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: p.textSub, borderRadius: 10, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
-            <button onClick={submit} disabled={!content.trim() || posting} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "8px 20px", fontWeight: 700, fontSize: 13, cursor: content.trim() && !posting ? "pointer" : "default", fontFamily: SANS, opacity: content.trim() && !posting ? 1 : 0.5 }}>{posting ? "Posting…" : "Post"}</button>
+            <button onClick={() => setOpen(false)} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: p.textSub, borderRadius: RADIUS.sm, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
+            <button onClick={submit} disabled={!content.trim() || posting} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "8px 20px", fontWeight: 700, fontSize: 13, cursor: content.trim() && !posting ? "pointer" : "default", fontFamily: SANS, opacity: content.trim() && !posting ? 1 : 0.5 }}>{posting ? "Posting…" : "Post"}</button>
           </div>
         </div>
       )}
@@ -485,7 +509,7 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
   const p = palette(dm);
   const IS = { width: "100%", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 10, color: p.text, fontSize: 14, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
   const LS = { fontSize: 11, fontWeight: 700, color: p.textSub, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 6, display: "block" };
-  const SL = ({ children }) => <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginTop: 20, marginBottom: 12, paddingTop: 16, borderTop: `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` }}>{children}</div>;
+  const SL = ({ children }) => <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: ACCENT, marginTop: 20, marginBottom: 12, paddingTop: 16, borderTop: `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` }}>{children}</div>;
   const onF = e => { e.currentTarget.style.borderColor = ACCENT; };
   const onB = e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"; };
 
@@ -506,7 +530,7 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
         </div>
 
         <div style={{ marginBottom: 20, padding: "14px 16px", background: "rgba(0,119,181,0.06)", border: "1px solid rgba(0,119,181,0.15)", borderRadius: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#0077b5", marginBottom: 10 }}>AUTO-FILL FROM LINKEDIN</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: "#0077b5", marginBottom: 10 }}>Auto-fill from LinkedIn</div>
           <LinkedInImport dm={dm} onImport={onLinkedInImport} />
         </div>
 
@@ -624,8 +648,8 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
         {error && <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 8, color: "#e74c3c", fontSize: 13 }}>{error}</div>}
 
         <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
-          <button onClick={onSave} disabled={saving} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 12, padding: "12px 28px", fontWeight: 700, fontSize: 14, cursor: saving ? "default" : "pointer", fontFamily: SANS, opacity: saving ? 0.7 : 1 }}>{saving ? "Saving…" : "Save changes"}</button>
-          <button onClick={onClose} style={{ background: "none", color: p.textSub, border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 12, padding: "11px 20px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
+          <button onClick={onSave} disabled={saving} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "12px 28px", fontWeight: 700, fontSize: 14, cursor: saving ? "default" : "pointer", fontFamily: SANS, opacity: saving ? 0.7 : 1 }}>{saving ? "Saving…" : "Save changes"}</button>
+          <button onClick={onClose} style={{ background: "none", color: p.textSub, border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: RADIUS.sm, padding: "11px 20px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
         </div>
       </div>
     </div>
@@ -736,7 +760,7 @@ export default function ProfilePage({ darkMode }) {
   const startEdit = () => { setForm(freshForm()); setError(""); setEditing(true); };
 
   const Chip = ({ children }) => (
-    <span style={{ background: "rgba(134,31,65,0.15)", color: ACCENT, border: "1px solid rgba(134,31,65,0.28)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>{children}</span>
+    <span style={{ background: "rgba(134,31,65,0.15)", color: ACCENT, border: "1px solid rgba(134,31,65,0.28)", borderRadius: RADIUS.pill, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>{children}</span>
   );
 
   const bannerPreset = BANNER_PRESETS.find(b => b.key === meta.bannerPreset) || BANNER_PRESETS[0];
@@ -750,42 +774,48 @@ export default function ProfilePage({ darkMode }) {
         onClick={() => setBannerEditing(v => !v)}>
         {!meta.bannerUrl && <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />}
         {bannerEditing && (
-          <div data-banner-picker onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: -8, right: 14, transform: "translateY(100%)", zIndex: 50, background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 14, padding: 16, boxShadow: "0 12px 40px rgba(0,0,0,0.35)", minWidth: 280 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
+          <div data-banner-picker onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: -8, right: 14, transform: "translateY(100%)", zIndex: 50, background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: RADIUS.md, padding: 16, boxShadow: SHADOW.xl, minWidth: 280 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
               {BANNER_PRESETS.map(b => {
                 const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
-                return <button key={b.key} title={b.key} onClick={async () => { setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } }); } finally { setBannerSaving(false); } }} style={{ height: 36, borderRadius: 8, cursor: "pointer", background: b.style, border: active ? "2.5px solid white" : "2px solid transparent", boxShadow: active ? "0 0 0 2px #861F41" : "none", padding: 0 }} />;
+                return <button key={b.key} title={b.key} onClick={async () => { setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } }); } finally { setBannerSaving(false); } }} style={{ height: 36, borderRadius: RADIUS.xs, cursor: "pointer", background: b.style, border: active ? "2.5px solid white" : "2px solid transparent", boxShadow: active ? "0 0 0 2px #861F41" : "none", padding: 0 }} />;
               })}
             </div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 6 }}>Or paste an image URL</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: p.textSub, marginBottom: 6, fontFamily: SANS }}>Or paste an image URL</div>
             <div style={{ display: "flex", gap: 6 }}>
-              <input placeholder="https://…" defaultValue={meta.bannerUrl || ""} id="banner-url-input" style={{ flex: 1, padding: "7px 10px", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 8, color: p.text, fontSize: 12, fontFamily: SANS, outline: "none" }} />
-              <button disabled={bannerSaving} onClick={async () => { const url = document.getElementById("banner-url-input")?.value?.trim(); setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } }); } finally { setBannerSaving(false); } }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer", fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1 }}>{bannerSaving ? "…" : "Apply"}</button>
+              <input placeholder="https://…" defaultValue={meta.bannerUrl || ""} id="banner-url-input" style={{ flex: 1, padding: "7px 10px", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: RADIUS.xs, color: p.text, fontSize: 12, fontFamily: SANS, outline: "none" }} />
+              <button disabled={bannerSaving} onClick={async () => { const url = document.getElementById("banner-url-input")?.value?.trim(); setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } }); } finally { setBannerSaving(false); } }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.xs, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer", fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1 }}>{bannerSaving ? "…" : "Apply"}</button>
             </div>
-            <button onClick={() => setBannerEditing(false)} style={{ marginTop: 10, width: "100%", background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: 8, padding: "6px", color: p.textSub, fontSize: 12, cursor: "pointer", fontFamily: SANS }}>Done</button>
+            <button onClick={() => setBannerEditing(false)} style={{ marginTop: 10, width: "100%", background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: RADIUS.xs, padding: "6px", color: p.textSub, fontSize: 12, cursor: "pointer", fontFamily: SANS }}>Done</button>
           </div>
         )}
       </div>
 
       {/* Profile header */}
       <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "0 16px" : "0 40px" }}>
-        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: isMobile ? 12 : 20, marginTop: isMobile ? -44 : -56, paddingBottom: 20, borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, position: "relative", zIndex: 2 }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: isMobile ? 12 : 20, marginTop: isMobile ? -44 : -56, paddingBottom: 20, borderBottom: `1px solid ${p.line}`, position: "relative", zIndex: 2 }}>
           <div style={{ border: `4px solid ${dm ? "#0A0908" : "#FAF6F0"}`, borderRadius: "50%", flexShrink: 0 }}>
             <Avatar user={user} size={isMobile ? 72 : 96} />
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: isMobile ? 0 : 4 }}>
             <h1 style={{ margin: "0 0 4px", color: p.text, fontWeight: 400, fontSize: isMobile ? 22 : 28, fontFamily: SERIF, letterSpacing: "-0.4px" }}>{displayName}</h1>
-            <div style={{ color: p.textSub, fontSize: 14, marginBottom: 4, fontWeight: 500 }}>{autoHeadline}</div>
-            {meta.location && <div style={{ color: p.textMute, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ color: p.textSub, fontSize: 14, marginBottom: 4, fontWeight: 500, fontFamily: SANS }}>{autoHeadline}</div>
+            {meta.location && <div style={{ color: p.textMute, fontSize: 12, display: "flex", alignItems: "center", gap: 4, fontFamily: SANS }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               {meta.location}
             </div>}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
-            <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Edit profile</button>
-            <button onClick={() => openUserProfile()} style={{ background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`, color: p.textSub, borderRadius: 10, padding: "9px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Account</button>
-            <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: p.textMute, borderRadius: 10, padding: "9px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Sign out</button>
+            <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "9px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Edit profile</button>
+            <button onClick={() => openUserProfile()} style={{ background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", border: `1px solid ${p.line}`, color: p.textSub, borderRadius: RADIUS.sm, padding: "9px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}>Account</button>
+            <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${p.line}`, color: p.textMute, borderRadius: RADIUS.sm, padding: "9px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#e74c3c"; e.currentTarget.style.color = "#e74c3c"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textMute; }}>Sign out</button>
           </div>
         </div>
 
@@ -797,7 +827,7 @@ export default function ProfilePage({ darkMode }) {
 
             {meta.bio && (
               <SCard title="About" dm={dm} onEdit={startEdit}>
-                <p style={{ margin: 0, fontSize: 14, color: p.text, lineHeight: 1.75 }}>{meta.bio}</p>
+                <p style={{ margin: 0, fontSize: 14, color: p.text, lineHeight: 1.75, fontFamily: SANS }}>{meta.bio}</p>
               </SCard>
             )}
 
@@ -806,12 +836,14 @@ export default function ProfilePage({ darkMode }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {meta.experience.map((exp, i) => (
                     <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.experience.length - 1 ? 16 : 0, borderBottom: i < meta.experience.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 8, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🏢</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text }}>{exp.title}</div>
-                        <div style={{ fontSize: 13, color: p.textSub }}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</div>
-                        <div style={{ fontSize: 12, color: p.textMute, marginTop: 2 }}>{exp.startDate}{exp.endDate || exp.current ? ` — ${exp.current ? "Present" : exp.endDate}` : ""}</div>
-                        {exp.description && <p style={{ margin: "6px 0 0", fontSize: 13, color: p.textSub, lineHeight: 1.6 }}>{exp.description}</p>}
+                      <div style={{ width: 40, height: 40, borderRadius: RADIUS.sm, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🏢</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text, fontFamily: SANS }}>{exp.title}</div>
+                        <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</div>
+                        {(exp.startDate || exp.endDate || exp.current) && (
+                          <div style={{ fontSize: 11, color: p.textMute, marginTop: 3, fontFamily: MONO }}>{exp.startDate}{exp.endDate || exp.current ? ` — ${exp.current ? "Present" : exp.endDate}` : ""}</div>
+                        )}
+                        {exp.description && <p style={{ margin: "6px 0 0", fontSize: 13, color: p.textSub, lineHeight: 1.6, fontFamily: SANS }}>{exp.description}</p>}
                       </div>
                     </div>
                   ))}
@@ -824,11 +856,11 @@ export default function ProfilePage({ darkMode }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {meta.education.map((edu, i) => (
                     <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.education.length - 1 ? 16 : 0, borderBottom: i < meta.education.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 8, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text }}>{edu.school}</div>
-                        <div style={{ fontSize: 13, color: p.textSub }}>{[edu.degree, edu.field].filter(Boolean).join(" · ")}</div>
-                        {(edu.startYear || edu.endYear) && <div style={{ fontSize: 12, color: p.textMute, marginTop: 2 }}>{edu.startYear}{edu.endYear ? ` — ${edu.endYear}` : ""}</div>}
+                      <div style={{ width: 40, height: 40, borderRadius: RADIUS.sm, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text, fontFamily: SANS }}>{edu.school}</div>
+                        <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>{[edu.degree, edu.field].filter(Boolean).join(" · ")}</div>
+                        {(edu.startYear || edu.endYear) && <div style={{ fontSize: 11, color: p.textMute, marginTop: 3, fontFamily: MONO }}>{edu.startYear}{edu.endYear ? ` — ${edu.endYear}` : ""}</div>}
                       </div>
                     </div>
                   ))}
@@ -848,7 +880,7 @@ export default function ProfilePage({ darkMode }) {
               <SCard title="Hobbies" dm={dm} onEdit={startEdit}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {meta.hobbies.map(h => (
-                    <span key={h} style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, color: p.text }}>{h}</span>
+                    <span key={h} style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, borderRadius: RADIUS.pill, padding: "5px 14px", fontSize: 12, fontWeight: 600, color: p.text, fontFamily: SANS }}>{h}</span>
                   ))}
                 </div>
               </SCard>
@@ -858,7 +890,7 @@ export default function ProfilePage({ darkMode }) {
               {(meta.coursesTaken || []).length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {meta.coursesTaken.map(c => (
-                    <span key={c} style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 8, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: p.text, fontFamily: "'JetBrains Mono', monospace" }}>{c}</span>
+                    <span key={c} style={{ background: p.card, border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: RADIUS.xs, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: p.text, fontFamily: MONO }}>{c}</span>
                   ))}
                 </div>
               ) : (
@@ -868,7 +900,7 @@ export default function ProfilePage({ darkMode }) {
 
             {posts.length > 0 && (
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: p.text, marginBottom: 12, fontFamily: SANS }}>Activity</div>
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: ACCENT, marginBottom: 16 }}>Activity</div>
                 {posts.map(post => (
                   <PostCard key={post.id} post={post} dm={dm} onDelete={async () => {
                     await API.deletePost(post.id).catch(() => {});
@@ -879,9 +911,9 @@ export default function ProfilePage({ darkMode }) {
             )}
 
             {!meta.bio && !meta.experience?.length && !meta.education?.length && (
-              <div style={{ ...glassCard(dm), borderRadius: 16, padding: "22px 24px", marginBottom: 12, textAlign: "center" }}>
-                <div style={{ color: p.textSub, fontSize: 14, marginBottom: 12 }}>Your profile is looking bare. Add a bio, experience, and courses.</div>
-                <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 10, padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Complete your profile</button>
+              <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "22px 24px", marginBottom: 12, textAlign: "center" }}>
+                <div style={{ color: p.textSub, fontSize: 14, marginBottom: 12, fontFamily: SANS }}>Your profile is looking bare. Add a bio, experience, and courses.</div>
+                <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Complete your profile</button>
               </div>
             )}
           </div>
@@ -899,11 +931,11 @@ export default function ProfilePage({ darkMode }) {
                   { label: "GPA", value: meta.gpa ? parseFloat(meta.gpa).toFixed(2) : null, accent: gpaColor },
                 ].map(({ label, value, accent }) => value ? (
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 12, color: p.textSub, fontWeight: 600 }}>{label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: accent || p.text }}>{value}</span>
+                    <span style={{ fontSize: 12, color: p.textSub, fontWeight: 500, fontFamily: SANS }}>{label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: accent || p.text, fontFamily: MONO }}>{value}</span>
                   </div>
                 ) : null)}
-                {!meta.major && !meta.year && <div style={{ fontSize: 13, color: p.textSub }}>No academic info yet.</div>}
+                {!meta.major && !meta.year && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>No academic info yet.</div>}
               </div>
             </SCard>
 
@@ -926,7 +958,7 @@ export default function ProfilePage({ darkMode }) {
               </SCard>
             )}
 
-            <div style={{ fontSize: 12, color: p.textMute, padding: "4px", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: p.textMute, padding: "4px", lineHeight: 1.5, fontFamily: SANS }}>
               Change email, password, or photo in{" "}
               <button onClick={() => openUserProfile()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: ACCENT, fontWeight: 700, fontSize: 12, fontFamily: SANS, textDecoration: "underline" }}>Account settings</button>.
             </div>
