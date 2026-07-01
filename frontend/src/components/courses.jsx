@@ -949,7 +949,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       <div style={{ borderBottom: `1px solid ${p.line}` }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "14px 16px" : "16px 64px", boxSizing: "border-box" }}>
           {/* Row 1: subject search + sort + result count */}
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <div style={{ display: "flex", flexWrap: isMobile ? "nowrap" : "wrap", alignItems: "center", gap: 10, marginBottom: 10, overflowX: isMobile ? "auto" : "visible", WebkitOverflowScrolling: "touch" }}>
             {/* Subject multi-select — compact inline version */}
             <div style={{ position: "relative", minWidth: 180, flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
               <SubjectSearch subjects={subjects} selected={selSubjects} onChange={v => { setSelSubjects(v); setPage(1); }} darkMode={dm} />
@@ -977,7 +977,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
           </div>
 
           {/* Row 2: credits pills + GPA toggle */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+          <div style={{ display: "flex", flexWrap: "nowrap", gap: 6, alignItems: "center", overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: isMobile ? 4 : 0 }}>
             <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textFaint, textTransform: "uppercase", letterSpacing: "1px", marginRight: 4 }}>Credits</span>
             {["1","2","3","4+"].map(cr => {
               const on = creditsFilter.includes(cr);

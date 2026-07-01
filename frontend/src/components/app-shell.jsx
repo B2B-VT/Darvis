@@ -501,39 +501,67 @@ export default function AppShell({
     );
   }
 
-  // ── Mobile ────────────────────────────────────────────────────────────────
+  // ── Mobile — bottom tab bar ───────────────────────────────────────────────
+  const bottomNavItems = [
+    { id: "search",      label: "Courses",    icon: Icons.courses     },
+    { id: "schedule",    label: "Schedule",   icon: Icons.schedule    },
+    { id: "chatbot",     label: "AI",         icon: Icons.chatbot     },
+    { id: "instructors", label: "Professors", icon: Icons.instructors },
+  ];
+
   return (
     <>
-      <style>{`
-        @keyframes slideInLeft { from { transform:translateX(-100%); } to { transform:translateX(0); } }
-        @keyframes fadeOverlay  { from { opacity:0; } to { opacity:1; } }
-      `}</style>
       <div style={{
-        display: "flex", flexDirection: "column", minHeight: "100vh",
-        position: "relative", zIndex: 1,
-        ...(page === "chatbot" ? { height: "100vh", overflow: "hidden" } : {}),
+        display: "flex", flexDirection: "column", position: "relative", zIndex: 1,
+        ...(page === "chatbot" ? { height: "100vh", overflow: "hidden" } : { minHeight: "100vh" }),
       }}>
         <MobileHeader />
         <main key={page} style={{
           flex: 1, position: "relative",
           animation: "dvPageIn 0.38s cubic-bezier(0.22,1,0.36,1) both",
           overflowX: "hidden",
+          paddingBottom: page === "chatbot" ? 0 : 62,
           ...(page === "chatbot" ? { display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" } : {}),
         }}>
           {children}
         </main>
       </div>
-      {drawerOpen && <>
-        <div onClick={() => setDrawerOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.42)", animation: "fadeOverlay 0.2s ease both" }} />
-        <aside style={{
-          position: "fixed", top: 0, left: 0, bottom: 0, width: SIDEBAR_W, zIndex: 201,
-          ...asideCss,
-          animation: "slideInLeft 0.28s cubic-bezier(0.22,1,0.36,1) both",
-          boxShadow: "4px 0 40px rgba(0,0,0,0.32)",
-        }}>
-          <SidebarContent />
-        </aside>
-      </>}
+
+      {/* Bottom navigation bar */}
+      <nav style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+        height: 62,
+        background: darkMode ? "rgba(10,7,6,0.90)" : "rgba(250,248,246,0.94)",
+        backdropFilter: "blur(30px) saturate(1.8)",
+        WebkitBackdropFilter: "blur(30px) saturate(1.8)",
+        borderTop: darkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.09)",
+        display: "flex", alignItems: "stretch",
+        boxShadow: darkMode ? "0 -4px 30px rgba(0,0,0,0.45)" : "0 -2px 20px rgba(0,0,0,0.06)",
+      }}>
+        {bottomNavItems.map(item => {
+          const isActive = page === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setPage(item.id)}
+              style={{
+                flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", gap: 3, padding: "6px 0 8px",
+                background: "none", border: "none", cursor: "pointer",
+                color: isActive ? ACCENT : p.textMute,
+                fontFamily: SANS, fontSize: 9.5, fontWeight: isActive ? 700 : 500,
+                transition: "color 0.15s",
+                borderTop: `2px solid ${isActive ? ACCENT : "transparent"}`,
+              }}
+            >
+              <span style={{ display: "flex", opacity: isActive ? 1 : 0.55, transition: "opacity 0.15s" }}>
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </>
   );
 }

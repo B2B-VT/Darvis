@@ -228,7 +228,7 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "36px 64px 96px", boxSizing: "border-box" }}>
 
         {/* Filter row */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${p.line}` }}>
+        <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, alignItems: "center", marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${p.line}`, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <button onClick={() => setRmpOnly(v => !v)} style={chipStyle(rmpOnly)}>Has RMP rating</button>
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>

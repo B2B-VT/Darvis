@@ -460,8 +460,8 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
           </div>
         ) : (
           <>
-            {/* View toggle */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            {/* View toggle — desktop only; mobile always uses list */}
+            <div style={{ display: isMobile ? "none" : "flex", gap: 8, marginBottom: 18 }}>
               {[
                 ["grid", <><GridIcon size={14} /> Weekly Grid</>],
                 ["list", <><ListIcon size={14} /> List View</>],
