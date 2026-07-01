@@ -1,19 +1,21 @@
 // FAQs page
 import { useState, useEffect } from "react";
+import { SANS, SERIF, MONO, ACCENT, palette, RADIUS } from "../theme.jsx";
 
 export default function FaqsPage({ darkMode = true, setPage }) {
+  const p       = palette(darkMode);
   const bg      = "transparent";
-  const cardBg  = darkMode ? "rgba(255,255,255,0.04)"  : "rgba(0,0,0,0.03)";
-  const cardHov = darkMode ? "rgba(255,255,255,0.03)"  : "rgba(0,0,0,0.02)";
-  const border  = darkMode ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.08)";
-  const borOpen = darkMode ? "rgba(255,255,255,0.14)"  : "rgba(0,0,0,0.14)";
-  const text    = darkMode ? "rgba(255,255,255,0.88)"  : "#1a1210";
-  const subtext = darkMode ? "rgba(255,255,255,0.45)"  : "rgba(0,0,0,0.45)";
-  const head    = darkMode ? "#ffffff"                 : "#1a1210";
-  const accent  = "#861F41";
-  const btnSec  = darkMode ? "rgba(255,255,255,0.07)"  : "rgba(0,0,0,0.06)";
-  const btnSecH = darkMode ? "rgba(255,255,255,0.11)"  : "rgba(0,0,0,0.1)";
-  const plusBg  = darkMode ? "rgba(255,255,255,0.08)"  : "rgba(0,0,0,0.08)";
+  const cardBg  = p.card;
+  const cardHov = p.cardHover;
+  const border  = p.line;
+  const borOpen = darkMode ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.18)";
+  const text    = p.text;
+  const subtext = p.textSub;
+  const head    = p.text;
+  const accent  = ACCENT;
+  const btnSec  = darkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)";
+  const btnSecH = darkMode ? "rgba(255,255,255,0.11)" : "rgba(0,0,0,0.1)";
+  const plusBg  = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
   const [open, setOpen] = useState(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -118,7 +120,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
   ];
 
   return (
-    <div style={{ background: bg, minHeight: "100vh", color: text, fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80, transition: "background 0.3s, color 0.3s" }}>
+    <div style={{ background: bg, minHeight: "100vh", color: text, fontFamily: SANS, paddingBottom: 80, transition: "background 0.3s, color 0.3s" }}>
 
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${border}`, padding: isMobile ? "32px 0 24px" : "48px 0 40px" }}>
