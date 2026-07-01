@@ -216,26 +216,12 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
                 times.append(f"{days} {start}")
         time_str = ", ".join(times[:2]) if times else "TBA"
 
-        # Grade stats — word-boundary last-name match, then narrow by first name if ambiguous
-        inst_last = _last(inst_name)
+        # Grade stats — exact canonical name match (both sections and grades now canonical)
         inst_grades = pd.DataFrame()
-        if not course_df.empty and inst_last:
-            pattern = r'\b' + re.escape(inst_last) + r'\b'
-            candidates = course_df[
-                course_df["Instructor"].str.lower().str.contains(pattern, regex=True, na=False)
+        if not course_df.empty:
+            inst_grades = course_df[
+                course_df["Instructor"].str.lower() == inst_name.lower()
             ]
-            if not candidates.empty and candidates["Instructor"].nunique() > 1:
-                # Multiple instructors share this last name — try first name from Banner name
-                # Banner format is "Last, First M." or "First Last"
-                name_parts = inst_name.replace(",", " ").split()
-                first_hint = name_parts[1].lower() if len(name_parts) >= 2 else ""
-                if first_hint:
-                    narrowed = candidates[
-                        candidates["Instructor"].str.lower().str.contains(first_hint, na=False)
-                    ]
-                    if not narrowed.empty:
-                        candidates = narrowed
-            inst_grades = candidates
 
         if not inst_grades.empty:
             enroll   = inst_grades["Graded Enrollment"].fillna(0)
@@ -246,14 +232,11 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
         else:
             gpa, a_rate, students = None, None, 0
 
-        # RMP — word-boundary last-name match; pick most-reviewed on ties
+        # RMP — exact canonical name match (sections.instructor is now canonical)
         rmp_rating = None
-        if rmp_df is not None and not rmp_df.empty and inst_last:
-            pattern = r'\b' + re.escape(inst_last) + r'\b'
-            rmp_match = rmp_df[rmp_df["name"].str.lower().str.contains(pattern, regex=True, na=False)]
+        if rmp_df is not None and not rmp_df.empty:
+            rmp_match = rmp_df[rmp_df["name"].str.lower() == inst_name.lower()]
             if not rmp_match.empty:
-                if len(rmp_match) > 1:
-                    rmp_match = rmp_match.sort_values("rmp_count", ascending=False)
                 rmp_rating = rmp_match.iloc[0].get("rmp_rating")
 
         rows_out.append({

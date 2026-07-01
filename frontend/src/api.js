@@ -196,67 +196,22 @@ export const API = {
     const course = formatCourse(courseRes.data);
     const grades = gradesRes.data || [];
 
-    // Collect all raw name formats: last-name-only (grades) + initials-last (Banner)
-    const gradesNames = [...new Set(grades.map(r => r.instructor).filter(Boolean))];
-    const bannerNames = [...new Set((sectRes.data || []).map(r => r.instructor).filter(Boolean))];
-    const allRawNames = [...new Set([...gradesNames, ...bannerNames])];
+    // Both grades.instructor and sections.instructor now store canonical names
+    // matching instructors.name exactly — plain set union then direct .in() lookup.
+    const allNames = [...new Set([
+      ...grades.map(r => r.instructor).filter(Boolean),
+      ...(sectRes.data || []).map(r => r.instructor).filter(Boolean),
+    ])];
 
-    // Build a unified rmpMap that resolves every name variant → canonical instructor row.
-    // Strategy: query by last-name suffix, then disambiguate by first initial.
-    // Banner names (e.g. "JA Lewis") are resolved first since they carry first-initial
-    // info; their resolution pre-fills the last-name-only key so grades names ("Lewis")
-    // automatically inherit the correct canonical match.
     const rmpMap = {};
-    if (allRawNames.length > 0) {
-      const lastNames = [...new Set(allRawNames.map(n => n.trim().split(/\s+/).pop()))];
-      const orFilter = lastNames.map(ln => `name.ilike.%${ln}`).join(',');
-      const { data: candidates } = await db.from('instructors')
+    if (allNames.length > 0) {
+      const { data: rows } = await db.from('instructors')
         .select('name, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, rmp_reviews, rmp_id')
-        .or(orFilter);
-
-      if (candidates?.length) {
-        function resolve(rawName) {
-          const parts = rawName.trim().split(/\s+/);
-          const lastName = parts[parts.length - 1].toLowerCase();
-          // First initial is meaningful only when the raw name has ≥2 words
-          const firstInit = parts.length > 1 ? (parts[0][0] || '').toLowerCase() : null;
-          const byLast = candidates.filter(r =>
-            r.name.trim().split(/\s+/).pop().toLowerCase() === lastName
-          );
-          if (!byLast.length) return null;
-          if (byLast.length === 1) return byLast[0];
-          if (firstInit) {
-            const byInit = byLast.filter(r => (r.name[0] || '').toLowerCase() === firstInit);
-            if (byInit.length) return byInit[0];
-          }
-          return byLast[0];
-        }
-
-        // 1. Banner names first — initials give reliable first-initial disambiguation
-        for (const bn of bannerNames) {
-          const row = resolve(bn);
-          if (row) {
-            rmpMap[bn] = row;
-            rmpMap[row.name] = row;
-            // Pre-fill last-name-only key so grades name ("Lewis") resolves to same row
-            const lastN = bn.trim().split(/\s+/).pop();
-            if (!rmpMap[lastN]) rmpMap[lastN] = row;
-          }
-        }
-        // 2. Grades names — use pre-filled Banner resolution if available
-        for (const gn of gradesNames) {
-          if (!rmpMap[gn]) {
-            const row = resolve(gn);
-            if (row) {
-              rmpMap[gn] = row;
-              if (!rmpMap[row.name]) rmpMap[row.name] = row;
-            }
-          }
-        }
-      }
+        .in('name', allNames);
+      (rows || []).forEach(r => { rmpMap[r.name] = r; });
     }
 
-    course.instructors = gradesNames.slice().sort();
+    course.instructors = [...new Set(grades.map(r => r.instructor).filter(Boolean))].sort();
     course.rmpMap = rmpMap;
     course.gradesByTerm = buildTermTrend(grades);
 
