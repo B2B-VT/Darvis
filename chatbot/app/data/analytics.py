@@ -154,10 +154,36 @@ def course_profile(df: pd.DataFrame, subject: str | None, course_no: str, min_st
     return add_confidence_scores(out)
 
 
+def _best_instructor_match(candidates: "list[str]", query: str) -> "str | None":
+    """
+    Pick the single best instructor name from candidates (all contain `query`).
+    Prefers names where every word in the query appears, then exact word-boundary
+    matches, then shortest name. Returns None if candidates is empty.
+    """
+    q_parts = query.strip().lower().split()
+    scored = []
+    for name in candidates:
+        n = name.strip().lower()
+        all_parts = int(all(p in n for p in q_parts)) * 2
+        exact_last = int(bool(re.search(r'\b' + re.escape(q_parts[-1]) + r'\b', n)))
+        scored.append((name, all_parts + exact_last, -len(name)))
+    scored.sort(key=lambda x: (x[1], x[2]), reverse=True)
+    return scored[0][0] if scored else None
+
+
 def professor_profile(df: pd.DataFrame, professor_query: str, min_students: int, use_recency: bool) -> pd.DataFrame:
     work, cols = _prepare(df)
-    p_df = work[
+    # Broad match — find rows where any instructor name contains the query
+    broad = work[
         work["Instructor"].astype(str).str.contains(professor_query, case=False, na=False)
+    ]
+    # Narrow to ONE instructor so courses from different people sharing a last
+    # name (e.g. "Lewis" matching John Lewis CS + Mary Lewis PHIL) are never mixed
+    best_name = _best_instructor_match(broad["Instructor"].dropna().unique().tolist(), professor_query)
+    if best_name is None:
+        return pd.DataFrame()
+    p_df = broad[
+        broad["Instructor"].str.lower() == best_name.lower()
     ].dropna(subset=["Subject", "Course No.", "Course Title", cols["gpa"], cols["enrollment"]])
     rows = []
     for (subject, course_no, title), group in p_df.groupby(["Subject", "Course No.", "Course Title"]):
