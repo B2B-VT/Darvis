@@ -113,12 +113,9 @@ export const API = {
 
   // Returns the distinct subject codes present in the courses table.
   async getSubjects() {
-    const { data, error } = await db
-      .from('courses')
-      .select('subject')
-      .order('subject');
+    const { data, error } = await db.rpc('get_distinct_subjects');
     if (error) throw error;
-    return [...new Set((data || []).map(r => r.subject))];
+    return (data || []).map(r => r.subject);
   },
 
   // Returns Fall 2026 sections for a given course from the sections table.

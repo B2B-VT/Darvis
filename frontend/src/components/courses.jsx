@@ -343,7 +343,10 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase" }}>{course.subject} {course.number}</span>
                 <span style={{ fontFamily: MONO, fontSize: 10, color: p.textSub, background: p.card, borderRadius: RADIUS.pill, padding: "2px 10px", border: `1px solid ${p.line}` }}>{course.credits} cr</span>
-                {course.avgGpa > 0 && <GpaBadge gpa={course.avgGpa} darkMode={dm} />}
+                {course.avgGpa > 0
+                  ? <GpaBadge gpa={course.avgGpa} darkMode={dm} />
+                  : <span style={{ fontSize: 11, fontFamily: MONO, color: p.textMute, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 10px" }}>No grade data</span>
+                }
               </div>
               <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 400, fontFamily: SERIF, color: p.text, lineHeight: 1.3 }}>{course.title}</h2>
             </div>
@@ -563,7 +566,10 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub }}>
           {course.credits} {course.credits === 1 ? "Credit" : "Credits"}
         </span>
-        {gpa > 0 && <GpaBadge gpa={gpa} darkMode={dm} />}
+        {gpa > 0
+          ? <GpaBadge gpa={gpa} darkMode={dm} />
+          : <span style={{ fontSize: 11, fontFamily: MONO, color: p.textMute, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 10px" }}>No grade data</span>
+        }
       </div>
 
       {/* ── Title ── */}
