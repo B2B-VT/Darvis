@@ -9,6 +9,7 @@ Darvis/
 ├── frontend/               React 18 + Vite — deployed on Vercel
 ├── chatbot/                FastAPI chatbot backend — deployed on Render
 ├── backend/                Node.js data scripts (scrapers, importers) — not a server
+├── .github/workflows/      CI — update-timetable.yml (authenticated Banner scrape every 4h)
 └── CLAUDE.md
 ```
 
@@ -25,7 +26,8 @@ npm run dev        # http://localhost:5173
 **Deploy:** git push to main → Vercel auto-deploys.
 
 **Key files:**
-- `frontend/src/App.jsx` — root component, page routing, global dark mode state
+- `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env`
+- `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state
 - `frontend/src/api.js` — all Supabase calls from the frontend
 - `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
 - `frontend/src/supabase.js` — Supabase client singleton
@@ -63,6 +65,13 @@ source .venv/bin/activate
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
+**Tests:** pytest suite in `chatbot/tests/` (intent extractor, planner critic, retrieval eval, normalization):
+```bash
+cd chatbot && python -m pytest tests/
+```
+
+**Other dirs:** `chatbot/scripts/` — embedding builders (`build_embeddings.py`, `rebuild_embeddings.py`, `embed_grades.py`), `sync_redis_index.py` (Supabase `embeddings` → Redis index), `scrape_curriculum.py`. `chatbot/migrations/` — SQL migrations.
+
 **Deploy:** git push to main → Render auto-deploys (root directory set to `chatbot/` in Render config).
 
 **LLM:** Google AI Studio (Gemma). Set `GOOGLE_API_KEY` and `GOOGLE_MODEL` in `chatbot/.env`. Current model string: `gemma-3-27b-it`. Has a 30-second HTTP timeout at the transport layer. Falls back to template answers when the LLM is unavailable.
@@ -96,6 +105,9 @@ backend/
 │   ├── udc_playwright_scraper.js    Playwright (headless): scrape grades without browser console
 │   ├── udc_diag.js                  Diagnostic — inspect UDC page structure
 │   ├── udc_intercept.js             Network intercept variant of UDC scraper
+│   ├── banner_timetable_scraper.js  Banner timetable (unauthenticated) → sections
+│   ├── banner_puppeteer_scraper.js  Authenticated Banner scrape — instructor + seat data; run by CI
+│   ├── banner_auth_helper.js        Interactive CAS/Duo login — saves browser profile cookies
 │   ├── rmp_scraper.js               Scrapes all VT professors from RMP GraphQL API → data/raw/
 │   ├── catalog_scraper.js           Scrapes course descriptions from catalog.vt.edu → data/raw/
 │   └── prereq_scraper.js            Scrapes course prerequisites from catalog → data/raw/
@@ -104,10 +116,11 @@ backend/
 │   ├── import_all_grades.js    Bulk variant — imports all grade CSVs in one pass
 │   ├── import_timetable.js     Reads vt_timetable_*.csv, upserts to sections table
 │   ├── import_descriptions.js  Reads course_descriptions.json, fills courses.description
-│   ├── import_prerequisites.js Reads prereq data, upserts to prerequisites table
+│   ├── import_prerequisites.js Reads course_prerequisites.json, updates courses.prerequisites — BROKEN: column missing in live DB
 │   ├── import_rmp.js           Matches RMP by last name, upserts to legacy professors table
 │   ├── rebuild_instructors.js  Rebuilds instructors table from all subjects + fresh RMP data
-│   └── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
+│   ├── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
+│   └── update_banner_secret.sh Re-encodes Banner cookies → GitHub secret BANNER_PROFILE_B64
 └── supabase/
     └── schema.sql              Full DB schema
 ```
@@ -119,37 +132,46 @@ npm run import-grades               # after dropping vt_udc_grades_*.csv in data
 npm run import-timetable            # after dropping vt_timetable_*.csv in data/raw/
 npm run scrape-grades               # Playwright headless scrape (udc_playwright_scraper.js)
 npm run scrape-prereqs              # scrape prerequisites
-npm run import-prerequisites        # import scraped prereqs into DB
+npm run import-prerequisites        # import scraped prereqs into DB (broken — see Known issues)
+npm run scrape-catalog              # scrape course descriptions from catalog.vt.edu
+npm run import-descriptions         # fill courses.description from scraped JSON
+npm run scrape-timetable            # Banner timetable scrape (unauthenticated)
+npm run auth-banner                 # interactive CAS/Duo login — saves Banner browser profile
+npm run scrape-timetable-auth       # authenticated Puppeteer scrape — instructor + seats
+npm run update-banner-secret        # push refreshed cookies to GitHub secret BANNER_PROFILE_B64
 node scripts/import_rmp.js          # match + import RMP ratings
 node scripts/rebuild_instructors.js # rebuild instructors from all subjects + RMP
 ```
+
+**CI (`.github/workflows/update-timetable.yml`):** every 4h (cron `0 */4 * * *`) + manual dispatch. Node 22, restores Chrome cookies from secret `BANNER_PROFILE_B64`, runs `banner_puppeteer_scraper.js` with `NO_DELETE=true HEADLESS=true`, upserts sections. Secrets: `BANNER_PROFILE_B64`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. After each local re-auth, refresh the secret with `npm run update-banner-secret`.
 
 ## Supabase database
 
 Project ID: `rpmgcurhxrgtzbdixtay`
 
+Row counts verified live 2026-07-01:
+
 | Table | Rows | Notes |
 |-------|------|-------|
-| `grades` | 1,706 | CS only — UDC scraper needed for all other subjects |
-| `courses` | 3,564 | All have `total_sections`; only 137 have `avg_gpa`; none have `pathways` or `description` |
-| `sections` | 10,129 | Fall 2026 (term `202609`); 2 rows missing `start_time` (handled) |
-| `instructors` | 210 | 65 have RMP ratings + rmp_id; all have empty `rmp_tags` (RMP API limitation) |
+| `grades` | 59,790 | All 152 subjects, 2020–2026 — full UDC import complete |
+| `courses` | 6,589 | 5,468 have `avg_gpa`; `description` and `pathways` empty for all; no `prerequisites` column |
+| `sections` | 10,663 | Fall 2026 only (term `202609`); auto-updated every 4h by CI Banner scrape |
+| `instructors` | 3,834 | 1,982 have RMP ratings; `rmp_tags` empty for all (RMP API limitation) |
 | `professors` | 65 | Legacy. Written by `import_rmp.js`, not read by app code — frontend `api.js` and chatbot both read `instructors` |
 | `majors` | 183 | Full list |
-| `major_requirements` | 16,151 | Full list |
+| `major_requirements` | 16,290 | Full list |
 | `embeddings` | 4,576 | Vectors populated; this is the source of truth. Synced into a Redis (redisvl) index by `scripts/sync_redis_index.py` — retrieval queries Redis at runtime, not this table directly. Legacy `search_embeddings`/`hybrid_search` Postgres RPCs are no longer called by the chatbot but remain in the schema |
 | `grade_embeddings` | 0 | Dead/unused — left over from earlier architecture |
-| `forum_posts` | 0 | Empty — no users yet |
+| `forum_posts` | 1 | Effectively empty — no users yet |
 | `forum_replies` | 0 | Empty |
-
-**Key issue:** `grades` only has CS data. Every non-CS question returns no results. UDC scraper needs to run for ECE, MATH, BIOL, and all other subjects — currently blocked waiting on faster hardware.
 
 ## Known issues and pending work
 
 **High priority:**
-- Scrape remaining UDC subjects (ECE, MATH, BIOL, etc.) — waiting on hardware. Use the `backend/scrapers/udc_*_scraper.js` browser-console scripts (one-subject, batch, or all-subjects variants).
-- `courses.avg_gpa` is null for 3,427 of 3,564 courses (only CS has grade data to populate it). Will fix itself as more grade data is imported.
+- Prerequisites pipeline broken: `import_prerequisites.js` writes `courses.prerequisites`, but that column does not exist in the live DB (nor a `prerequisites` table). Add the column (or table) before running `npm run import-prerequisites`.
+- `courses.description` empty for all 6,589 courses — `scrape-catalog` + `import-descriptions` never run against live DB.
 - `courses.pathways` empty for all courses — VT Pathways data never populated. Static JSON lookup file needed.
+- `courses.avg_gpa` still null for 1,121 of 6,589 courses (no grade rows for those courses).
 
 **Medium priority:**
 - `natural_filter.py`: `lowest_gpa` sort goal sets chart metric label to `"Avg GPA"` — same as `highest_gpa`. Add directional label.
@@ -158,7 +180,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 
 **Low priority:**
 - Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.
-- `rmp_tags` is empty for all 65 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
+- `rmp_tags` is empty for all 1,982 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
 
 ## Deployment
 
@@ -169,6 +191,7 @@ Project ID: `rpmgcurhxrgtzbdixtay`
 | Supabase | Database | project ID rpmgcurhxrgtzbdixtay |
 | Redis Cloud | Vector + keyword search index (redisvl) | synced from Supabase `embeddings` via `scripts/sync_redis_index.py` |
 | Clerk | Auth | clerk.darvis.tech |
+| GitHub Actions | Timetable auto-update (every 4h) | `.github/workflows/update-timetable.yml` |
 
 Render free tier sleeps after inactivity — first request takes ~30 seconds. Upgrade to Render Starter ($7/month) to eliminate cold starts.
 
