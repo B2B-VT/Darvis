@@ -182,51 +182,90 @@ export const API = {
   // Returns a single course by subject + course_number, plus its raw grade rows
   // and RMP data for each instructor.
   async getCourse(subject, number) {
-    const [courseRes, gradesRes] = await Promise.all([
-      db
-        .from('courses')
-        .select('*')
-        .eq('subject', subject.toUpperCase())
-        .eq('course_number', number)
-        .single(),
-      db
-        .from('grades')
-        .select('*')
-        .eq('subject', subject.toUpperCase())
-        .eq('course_number', number)
-        .order('academic_year', { ascending: false })
-        .order('term', { ascending: false }),
+    const [courseRes, gradesRes, sectRes] = await Promise.all([
+      db.from('courses').select('*').eq('subject', subject.toUpperCase()).eq('course_number', number).single(),
+      db.from('grades').select('*').eq('subject', subject.toUpperCase()).eq('course_number', number)
+        .order('academic_year', { ascending: false }).order('term', { ascending: false }),
+      // Fetch Banner instructor names (initials+last format) from Fall 2026 sections
+      db.from('sections').select('instructor')
+        .eq('subject', subject.toUpperCase()).eq('course_number', number)
+        .eq('term', '202609').not('instructor', 'is', null),
     ]);
     if (courseRes.error) throw courseRes.error;
     const course = formatCourse(courseRes.data);
     const grades = gradesRes.data || [];
 
-    // Distinct instructors
-    const instructorNames = [...new Set(grades.map(r => r.instructor).filter(Boolean))];
-    course.instructors = instructorNames.slice().sort();
+    // Collect all raw name formats: last-name-only (grades) + initials-last (Banner)
+    const gradesNames = [...new Set(grades.map(r => r.instructor).filter(Boolean))];
+    const bannerNames = [...new Set((sectRes.data || []).map(r => r.instructor).filter(Boolean))];
+    const allRawNames = [...new Set([...gradesNames, ...bannerNames])];
 
-    // Fetch RMP data for all instructors in one query
-    let rmpMap = {};
-    if (instructorNames.length > 0) {
-      const { data: rmpRows } = await db
-        .from('instructors')
+    // Build a unified rmpMap that resolves every name variant → canonical instructor row.
+    // Strategy: query by last-name suffix, then disambiguate by first initial.
+    // Banner names (e.g. "JA Lewis") are resolved first since they carry first-initial
+    // info; their resolution pre-fills the last-name-only key so grades names ("Lewis")
+    // automatically inherit the correct canonical match.
+    const rmpMap = {};
+    if (allRawNames.length > 0) {
+      const lastNames = [...new Set(allRawNames.map(n => n.trim().split(/\s+/).pop()))];
+      const orFilter = lastNames.map(ln => `name.ilike.%${ln}`).join(',');
+      const { data: candidates } = await db.from('instructors')
         .select('name, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, rmp_reviews, rmp_id')
-        .in('name', instructorNames);
-      if (rmpRows) {
-        rmpRows.forEach(r => { rmpMap[r.name] = r; });
+        .or(orFilter);
+
+      if (candidates?.length) {
+        function resolve(rawName) {
+          const parts = rawName.trim().split(/\s+/);
+          const lastName = parts[parts.length - 1].toLowerCase();
+          // First initial is meaningful only when the raw name has ≥2 words
+          const firstInit = parts.length > 1 ? (parts[0][0] || '').toLowerCase() : null;
+          const byLast = candidates.filter(r =>
+            r.name.trim().split(/\s+/).pop().toLowerCase() === lastName
+          );
+          if (!byLast.length) return null;
+          if (byLast.length === 1) return byLast[0];
+          if (firstInit) {
+            const byInit = byLast.filter(r => (r.name[0] || '').toLowerCase() === firstInit);
+            if (byInit.length) return byInit[0];
+          }
+          return byLast[0];
+        }
+
+        // 1. Banner names first — initials give reliable first-initial disambiguation
+        for (const bn of bannerNames) {
+          const row = resolve(bn);
+          if (row) {
+            rmpMap[bn] = row;
+            rmpMap[row.name] = row;
+            // Pre-fill last-name-only key so grades name ("Lewis") resolves to same row
+            const lastN = bn.trim().split(/\s+/).pop();
+            if (!rmpMap[lastN]) rmpMap[lastN] = row;
+          }
+        }
+        // 2. Grades names — use pre-filled Banner resolution if available
+        for (const gn of gradesNames) {
+          if (!rmpMap[gn]) {
+            const row = resolve(gn);
+            if (row) {
+              rmpMap[gn] = row;
+              if (!rmpMap[row.name]) rmpMap[row.name] = row;
+            }
+          }
+        }
       }
     }
-    course.rmpMap = rmpMap;
 
-    // Grade trend by term
+    course.instructors = gradesNames.slice().sort();
+    course.rmpMap = rmpMap;
     course.gradesByTerm = buildTermTrend(grades);
 
-    // Raw per-section rows for the breakdown table
+    // Store canonical name in rawSections so the Instructors tab and grade breakdown
+    // display "John Lewis" instead of the raw last-name-only "Lewis" from the CSV.
     course.rawSections = grades.map(r => ({
       academicYear:     r.academic_year,
       term:             r.term,
       crn:              r.crn,
-      instructor:       r.instructor || 'Unknown',
+      instructor:       rmpMap[r.instructor]?.name || r.instructor || 'Unknown',
       gpa:              r.gpa != null ? parseFloat(r.gpa) : null,
       gradedEnrollment: r.graded_enrollment || 0,
       withdraws:        r.withdraws || 0,

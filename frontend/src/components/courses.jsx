@@ -113,8 +113,10 @@ function SectionRow({ section, onAdd, onRemove, inSchedule, onProfClick, rmpMap,
   const virtual = isVirtual(section);
   const instrName = section.instructor || 'Staff';
   const rmp = rmpMap?.[instrName];
+  // Show canonical full name ("John Lewis") when resolved; fall back to raw Banner name
+  const displayName = rmp?.name || instrName;
   const profObj = rmp
-    ? { id: instrName, name: instrName, rmpRating: rmp.rmp_rating, rmpDifficulty: rmp.rmp_difficulty, rmpCount: rmp.rmp_count, rmpTags: rmp.rmp_tags ?? [], rmpReviews: rmp.rmp_reviews ?? [], rmpId: rmp.rmp_id ?? null }
+    ? { id: instrName, name: displayName, rmpRating: rmp.rmp_rating, rmpDifficulty: rmp.rmp_difficulty, rmpCount: rmp.rmp_count, rmpTags: rmp.rmp_tags ?? [], rmpReviews: rmp.rmp_reviews ?? [], rmpId: rmp.rmp_id ?? null }
     : null;
 
   return (
@@ -122,9 +124,9 @@ function SectionRow({ section, onAdd, onRemove, inSchedule, onProfClick, rmpMap,
       <div style={{ fontFamily: MONO, fontWeight: 600, color: ACCENT, fontSize: 11 }}>{section.crn}</div>
       <div>
         {profObj ? (
-          <button onClick={() => onProfClick(profObj)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: p.text, fontWeight: 600, fontSize: 13, textDecoration: "underline", fontFamily: SANS, textAlign: "left" }}>{instrName}</button>
+          <button onClick={() => onProfClick(profObj)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: p.text, fontWeight: 600, fontSize: 13, textDecoration: "underline", fontFamily: SANS, textAlign: "left" }}>{displayName}</button>
         ) : (
-          <span style={{ fontWeight: 600, fontSize: 13, color: p.text }}>{instrName}</span>
+          <span style={{ fontWeight: 600, fontSize: 13, color: p.text }}>{displayName}</span>
         )}
         {rmp?.rmp_rating != null && (
           <div style={{ marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
