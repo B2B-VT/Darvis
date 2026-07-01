@@ -18,6 +18,7 @@ from app.models import ChatRequest, ChatResponse, FeedbackRequest, SearchItem
 from app.data.loader import (
     load_from_supabase, load_rmp_from_supabase,
     load_courses_from_supabase, load_requirements_from_supabase,
+    load_sections_from_supabase,
     search_courses, search_professors,
 )
 from app.rag.vector_store import GradeVectorStore
@@ -50,6 +51,7 @@ STATE = {
     "rmp_df": None,
     "courses_df": None,
     "requirements_df": None,
+    "sections_df": None,
     "vector_store": None,
     "llm": None,
     "intent": None,
@@ -71,6 +73,9 @@ async def lifespan(app: FastAPI):
     print("Loading major requirements...")
     requirements_df = load_requirements_from_supabase()
 
+    print("Loading Fall 2026 sections...")
+    sections_df = load_sections_from_supabase()
+
     print("Building RAG retrieval pipeline...")
     vector_store = GradeVectorStore()
     vector_store.rebuild(df, courses_df=courses_df, requirements_df=requirements_df)
@@ -86,13 +91,16 @@ async def lifespan(app: FastAPI):
     # Intent extractor: replaces keyword router — Gemma understands the question
     intent_extractor = IntentExtractor(llm)
 
-    # Entity resolver: fuzzy-matches professor names and course codes post-extraction
-    entity_resolver = EntityResolver(df, courses_df)
+    # Entity resolver: fuzzy-matches professor names and course codes post-extraction.
+    # Pass rmp_df (all 210 instructors) so it knows every canonical name and can
+    # reject hallucinated names the LLM fabricates.
+    entity_resolver = EntityResolver(df, courses_df, instructors_df=rmp_df)
 
     STATE["df"] = df
     STATE["rmp_df"] = rmp_df
     STATE["courses_df"] = courses_df
     STATE["requirements_df"] = requirements_df
+    STATE["sections_df"] = sections_df
     STATE["vector_store"] = vector_store
     STATE["llm"] = llm
     STATE["intent"] = intent_extractor
@@ -317,6 +325,7 @@ def chat(request: Request, body: ChatRequest):
             from app.features.section_lookup import handle_section_lookup
             answer, tables, charts, metadata = handle_section_lookup(
                 question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
+                sections_df=STATE.get("sections_df"),
             )
         elif route == "schedule_builder":
             answer, tables, charts, metadata = handle_schedule_builder(
@@ -333,6 +342,7 @@ def chat(request: Request, body: ChatRequest):
                 intent=intent,
                 history=[m.model_dump() for m in body.history],
                 user_profile=body.user_profile,
+                sections_df=STATE.get("sections_df"),
             )
             if result is None:
                 answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
@@ -346,6 +356,7 @@ def chat(request: Request, body: ChatRequest):
                 intent=intent,
                 history=[m.model_dump() for m in body.history],
                 user_profile=body.user_profile,
+                sections_df=STATE.get("sections_df"),
             )
         elif route == "natural_filter":
             answer, tables, charts, metadata = handle_natural_filter(

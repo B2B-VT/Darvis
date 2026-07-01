@@ -37,6 +37,56 @@ def _enrich_with_rmp(result: pd.DataFrame, rmp_df: pd.DataFrame | None) -> pd.Da
     return result
 
 
+def _build_sections_table(sections_df: "pd.DataFrame | None", subject: str, course_no: str) -> list:
+    """Return a table_spec list for Fall 2026 sections of a given course, or []."""
+    if sections_df is None or sections_df.empty:
+        return []
+    from app.utils.charts import table_spec as _ts
+    _DAY_MAP = {"M": "Mon", "T": "Tue", "W": "Wed", "R": "Thu", "F": "Fri"}
+
+    def _fmt_days(days):
+        if not days:
+            return "TBA"
+        return "".join(_DAY_MAP.get(d, d) for d in (days if isinstance(days, list) else []))
+
+    def _fmt_time(t):
+        if not t:
+            return "TBA"
+        try:
+            h, m = int(t.split(":")[0]), int(t.split(":")[1])
+            return f"{h % 12 or 12}:{m:02d} {'AM' if h < 12 else 'PM'}"
+        except Exception:
+            return t
+
+    rows = sections_df[
+        (sections_df["subject"].str.upper() == subject.upper()) &
+        (sections_df["course_number"].astype(str) == str(course_no))
+    ]
+    if rows.empty:
+        return []
+
+    records = []
+    for _, r in rows.iterrows():
+        seats = r.get("seats")
+        enrolled = r.get("enrolled")
+        capacity = (int(seats) + int(enrolled)) if pd.notna(seats) and pd.notna(enrolled) else None
+        records.append({
+            "Instructor": r.get("instructor") or "TBA",
+            "Days": _fmt_days(r.get("days")),
+            "Time": _fmt_time(r.get("start_time")),
+            "Location": r.get("location") or "TBA",
+            "Open Seats": int(seats) if pd.notna(seats) else "—",
+            "Capacity": capacity if capacity is not None else "—",
+            "CRN": r.get("crn") or "—",
+        })
+
+    if not records:
+        return []
+    sec_df = pd.DataFrame(records)
+    cols = ["Instructor", "Days", "Time", "Location", "Open Seats", "Capacity", "CRN"]
+    return [_ts("Fall 2026 Sections", sec_df, cols, len(records))]
+
+
 def handle_course_profile(
     question: str,
     df: pd.DataFrame,
@@ -49,6 +99,7 @@ def handle_course_profile(
     intent=None,
     history: list | None = None,
     user_profile: dict | None = None,
+    sections_df: pd.DataFrame | None = None,
 ):
     settings = get_settings()
 
@@ -88,7 +139,8 @@ def handle_course_profile(
         retrieved = vector_store.query(question, n_results=6)
         prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
         answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
-        return answer, [], [], {"subject": subject, "course_no": course_no}
+        sec_tables = _build_sections_table(sections_df, subject, course_no)
+        return answer, sec_tables, [], {"subject": subject, "course_no": course_no}
 
     # RMP question detection — prefer intent flag, fall back to keyword check
     rmp_question = (intent.wants_rmp if intent is not None else False) or _is_rmp_question(question)
@@ -129,5 +181,6 @@ def handle_course_profile(
         scatter_chart(f"A/A- Rate vs F Rate for {subject or ''} {course_no}".strip(), result_display, "Avg F Rate (%)", "Avg A Range (%)", "Bubble data includes students and confidence fields."),
         bar_chart(f"Sample Size by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Total Students", ascending=True), "Total Students", "Instructor", "More students usually means more reliable grade-outcome data."),
     ]
-    tables = [table_spec("Professor Summary", result_display, cols, settings.max_rows_to_llm)]
+    sec_tables = _build_sections_table(sections_df, subject, course_no)
+    tables = [table_spec("Professor Summary", result_display, cols, settings.max_rows_to_llm)] + sec_tables
     return answer, tables, charts, {"subject": subject, "course_no": course_no}

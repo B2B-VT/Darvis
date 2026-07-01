@@ -49,7 +49,7 @@ def _last(name: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
-def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
+def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sections_df=None):
     """Returns (answer, tables, charts, metadata)."""
     from app.utils.charts import table_spec
 
@@ -66,22 +66,28 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
             [], [], {}
         )
 
-    # ── Live Supabase query ────────────────────────────────────────────────────
-    try:
-        client = create_client(settings.supabase_url, settings.supabase_key)
-        q = (client.table("sections")
-             .select("crn,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled")
-             .eq("term", CURRENT_TERM)
-             .eq("subject", subject))
+    # ── Use in-memory sections_df when available; fall back to live Supabase query ──
+    if sections_df is not None and not sections_df.empty:
+        filtered = sections_df[sections_df["subject"].str.upper() == subject]
         if course_no:
-            q = q.eq("course_number", str(course_no))
-        rows = q.execute().data or []
-    except Exception as e:
-        logger.error("section_lookup DB error: %s", e)
-        return (
-            f"Couldn't retrieve {TERM_LABEL} sections right now — try the Schedule page to browse directly.",
-            [], [], {}
-        )
+            filtered = filtered[filtered["course_number"].astype(str) == str(course_no)]
+        rows = filtered.to_dict("records")
+    else:
+        try:
+            client = create_client(settings.supabase_url, settings.supabase_key)
+            q = (client.table("sections")
+                 .select("crn,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled")
+                 .eq("term", CURRENT_TERM)
+                 .eq("subject", subject))
+            if course_no:
+                q = q.eq("course_number", str(course_no))
+            rows = q.execute().data or []
+        except Exception as e:
+            logger.error("section_lookup DB error: %s", e)
+            return (
+                f"Couldn't retrieve {TERM_LABEL} sections right now — try the Schedule page to browse directly.",
+                [], [], {}
+            )
 
     if not rows:
         return (

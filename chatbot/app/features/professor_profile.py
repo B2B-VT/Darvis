@@ -60,6 +60,53 @@ def _rmp_summary(rmp: dict | None) -> str:
     )
 
 
+def _build_prof_sections_table(sections_df, canonical_name: str) -> list:
+    """Return a table_spec for Fall 2026 sections taught by this professor, or []."""
+    if sections_df is None or sections_df.empty or not canonical_name:
+        return []
+    from app.utils.charts import table_spec as _ts
+    _DAY_MAP = {"M": "Mon", "T": "Tue", "W": "Wed", "R": "Thu", "F": "Fri"}
+
+    def _fmt_days(days):
+        if not days:
+            return "TBA"
+        return "".join(_DAY_MAP.get(d, d) for d in (days if isinstance(days, list) else []))
+
+    def _fmt_time(t):
+        if not t:
+            return "TBA"
+        try:
+            h, m = int(t.split(":")[0]), int(t.split(":")[1])
+            return f"{h % 12 or 12}:{m:02d} {'AM' if h < 12 else 'PM'}"
+        except Exception:
+            return t
+
+    rows = sections_df[sections_df["instructor"].str.lower() == canonical_name.lower()]
+    if rows.empty:
+        return []
+
+    records = []
+    for _, r in rows.iterrows():
+        seats = r.get("seats")
+        enrolled = r.get("enrolled")
+        capacity = (int(seats) + int(enrolled)) if pd.notna(seats) and pd.notna(enrolled) else None
+        records.append({
+            "Course": f"{r.get('subject', '')} {r.get('course_number', '')}".strip(),
+            "Title": r.get("title") or "—",
+            "Days": _fmt_days(r.get("days")),
+            "Time": _fmt_time(r.get("start_time")),
+            "Location": r.get("location") or "TBA",
+            "Open Seats": int(seats) if pd.notna(seats) else "—",
+            "Capacity": capacity if capacity is not None else "—",
+        })
+
+    if not records:
+        return []
+    sec_df = pd.DataFrame(records)
+    cols = ["Course", "Title", "Days", "Time", "Location", "Open Seats", "Capacity"]
+    return [_ts("Fall 2026 Schedule", sec_df, cols, len(records))]
+
+
 def handle_professor_profile(
     question: str,
     df: pd.DataFrame,
@@ -72,6 +119,7 @@ def handle_professor_profile(
     intent=None,
     history: list | None = None,
     user_profile: dict | None = None,
+    sections_df=None,
 ):
     settings = get_settings()
     # Use LLM-extracted name if available; fall back to regex
@@ -95,11 +143,13 @@ def handle_professor_profile(
     # Pull RMP data for this professor
     rmp = _lookup_rmp(name, rmp_df)
 
+    prof_sections = _build_prof_sections_table(sections_df, name)
+
     if result.empty:
         retrieved = vector_store.query(question, n_results=6)
         prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
         answer = llm.answer(prompt, history=history) or professor_answer(question, result, name, rmp=rmp)
-        return answer, [], [], {"professor_query": name, "rmp": rmp}
+        return answer, prof_sections, [], {"professor_query": name, "rmp": rmp}
 
     table_text = result[PROF_COLS].to_string(index=False)
     rmp_text   = _rmp_summary(rmp)
@@ -121,5 +171,5 @@ def handle_professor_profile(
             "Each point is a course taught by the matched professor.",
         ),
     ]
-    tables = [table_spec("Professor Course Summary", result, PROF_COLS, settings.max_rows_to_llm)]
+    tables = [table_spec("Professor Course Summary", result, PROF_COLS, settings.max_rows_to_llm)] + prof_sections
     return answer, tables, charts, {"professor_query": name, "rmp": rmp}

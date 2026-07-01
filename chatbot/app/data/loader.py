@@ -124,31 +124,74 @@ def load_from_supabase() -> pd.DataFrame:
 
 def load_rmp_from_supabase() -> pd.DataFrame:
     """
-    Fetches every row from the `instructors` table that has an RMP rating.
-    Returns a DataFrame keyed on the normalised instructor name.
+    Fetches ALL rows from the `instructors` table (not just those with RMP ratings).
+    Returns a DataFrame keyed on the normalised instructor name, with RMP fields
+    present but NaN for instructors who have no RMP data.
     """
     client = _supabase_client()
     try:
         result = (
             client.table("instructors")
-            .select("name, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, avg_gpa, subjects, course_count")
-            .not_.is_("rmp_rating", "null")
+            .select("name, dept, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, avg_gpa, subjects, course_count, rmp_id")
             .execute()
         )
         rows = result.data or []
     except Exception as exc:
-        print(f"  Warning: could not load RMP data — {exc}")
+        print(f"  Warning: could not load instructor data — {exc}")
         return pd.DataFrame()
 
     if not rows:
-        print("  No RMP data in instructors table yet.")
+        print("  No instructors found in table.")
         return pd.DataFrame()
 
     df = pd.DataFrame(rows)
     df["_key"] = df["name"].str.lower().str.strip()
     df["rmp_rating"] = pd.to_numeric(df["rmp_rating"], errors="coerce")
     df["rmp_difficulty"] = pd.to_numeric(df["rmp_difficulty"], errors="coerce")
-    print(f"Loaded {len(df):,} RMP instructor records from Supabase.")
+    df["rmp_count"] = pd.to_numeric(df["rmp_count"], errors="coerce").fillna(0).astype(int)
+    print(f"Loaded {len(df):,} instructors from Supabase ({df['rmp_rating'].notna().sum()} with RMP ratings).")
+    return df
+
+
+def load_sections_from_supabase() -> pd.DataFrame:
+    """
+    Fetches all Fall 2026 sections with full schedule details.
+    Loaded once at startup so all handlers can access schedule data without
+    live Supabase queries.
+    """
+    client = _supabase_client()
+    BATCH = 1000
+    offset = 0
+    all_rows: list[dict] = []
+
+    print("Loading Fall 2026 sections from Supabase...")
+    while True:
+        try:
+            result = (
+                client.table("sections")
+                .select("crn,term,subject,course_number,section,title,instructor,days,start_time,end_time,location,seats,enrolled,credits")
+                .eq("term", "202609")
+                .range(offset, offset + BATCH - 1)
+                .execute()
+            )
+            rows = result.data or []
+        except Exception as exc:
+            print(f"  Warning: could not load sections — {exc}")
+            return pd.DataFrame()
+
+        all_rows.extend(rows)
+        if len(rows) < BATCH:
+            break
+        offset += BATCH
+
+    if not all_rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_rows)
+    for col in ("seats", "enrolled", "credits"):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    print(f"Loaded {len(df):,} Fall 2026 sections from Supabase.")
     return df
 
 
