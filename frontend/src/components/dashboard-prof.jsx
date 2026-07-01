@@ -217,17 +217,6 @@ function Dashboard({ user, schedule, darkMode, onCourseClick, onProfClick, onRem
   );
 }
 
-const DEPT_TO_SUBJECT = {
-  "Computer Science": "CS", "Mathematics": "MATH",
-  "Electrical & Computer Engineering": "ECE", "Biological Sciences": "BIOL",
-  "Physics": "PHYS", "Chemistry": "CHEM", "History": "HIST",
-  "Psychology": "PSYC", "Statistics": "STAT",
-  "Accounting & Information Systems": "ACIS",
-  "Mechanical Engineering": "ME", "Aerospace & Ocean Engineering": "AOE",
-  "Civil & Environmental Engineering": "CEE", "English": "ENGL",
-  "Philosophy": "PHIL", "Sociology": "SOC", "Political Science": "PSCI",
-  "Economics": "ECON", "Finance": "FIN", "Management": "MGT", "Marketing": "MKTG",
-};
 
 // ── Professor Profile ─────────────────────────────────────────────
 export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClose }) {
@@ -249,19 +238,13 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  // Load real course data from Supabase grades table.
-  // grades.instructor stores last-name-only ("Lewis"), not the full canonical name.
-  // Subject filter prevents same-last-name professors from other depts bleeding in.
+  // grades.instructor was migrated to canonical names matching instructors.name exactly.
   useEffect(() => {
     if (!prof?.name) { setLoading(false); return; }
-    const lastName   = prof.name.trim().split(/\s+/).pop();
-    const subjCode   = DEPT_TO_SUBJECT[prof.department || ""] || null;
-    let q = db
+    db
       .from("grades")
       .select("subject, course_number, course_title, gpa, a_pct, a_minus_pct, b_plus_pct, b_pct, b_minus_pct, c_plus_pct, c_pct, c_minus_pct, d_plus_pct, d_pct, d_minus_pct, f_pct, graded_enrollment")
-      .eq("instructor", lastName);
-    if (subjCode) q = q.eq("subject", subjCode);
-    q
+      .eq("instructor", prof.name)
       .then(({ data }) => {
         if (!data || data.length === 0) { setLoading(false); return; }
         // Group by course, compute weighted avg GPA and grade distribution
