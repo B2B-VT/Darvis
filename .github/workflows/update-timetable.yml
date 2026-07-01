@@ -32,14 +32,17 @@ jobs:
       # Refresh the secret after each local re-auth:
       #   cd backend && npm run update-banner-secret
       - name: Restore Banner browser profile
-        if: ${{ secrets.BANNER_PROFILE_B64 != '' }}
-        run: |
-          mkdir -p backend/data/browser-profile/Default
-          printf '%s' "$BANNER_PROFILE_B64" | base64 -d > backend/data/browser-profile/Default/Cookies
-          echo '{}' > backend/data/browser-profile/Default/Preferences
-          echo "Profile restored ($(wc -c < backend/data/browser-profile/Default/Cookies) bytes)"
         env:
           BANNER_PROFILE_B64: ${{ secrets.BANNER_PROFILE_B64 }}
+        run: |
+          if [ -z "$BANNER_PROFILE_B64" ]; then
+            echo "BANNER_PROFILE_B64 not set — scraper will require SSO auto-renewal or fail."
+          else
+            mkdir -p backend/data/browser-profile/Default
+            printf '%s' "$BANNER_PROFILE_B64" | base64 -d > backend/data/browser-profile/Default/Cookies
+            echo '{}' > backend/data/browser-profile/Default/Preferences
+            echo "Profile restored ($(wc -c < backend/data/browser-profile/Default/Cookies) bytes)"
+          fi
 
       - name: Scrape timetable (authenticated, upsert only)
         env:
