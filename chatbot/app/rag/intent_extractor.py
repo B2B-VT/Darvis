@@ -78,7 +78,7 @@ ROUTES:
 - "natural_filter": ranking/filtering/comparing courses or professors without a specific one
 - "major_requirements": graduation requirements, what courses needed for a degree/major
 - "schedule_builder": building or creating a class schedule
-- "section_lookup": who is teaching a course this semester, what times/days is a course offered, when does a specific professor teach a specific course this semester
+- "section_lookup": who is teaching a course this semester, what times/days/location is a course offered, when does a specific professor teach a course, seat availability ("is CS 3114 full?", "how many seats", "open seats", "where is CS 3114 held?", "what building")
 - "general_rag": general VT questions, campus info, anything else
 
 VT COURSE NICKNAMES (use these to fill course_no):

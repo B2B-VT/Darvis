@@ -145,11 +145,20 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
         )
     )
 
-    is_who  = any(w in q_low for w in ["who", "which professor", "which prof", "teaching", "taught by"])
-    is_time = any(w in q_low for w in ["time", "when", "schedule", "days", "hours"])
+    is_who      = any(w in q_low for w in ["who", "which professor", "which prof", "teaching", "taught by"])
+    is_time     = any(w in q_low for w in ["time", "when", "schedule", "days", "hours"])
+    is_seats    = any(w in q_low for w in ["seat", "seats", "full", "open", "room", "space", "spot", "spots", "enrollment", "capacity", "available"])
+    is_location = any(w in q_low for w in ["where", "building", "location", "held", "meets"])
 
     if prof_filter:
         framing = f"The student wants to know when {prof_filter} teaches {course_label} in {TERM_LABEL}."
+    elif is_seats:
+        framing = (
+            f"The student wants to know about seat availability for {course_label} in {TERM_LABEL}. "
+            f"For each section report seats open (Seats minus Enrolled) and flag any that are full. Be specific with numbers."
+        )
+    elif is_location:
+        framing = f"The student wants to know where {course_label} is held in {TERM_LABEL}. List the building/room for each section."
     elif is_who:
         framing = f"The student wants to know who is teaching {course_label} in {TERM_LABEL}. Name the instructors and their scheduled times."
     else:
@@ -157,7 +166,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None):
 
     prompt = (
         f"Section data:\n{table_text}\n\n"
-        f"Student context: {framing} Answer directly in 2-3 sentences — name instructors and times. No markdown.\n\n"
+        f"Student context: {framing} Answer directly in 2-3 sentences. No markdown.\n\n"
         f"Student's question: {question}"
     )
 

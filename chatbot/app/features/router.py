@@ -48,7 +48,7 @@ def route_question(question: str) -> str:
     if any(pat in q for pat in _CONV_REF_PATTERNS):
         return "general_rag"
 
-    # Section lookup — "who is teaching X", "what times for X", "when does X teach Y"
+    # Section lookup — "who is teaching X", "what times for X", "open seats", "where is X"
     section_signals = [
         "who is teaching", "who's teaching", "who teaches",
         "what time does", "what times are", "what times is",
@@ -59,6 +59,14 @@ def route_question(question: str) -> str:
         "which professors are teaching", "what professors are teaching",
         "available this semester", "available this fall", "available fall 2026",
         "sections available", "section times", "class times for",
+        # seat / availability
+        "open seats", "seats available", "seats left", "seats open",
+        "how many seats", "is it full", "is there room", "is there space",
+        "still open", "section full", "class full", "spots left", "spots available",
+        "how full", "enrollment for", "capacity for",
+        # location
+        "where is", "what building", "what room", "location of",
+        "meets in", "class location", "where does",
     ]
     if any(sig in q for sig in section_signals):
         return "section_lookup"
