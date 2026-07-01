@@ -90,14 +90,22 @@ export const API = {
   },
 
   // Returns all instructors from the instructors table.
-  // Filtering is done client-side — the dataset is small enough (~200 rows).
+  // Paginated in 1000-row pages to bypass Supabase default row limit.
   async getInstructors() {
-    const { data, error } = await db
-      .from('instructors')
-      .select('*')
-      .order('name');
-    if (error) throw error;
-    return (data || []).map(r => ({
+    const PAGE = 1000;
+    let all = [], from = 0;
+    while (true) {
+      const { data, error } = await db
+        .from('instructors')
+        .select('*')
+        .order('name')
+        .range(from, from + PAGE - 1);
+      if (error) throw error;
+      all = all.concat(data || []);
+      if ((data || []).length < PAGE) break;
+      from += PAGE;
+    }
+    return all.map(r => ({
       name:          r.name,
       subjects:      r.subjects || [],
       courseCount:   r.course_count || 0,

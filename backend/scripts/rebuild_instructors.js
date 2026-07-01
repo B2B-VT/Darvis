@@ -49,12 +49,38 @@ function loadRmpIndex() {
   return index;
 }
 
-function matchRmp(lastNameStr, rmpIndex) {
+// Match by last name + optional first initial for disambiguation.
+// sectionName e.g. "C Tao" → firstInitial="C", lastNameStr="Tao"
+function matchRmp(lastNameStr, rmpIndex, firstInitial) {
   const key = normName(lastNameStr);
   const candidates = rmpIndex.get(key) ?? [];
   if (candidates.length === 0) return null;
+
+  // Filter by first initial when available
+  if (firstInitial) {
+    const ini = firstInitial.toUpperCase();
+    const withInitial = candidates.filter(p =>
+      p.first_name && p.first_name.trim().toUpperCase().startsWith(ini)
+    );
+    if (withInitial.length === 1) return withInitial[0];
+    if (withInitial.length > 1) {
+      // Still ambiguous — pick highest rating count
+      return withInitial.sort((a, b) => (b.num_ratings ?? 0) - (a.num_ratings ?? 0))[0];
+    }
+    // No initial match — fall through to last-name-only
+  }
+
   if (candidates.length === 1) return candidates[0];
   return candidates.sort((a, b) => (b.num_ratings ?? 0) - (a.num_ratings ?? 0))[0];
+}
+
+// Extract first initial and last name from a section name like "C Tao" or "AE Staples"
+function parseInitialAndLast(name) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return { firstInitial: null, last: parts[0] };
+  const last = parts[parts.length - 1];
+  const firstInitial = parts[0][0]; // first char of first token
+  return { firstInitial, last };
 }
 
 async function fetchAll(table, select, filters = []) {
@@ -119,21 +145,28 @@ async function fetchAll(table, select, filters = []) {
   const toUpsert = [];
   const sectionLastNames = new Set();
 
-  for (const name of uniqueSectionInstructors) {
-    const ln    = normName(lastName(name));
+  for (const sectionName of uniqueSectionInstructors) {
+    const { firstInitial, last } = parseInitialAndLast(sectionName);
+    const ln    = normName(last);
     const stats = gradeStats.get(ln);
-    const rmp   = matchRmp(ln, rmpIndex);
+    const rmp   = matchRmp(ln, rmpIndex, firstInitial);
     sectionLastNames.add(ln);
+
+    // Use full RMP name when available, otherwise keep section format
+    const displayName = rmp
+      ? `${rmp.first_name} ${rmp.last_name}`.trim()
+      : sectionName;
 
     const avgGpa = stats && stats.totalEnroll > 0
       ? Math.round((stats.totalGpaWeight / stats.totalEnroll) * 1000) / 1000
       : null;
 
     const record = {
-      name,
+      name:         displayName,
       subjects:     stats ? [...stats.subjects].sort() : [],
       course_count: stats ? stats.courseCount : 0,
       avg_gpa:      avgGpa,
+      dept:         rmp?.department ?? null,
       last_updated: new Date().toISOString(),
     };
     if (rmp) {
@@ -149,17 +182,21 @@ async function fetchAll(table, select, filters = []) {
   let gradeOnlyCount = 0;
   for (const [ln, stats] of gradeStats.entries()) {
     if (sectionLastNames.has(ln)) continue;
-    const name   = ln.charAt(0).toUpperCase() + ln.slice(1);
-    const rmp    = matchRmp(ln, rmpIndex);
+    const rmp    = matchRmp(ln, rmpIndex, null);
+    // Use RMP full name when available; otherwise title-case last name
+    const displayName = rmp
+      ? `${rmp.first_name} ${rmp.last_name}`.trim()
+      : ln.charAt(0).toUpperCase() + ln.slice(1);
     const avgGpa = stats.totalEnroll > 0
       ? Math.round((stats.totalGpaWeight / stats.totalEnroll) * 1000) / 1000
       : null;
 
     const record = {
-      name,
+      name:         displayName,
       subjects:     [...stats.subjects].sort(),
       course_count: stats.courseCount,
       avg_gpa:      avgGpa,
+      dept:         rmp?.department ?? null,
       last_updated: new Date().toISOString(),
     };
     if (rmp) {
@@ -172,15 +209,25 @@ async function fetchAll(table, select, filters = []) {
     gradeOnlyCount++;
   }
 
-  console.log(`Records to upsert: ${toUpsert.length}`);
+  // Deduplicate by name — two section instructors can resolve to the same RMP full name
+  const seen = new Map();
+  for (const r of toUpsert) {
+    const existing = seen.get(r.name);
+    if (!existing || (r.rmp_count ?? 0) > (existing.rmp_count ?? 0)) {
+      seen.set(r.name, r);
+    }
+  }
+  const deduped = [...seen.values()];
+
+  console.log(`Records to upsert: ${deduped.length} (${toUpsert.length - deduped.length} duplicates merged)`);
   console.log(`  From sections:  ${uniqueSectionInstructors.length}`);
   console.log(`  Grade-only:     ${gradeOnlyCount}\n`);
 
   const CHUNK = 100;
   let upserted = 0, errors = 0;
 
-  for (let i = 0; i < toUpsert.length; i += CHUNK) {
-    const chunk = toUpsert.slice(i, i + CHUNK);
+  for (let i = 0; i < deduped.length; i += CHUNK) {
+    const chunk = deduped.slice(i, i + CHUNK);
     const { error } = await supabase
       .from('instructors')
       .upsert(chunk, { onConflict: 'name', ignoreDuplicates: false });
@@ -190,11 +237,11 @@ async function fetchAll(table, select, filters = []) {
       errors++;
     } else {
       upserted += chunk.length;
-      process.stdout.write(`\r  ${upserted} / ${toUpsert.length} upserted...`);
+      process.stdout.write(`\r  ${upserted} / ${deduped.length} upserted...`);
     }
   }
 
-  const rmpCount = toUpsert.filter(r => r.rmp_rating != null).length;
+  const rmpCount = deduped.filter(r => r.rmp_rating != null).length;
 
   console.log(`\n\nDone.`);
   console.log(`  Total upserted: ${upserted}`);
