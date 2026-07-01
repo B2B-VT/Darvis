@@ -48,6 +48,7 @@ npm run dev        # http://localhost:5173
 | `auth-modal.jsx` | Sign-in prompt modal |
 | `faqs.jsx` | FAQ page |
 | `icons.jsx` | Shared SVG icon components |
+| `app-shell.jsx` | Outer shell — nav, sidebar, page switcher |
 
 **Auth:** Clerk. Users must be signed in to access courses, schedule, chatbot, and forums. Waitlist mode is enabled in the Clerk dashboard (Configure → Restrictions → Sign-up mode).
 
@@ -71,9 +72,12 @@ uvicorn app.main:app --reload   # http://127.0.0.1:8000
 GOOGLE_API_KEY=...
 GOOGLE_MODEL=gemma-3-27b-it
 SUPABASE_URL=...
-SUPABASE_KEY=...           # service role key
-REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
+SUPABASE_KEY=...                    # service role key
+REDIS_URL=...                       # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
+RAG_REDIS_INDEX_NAME=darvis_embeddings
+RAG_ENABLE_LLM_JUDGE=true           # Gemma judges borderline retrieval quality
 ALLOWED_ORIGINS=https://darvis.tech,...
+SHOW_DOCS=true                      # local only — enables /docs (Swagger UI)
 ```
 
 **Architecture:** See `chatbot/CLAUDE.md` for the full file map and request flow.
@@ -89,13 +93,20 @@ backend/
 │   ├── udc_batch_scraper.js         Browser console: selected subject forward, CSV each
 │   ├── udc_grades_scraper.js        Browser console: one subject per run, resumable
 │   ├── udc_2020_present_scraper.js  Browser console: all subjects × courses, 2020-21→2025-26
+│   ├── udc_playwright_scraper.js    Playwright (headless): scrape grades without browser console
+│   ├── udc_diag.js                  Diagnostic — inspect UDC page structure
+│   ├── udc_intercept.js             Network intercept variant of UDC scraper
 │   ├── rmp_scraper.js               Scrapes all VT professors from RMP GraphQL API → data/raw/
-│   └── catalog_scraper.js           Scrapes course descriptions from catalog.vt.edu → data/raw/
+│   ├── catalog_scraper.js           Scrapes course descriptions from catalog.vt.edu → data/raw/
+│   └── prereq_scraper.js            Scrapes course prerequisites from catalog → data/raw/
 ├── scripts/
 │   ├── import_grades.js        Reads vt_udc_grades_*.csv from data/raw/, upserts grades + courses
+│   ├── import_all_grades.js    Bulk variant — imports all grade CSVs in one pass
 │   ├── import_timetable.js     Reads vt_timetable_*.csv, upserts to sections table
 │   ├── import_descriptions.js  Reads course_descriptions.json, fills courses.description
+│   ├── import_prerequisites.js Reads prereq data, upserts to prerequisites table
 │   ├── import_rmp.js           Matches RMP by last name, upserts to legacy professors table
+│   ├── rebuild_instructors.js  Rebuilds instructors table from all subjects + fresh RMP data
 │   └── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
 └── supabase/
     └── schema.sql              Full DB schema
@@ -106,7 +117,11 @@ backend/
 cd backend
 npm run import-grades               # after dropping vt_udc_grades_*.csv in data/raw/
 npm run import-timetable            # after dropping vt_timetable_*.csv in data/raw/
+npm run scrape-grades               # Playwright headless scrape (udc_playwright_scraper.js)
+npm run scrape-prereqs              # scrape prerequisites
+npm run import-prerequisites        # import scraped prereqs into DB
 node scripts/import_rmp.js          # match + import RMP ratings
+node scripts/rebuild_instructors.js # rebuild instructors from all subjects + RMP
 ```
 
 ## Supabase database

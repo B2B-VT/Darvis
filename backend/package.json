@@ -5,16 +5,18 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "import-grades":       "node scripts/import_grades.js",
-    "import-timetable":   "node scripts/import_timetable.js",
-    "scrape-catalog":     "node scrapers/catalog_scraper.js",
+    "import-grades": "node scripts/import_grades.js",
+    "import-timetable": "node scripts/import_timetable.js",
+    "scrape-catalog": "node scrapers/catalog_scraper.js",
     "import-descriptions": "node scripts/import_descriptions.js",
-    "scrape-grades":       "node scrapers/udc_playwright_scraper.js",
-    "scrape-prereqs":      "node scrapers/prereq_scraper.js",
-    "import-prerequisites": "node scripts/import_prerequisites.js"
+    "scrape-grades": "node scrapers/udc_playwright_scraper.js",
+    "scrape-prereqs": "node scrapers/prereq_scraper.js",
+    "import-prerequisites": "node scripts/import_prerequisites.js",
+    "scrape-timetable": "node scrapers/banner_timetable_scraper.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
+    "cheerio": "^1.2.0",
     "dotenv": "^16.4.5",
     "puppeteer": "^22.0.0"
   }
