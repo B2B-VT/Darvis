@@ -476,9 +476,15 @@ def natural_filter(
         else:
             return out.iloc[0:0]  # empty DataFrame — no data for this subject
 
-    # Course number (exact)
+    # Course number (exact) — strict: if the user named a course number and that course
+    # has no data, return empty so the caller surfaces a proper "no data" message rather
+    # than silently showing results from unrelated courses.
     if course_no:
-        out = _apply_if_nonempty(out, out["Course No."].astype(str).str.strip() == str(course_no))
+        course_mask = out["Course No."].astype(str).str.strip() == str(course_no)
+        if course_mask.any():
+            out = out[course_mask]
+        else:
+            return out.iloc[0:0]
 
     # Course level band (e.g. 2000-level)
     if level_low is not None:

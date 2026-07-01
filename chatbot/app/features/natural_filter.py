@@ -83,7 +83,7 @@ def handle_natural_filter(
     result_display = result.head(display_n)
 
     retrieved = vector_store.query(question, n_results=5)
-    table_text = result[cols].to_string(index=False)
+    table_text = result_display[cols].to_string(index=False)
     prompt = build_answer_prompt(question, "natural_filter", table_text, retrieved, intent=intent)
     answer = llm.answer(prompt, history=history) or filter_answer(question, result)
 

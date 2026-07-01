@@ -85,6 +85,13 @@ def handle_professor_profile(
         return answer, [], [], {"professor_query": None}
     result = professor_profile(df, name, min_students, use_recency).head(top_n)
 
+    # If the question targets a specific course, scope the table to just that course
+    course_filter = (intent.course_no if intent is not None else None)
+    if course_filter and not result.empty and "Course" in result.columns:
+        narrowed = result[result["Course"].astype(str).str.strip() == str(course_filter).strip()]
+        if not narrowed.empty:
+            result = narrowed
+
     # Pull RMP data for this professor
     rmp = _lookup_rmp(name, rmp_df)
 

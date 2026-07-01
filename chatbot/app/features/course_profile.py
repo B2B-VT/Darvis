@@ -26,8 +26,7 @@ def _enrich_with_rmp(result: pd.DataFrame, rmp_df: pd.DataFrame | None) -> pd.Da
         if not isinstance(name, str):
             return None
         key = name.lower().strip()
-        last = key.split(",")[0].strip() if "," in key else key.split()[-1]
-        row = rmp_df[rmp_df["_key"].str.contains(last, regex=False, na=False)]
+        row = rmp_df[rmp_df["_key"] == key]
         if row.empty:
             return None
         val = row.iloc[0]["rmp_rating"]
