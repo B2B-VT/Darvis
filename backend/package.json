@@ -12,7 +12,8 @@
     "scrape-grades": "node scrapers/udc_playwright_scraper.js",
     "scrape-prereqs": "node scrapers/prereq_scraper.js",
     "import-prerequisites": "node scripts/import_prerequisites.js",
-    "scrape-timetable": "node scrapers/banner_timetable_scraper.js"
+    "scrape-timetable": "node scrapers/banner_timetable_scraper.js",
+    "auth-banner": "node scrapers/banner_auth_helper.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",

@@ -12,6 +12,7 @@ const path     = require('path');
 // ── Config ─────────────────────────────────────────────────────────────────────
 const SUPABASE_URL  = process.env.SUPABASE_URL;
 const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const BANNER_COOKIE = process.env.BANNER_COOKIE || '';   // set by banner_auth_helper.js
 const TERM          = '202609';
 const BANNER_FORM   = 'https://selfservice.banner.vt.edu/ssb/HZSKVTSC.P_DispRequest';
 const BANNER_POST   = 'https://selfservice.banner.vt.edu/ssb/HZSKVTSC.P_ProcRequest';
@@ -58,6 +59,7 @@ function httpRequest(urlStr, opts = {}) {
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'identity',
         'Connection':      'keep-alive',
+        ...(BANNER_COOKIE ? { 'Cookie': BANNER_COOKIE } : {}),
         ...headers,
       },
     };
@@ -243,17 +245,19 @@ function parseSections(html, subject) {
   log(`  Headers[${headers.length}]: ${headers.join(' | ')}`);
 
   const IDX = {
-    crn:   colIdx(headers, 'crn'),
-    course: colIdx(headers, 'course'),
-    cred:  colIdx(headers, 'cr hr', 'cred', 'credit'),
-    cap:   colIdx(headers, 'capacity', 'cap'),
-    inst:  colIdx(headers, 'instructor'),
-    days:  colIdx(headers, 'days'),
-    begin: colIdx(headers, 'begin'),
-    end:   colIdx(headers, 'end'),
-    loc:   colIdx(headers, 'location'),
+    crn:        colIdx(headers, 'crn'),
+    course:     colIdx(headers, 'course'),
+    cred:       colIdx(headers, 'cr hr', 'cred', 'credit'),
+    seats_avail:colIdx(headers, 'seats'),   // auth-only: remaining open seats
+    cap:        colIdx(headers, 'capacity', 'cap'),
+    inst:       colIdx(headers, 'instructor'),
+    days:       colIdx(headers, 'days'),
+    begin:      colIdx(headers, 'begin'),
+    end:        colIdx(headers, 'end'),
+    loc:        colIdx(headers, 'location'),
   };
-  log(`  IDX crn=${IDX.crn} course=${IDX.course} cred=${IDX.cred} cap=${IDX.cap} inst=${IDX.inst} days=${IDX.days} begin=${IDX.begin} end=${IDX.end} loc=${IDX.loc}`);
+  const isAuth = IDX.seats_avail >= 0;
+  log(`  IDX crn=${IDX.crn} course=${IDX.course} cred=${IDX.cred} seats_avail=${IDX.seats_avail} cap=${IDX.cap} inst=${IDX.inst} days=${IDX.days} begin=${IDX.begin} end=${IDX.end} loc=${IDX.loc} (auth=${isAuth})`);
 
   const sections = [];
   const seenCRN  = new Set();
@@ -287,10 +291,18 @@ function parseSections(html, subject) {
     const courseNum = dashIdx > 0 ? rawCourse.slice(dashIdx + 1).trim() : rawCourse;
     if (!courseNum) continue;
 
-    const cap     = parseInt(get(IDX.cap), 10);
-    const rawCred = parseFloat(get(IDX.cred));
-    const start   = normalizeAmPm(get(IDX.begin));
-    const end     = normalizeAmPm(get(IDX.end));
+    const cap        = parseInt(get(IDX.cap), 10);
+    const seatsAvail = parseInt(get(IDX.seats_avail), 10);
+    const rawCred    = parseFloat(get(IDX.cred));
+    const start      = normalizeAmPm(get(IDX.begin));
+    const end        = normalizeAmPm(get(IDX.end));
+
+    // Auth view: "Seats" = remaining open, "Capacity" = total
+    // Public view: only "Capacity" shown; enrolled stays 0
+    const totalSeats = isNaN(cap) ? 0 : cap;
+    const enrolled   = (isAuth && !isNaN(seatsAvail) && !isNaN(cap))
+      ? Math.max(0, cap - seatsAvail)
+      : 0;
 
     sections.push({
       crn:           rawCRN,
@@ -302,8 +314,8 @@ function parseSections(html, subject) {
       start_time:    start,
       end_time:      end,
       location:      get(IDX.loc) || null,
-      seats:         isNaN(cap) ? 0 : cap,
-      enrolled:      0,
+      seats:         totalSeats,
+      enrolled,
       credits:       isNaN(rawCred) ? null : rawCred,
       last_updated:  new Date().toISOString(),
     });
