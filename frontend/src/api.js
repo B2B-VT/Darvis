@@ -154,6 +154,31 @@ export const API = {
     }));
   },
 
+  // Re-fetches fresh section data (instructor, seats, enrolled) for a list of CRNs.
+  async getSectionsByCrns(crns, term = '202609') {
+    if (!crns.length) return [];
+    const { data, error } = await db
+      .from('sections')
+      .select('crn, subject, course_number, term, instructor, days, start_time, end_time, location, seats, enrolled, credits')
+      .in('crn', crns)
+      .eq('term', term);
+    if (error) throw error;
+    return (data || []).map(r => ({
+      crn:          r.crn,
+      subject:      r.subject,
+      courseNumber: r.course_number,
+      term:         r.term,
+      instructor:   r.instructor || 'Staff',
+      days:         r.days || [],
+      startTime:    r.start_time || '',
+      endTime:      r.end_time   || '',
+      location:     r.location   || 'TBA',
+      seats:        r.seats      || 0,
+      enrolled:     r.enrolled   || 0,
+      credits:      r.credits    || 0,
+    }));
+  },
+
   // Returns a single course by subject + course_number, plus its raw grade rows
   // and RMP data for each instructor.
   async getCourse(subject, number) {

@@ -56,7 +56,17 @@ export default function App() {
       lastUserIdRef.current = user.id;
       scheduleInitialized.current = false;
       API.getSchedule(user.id)
-        .then(sections => { setSchedule(sections); scheduleInitialized.current = true; })
+        .then(async saved => {
+          if (saved.length > 0) {
+            try {
+              const fresh = await API.getSectionsByCrns(saved.map(s => s.crn));
+              const byKey = Object.fromEntries(fresh.map(s => [s.crn, s]));
+              saved = saved.map(s => byKey[s.crn] || s);
+            } catch {}
+          }
+          setSchedule(saved);
+          scheduleInitialized.current = true;
+        })
         .catch(() => { scheduleInitialized.current = true; });
     } else if (!isSignedIn) {
       // Flush immediately — the debounce timer would be cancelled by the re-render

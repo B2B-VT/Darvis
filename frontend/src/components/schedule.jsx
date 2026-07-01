@@ -323,12 +323,37 @@ function ScheduleList({ sections, colorMap, darkMode, onRemove, courseMap, onCou
                       <MapPinIcon size={13} />{sec.location}
                     </span>
                   )}
-                  {sec.instructor && (
+                  {sec.instructor && sec.instructor !== 'Staff' && (
                     <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <UserIcon size={13} />{sec.instructor}
                     </span>
                   )}
                 </div>
+
+                {/* Seat availability */}
+                {sec.seats > 0 && (() => {
+                  const open  = sec.seats - sec.enrolled;
+                  const pct   = sec.enrolled / sec.seats;
+                  const full  = open <= 0;
+                  const tight = !full && pct >= 0.85;
+                  const color = full ? "#ef4444" : tight ? "#d97706" : "#16a34a";
+                  const bg    = full ? "rgba(239,68,68,0.1)" : tight ? "rgba(217,119,6,0.1)" : "rgba(22,163,74,0.1)";
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        background: bg, borderRadius: 99,
+                        padding: "3px 10px",
+                        fontSize: 12, fontWeight: 700, color, fontFamily: MONO,
+                      }}>
+                        {full ? "Full" : `${open} seat${open !== 1 ? "s" : ""} open`}
+                      </div>
+                      <span style={{ fontSize: 12, color: p.textMute, fontFamily: MONO }}>
+                        {sec.enrolled}/{sec.seats} enrolled
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Remove button — subtle secondary style, red on hover */}
