@@ -1,0 +1,15 @@
+node_modules/
+.env
+
+# scraped data — never commit raw CSVs or large files
+data/raw/*.csv
+data/raw/*.json
+
+# browser profile — contains live session cookies
+data/browser-profile/
+
+# cookie/session files — contain credentials
+data/progress/banner_cookies.json
+
+# intermediate scrape artifacts
+data/progress/banner_probe_*.html

@@ -19,10 +19,15 @@ jobs:
 
       - run: cd backend && npm ci --omit=dev
 
-      - name: Scrape timetable (upsert only)
+      - name: Install Chromium for Puppeteer
+        run: npx puppeteer browsers install chrome
+        working-directory: backend
+
+      - name: Scrape timetable (authenticated, upsert only)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BANNER_COOKIE: ${{ secrets.BANNER_COOKIE }}
+          BANNER_COOKIES: ${{ secrets.BANNER_COOKIES }}
           NO_DELETE: 'true'
-        run: cd backend && node scrapers/banner_timetable_scraper.js
+          HEADLESS: 'true'
+        run: cd backend && node scrapers/banner_puppeteer_scraper.js

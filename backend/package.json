@@ -13,7 +13,8 @@
     "scrape-prereqs": "node scrapers/prereq_scraper.js",
     "import-prerequisites": "node scripts/import_prerequisites.js",
     "scrape-timetable": "node scrapers/banner_timetable_scraper.js",
-    "auth-banner": "node scrapers/banner_auth_helper.js"
+    "auth-banner": "node scrapers/banner_auth_helper.js",
+    "scrape-timetable-auth": "node scrapers/banner_puppeteer_scraper.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
