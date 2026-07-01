@@ -861,16 +861,24 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   useEffect(() => {
     API.getInstructors().then(list => {
       const map = {};
+      // Count how many canonical instructors share each last name.
+      // _ln_ fallback is only safe when exactly one instructor has that last name.
+      // For ambiguous names (Lewis=2, Jones=7, Smith=7, …) the fallback would
+      // assign EP Lewis → John Lewis, so we suppress it entirely.
+      const lnCount = {};
+      list.forEach(i => {
+        const ln = i.name.trim().split(/\s+/).pop().toLowerCase();
+        lnCount[ln] = (lnCount[ln] || 0) + 1;
+      });
       list.forEach(i => {
         map[i.name] = i;
         const parts = i.name.trim().split(/\s+/);
-        const lastName = parts[parts.length - 1].toLowerCase();
-        const firstInit = (parts[0][0] || '').toLowerCase();
-        // First-initial + last-name key: "John Lewis" → _fi_j_ln_lewis
-        // Lets Banner format "JA Lewis" resolve to John Lewis (not Kevin Lewis)
-        if (!map[`_fi_${firstInit}_ln_${lastName}`]) map[`_fi_${firstInit}_ln_${lastName}`] = i;
-        // Last-name-only fallback (kept for grades format "Lewis")
-        if (!map[`_ln_${lastName}`]) map[`_ln_${lastName}`] = i;
+        const ln = parts[parts.length - 1].toLowerCase();
+        const fi = (parts[0][0] || '').toLowerCase();
+        // Precise: first-initial + last ("JA Lewis" → j+lewis → John Lewis).
+        if (!map[`_fi_${fi}_ln_${ln}`]) map[`_fi_${fi}_ln_${ln}`] = i;
+        // Last-name fallback only when unambiguous (single instructor with this surname).
+        if (lnCount[ln] === 1 && !map[`_ln_${ln}`]) map[`_ln_${ln}`] = i;
       });
       setInstructorMap(map);
     }).catch(() => {});
