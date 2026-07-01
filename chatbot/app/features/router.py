@@ -36,6 +36,18 @@ def route_question(question: str) -> str:
     if is_out_of_scope(question):
         return "out_of_scope"
 
+    # Conversational follow-ups referencing a prior chatbot answer — route to
+    # general_rag so the LLM can read the chat history and answer directly.
+    _CONV_REF_PATTERNS = [
+        "you just gave", "you gave me", "the classes you", "the courses you",
+        "the schedule you", "you built", "you made for me", "you suggested",
+        "those classes", "those courses", "in my schedule", "my schedule",
+        "you selected", "you picked", "you chose", "you recommended",
+        "the ones you", "you just made", "just gave me",
+    ]
+    if any(pat in q for pat in _CONV_REF_PATTERNS):
+        return "general_rag"
+
     # Section lookup — "who is teaching X", "what times for X", "when does X teach Y"
     section_signals = [
         "who is teaching", "who's teaching", "who teaches",

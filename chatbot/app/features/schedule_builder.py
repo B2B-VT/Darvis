@@ -227,6 +227,49 @@ def parse_subject_filter(question: str) -> str | None:
     return None
 
 
+_DAY_NAMES = {
+    "monday": "M", "tuesday": "T", "wednesday": "W",
+    "thursday": "R", "friday": "F", "saturday": "S", "sunday": "U",
+}
+
+
+def parse_excluded_days(question: str) -> set[str]:
+    q = question.lower()
+    excluded: set[str] = set()
+    for name, code in _DAY_NAMES.items():
+        if re.search(rf"no\s+{name}|without\s+\w*\s*{name}|{name}[\s-]free", q):
+            excluded.add(code)
+    return excluded
+
+
+def parse_min_gpa(question: str) -> float | None:
+    q = question.lower()
+    m = re.search(
+        r"gpa\s+(?:of\s+)?(?:not\s+lower\s+than|above|at\s+least|minimum|no\s+lower\s+than|higher\s+than|over)\s+(\d+\.?\d*)|"
+        r"(?:not\s+)?lower\s+than\s+(\d+\.?\d*)\s+gpa|"
+        r"(?:minimum|min)\s+(\d+\.?\d*)\s+gpa|"
+        r"gpa\s+(?:above|over|of)\s+(\d+\.?\d*)",
+        q,
+    )
+    if m:
+        val = next(v for v in m.groups() if v is not None)
+        return float(val)
+    return None
+
+
+def parse_min_rmp(question: str) -> float | None:
+    q = question.lower()
+    m = re.search(
+        r"(?:rmp|rate\s+my\s+professor|rating)\s+(?:scores?\s+)?(?:of\s+)?(\d+\.?\d*)\s+(?:or\s+)?(?:higher|above|plus|\+)|"
+        r"(?:rmp|rate\s+my\s+professor)\s+(?:of\s+)?(?:at\s+least|minimum|above|over)\s+(\d+\.?\d*)",
+        q,
+    )
+    if m:
+        val = next(v for v in m.groups() if v is not None)
+        return float(val)
+    return None
+
+
 def _last(name: str) -> str:
     """Extract lowercase last name from 'Last, First', 'First Last', or bare 'Last'."""
     n = (name or "").strip()
@@ -282,6 +325,11 @@ def handle_schedule_builder(
         question_subject_filter = intent.subject_filter
     else:
         question_subject_filter = parse_subject_filter(question)
+
+    # Hard constraints parsed from question text
+    excluded_days = parse_excluded_days(question)
+    min_gpa       = parse_min_gpa(question)
+    min_rmp       = parse_min_rmp(question)
 
     # Profile data
     profile         = user_profile or {}
@@ -342,64 +390,7 @@ def handle_schedule_builder(
 
     all_sections = res.data or []
 
-    # ── Filter ─────────────────────────────────────────────────────────────────
-    filtered = []
-    for sec in all_sections:
-        if _is_virtual(sec):
-            continue
-
-        st = sec.get("start_time") or ""
-        et = sec.get("end_time")   or ""
-        if not st or not et:
-            continue
-
-        # Time window — normalize before comparing so "9:00" and "09:00" are equivalent
-        if _pad_time(st) < start_limit or _pad_time(et) > end_limit:
-            continue
-
-        # Skip completed courses
-        course_key = re.sub(r"\s+", "", f"{sec['subject']}{sec['course_number']}").lower()
-        if course_key in courses_taken:
-            continue
-
-        # If specific courses were requested, filter to only those
-        if requested_courses:
-            if not any(
-                sec["subject"].upper() == s and sec["course_number"] == n
-                for s, n in requested_courses
-            ):
-                continue
-
-        # If the user asked for a specific subject ("just CS courses"), enforce it
-        if question_subject_filter:
-            if sec["subject"].upper() != question_subject_filter:
-                continue
-
-        # Must have open seats (or unknown seat count)
-        seats    = sec.get("seats")    or 0
-        enrolled = sec.get("enrolled") or 0
-        if seats > 0 and enrolled >= seats:
-            continue
-
-        filtered.append(sec)
-
-    if not filtered:
-        time_str = f"{_fmt_time_12h(start_limit)}–{_fmt_time_12h(end_limit)}"
-        subj_str = f" {question_subject_filter}" if question_subject_filter else ""
-        if requested_courses:
-            course_str = ", ".join(f"{s} {n}" for s, n in requested_courses)
-            return (
-                f"I couldn't find open in-person sections for {course_str} in Fall 2026 "
-                f"within {time_str}. The sections table may not be fully populated yet — "
-                "try the Schedule page to browse and add sections manually."
-            ), [], [], {}
-        return (
-            f"I couldn't find any open{subj_str} sections between {time_str} for Fall 2026. "
-            "Try the Schedule page to browse and add sections manually."
-        ), [], [], {}
-
-    # ── Build instructor GPA map from grades df ────────────────────────────────
-    # Used when the user asks for "easiest" professors.
+    # ── Sort goal ─────────────────────────────────────────────────────────────
     sort_goal = getattr(intent, "sort_goal", "highest_gpa") if intent else "highest_gpa"
     q_low = question.lower()
     wants_easy = sort_goal == "highest_gpa" or any(
@@ -409,10 +400,10 @@ def handle_schedule_builder(
         w in q_low for w in ["hardest", "tough", "brutal", "lowest gpa"]
     )
 
+    # ── Build instructor GPA map (must be before filter so min_gpa can use it) ─
     inst_gpa: dict[str, float] = {}
-    if df is not None and (wants_easy or wants_hard):
+    if df is not None:
         try:
-            import pandas as pd
             gpa_df = df.copy()
             if question_subject_filter:
                 gpa_df = gpa_df[gpa_df["Subject"].str.upper() == question_subject_filter]
@@ -429,18 +420,109 @@ def handle_schedule_builder(
                 else:
                     inst_gpa[last] += gpa * enroll
                     inst_gpa[last + "_n"] += enroll  # type: ignore[assignment]
-            # Finalize weighted averages
             for last in [k for k in inst_gpa if not k.endswith("_n")]:
                 n = inst_gpa.get(last + "_n", 0)
                 inst_gpa[last] = round(inst_gpa[last] / n, 3) if n else 0.0
-            # Remove the _n accumulator keys
             inst_gpa = {k: v for k, v in inst_gpa.items() if not k.endswith("_n")}
         except Exception:
             inst_gpa = {}
 
+    # ── Build instructor RMP map (must be before filter so min_rmp can use it) ─
+    inst_rmp: dict[str, float] = {}
+    try:
+        rmp_rows = client.table("instructors").select("name, rmp_rating").execute().data or []
+        for row in rmp_rows:
+            r = row.get("rmp_rating")
+            if r is not None:
+                last = _last(str(row.get("name") or ""))
+                if last and last not in inst_rmp:
+                    inst_rmp[last] = float(r)
+    except Exception:
+        pass
+
     def _inst_gpa(s: dict) -> float:
         last = _last(s.get("instructor") or "")
         return inst_gpa.get(last, 0.0)
+
+    # ── Filter ─────────────────────────────────────────────────────────────────
+    filtered = []
+    for sec in all_sections:
+        if _is_virtual(sec):
+            continue
+
+        st = sec.get("start_time") or ""
+        et = sec.get("end_time")   or ""
+        if not st or not et:
+            continue
+
+        if _pad_time(st) < start_limit or _pad_time(et) > end_limit:
+            continue
+
+        course_key = re.sub(r"\s+", "", f"{sec['subject']}{sec['course_number']}").lower()
+        if course_key in courses_taken:
+            continue
+
+        if requested_courses:
+            if not any(
+                sec["subject"].upper() == s and sec["course_number"] == n
+                for s, n in requested_courses
+            ):
+                continue
+
+        if question_subject_filter:
+            if sec["subject"].upper() != question_subject_filter:
+                continue
+
+        seats    = sec.get("seats")    or 0
+        enrolled = sec.get("enrolled") or 0
+        if seats > 0 and enrolled >= seats:
+            continue
+
+        # Exclude sections that meet on excluded days
+        if excluded_days:
+            sec_days = set(sec.get("days") or [])
+            if sec_days & excluded_days:
+                continue
+
+        # Enforce minimum instructor GPA
+        if min_gpa is not None:
+            last = _last(sec.get("instructor") or "")
+            igpa = inst_gpa.get(last, 0.0)
+            if igpa > 0 and igpa < min_gpa:
+                continue
+
+        # Enforce minimum instructor RMP rating
+        if min_rmp is not None:
+            last = _last(sec.get("instructor") or "")
+            irmp = inst_rmp.get(last)
+            if irmp is not None and irmp < min_rmp:
+                continue
+
+        filtered.append(sec)
+
+    if not filtered:
+        constraints = []
+        if excluded_days:
+            day_names_rev = {v: k for k, v in _DAY_NAMES.items()}
+            constraints.append("no " + "/".join(day_names_rev.get(d, d) for d in sorted(excluded_days)) + " classes")
+        if min_gpa:
+            constraints.append(f"GPA ≥ {min_gpa}")
+        if min_rmp:
+            constraints.append(f"RMP ≥ {min_rmp}")
+        constraint_str = (", " + ", ".join(constraints)) if constraints else ""
+        time_str = f"{_fmt_time_12h(start_limit)}–{_fmt_time_12h(end_limit)}"
+        subj_str = f" {question_subject_filter}" if question_subject_filter else ""
+        if requested_courses:
+            course_str = ", ".join(f"{s} {n}" for s, n in requested_courses)
+            return (
+                f"I couldn't find open in-person sections for {course_str} in Fall 2026 "
+                f"within {time_str}{constraint_str}. "
+                "Try the Schedule page to browse and add sections manually."
+            ), [], [], {}
+        return (
+            f"I couldn't find any open{subj_str} sections between {time_str}{constraint_str} for Fall 2026. "
+            "Try relaxing some constraints or browsing the Schedule page manually."
+        ), [], [], {}
 
     # ── Group by course, pick best section per course ──────────────────────────
     by_course: dict[str, list] = defaultdict(list)

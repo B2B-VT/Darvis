@@ -176,7 +176,12 @@ function ScheduleGrid({ sections, colorMap, darkMode, onRemove, courseMap, onCou
                   <div style={{ fontWeight: 800, fontSize: 11, color: col.text, lineHeight: 1.2, fontFamily: MONO }}>
                     {sec.subject} {sec.courseNumber}
                   </div>
-                  {height > 36 && (
+                  {sec.instructor && sec.instructor !== 'Staff' && (
+                    <div style={{ fontSize: 9, color: col.text, opacity: 0.82, lineHeight: 1.2, marginTop: 1, fontFamily: SANS, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {sec.instructor}
+                    </div>
+                  )}
+                  {height > 44 && (
                     <div style={{ fontSize: 10, color: col.text, opacity: 0.8, lineHeight: 1.2, fontFamily: SANS }}>
                       {formatTime(sec.startTime)}
                     </div>
