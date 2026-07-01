@@ -191,9 +191,13 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       if (sortBy === "rmp_desc") return (b.rmpRating ?? -1) - (a.rmpRating ?? -1);
       if (sortBy === "rmp_asc")  return (a.rmpRating ?? 99) - (b.rmpRating ?? 99);
       if (sortBy === "courses") {
-        const aC = (instructorCourseMap[a.name] || instructorCourseMap[`_ln_${a.name.trim().split(/\s+/).pop().toLowerCase()}`] || new Set()).size;
-        const bC = (instructorCourseMap[b.name] || instructorCourseMap[`_ln_${b.name.trim().split(/\s+/).pop().toLowerCase()}`] || new Set()).size;
-        return bC - aC;
+        const _sz = name => {
+          const pts = name.trim().split(/\s+/);
+          const ln  = pts[pts.length - 1].toLowerCase();
+          const fi  = (pts[0][0] || '').toLowerCase();
+          return (instructorCourseMap[name] || instructorCourseMap[`_fi_${fi}_ln_${ln}`] || instructorCourseMap[`_ln_${ln}`] || new Set()).size;
+        };
+        return _sz(b.name) - _sz(a.name);
       }
       return a.name.localeCompare(b.name);
     });

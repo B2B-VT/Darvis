@@ -221,7 +221,7 @@ export default function App() {
       return <FaqsPage darkMode={darkMode} setPage={navigateTo} />;
     }
     if (page === "instructors") {
-      return <InstructorsPage darkMode={darkMode} />;
+      return <InstructorsPage darkMode={darkMode} onProfClick={openProf} />;
     }
     if (page === "schedule") {
       return (

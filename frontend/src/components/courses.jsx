@@ -659,7 +659,7 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
                     {/* Row 3: instructor + RMP */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button
-                        onClick={() => onProfClick?.({ name: sec.rmp?.name || sec.instructor })}
+                        onClick={() => onProfClick?.(sec.rmp ?? { name: sec.instructor })}
                         style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub, transition: "color 0.15s" }}
                         onMouseEnter={e => e.currentTarget.style.color = ACCENT}
                         onMouseLeave={e => e.currentTarget.style.color = p.textSub}
