@@ -14,7 +14,8 @@
     "import-prerequisites": "node scripts/import_prerequisites.js",
     "scrape-timetable": "node scrapers/banner_timetable_scraper.js",
     "auth-banner": "node scrapers/banner_auth_helper.js",
-    "scrape-timetable-auth": "node scrapers/banner_puppeteer_scraper.js"
+    "scrape-timetable-auth": "node scrapers/banner_puppeteer_scraper.js",
+    "update-banner-secret": "bash scripts/update_banner_secret.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",

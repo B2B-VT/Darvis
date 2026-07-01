@@ -133,7 +133,7 @@ function parseSections(html, subject) {
   const $ = cheerio.load(html);
   const bodyText = $('body').text().replace(/\s+/g, ' ');
 
-  if (/no open section|no class(es)? found|0 section.*found/i.test(bodyText)) return [];
+  if (/no open section|no class(es)? found|0 section.*found/i.test(bodyText)) return { sections: [], isAuth: false };
 
   // Detect session expiry redirect
   if (/P_WWWLogin|twbkwbis|Please Login/i.test(bodyText.slice(0, 3000))) {
@@ -142,11 +142,11 @@ function parseSections(html, subject) {
   }
 
   const $table = $('table.dataentrytable').first();
-  if (!$table.length) return [];
+  if (!$table.length) return { sections: [], isAuth: false };
 
   const allRows = $table.find('tr').toArray();
   const headerRowIdx = allRows.findIndex(tr => $(tr).find('td.delabel').length > 0);
-  if (headerRowIdx < 0) return [];
+  if (headerRowIdx < 0) return { sections: [], isAuth: false };
 
   const headers = [];
   $(allRows[headerRowIdx]).find('td').each((_, td) =>
@@ -216,7 +216,7 @@ function parseSections(html, subject) {
       last_updated:  new Date().toISOString(),
     });
   }
-  return sections;
+  return { sections, isAuth };
 }
 
 // ── Supabase upsert ────────────────────────────────────────────────────────────
@@ -276,34 +276,39 @@ async function main() {
   log(`Auth check URL: ${menuUrl}`);
   const needsLogin = menuUrl.includes('login.vt.edu') || menuUrl.includes('cas.');
 
+  const bannerLanded = () => {
+    const h = window.location.href;
+    return h.includes('selfservice.banner.vt.edu') &&
+           !h.includes('P_WWWLogin') &&
+           !h.includes('SAMLart') &&
+           !h.includes('login.vt.edu');
+  };
+
   if (needsLogin) {
     if (runHeadless) {
-      console.error('Session expired. Run without HEADLESS=true to re-authenticate.');
-      await browser.close();
-      process.exit(1);
+      // In headless CI: wait up to 60 s for SSO auto-renewal.
+      // Works when the IdP "remember me" (Duo, 30 days) cookie is in the profile —
+      // CAS detects it, skips Duo, and redirects back to Banner automatically.
+      log('Banner session expired — waiting for SSO auto-renewal...');
+      try {
+        await page.waitForFunction(bannerLanded, { timeout: 60 * 1000, polling: 1000 });
+        log('SSO auto-renewal succeeded.');
+      } catch {
+        console.error('[AUTH] Auto-renewal failed. Re-authenticate locally then update the secret:');
+        console.error('  node scrapers/banner_puppeteer_scraper.js   # headed, approve Duo');
+        console.error('  npm run update-banner-secret                # push Cookies to GitHub');
+        await browser.close();
+        process.exit(1);
+      }
+    } else {
+      log('Log in to Hokie SPA and approve Duo in the browser window...');
+      await page.waitForFunction(bannerLanded, { timeout: 3 * 60 * 1000, polling: 1000 });
+      log('Login complete. Profile saved.');
     }
-    log('Log in to Hokie SPA and approve Duo in the browser window...');
-    // Wait until we're on Banner proper — past CAS, Duo, AND the SAMLart exchange
-    await page.waitForFunction(
-      () => {
-        const h = window.location.href;
-        return h.includes('selfservice.banner.vt.edu') &&
-               !h.includes('P_WWWLogin') &&
-               !h.includes('SAMLart') &&
-               !h.includes('login.vt.edu');
-      },
-      { timeout: 3 * 60 * 1000, polling: 1000 }
-    );
-    log('Login complete. Profile saved.');
   } else {
     log('Session active.');
   }
-
-  // Log post-auth URL + cookies for debugging
-  const postAuthUrl = page.url();
-  const postAuthCookies = await page.cookies();
-  log(`Post-auth URL: ${postAuthUrl}`);
-  log(`Post-auth cookies: ${postAuthCookies.map(c => c.name).join(', ')}`);
+  log(`Post-auth URL: ${page.url()}`);
 
   // Navigate to timetable form — stay in same Banner context
   await page.goto(BANNER_FORM, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -362,10 +367,14 @@ async function main() {
 
     if (!html) { warn(`  empty response`); continue; }
 
-    const sections = parseSections(html, subj);
+    const { sections, isAuth } = parseSections(html, subj);
     log(`  ${sections.length} sections`);
 
-    if (sections.length) {
+    // In NO_DELETE mode, skip upsert if auth failed — don't overwrite existing
+    // instructor names and seat counts with nulls from the public (unauth) view.
+    if (!isAuth && NO_DELETE && !DRY_RUN) {
+      warn(`  auth=false + NO_DELETE — skipping upsert to preserve existing data`);
+    } else if (sections.length) {
       if (DRY_RUN) {
         const s = sections[0];
         log(`  [DRY] CRN=${s.crn} ${s.subject} ${s.course_number} inst=${s.instructor} seats=${s.seats} enrolled=${s.enrolled}`);

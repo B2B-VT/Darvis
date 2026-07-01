@@ -23,11 +23,28 @@ jobs:
         run: npx puppeteer browsers install chrome
         working-directory: backend
 
+      # Restore the Chrome Cookies file from the BANNER_PROFILE_B64 secret.
+      # This file contains cookies for selfservice.banner.vt.edu AND login.vt.edu.
+      # If the Banner JSESSIONID has expired (likely after 4h), the login.vt.edu
+      # "remember me" cookie (Duo, valid ~30 days) lets CAS auto-renew the session
+      # without interactive Duo approval.
+      #
+      # Refresh the secret after each local re-auth:
+      #   cd backend && npm run update-banner-secret
+      - name: Restore Banner browser profile
+        if: ${{ secrets.BANNER_PROFILE_B64 != '' }}
+        run: |
+          mkdir -p backend/data/browser-profile/Default
+          printf '%s' "$BANNER_PROFILE_B64" | base64 -d > backend/data/browser-profile/Default/Cookies
+          echo '{}' > backend/data/browser-profile/Default/Preferences
+          echo "Profile restored ($(wc -c < backend/data/browser-profile/Default/Cookies) bytes)"
+        env:
+          BANNER_PROFILE_B64: ${{ secrets.BANNER_PROFILE_B64 }}
+
       - name: Scrape timetable (authenticated, upsert only)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BANNER_COOKIES: ${{ secrets.BANNER_COOKIES }}
           NO_DELETE: 'true'
           HEADLESS: 'true'
         run: cd backend && node scrapers/banner_puppeteer_scraper.js
