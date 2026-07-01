@@ -536,7 +536,8 @@ def handle_schedule_builder(
     total_credits = sum(s["credits"] for s in schedule_actions)
     course_list   = ", ".join(
         f"{s['subject']} {s['courseNumber']} "
-        f"({_fmt_time_12h(s['startTime'])}–{_fmt_time_12h(s['endTime'])})"
+        f"({_fmt_time_12h(s['startTime'])}–{_fmt_time_12h(s['endTime'])}"
+        f"{', ' + s['instructor'] if s['instructor'] != 'Staff' else ''})"
         for s in schedule_actions
     )
 
