@@ -104,7 +104,16 @@ def handle_general_chat(question: str, df: pd.DataFrame, llm, vector_store, inte
 
     retrieved = vector_store.query(question, n_results=6)
     from app.rag.prompts import build_rag_only_prompt
-    prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
+    if retrieved:
+        prompt = build_rag_only_prompt(question, retrieved, intent=intent)
+    else:
+        prompt = (
+            "You are a VT academic advisor. Answer this student's question using general "
+            "knowledge about Virginia Tech. Do NOT state specific GPA averages, grade "
+            "distributions, pass rates, A rates, F rates, or enrollment numbers — you have "
+            "no grade data for this question and must not invent statistics.\n\n"
+            f"Student's question: {question}"
+        )
 
     if user_profile:
         parts = []

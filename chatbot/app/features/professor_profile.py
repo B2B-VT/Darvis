@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from app.data.analytics import professor_profile
 from app.features.router import extract_professor_name_from_profile_question
@@ -27,8 +28,13 @@ def _lookup_rmp(name: str, rmp_df: pd.DataFrame | None) -> dict | None:
     # Exact key match first
     row = rmp_df[rmp_df["_key"] == key]
     if row.empty:
-        # Partial last-name match — take the first hit
-        row = rmp_df[rmp_df["_key"].str.contains(key, regex=False, na=False)]
+        # Word-boundary match on last name to avoid "Lewis" matching "Lewison"
+        last = key.split()[-1]
+        pattern = r'\b' + re.escape(last) + r'\b'
+        row = rmp_df[rmp_df["_key"].str.contains(pattern, regex=True, na=False)]
+        if not row.empty and len(row) > 1:
+            # Multiple people share this last name — prefer most-reviewed (most likely match)
+            row = row.sort_values("rmp_count", ascending=False)
     if row.empty:
         return None
 
