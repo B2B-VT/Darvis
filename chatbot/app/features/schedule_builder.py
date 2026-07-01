@@ -237,7 +237,17 @@ def parse_excluded_days(question: str) -> set[str]:
     q = question.lower()
     excluded: set[str] = set()
     for name, code in _DAY_NAMES.items():
-        if re.search(rf"no\s+{name}|without\s+\w*\s*{name}|{name}[\s-]free", q):
+        # handles: "no friday", "without any classes on friday",
+        # "friday-free", "avoid friday", "not on friday"
+        if re.search(
+            rf"no\s+{name}"
+            rf"|without\b.{{0,60}}{name}"
+            rf"|{name}[\s-]free"
+            rf"|avoid\s+{name}"
+            rf"|skip\s+{name}"
+            rf"|not\s+on\s+{name}",
+            q,
+        ):
             excluded.add(code)
     return excluded
 
@@ -642,5 +652,56 @@ def handle_schedule_builder(
         f"{window} with no conflicts: {course_list}. "
         "I've added them to your Schedule tab — you can swap any section out from there."
     ).strip()
+
+    # Notify user about constraints that couldn't be fully verified
+    caveats: list[str] = []
+    if min_rmp is not None:
+        no_rmp = [
+            s for s in schedule
+            if inst_rmp.get(_last(s.get("instructor") or "")) is None
+        ]
+        if no_rmp:
+            names = ", ".join(
+                s.get("instructor") or "Staff" for s in no_rmp if s.get("instructor")
+            )
+            caveats.append(
+                f"Some instructors ({names}) have no RMP data on file, "
+                f"so I couldn't confirm the {min_rmp}+ rating requirement for them."
+            )
+    if min_gpa is not None:
+        no_gpa = [
+            s for s in schedule
+            if not inst_gpa.get(_last(s.get("instructor") or ""))
+        ]
+        if no_gpa:
+            names = ", ".join(
+                s.get("instructor") or "Staff" for s in no_gpa if s.get("instructor")
+            )
+            caveats.append(
+                f"Some instructors ({names}) have no historical grade data, "
+                f"so I couldn't confirm the {min_gpa}+ GPA requirement for them."
+            )
+    if target_credits and credits_so_far < target_credits:
+        caveats.append(
+            f"I could only reach {credits_so_far:.0f} credits meeting your constraints "
+            f"— not enough sections were available to hit {target_credits}."
+        )
+    if excluded_days and schedule:
+        # Verify no Friday (or other excluded day) slipped through
+        day_names_rev = {v: k for k, v in _DAY_NAMES.items()}
+        violations = []
+        for s in schedule:
+            bad = set(s.get("days") or []) & excluded_days
+            if bad:
+                violated_names = "/".join(day_names_rev.get(d, d).capitalize() for d in bad)
+                violations.append(f"{s['subject']} {s['course_number']} ({violated_names})")
+        if violations:
+            caveats.append(
+                f"Warning: I couldn't find alternatives that avoid all excluded days — "
+                f"{', '.join(violations)} still meet on those days."
+            )
+
+    if caveats:
+        answer += " Note: " + " ".join(caveats)
 
     return answer, [], [], {"schedule_actions": schedule_actions}
