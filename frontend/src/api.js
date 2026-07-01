@@ -107,6 +107,7 @@ export const API = {
     }
     return all.map(r => ({
       name:          r.name,
+      department:    r.dept || '',
       subjects:      r.subjects || [],
       courseCount:   r.course_count || 0,
       avgGpa:        r.avg_gpa != null ? parseFloat(r.avg_gpa) : null,

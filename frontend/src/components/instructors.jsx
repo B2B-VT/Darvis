@@ -162,8 +162,15 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
           const name = sec.instructor || "";
           if (!name) return;
           const course = `${sec.subject} ${sec.course_number}`;
-          const lastName = `_ln_${name.trim().split(/\s+/).pop().toLowerCase()}`;
-          [name, lastName].forEach(key => {
+          const parts  = name.trim().split(/\s+/);
+          const ln     = parts[parts.length - 1].toLowerCase();
+          const fi     = (parts[0][0] || '').toLowerCase();
+          // Precise key: first-initial + last disambiguates same-last-name professors.
+          // "JA Lewis" → _fi_j_ln_lewis (John Lewis only, not Kevin Lewis).
+          const fiKey  = `_fi_${fi}_ln_${ln}`;
+          // Coarse last-name-only key kept as last-resort fallback.
+          const lnKey  = `_ln_${ln}`;
+          [name, fiKey, lnKey].forEach(key => {
             if (!map[key]) map[key] = new Set();
             map[key].add(course);
           });
@@ -251,8 +258,13 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
             {filtered.map(instr => {
-              const lastName = `_ln_${instr.name.trim().split(/\s+/).pop().toLowerCase()}`;
-              const courseSet = instructorCourseMap[instr.name] || instructorCourseMap[lastName] || new Set();
+              const _parts = instr.name.trim().split(/\s+/);
+              const _ln  = _parts[_parts.length - 1].toLowerCase();
+              const _fi  = (_parts[0][0] || '').toLowerCase();
+              const courseSet = instructorCourseMap[instr.name]
+                || instructorCourseMap[`_fi_${_fi}_ln_${_ln}`]
+                || instructorCourseMap[`_ln_${_ln}`]
+                || new Set();
               const courseList = [...courseSet].sort();
               return <InstructorCard key={instr.id || instr.name} instructor={instr} darkMode={dm} onClick={onProfClick} courseList={courseList} />;
             })}

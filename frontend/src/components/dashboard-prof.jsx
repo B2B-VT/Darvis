@@ -237,13 +237,15 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  // Load real course data from Supabase grades table
+  // Load real course data from Supabase grades table.
+  // grades.instructor stores last-name-only ("Lewis"), not the full canonical name.
   useEffect(() => {
     if (!prof?.name) { setLoading(false); return; }
+    const lastName = prof.name.trim().split(/\s+/).pop();
     db
       .from("grades")
       .select("subject, course_number, course_title, gpa, a_pct, a_minus_pct, b_plus_pct, b_pct, b_minus_pct, c_plus_pct, c_pct, c_minus_pct, d_plus_pct, d_pct, d_minus_pct, f_pct, graded_enrollment")
-      .eq("instructor", prof.name)
+      .eq("instructor", lastName)
       .then(({ data }) => {
         if (!data || data.length === 0) { setLoading(false); return; }
         // Group by course, compute weighted avg GPA and grade distribution
@@ -279,8 +281,8 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
       .catch(() => setLoading(false));
   }, [prof?.name]);
 
-  // Derive department from courses
-  const dept = courses[0]?.subject || prof?.dept || null;
+  // Derive department from courses or instructor row (field is "department" from getInstructors)
+  const dept = courses[0]?.subject || prof?.dept || prof?.department || null;
   const deptNames = { CS: "Computer Science", MATH: "Mathematics", ECE: "Electrical & Computer Engineering", BIOL: "Biological Sciences", PHYS: "Physics", CHEM: "Chemistry", HIST: "History", PSYC: "Psychology", STAT: "Statistics", ACIS: "Accounting & Information Systems", ME: "Mechanical Engineering", AOE: "Aerospace & Ocean Engineering", CEE: "Civil & Environmental Engineering" };
 
   // Safe RMP values
