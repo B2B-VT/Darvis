@@ -263,6 +263,28 @@ export const API = {
     );
     if (error) throw error;
   },
+
+  // ── Conversation sync ──────────────────────────────────────────────
+  async getConversations(userId) {
+    const { data } = await db.from('user_conversations')
+      .select('session_id, title, messages, created_at, updated_at')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+    return data || [];
+  },
+
+  async saveConversation(userId, session) {
+    await db.from('user_conversations').upsert(
+      { user_id: userId, session_id: session.id, title: session.title,
+        messages: session.messages, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,session_id' }
+    );
+  },
+
+  async deleteConversation(userId, sessionId) {
+    await db.from('user_conversations')
+      .delete().eq('user_id', userId).eq('session_id', sessionId);
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────

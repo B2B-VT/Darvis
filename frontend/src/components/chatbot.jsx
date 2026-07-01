@@ -1,7 +1,9 @@
 // Chatbot page — full AI chat experience powered by the FastAPI backend
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
 import { DARVIS_CONFIG } from "../config.js";
+import { API } from "../api.js";
 import { MONO, SERIF, SANS, ACCENT, palette, glassCard, glassInput, RADIUS, SHADOW, EASE } from "../theme.jsx";
 
 Chart.register(...registerables);
@@ -813,6 +815,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 
 // ── Main chatbot page ─────────────────────────────────────────────
 export default function ChatbotPage({ darkMode, addSection, setPage, userProfile }) {
+  const { user } = useUser();
   const [sessions,          setSessions]         = useState(() => loadSessions());
   const [projects,          setProjects]         = useState(() => loadProjects());
   const [currentSessionId,  setCurrentSessionId] = useState(null);
@@ -828,9 +831,10 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const [attachments,       setAttachments]      = useState([]);
-  const bottomRef  = useRef(null);
-  const inputRef   = useRef(null);
-  const fileRef    = useRef(null);
+  const bottomRef      = useRef(null);
+  const inputRef       = useRef(null);
+  const fileRef        = useRef(null);
+  const convSaveTimers = useRef({});
   const dm = darkMode;
   const p = palette(dm);
 
@@ -839,6 +843,42 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
+
+  // Load conversations from Supabase on sign-in, merge with localStorage (remote wins)
+  useEffect(() => {
+    if (!user?.id) return;
+    API.getConversations(user.id).then(rows => {
+      if (!rows.length) return;
+      setSessions(prev => {
+        const localMap = Object.fromEntries(prev.map(s => [s.id, s]));
+        rows.forEach(r => {
+          const local = localMap[r.session_id];
+          const remoteNewer = !local || new Date(r.updated_at) > new Date(local._updatedAt || 0);
+          if (remoteNewer) {
+            localMap[r.session_id] = {
+              id: r.session_id, title: r.title,
+              messages: Array.isArray(r.messages) ? r.messages : [],
+              createdAt: new Date(r.created_at).getTime(),
+              projectId: null, _updatedAt: r.updated_at,
+            };
+          }
+        });
+        return Object.values(localMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      });
+    }).catch(() => {});
+  }, [user?.id]);
+
+  // Debounce-save any session with messages to Supabase
+  useEffect(() => {
+    if (!user?.id) return;
+    sessions.forEach(session => {
+      if (!session.messages?.length) return;
+      clearTimeout(convSaveTimers.current[session.id]);
+      convSaveTimers.current[session.id] = setTimeout(() => {
+        API.saveConversation(user.id, session).catch(() => {});
+      }, 800);
+    });
+  }, [sessions, user?.id]);
 
   useEffect(() => { saveSessions(sessions); }, [sessions]);
   useEffect(() => { saveProjects(projects); }, [projects]);
@@ -882,6 +922,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const deleteSession = (id) => {
     setSessions(prev => prev.filter(s => s.id !== id));
     if (currentSessionId === id) startNewChat();
+    if (user?.id) API.deleteConversation(user.id, id).catch(() => {});
   };
 
   const createProject = (name) => {
