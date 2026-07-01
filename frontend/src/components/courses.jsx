@@ -68,6 +68,7 @@ export function GpaBadge({ gpa, large, darkMode }) {
 
 // ── Seats Badge ───────────────────────────────────────────────────
 function SeatsBadge({ seats, enrolled }) {
+  if (!seats) return null; // async/online sections have seats=0 — nothing to show
   const pct = enrolled / seats;
   const full = pct >= 1;
   const almostFull = pct >= 0.9;
@@ -515,7 +516,15 @@ function lookupRmp(name, map) {
   if (map[name]) return map[name];
   const norm = name.trim().replace(/\s+/g, " ");
   if (map[norm]) return map[norm];
-  const lastName = norm.split(/\s+/).pop().toLowerCase();
+  const parts = norm.split(/\s+/);
+  const lastName = parts[parts.length - 1].toLowerCase();
+  // Try first-initial + last name before falling back to last name only.
+  // This disambiguates same-last-name professors: "JA Lewis" → J+Lewis → John Lewis,
+  // not Kevin Lewis (K+Lewis).
+  const firstInit = parts.length > 1 ? (parts[0][0] || '').toLowerCase() : null;
+  if (firstInit && map[`_fi_${firstInit}_ln_${lastName}`]) {
+    return map[`_fi_${firstInit}_ln_${lastName}`];
+  }
   return map[`_ln_${lastName}`] || null;
 }
 
@@ -565,9 +574,11 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
         <span style={{ background: ACCENT, color: "#fff", borderRadius: RADIUS.pill, padding: "3px 10px", fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.5px" }}>
           {course.subject} {course.number}
         </span>
-        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub }}>
-          {course.credits} {course.credits === 1 ? "Credit" : "Credits"}
-        </span>
+        {course.credits != null && (
+          <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub }}>
+            {course.credits} {course.credits === 1 ? "Credit" : "Credits"}
+          </span>
+        )}
         {gpa > 0
           ? <GpaBadge gpa={gpa} darkMode={dm} />
           : <span style={{ fontSize: 11, fontFamily: MONO, color: p.textMute, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 10px" }}>No grade data</span>
@@ -648,12 +659,12 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
                     {/* Row 3: instructor + RMP */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button
-                        onClick={() => onProfClick?.({ name: sec.instructor })}
+                        onClick={() => onProfClick?.({ name: sec.rmp?.name || sec.instructor })}
                         style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub, transition: "color 0.15s" }}
                         onMouseEnter={e => e.currentTarget.style.color = ACCENT}
                         onMouseLeave={e => e.currentTarget.style.color = p.textSub}
                       >
-                        {sec.instructor}
+                        {sec.rmp?.name || sec.instructor}
                       </button>
                       {rmp?.rmpRating != null && (
                         <span style={{ display: "flex", alignItems: "center", gap: 3, fontFamily: MONO, fontSize: 12, fontWeight: 700, color: rmpColor(rmp.rmpRating) }}>
@@ -852,9 +863,13 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       const map = {};
       list.forEach(i => {
         map[i.name] = i;
-        // Also index by last name so timetable format ("KA Shinpaugh") can match
-        // grades format ("Kathleen Shinpaugh") — last token is always the surname
-        const lastName = i.name.trim().split(/\s+/).pop().toLowerCase();
+        const parts = i.name.trim().split(/\s+/);
+        const lastName = parts[parts.length - 1].toLowerCase();
+        const firstInit = (parts[0][0] || '').toLowerCase();
+        // First-initial + last-name key: "John Lewis" → _fi_j_ln_lewis
+        // Lets Banner format "JA Lewis" resolve to John Lewis (not Kevin Lewis)
+        if (!map[`_fi_${firstInit}_ln_${lastName}`]) map[`_fi_${firstInit}_ln_${lastName}`] = i;
+        // Last-name-only fallback (kept for grades format "Lewis")
         if (!map[`_ln_${lastName}`]) map[`_ln_${lastName}`] = i;
       });
       setInstructorMap(map);

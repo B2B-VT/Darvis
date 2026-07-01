@@ -365,7 +365,7 @@ function formatCourse(row) {
     subject:       row.subject,
     number:        row.course_number,
     title:         row.title || `${row.subject} ${row.course_number}`,
-    credits:       row.credits   || 3,
+    credits:       row.credits   ?? null,
     avgGpa:        row.avg_gpa   || 0,
     description:   row.description || '',
     pathways:      row.pathways  || [],
