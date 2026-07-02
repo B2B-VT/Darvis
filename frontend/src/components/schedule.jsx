@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { API } from "../api.js";
 import { MONO, SERIF, SANS, ACCENT, palette, glassCard, RADIUS, SHADOW } from "../theme.jsx";
 import { ClockIcon, MapPinIcon, UserIcon, AlertTriangleIcon, CalendarIcon, GridIcon, ListIcon } from "./icons.jsx";
+import { SkeletonSchedule, useMinimumLoading } from "./skeletons.jsx";
 
 const DAYS = ["Mon","Tue","Wed","Thu","Fri"];
 const DAY_MAP = { "M":"Mon","T":"Tue","W":"Wed","R":"Thu","F":"Fri" };
@@ -392,12 +393,17 @@ function ScheduleList({ sections, colorMap, darkMode, onRemove, courseMap, onCou
 }
 
 // ── Schedule Builder Page ─────────────────────────────────────────
-function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCourseClick }) {
+function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCourseClick, loading = false }) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [view, setView] = useState(() => window.innerWidth < 768 ? "list" : "grid");
   const [courseMap, setCourseMap] = useState({}); // keyed by "SUBJECT-number"
   const dm = darkMode;
   const p = palette(dm);
+  const sections = schedule;
+  const courseKeys = [...new Set(sections.map(s => `${s.subject}-${s.courseNumber}`))];
+  const missingCourseDetails = courseKeys.filter(k => !courseMap[k]);
+  const detailsLoading = loading || (sections.length > 0 && missingCourseDetails.length > 0);
+  const showDetailsLoading = useMinimumLoading(detailsLoading);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -408,8 +414,7 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
   // Fetch course details for every unique course in the schedule so we
   // can show titles and open the detail modal when a card is clicked.
   useEffect(() => {
-    const uniqueKeys = [...new Set(schedule.map(s => `${s.subject}-${s.courseNumber}`))];
-    const missing = uniqueKeys.filter(k => !courseMap[k]);
+    const missing = missingCourseDetails;
     if (missing.length === 0) return;
 
     missing.forEach(key => {
@@ -421,11 +426,8 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
         })
         .catch(() => {});
     });
-  }, [schedule]);
+  }, [schedule, missingCourseDetails.join("|")]);
 
-  // schedule is already an array of full section objects
-  const sections = schedule;
-  const courseKeys = [...new Set(sections.map(s => `${s.subject}-${s.courseNumber}`))];
   const colorMap = {};
   courseKeys.forEach((key, i) => colorMap[key] = i);
 
@@ -468,7 +470,9 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
           </div>
         )}
 
-        {sections.length === 0 ? (
+        {showDetailsLoading ? (
+          <SkeletonSchedule darkMode={dm} isMobile={isMobile} />
+        ) : sections.length === 0 ? (
           /* Empty state */
           <div style={{ textAlign: "center", padding: "80px 24px", color: p.textMute }}>
             <div style={{ marginBottom: 20, display: "flex", justifyContent: "center", color: p.textFaint }}>

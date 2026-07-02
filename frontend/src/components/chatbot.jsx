@@ -4,18 +4,28 @@ import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
 import { DARVIS_CONFIG } from "../config.js";
 import { API } from "../api.js";
-import { MONO, SERIF, SANS, ACCENT, palette, glassCard, glassInput, RADIUS, SHADOW, EASE } from "../theme.jsx";
+import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE } from "../theme.jsx";
+import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
 
 Chart.register(...registerables);
 
 const CHAT_API = DARVIS_CONFIG.chatApiUrl;
 
 const SUGGESTED = [
-  "Which CS 3114 professor has the strongest grade outcomes?",
-  "Show me CS electives with the highest GPA",
-  "What 2000-level courses have the lowest F rate?",
-  "Professor profile for Shaffer",
-  "Which CS courses have the most grade data?",
+  { label: "Build a schedule", prompt: "Build me a schedule where I don’t wake up before 11." },
+  { label: "Compare professors", prompt: "Compare these professors for this course." },
+  { label: "Find easier electives", prompt: "What are easier electives with strong grade outcomes?" },
+  { label: "Check GPA impact", prompt: "Help me understand how this course might affect my GPA." },
+  { label: "Plan around preferences", prompt: "Plan around my preferences for time of day, workload, and professor fit." },
+  { label: "Explain a course", prompt: "Explain this course using grade and professor data." },
+];
+
+const THINKING_MESSAGES = [
+  "Understanding your question…",
+  "Checking available data…",
+  "Looking through what Cyrus knows…",
+  "Matching this to your planning needs…",
+  "Building your response…",
 ];
 
 // ── Input sanitization & NLP normalization ────────────────────────
@@ -37,6 +47,89 @@ function normalizeInput(raw) {
   let s = sanitizeInput(raw);
   s = normalizeCourseCode(s);
   return s;
+}
+
+function renderInlineMarkdown(text, keyPrefix = "md") {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function AssistantMarkdown({ text, darkMode }) {
+  const p = palette(darkMode);
+  const lines = String(text || "").split("\n");
+  const nodes = [];
+  let list = [];
+
+  const flushList = () => {
+    if (!list.length) return;
+    nodes.push(
+      <ul key={`list-${nodes.length}`} style={{
+        margin: "8px 0 12px 0",
+        paddingLeft: 20,
+        display: "grid",
+        gap: 5,
+      }}>
+        {list.map((item, i) => (
+          <li key={i} style={{ paddingLeft: 2 }}>
+            {renderInlineMarkdown(item, `li-${nodes.length}-${i}`)}
+          </li>
+        ))}
+      </ul>
+    );
+    list = [];
+  };
+
+  lines.forEach((rawLine, i) => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushList();
+      return;
+    }
+
+    const bullet = line.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      list.push(bullet[1]);
+      return;
+    }
+
+    flushList();
+
+    const heading = line.match(/^#{1,3}\s+(.+)$/);
+    const softHeading = !heading && line.length <= 72 && /:$/.test(line);
+
+    if (heading || softHeading) {
+      nodes.push(
+        <div key={`h-${i}`} style={{
+          margin: nodes.length ? "14px 0 6px" : "0 0 6px",
+          color: p.text,
+          fontWeight: 800,
+          fontSize: 14,
+          lineHeight: 1.35,
+        }}>
+          {renderInlineMarkdown((heading ? heading[1] : line).replace(/:$/, ""), `h-${i}`)}
+        </div>
+      );
+      return;
+    }
+
+    nodes.push(
+      <p key={`p-${i}`} style={{
+        margin: nodes.length ? "8px 0 0" : 0,
+        color: p.text,
+        lineHeight: 1.7,
+      }}>
+        {renderInlineMarkdown(line, `p-${i}`)}
+      </p>
+    );
+  });
+
+  flushList();
+  return <>{nodes}</>;
 }
 
 // ── Chart widget ──────────────────────────────────────────────────
@@ -265,11 +358,13 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
     <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: 0, width: "100%" }}>
       {/* Avatar */}
       <div style={{
-        width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-        background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center",
+        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+        background: dm ? "#1f1f1f" : "#f1eee9",
+        display: "flex", alignItems: "center", justifyContent: "center",
         marginTop: 2, overflow: "hidden",
+        border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}`,
       }}>
-        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
+        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Cyrus" style={{ width: 18, height: 18 }} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -278,13 +373,17 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
           ...(msg.isError ? {
             background: dm ? "rgba(248,113,113,0.06)" : "rgba(220,38,38,0.04)",
             border: `1px solid ${dm ? "rgba(248,113,113,0.20)" : "rgba(220,38,38,0.15)"}`,
-          } : glassCard(dm)),
-          borderRadius: "4px 14px 14px 14px",
-          padding: "14px 16px",
+          } : {
+            background: "transparent",
+            border: "1px solid transparent",
+          }),
+          borderRadius: RADIUS.md,
+          padding: "2px 0 0",
           color: p.text,
-          fontSize: 14, lineHeight: 1.65, fontWeight: 450,
+          fontSize: 15, lineHeight: 1.72, fontWeight: 450,
+          boxShadow: "none",
         }}>
-          {msg.answer}
+          <AssistantMarkdown text={msg.answer} darkMode={dm} />
         </div>
 
         {/* Warnings */}
@@ -323,7 +422,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         )}
 
         {/* Action row — copy + retry */}
-        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+        <div style={{ display: "flex", gap: 6, marginTop: 9 }}>
           <button
             onClick={handleCopy}
             style={{ ...btnBase, color: copied ? ACCENT : btnBase.color, borderColor: copied ? "rgba(134,31,65,0.35)" : p.line }}
@@ -342,6 +441,46 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
               ↺ Retry
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThinkingIndicator({ darkMode, status }) {
+  const dm = darkMode;
+  const p = palette(dm);
+
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minHeight: 58 }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+        background: dm ? "#1f1f1f" : "#f1eee9",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        overflow: "hidden",
+        border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}`,
+      }}>
+        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Cyrus" style={{ width: 18, height: 18 }} />
+      </div>
+      <div style={{
+        padding: "3px 0 0",
+        minWidth: 180,
+        display: "flex",
+        gap: 10,
+        alignItems: "center",
+        color: p.textSub,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          {[0,1,2].map(i => (
+            <span key={i} style={{
+              width: 6, height: 6, borderRadius: "50%",
+              background: dm ? "rgba(255,255,255,0.62)" : "rgba(26,18,15,0.46)",
+              animation: `chatPulse 1.15s ease-in-out ${i * 0.18}s infinite`,
+            }} />
+          ))}
+        </div>
+        <div aria-live="polite" style={{ fontSize: 15, color: p.textSub, fontWeight: 500, lineHeight: 1.4 }}>
+          {status}
         </div>
       </div>
     </div>
@@ -411,19 +550,20 @@ function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c,
       style={{
         display: "flex", alignItems: "center", position: "relative",
         background: active ? c.active : hov ? c.hover : "transparent",
-        borderLeft: `2px solid ${active ? ACCENT : "transparent"}`,
-        paddingRight: 8,
-        transition: "background 0.12s, border-color 0.12s",
+        borderRadius: 8,
+        margin: "1px 8px",
+        paddingRight: 6,
+        transition: "background 0.12s",
       }}
     >
-      <div onClick={onSelect} style={{ flex: 1, padding: `9px 0 9px ${indent ? 22 : 14}px`, minWidth: 0, cursor: "pointer" }}>
+      <div onClick={onSelect} style={{ flex: 1, padding: `8px 0 8px ${indent ? 20 : 10}px`, minWidth: 0, cursor: "pointer" }}>
         <div style={{
-          fontSize: 12, fontWeight: active ? 700 : 500,
+          fontSize: 13, fontWeight: active ? 600 : 500,
           color: active ? c.text : c.sub,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-          lineHeight: 1.35, marginBottom: 2,
+          lineHeight: 1.35,
         }}>{session.title}</div>
-        <div style={{ fontSize: 10, color: c.faint, fontWeight: 600 }}>
+        <div style={{ fontSize: 10.5, color: c.faint, fontWeight: 500, marginTop: 1 }}>
           {relativeTime(session.createdAt)}
         </div>
       </div>
@@ -600,34 +740,35 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────
-function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed }) {
+function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed, historyLoading }) {
   const dm = darkMode;
   const p = palette(dm);
   const c = {
-    bg:     p.bgRaised,
-    border: p.line,
-    text:   p.text,
-    sub:    p.textSub,
-    faint:  p.textMute,
-    hover:  p.cardHover,
-    active: dm ? "rgba(134,31,65,0.14)" : "rgba(134,31,65,0.07)",
+    bg:     dm ? "#050505" : p.bgRaised,
+    border: dm ? "rgba(255,255,255,0.10)" : p.line,
+    text:   dm ? "rgba(255,255,255,0.92)" : p.text,
+    sub:    dm ? "rgba(255,255,255,0.76)" : p.textSub,
+    faint:  dm ? "rgba(255,255,255,0.45)" : p.textMute,
+    hover:  dm ? "rgba(255,255,255,0.07)" : p.cardHover,
+    active: dm ? "rgba(255,255,255,0.11)" : "rgba(26,18,15,0.08)",
   };
 
   const [addingProj, setAddingProj]   = useState(false);
   const [newProjName, setNewProjName] = useState("");
+  const showHistoryLoading = useMinimumLoading(historyLoading);
 
   const panelStyle = isMobile ? {
     position: "fixed",
     top: 60,
     right: 0,
     bottom: 0,
-    width: 260,
+    width: 280,
     zIndex: 200,
     transform: open ? "translateX(0)" : "translateX(100%)",
     transition: `transform 0.22s ${EASE}`,
-    boxShadow: open ? "-6px 0 24px rgba(0,0,0,0.22)" : "none",
+    boxShadow: open ? "-8px 0 24px rgba(0,0,0,0.30)" : "none",
   } : {
-    width: collapsed ? 0 : 240,
+    width: collapsed ? 0 : 260,
     flexShrink: 0,
     borderLeft: `1px solid ${c.border}`,
     overflow: "hidden",
@@ -654,8 +795,6 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     setAddingProj(false);
   };
 
-  const gc = glassCard(dm);
-
   return (
     <>
       {/* Mobile backdrop */}
@@ -668,50 +807,71 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 
       <div style={{
         ...panelStyle,
-        background: gc.background,
-        backdropFilter: gc.backdropFilter,
-        WebkitBackdropFilter: gc.WebkitBackdropFilter,
+        background: c.bg,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
       }}>
         {/* Header */}
         <div style={{
-          padding: "14px 14px 12px",
+          padding: "14px 12px 10px",
           borderBottom: `1px solid ${c.border}`,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          display: "grid", gap: 8,
           flexShrink: 0,
         }}>
-          <span style={{
-            fontSize: 10, fontWeight: 700, color: ACCENT,
-            letterSpacing: "1.5px", textTransform: "uppercase",
-            fontFamily: MONO,
-          }}>History</span>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <div style={{ color: c.text, fontSize: 17, fontWeight: 750, letterSpacing: 0 }}>
+              Cyrus
+            </div>
+            <button
+              onClick={onNew}
+              style={{
+                background: "transparent",
+                color: c.text,
+                border: `1px solid ${c.border}`,
+                borderRadius: 9,
+                padding: "7px 10px",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                fontFamily: SANS,
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              New chat
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
               onClick={() => { setAddingProj(v => !v); setNewProjName(""); }}
               title="New project"
               style={{
-                background: "none", border: `1px solid ${c.border}`,
-                borderRadius: RADIUS.xs, padding: "4px 8px", cursor: "pointer",
-                color: c.sub, display: "flex", alignItems: "center", gap: 4,
-                fontSize: 11, fontWeight: 600,
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 8px",
+                cursor: "pointer",
+                color: c.sub,
+                display: "flex",
+                alignItems: "center",
+                gap: 9,
+                fontSize: 13,
+                fontWeight: 500,
                 fontFamily: SANS,
               }}
+              onMouseEnter={e => e.currentTarget.style.background = c.hover}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 13H2.454l-.257-7.819A2 2 0 0 1 4.19 3h1.668l.714-1.428A1 1 0 0 1 7.465 1h1.07a1 1 0 0 1 .894.553L9.828 3zm-2.95.702.681-1.29a.5.5 0 0 1 .447-.276h.988a.5.5 0 0 1 .447.276l.68 1.29H6.878z"/>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2a2 2 0 0 1-1.6-.8L10.4 4A2 2 0 0 0 8.8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/>
               </svg>
-              +
+              New project
             </button>
-            <button
-              onClick={onNew}
-              style={{
-                background: ACCENT, color: "white", border: "none",
-                borderRadius: RADIUS.xs, padding: "5px 12px",
-                fontWeight: 700, fontSize: 11, cursor: "pointer",
-                fontFamily: SANS,
-              }}
-            >+ New</button>
           </div>
         </div>
 
@@ -753,8 +913,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
         )}
 
         {/* Session list */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
-          {sessions.length === 0 ? (
+        <div style={{ flex: 1, overflowY: "auto", padding: "10px 0" }}>
+          {showHistoryLoading ? (
+            <SkeletonSidebar darkMode={dm} rows={8} style={{ borderRight: "none", padding: "4px 12px 12px" }} />
+          ) : sessions.length === 0 ? (
             <div style={{
               padding: "28px 16px", textAlign: "center",
               color: c.faint, fontSize: 12, lineHeight: 1.6, fontFamily: SANS,
@@ -783,14 +945,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
               {/* Unorganized sessions */}
               {unorganized.length > 0 && (
                 <>
-                  {projects.length > 0 && (
-                    <div style={{
-                      padding: "8px 12px 3px",
-                      fontSize: 10, fontWeight: 700, color: c.faint,
-                      letterSpacing: "0.8px", textTransform: "uppercase",
-                      fontFamily: MONO,
-                    }}>Other</div>
-                  )}
+                  <div style={{
+                    padding: "12px 14px 5px",
+                    fontSize: 13, fontWeight: 700, color: c.text,
+                  }}>{projects.length > 0 ? "Other" : "Chats"}</div>
                   {unorganized.map(session => (
                     <SessionItem
                       key={session.id}
@@ -823,6 +981,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [input,             setInput]            = useState("");
   const [loading,           setLoading]          = useState(false);
   const [serverDown,        setServerDown]       = useState(false);
+  const [historyLoading,    setHistoryLoading]   = useState(false);
   const [useRecency,        setUseRecency]       = useState(true);
   const [minStudents,       setMinStudents]      = useState(30);
   const [topN,              setTopN]             = useState(10);
@@ -831,6 +990,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const [attachments,       setAttachments]      = useState([]);
+  const [thinkingIndex,     setThinkingIndex]    = useState(0);
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
@@ -847,6 +1007,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   // Load conversations from Supabase on sign-in, merge with localStorage (remote wins)
   useEffect(() => {
     if (!user?.id) return;
+    setHistoryLoading(true);
     API.getConversations(user.id).then(rows => {
       if (!rows.length) return;
       setSessions(prev => {
@@ -865,7 +1026,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         });
         return Object.values(localMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       });
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setHistoryLoading(false));
   }, [user?.id]);
 
   // Debounce-save any session with messages to Supabase
@@ -886,6 +1047,17 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setThinkingIndex(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setThinkingIndex(i => (i + 1) % THINKING_MESSAGES.length);
+    }, 1700);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const startNewChat = () => {
     setMessages([]);
@@ -1034,7 +1206,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, loading, useRecency, minStudents, topN, messages, currentSessionId]);
+  }, [input, attachments, loading, useRecency, minStudents, topN, messages, currentSessionId, addSection, setPage, userProfile]);
 
   const retry = useCallback(async (question, botMsgIdx) => {
     if (loading) return;
@@ -1092,17 +1264,179 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [loading, messages, currentSessionId, useRecency, minStudents, topN]);
+  }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
 
   const handleKey = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
   const isEmpty = messages.length === 0;
+  const canSend = (input.trim() || attachments.length > 0) && !loading;
+
+  const PromptIcon = ({ type }) => {
+    const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
+    if (type === 0) return <svg {...common}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>;
+    if (type === 1) return <svg {...common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6M19 8v6"/></svg>;
+    if (type === 2) return <svg {...common}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>;
+    if (type === 3) return <svg {...common}><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/></svg>;
+    if (type === 4) return <svg {...common}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
+    return <svg {...common}><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>;
+  };
+
+  const renderAttachmentPreviews = (compact = false) => attachments.length > 0 && (
+    <div style={{
+      display: "flex", flexWrap: "wrap", gap: 8, marginBottom: compact ? 12 : 10,
+      padding: compact ? "0 8px" : "10px 12px",
+      background: compact ? "transparent" : p.card,
+      borderRadius: RADIUS.sm,
+      border: compact ? "none" : `1px solid ${p.line}`,
+    }}>
+      {attachments.map((att, i) => (
+        <div key={i} style={{
+          position: "relative", display: "flex", alignItems: "center", gap: 6,
+          background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+          border: `1px solid ${p.line}`,
+          borderRadius: RADIUS.xs, padding: att.type.startsWith("image/") ? 4 : "6px 10px",
+          maxWidth: compact ? 180 : 200,
+        }}>
+          {att.type.startsWith("image/") ? (
+            <img src={att.dataUrl} alt={att.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 6 }} />
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.textSub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span style={{ fontSize: 11, fontWeight: 600, color: p.textSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: compact ? 112 : 130 }}>{att.name}</span>
+            </>
+          )}
+          <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))} style={{
+            position: "absolute", top: -6, right: -6,
+            width: 16, height: 16, borderRadius: "50%",
+            background: ACCENT, color: "white", border: "none",
+            cursor: "pointer", fontSize: 9, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+          }}>✕</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderComposer = ({ hero = false } = {}) => (
+    <>
+      {renderAttachmentPreviews(hero)}
+      <div style={{
+        display: "flex",
+        gap: hero ? 9 : 7,
+        alignItems: "flex-end",
+        minHeight: hero ? (isMobile ? 56 : 62) : 54,
+        padding: hero ? (isMobile ? "7px 8px" : "8px 10px") : "7px 8px",
+        borderRadius: hero ? 30 : 26,
+        background: dm ? "#212121" : "rgba(255,255,255,0.88)",
+        border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(26,18,15,0.11)"}`,
+        boxShadow: hero
+          ? (dm ? "0 10px 34px rgba(0,0,0,0.28)" : "0 18px 45px rgba(26,18,15,0.10)")
+          : (dm ? "0 8px 26px rgba(0,0,0,0.22)" : "0 12px 28px rgba(26,18,15,0.07)"),
+        transition: `border-color 0.16s ${EASE}, box-shadow 0.16s ${EASE}`,
+      }}>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.txt,.csv,.doc,.docx"
+          onChange={handleFileSelect}
+          style={{ display: "none" }}
+        />
+
+        <button
+          onClick={() => fileRef.current?.click()}
+          title="Attach file"
+          aria-label="Attach file"
+          style={{
+            width: hero ? (isMobile ? 42 : 46) : 38,
+            height: hero ? (isMobile ? 42 : 46) : 38,
+            borderRadius: "50%",
+            flexShrink: 0,
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: attachments.length > 0 ? ACCENT : (dm ? "rgba(255,255,255,0.80)" : p.textSub),
+            transition: `all 0.15s ${EASE}`,
+            position: "relative",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = ACCENT; }}
+          onMouseLeave={e => { e.currentTarget.style.color = attachments.length > 0 ? ACCENT : (dm ? "rgba(255,255,255,0.80)" : p.textSub); }}
+        >
+          <svg width={hero ? 25 : 18} height={hero ? 25 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={hero ? 1.7 : 2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          {attachments.length > 0 && (
+            <span style={{
+              position: "absolute", top: hero ? 4 : -5, right: hero ? 4 : -5,
+              background: ACCENT, color: "white",
+              borderRadius: "50%", width: 16, height: 16,
+              fontSize: 9, fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{attachments.length}</span>
+          )}
+        </button>
+
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Ask Cyrus anything about your semester…"
+          rows={1}
+          style={{
+            flex: 1,
+            padding: hero ? (isMobile ? "10px 2px" : "12px 2px") : "9px 6px",
+            background: "transparent",
+            border: "none",
+            borderRadius: RADIUS.sm,
+            resize: "none",
+            color: p.text,
+            fontSize: hero ? (isMobile ? 15 : 16) : 15,
+            fontWeight: 500,
+            fontFamily: SANS,
+            outline: "none",
+            lineHeight: 1.45,
+            overflowY: "hidden",
+            minHeight: hero ? (isMobile ? 40 : 42) : 38,
+            maxHeight: 140,
+          }}
+          onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
+        />
+
+        <button
+          onClick={() => send()}
+          disabled={!canSend}
+          aria-label="Send message"
+          style={{
+            width: hero ? (isMobile ? 42 : 46) : 38,
+            height: hero ? (isMobile ? 42 : 46) : 38,
+            borderRadius: "50%",
+            flexShrink: 0,
+            background: canSend ? "#19c37d" : (dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"),
+            color: canSend ? "white" : p.textMute,
+            border: "none",
+            cursor: canSend ? "pointer" : "default",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: `all 0.15s ${EASE}`,
+            boxShadow: canSend ? "0 8px 20px rgba(25,195,125,0.22)" : "none",
+          }}
+        >
+          <svg width={hero ? 21 : 18} height={hero ? 21 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 2L11 13" /><path d="M22 2L15 22 11 13 2 9l20-7z" />
+          </svg>
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <div style={{
       display: "flex",
       height: "100%",
-      background: "transparent",
+      background: dm ? "#000" : "transparent",
       fontFamily: SANS,
       overflow: "hidden",
     }}>
@@ -1115,7 +1449,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 16px", borderBottom: `1px solid ${p.line}`,
-            background: p.bg, flexShrink: 0,
+            background: dm ? "#000" : p.bg, flexShrink: 0,
           }}>
             <button
               onClick={() => setSidebarOpen(o => !o)}
@@ -1128,7 +1462,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
             <span style={{
               fontSize: 11, fontWeight: 800, color: p.textMute,
               letterSpacing: "1px", textTransform: "uppercase", fontFamily: MONO,
-            }}>Darvis AI</span>
+            }}>Cyrus</span>
             <button
               onClick={startNewChat}
               style={{
@@ -1145,14 +1479,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         {!isMobile && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "flex-end",
-            padding: "8px 16px", borderBottom: `1px solid ${p.line}`,
-            flexShrink: 0, background: p.bg,
+            padding: "10px 18px", borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
+            flexShrink: 0, background: dm ? "#000" : p.bg,
           }}>
             <button
               onClick={() => setSidebarVisible(v => !v)}
               title={sidebarVisible ? "Hide history" : "Show history"}
               style={{
-                background: "none", border: `1px solid ${p.line}`,
+                background: "transparent", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : p.line}`,
                 borderRadius: RADIUS.sm, padding: "5px 12px", cursor: "pointer",
                 color: p.textSub, fontSize: 11, fontWeight: 600,
                 fontFamily: SANS,
@@ -1162,7 +1496,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
                 <rect x="1" y="1" width="12" height="12" rx="2"/><line x1="9" y1="1" x2="9" y2="13"/>
               </svg>
-              {sidebarVisible ? "Hide History" : "History"}
+              {sidebarVisible ? "Hide sidebar" : "Show sidebar"}
             </button>
           </div>
         )}
@@ -1172,58 +1506,91 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           <div style={{
             flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
-            padding: isMobile ? "40px 16px 160px" : "60px 24px 200px",
+            padding: isMobile ? "36px 16px 92px" : "40px 28px 112px",
             overflowY: "auto",
+            background: dm ? "#000" : "transparent",
           }}>
-            <div style={{
-              fontSize: 10, fontWeight: 700, color: ACCENT,
-              letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 20,
-              fontFamily: MONO,
-            }}>Darvis AI</div>
             <h1 style={{
-              margin: "0 0 12px", fontSize: isMobile ? "clamp(28px, 8vw, 38px)" : "clamp(28px, 4vw, 48px)",
-              fontWeight: 700, color: p.text, letterSpacing: "-2px", textAlign: "center",
+              margin: isMobile ? "0 0 28px" : "0 0 44px",
+              fontSize: isMobile ? 32 : 42,
+              fontWeight: 500, color: p.text, letterSpacing: 0, textAlign: "center",
               fontFamily: SANS,
             }}>
-              Ask about <span style={{ color: ACCENT }}>any course.</span>
+              Where should we begin?
             </h1>
-            <p style={{
-              margin: "0 0 32px", fontSize: isMobile ? 14 : 15, color: p.textSub,
-              maxWidth: 440, textAlign: "center", lineHeight: 1.7, fontFamily: SANS,
+
+            <div style={{
+              width: "100%",
+              maxWidth: 760,
             }}>
-              Grade distributions, professor comparisons, and historical trends. All from real institutional data.
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: isMobile ? "100%" : 600 }}>
-              {SUGGESTED.map(q => (
-                <button key={q} onClick={() => send(q)} style={{
-                  background: p.card,
-                  border: `1px solid ${p.line}`,
+              {renderComposer({ hero: true })}
+            </div>
+
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: isMobile ? 8 : 12,
+              justifyContent: "center",
+              width: "100%",
+              maxWidth: 760,
+              marginTop: isMobile ? 22 : 32,
+            }}>
+              {SUGGESTED.map((item, i) => (
+                <button key={item.label} onClick={() => send(item.prompt)} disabled={loading} style={{
+                  background: "transparent",
+                  border: `1px solid ${dm ? "rgba(255,255,255,0.15)" : p.line}`,
                   borderRadius: RADIUS.pill,
-                  padding: "8px 14px",
+                  padding: isMobile ? "9px 13px" : "10px 17px",
                   color: p.textSub,
-                  fontSize: 12,
+                  fontSize: isMobile ? 13 : 15,
                   fontWeight: 600,
                   cursor: "pointer",
                   fontFamily: SANS,
                   transition: `all 0.15s ${EASE}`,
-                  textAlign: "left",
+                  lineHeight: 1.2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  minHeight: isMobile ? 40 : 44,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}
-                >{q}</button>
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.30)" : "rgba(26,18,15,0.24)";
+                  e.currentTarget.style.color = p.text;
+                  e.currentTarget.style.background = dm ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.55)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.15)" : p.line;
+                  e.currentTarget.style.color = p.textSub;
+                  e.currentTarget.style.background = "transparent";
+                }}
+                >
+                  <PromptIcon type={i} />
+                  <span>{item.label}</span>
+                </button>
               ))}
+            </div>
+
+            <div style={{
+              marginTop: 20,
+              color: p.textMute,
+              fontSize: 12,
+              lineHeight: 1.5,
+              textAlign: "center",
+              maxWidth: 600,
+            }}>
+              Cyrus can make mistakes. Verify important academic information.
             </div>
           </div>
         )}
 
         {/* ── Messages ────────────────────────────────────────── */}
         {!isEmpty && (
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: isMobile ? "16px 0 16px" : "32px 0 24px", width: "100%" }}>
-            <div style={{ maxWidth: 760, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", display: "flex", flexDirection: "column", gap: isMobile ? 16 : 24 }}>
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: isMobile ? "16px 0 16px" : "32px 0 24px", width: "100%", scrollBehavior: "smooth", background: dm ? "#000" : "transparent" }}>
+            <div style={{ maxWidth: 760, margin: "0 auto", padding: isMobile ? "0 14px" : "0 28px", display: "flex", flexDirection: "column", gap: isMobile ? 18 : 28 }}>
               {messages.map((msg, i) => (
                 msg.role === "user" ? (
                   <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
-                    <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                    <div style={{ maxWidth: isMobile ? "88%" : "72%", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
                       {msg.attachments?.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "flex-end" }}>
                           {msg.attachments.map((att, ai) => (
@@ -1246,10 +1613,12 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                         </div>
                       )}
                       <div style={{
-                        background: ACCENT, color: "white",
-                        borderRadius: "14px 4px 14px 14px",
-                        padding: "12px 16px", fontSize: 14, lineHeight: 1.5,
+                        background: dm ? "#2f2f2f" : "rgba(26,18,15,0.08)",
+                        color: p.text,
+                        borderRadius: "18px",
+                        padding: "10px 14px", fontSize: 15, lineHeight: 1.55,
                         fontWeight: 500, whiteSpace: "pre-wrap",
+                        boxShadow: "none",
                       }}>{msg.content}</div>
                     </div>
                   </div>
@@ -1266,29 +1635,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
 
               {/* Loading indicator */}
               {loading && (
-                <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-                    background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center",
-                    overflow: "hidden",
-                  }}>
-                    <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 20, height: 20 }} />
-                  </div>
-                  <div style={{
-                    ...glassCard(dm),
-                    borderRadius: "4px 14px 14px 14px",
-                    padding: "14px 18px",
-                    display: "flex", gap: 5, alignItems: "center",
-                  }}>
-                    {[0,1,2].map(i => (
-                      <div key={i} style={{
-                        width: 7, height: 7, borderRadius: "50%",
-                        background: ACCENT, opacity: 0.7,
-                        animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-                      }} />
-                    ))}
-                  </div>
-                </div>
+                <ThinkingIndicator darkMode={dm} status={THINKING_MESSAGES[thinkingIndex]} />
               )}
               <div ref={bottomRef} />
             </div>
@@ -1296,11 +1643,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         )}
 
         {/* ── Input bar ───────────────────────────────────────── */}
+        {!isEmpty && (
         <div style={{
-          background: p.bg,
-          borderTop: `1px solid ${p.line}`,
-          padding: isMobile ? "10px 12px 16px" : "16px 24px 20px",
+          background: dm ? "rgba(0,0,0,0.92)" : "rgba(250,246,240,0.88)",
+          backdropFilter: "blur(22px) saturate(150%)",
+          WebkitBackdropFilter: "blur(22px) saturate(150%)",
+          borderTop: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
+          padding: isMobile ? "10px 12px 78px" : "14px 24px 18px",
           flexShrink: 0,
+          position: "relative",
+          zIndex: 5,
         }}>
           <div style={{ maxWidth: 760, margin: "0 auto" }}>
 
@@ -1314,11 +1666,11 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                   cursor: "pointer", letterSpacing: "0.5px",
                   fontFamily: SANS,
                 }}
-              >{showSettings ? "▾" : "▸"} Settings</button>
+              >{showSettings ? "▾" : "▸"} Response controls</button>
 
               {serverDown && (
                 <span style={{ fontSize: 11, color: "#f87171", fontWeight: 600 }}>
-                  ⚠ Server unreachable — try again in ~30 seconds
+                  Server unreachable. Try again in about 30 seconds.
                 </span>
               )}
             </div>
@@ -1361,131 +1713,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               </div>
             )}
 
-            {/* Attachment previews */}
-            {attachments.length > 0 && (
-              <div style={{
-                display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10,
-                padding: "10px 12px",
-                background: p.card, borderRadius: RADIUS.sm,
-                border: `1px solid ${p.line}`,
-              }}>
-                {attachments.map((att, i) => (
-                  <div key={i} style={{
-                    position: "relative", display: "flex", alignItems: "center", gap: 6,
-                    background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
-                    border: `1px solid ${p.line}`,
-                    borderRadius: RADIUS.xs, padding: att.type.startsWith("image/") ? 4 : "6px 10px",
-                    maxWidth: 200,
-                  }}>
-                    {att.type.startsWith("image/") ? (
-                      <img src={att.dataUrl} alt={att.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 6 }} />
-                    ) : (
-                      <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.textSub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: p.textSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130 }}>{att.name}</span>
-                      </>
-                    )}
-                    <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))} style={{
-                      position: "absolute", top: -6, right: -6,
-                      width: 16, height: 16, borderRadius: "50%",
-                      background: ACCENT, color: "white", border: "none",
-                      cursor: "pointer", fontSize: 9, fontWeight: 700,
-                      display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
-                    }}>✕</button>
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderComposer()}
 
-            {/* Input */}
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-              {/* Hidden file input */}
-              <input
-                ref={fileRef}
-                type="file"
-                multiple
-                accept="image/*,.pdf,.txt,.csv,.doc,.docx"
-                onChange={handleFileSelect}
-                style={{ display: "none" }}
-              />
-
-              {/* Paperclip button */}
-              <button
-                onClick={() => fileRef.current?.click()}
-                title="Attach file"
-                style={{
-                  width: 40, height: 40, borderRadius: RADIUS.xs, flexShrink: 0,
-                  background: "none",
-                  border: `1px solid ${p.line}`,
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: attachments.length > 0 ? ACCENT : p.textMute,
-                  transition: `all 0.15s ${EASE}`,
-                  position: "relative",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = attachments.length > 0 ? ACCENT : p.textMute; }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                </svg>
-                {attachments.length > 0 && (
-                  <span style={{
-                    position: "absolute", top: -5, right: -5,
-                    background: ACCENT, color: "white",
-                    borderRadius: "50%", width: 16, height: 16,
-                    fontSize: 9, fontWeight: 800,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>{attachments.length}</span>
-                )}
-              </button>
-
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Ask about a course, professor, or grade trend…"
-                rows={1}
-                style={{
-                  flex: 1, padding: "12px 16px",
-                  ...glassInput(dm),
-                  borderRadius: RADIUS.sm, resize: "none",
-                  color: p.text,
-                  fontSize: 14, fontWeight: 500,
-                  fontFamily: SANS,
-                  outline: "none", lineHeight: 1.5,
-                  transition: "border-color 0.15s ease",
-                  overflowY: "hidden",
-                }}
-                onFocus={e => e.currentTarget.style.borderColor = ACCENT}
-                onBlur={e => e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}
-                onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
-              />
-              <button
-                onClick={() => send()}
-                disabled={(!input.trim() && attachments.length === 0) || loading}
-                style={{
-                  width: 44, height: 44, borderRadius: RADIUS.sm, flexShrink: 0,
-                  background: (input.trim() || attachments.length > 0) && !loading ? ACCENT : "rgba(134,31,65,0.2)",
-                  border: "none", cursor: (input.trim() || attachments.length > 0) && !loading ? "pointer" : "default",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: `all 0.15s ${EASE}`,
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2L11 13" /><path d="M22 2L15 22 11 13 2 9l20-7z" />
-                </svg>
-              </button>
-            </div>
-
-            <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, textAlign: "center", fontFamily: SANS }}>
-              Based on historical grade data only · Enter to send
+            <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, textAlign: "center", fontFamily: SANS, lineHeight: 1.45 }}>
+              Cyrus can make mistakes. Verify important academic information.
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* ── Sidebar (right side) ────────────────────────────────── */}
@@ -1506,13 +1741,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           onClose={() => setSidebarOpen(false)}
           isMobile={isMobile}
           collapsed={!sidebarVisible}
+          historyLoading={historyLoading}
         />
       )}
 
       <style>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-6px); }
+        @keyframes chatPulse {
+          0%, 80%, 100% { transform: translateY(0) scale(0.86); opacity: 0.45; }
+          40% { transform: translateY(-5px) scale(1); opacity: 1; }
         }
         ::selection {
           background: lightblue;

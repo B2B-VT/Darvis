@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
 import { BookIcon, UserIcon, CalendarIcon, GraduationCapIcon, LightbulbIcon, BellIcon } from "./icons.jsx";
+import { Skeleton, SkeletonForumList, useMinimumLoading } from "./skeletons.jsx";
 
 const CATEGORIES = [
   { Icon: BookIcon,          title: "Course Reviews",        description: "Share your experience with specific courses — workload, exams, what to expect." },
@@ -193,6 +194,7 @@ function PostThread({ post, onBack, darkMode, currentUser }) {
   const [confirmPost,      setConfirmPost]    = useState(false);   // two-click confirm for post delete
   const [confirmReply,     setConfirmReply]   = useState(null);    // reply id being confirmed
   const [replyAnonymous,   setReplyAnonymous] = useState(false);
+  const showLoading = useMinimumLoading(loading);
 
   const dm = darkMode;
   const bg     = "transparent";
@@ -296,8 +298,8 @@ function PostThread({ post, onBack, darkMode, currentUser }) {
         </div>
 
         {/* Replies */}
-        {loading ? (
-          <div style={{ color: sub, fontSize: 14, textAlign: "center", padding: "32px 0" }}>Loading replies…</div>
+        {showLoading ? (
+          <SkeletonForumList darkMode={dm} rows={3} />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
             {replies.length === 0 && (
@@ -409,6 +411,7 @@ function CategoryView({ category, onBack, onOpenPost, onNewPost, darkMode, curre
   const [posts,         setPosts]         = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(null); // post id being confirmed
+  const showLoading = useMinimumLoading(loading);
 
   const dm = darkMode;
   const bg     = "transparent";
@@ -479,8 +482,8 @@ function CategoryView({ category, onBack, onOpenPost, onNewPost, darkMode, curre
           )}
         </div>
 
-        {loading ? (
-          <div style={{ color: sub, fontSize: 14, textAlign: "center", padding: "48px 0" }}>Loading…</div>
+        {showLoading ? (
+          <SkeletonForumList darkMode={dm} rows={5} />
         ) : posts.length === 0 ? (
           <div style={{
             background: cardBg, border: `1px solid ${border}`,
@@ -556,6 +559,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
   const [showNewPost,   setShowNewPost]  = useState(false);
   const [newPostCategory, setNewPostCategory] = useState("");
   const [saving,        setSaving]       = useState(false);
+  const showLoadingIndex = useMinimumLoading(loadingIndex);
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -701,7 +705,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
           {/* Stats */}
           <div style={{ display: "flex", gap: 32, marginTop: 32 }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: head }}>{loadingIndex ? "—" : totalPosts}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: head }}>{showLoadingIndex ? <Skeleton darkMode={dm} width={30} height={24} /> : totalPosts}</div>
               <div style={{ fontSize: 12, color: subtext, marginTop: 2 }}>Posts</div>
             </div>
             <div>
@@ -742,9 +746,9 @@ export default function ForumsPage({ darkMode = true, setPage }) {
                   <div style={{ fontWeight: 700, fontSize: 15, color: text }}>{cat.title}</div>
                   <div style={{ fontSize: 13, color: subtext, marginTop: 3, lineHeight: 1.5 }}>{cat.description}</div>
                 </div>
-                <div style={{ flexShrink: 0, textAlign: "right" }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: head }}>
-                    {loadingIndex ? "—" : (categoryCounts[cat.title] || 0)}
+                  <div style={{ flexShrink: 0, textAlign: "right" }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: head }}>
+                    {showLoadingIndex ? <Skeleton darkMode={dm} width={22} height={18} style={{ marginLeft: "auto" }} /> : (categoryCounts[cat.title] || 0)}
                   </div>
                   <div style={{ fontSize: 11, color: subtext }}>posts</div>
                 </div>
@@ -759,8 +763,8 @@ export default function ForumsPage({ darkMode = true, setPage }) {
             Recent posts
           </h2>
 
-          {loadingIndex ? (
-            <div style={{ color: subtext, fontSize: 14, padding: "16px 0" }}>Loading…</div>
+          {showLoadingIndex ? (
+            <SkeletonForumList darkMode={dm} rows={4} />
           ) : recentPosts.length === 0 ? (
             <div style={{
               background: cardBg, border: `1px solid ${border}`,
@@ -795,11 +799,11 @@ export default function ForumsPage({ darkMode = true, setPage }) {
             </div>
           )}
 
-          {/* Darvis CTA */}
+          {/* Cyrus CTA */}
           <div style={{ marginTop: 24, background: ctaBg, border: `1px solid ${ctaBor}`, borderRadius: 12, padding: "18px 20px" }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: head, marginBottom: 6 }}>Looking for grade data?</div>
             <div style={{ fontSize: 13, color: subtext, lineHeight: 1.55, marginBottom: 14 }}>
-              Darvis can pull historical grade distributions for any course or instructor instantly.
+              Cyrus can pull historical grade distributions for any course or instructor instantly.
             </div>
             <button
               onClick={() => setPage && setPage("chatbot")}
@@ -809,7 +813,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
                 cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >
-              Open Darvis →
+              Open Cyrus →
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { MOCK } from "../mock-data.js";
 import { StarRating } from "./nav-auth.jsx";
 import { GpaBadge, GradeGrid } from "./courses.jsx";
 import { BookIcon, ClockIcon, MapPinIcon, UserIcon, CalendarIcon } from "./icons.jsx";
+import { SkeletonCard, SkeletonChart, useMinimumLoading } from "./skeletons.jsx";
 
 const COURSE_COLORS = [
   { bg:"#fde8ee", border:"#861F41", text:"#861F41" },
@@ -232,6 +233,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const showLoading = useMinimumLoading(loading);
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handler);
@@ -430,8 +432,10 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
               <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Courses Taught</h2>
-              {loading ? (
-                <div style={{ color: colors.sub, fontSize: 14 }}>Loading course data…</div>
+              {showLoading ? (
+                <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
+                  {Array.from({ length: isMobile ? 4 : 6 }).map((_, i) => <SkeletonCard key={i} darkMode={dm} height={118} />)}
+                </div>
               ) : courses.length === 0 ? (
                 <div style={{ color: colors.sub, fontSize: 14 }}>No course data found for this instructor.</div>
               ) : (
@@ -459,7 +463,12 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
             </div>
 
             {/* Grade distributions */}
-            {courses.length > 0 && (
+            {showLoading ? (
+              <div>
+                <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Grade Distributions</h2>
+                <SkeletonChart darkMode={dm} height={120} />
+              </div>
+            ) : courses.length > 0 && (
               <div>
                 <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Grade Distributions</h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -579,4 +588,3 @@ function ReviewCard({ review, darkMode, colors }) {
     </div>
   );
 }
-

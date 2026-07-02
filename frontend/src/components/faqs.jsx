@@ -33,7 +33,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       items: [
         {
           q: "What is Darvis?",
-          a: "Darvis is a course-planning tool. Browse historical grade distributions for any course or instructor, build your semester schedule, and ask the AI questions about grade outcomes.",
+          a: "Darvis is a course-planning tool. Browse historical grade distributions for any course or instructor, build your semester schedule, and ask Cyrus questions about grade outcomes.",
         },
         {
           q: "Where does the grade data come from?",
@@ -71,23 +71,23 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       ],
     },
     {
-      heading: "Darvis",
+      heading: "Cyrus",
       items: [
         {
-          q: "What can Darvis actually do?",
-          a: "Darvis can answer questions about grade distributions: which instructor for a specific course has stronger historical grade outcomes, how a course's A rate has trended over recent semesters, which sections have higher F or withdrawal rates, and similar quantitative questions based on the grade data.",
+          q: "What can Cyrus actually do?",
+          a: "Cyrus can answer questions about grade distributions: which instructor for a specific course has stronger historical grade outcomes, how a course's A rate has trended over recent semesters, which sections have higher F or withdrawal rates, and similar quantitative questions based on the grade data.",
         },
         {
-          q: "Why can't Darvis tell me about workload or teaching style?",
-          a: "Darvis only has grade distribution numbers. It has no data on teaching style, exam difficulty, workload, attendance policies, or student reviews. For those, check the Forums page or Rate My Professor.",
+          q: "Why can't Cyrus tell me about workload or teaching style?",
+          a: "Cyrus only has grade distribution numbers. It has no data on teaching style, exam difficulty, workload, attendance policies, or student reviews. For those, check the Forums page or Rate My Professor.",
         },
         {
-          q: "Darvis gave me an answer with numbers — how reliable is it?",
-          a: "The AI pulls from the actual grade records in the database. If a course has a small number of students or only one or two semesters of data, the AI will say so. Treat answers for thin data sets with caution.",
+          q: "Cyrus gave me an answer with numbers — how reliable is it?",
+          a: "Cyrus pulls from the actual grade records in the database. If a course has a small number of students or only one or two semesters of data, Cyrus will say so. Treat answers for thin data sets with caution.",
         },
         {
-          q: "Why does Darvis sometimes say it can't answer?",
-          a: "If a question is outside what grade data can answer (for example, 'Is this professor nice?' or 'Is the homework hard?'), Darvis will say so and suggest a question it can answer instead. It won't make up information.",
+          q: "Why does Cyrus sometimes say it can't answer?",
+          a: "If a question is outside what grade data can answer (for example, 'Is this professor nice?' or 'Is the homework hard?'), Cyrus will say so and suggest a question it can answer instead. It won't make up information.",
         },
       ],
     },
@@ -136,7 +136,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
             letterSpacing: "-0.5px", color: head, lineHeight: 1.05,
           }}>Questions, <span style={{ color: accent, fontStyle: "italic" }}>answered.</span></h1>
           <p style={{ margin: "10px 0 0", color: subtext, fontSize: 15 }}>
-            Common questions about Darvis, the grade data, and the AI.
+            Common questions about Darvis, the grade data, and Cyrus.
           </p>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
               fontFamily: "'Plus Jakarta Sans', sans-serif",
             }}
           >
-            Open Darvis
+            Open Cyrus
           </button>
           <button
             onClick={() => setPage && setPage("forums")}

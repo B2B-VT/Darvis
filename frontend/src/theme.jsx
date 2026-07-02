@@ -153,6 +153,13 @@ const GLOBAL_CSS = `
   border-radius: 8px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .dv-skeleton {
+    animation: none !important;
+    background-position: 0 0 !important;
+  }
+}
+
 /* Smooth theme crossfade for elements without their own transition */
 body, body * {
   transition-property: background-color, color, border-color, fill, stroke, box-shadow;

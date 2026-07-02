@@ -7,6 +7,7 @@ import {
   MONO, SERIF, SANS, ACCENT, EASE,
   palette, glassCard, glassInput, RADIUS, SHADOW,
 } from "../theme.jsx";
+import { Skeleton, SkeletonCourseCard, SkeletonProfessorCard, SkeletonTable, useMinimumLoading } from "./skeletons.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────
 function formatTime(t) {
@@ -293,6 +294,8 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
   const [showAllInstructors, setShowAllInstructors] = useState(false);
   const INSTR_LIMIT = 10;
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 700);
+  const showDetailLoading = useMinimumLoading(detailLoading);
+  const showSectionsLoading = useMinimumLoading(sectionsLoading);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 700);
@@ -374,7 +377,7 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
 
         {/* Tabs */}
         <div style={{ display: "flex", borderBottom: `1px solid ${p.line}`, padding: isMobile ? "0 20px" : "0 32px", overflowX: "auto" }}>
-          {[['description','Description'],['grades','Grades'],['instructors',`Instructors${profs.length ? ` (${profs.length})` : ''}`],['sections',`Sections${!sectionsLoading && sections.length ? ` (${sections.length})` : ''}`]].map(([id, label]) => (
+          {[['description','Description'],['grades','Grades'],['instructors',`Instructors${profs.length ? ` (${profs.length})` : ''}`],['sections',`Sections${!showSectionsLoading && sections.length ? ` (${sections.length})` : ''}`]].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} style={{ background: "none", border: "none", borderBottom: tab === id ? `2px solid ${ACCENT}` : "2px solid transparent", color: tab === id ? ACCENT : p.textSub, fontWeight: tab === id ? 600 : 400, fontFamily: SANS, fontSize: isMobile ? 13 : 14, padding: isMobile ? "12px 14px 10px" : "14px 20px 12px", cursor: "pointer", marginBottom: -1, whiteSpace: "nowrap", transition: "color 0.15s" }}>{label}</button>
           ))}
         </div>
@@ -405,8 +408,8 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
               Section-by-section breakdown
               {detail && <span style={{ color: p.textSub, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontFamily: SANS, fontSize: 12 }}> — {detail.rawSections.length} on record</span>}
             </div>
-            {detailLoading ? (
-              <div style={{ color: p.textSub, fontSize: 13, fontFamily: SANS }}>Loading…</div>
+            {showDetailLoading ? (
+              <SkeletonTable darkMode={dm} rows={6} cols={4} />
             ) : detail && detail.rawSections.length > 0 ? (
               <SectionBreakdown sections={detail.rawSections} darkMode={dm} />
             ) : (
@@ -418,8 +421,10 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
         {/* Instructors */}
         {tab === 'instructors' && (
           <div style={{ padding: isMobile ? "12px 0 16px" : "16px 0 20px" }}>
-            {detailLoading ? (
-              <div style={{ color: p.textSub, fontSize: 13, padding: "24px 32px", fontFamily: SANS }}>Loading…</div>
+            {showDetailLoading ? (
+              <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 12, padding: isMobile ? "20px" : "24px 32px" }}>
+                {Array.from({ length: 4 }).map((_, i) => <SkeletonProfessorCard key={i} darkMode={dm} />)}
+              </div>
             ) : profs.length === 0 ? (
               <div style={{ color: p.textSub, fontSize: 13, padding: "32px", textAlign: "center", fontFamily: SANS }}>No instructor data on record.</div>
             ) : (
@@ -479,8 +484,8 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
             <div style={{ display: "grid", gridTemplateColumns: "70px 1fr 140px 100px 100px 90px", gap: 12, padding: "10px 16px", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textMute, textTransform: "uppercase", letterSpacing: "1px", borderBottom: `1px solid ${p.line}` }}>
               <div>CRN</div><div>Instructor</div><div>Time</div><div>Location</div><div>Seats</div><div></div>
             </div>
-            {sectionsLoading ? (
-              <div style={{ padding: "32px", color: p.textSub, fontSize: 13, fontFamily: SANS }}>Loading sections…</div>
+            {showSectionsLoading ? (
+              <div style={{ padding: 16 }}><SkeletonTable darkMode={dm} rows={7} cols={6} /></div>
             ) : sections.length === 0 ? (
               <div style={{ padding: "32px", color: p.textSub, textAlign: "center", fontSize: 13, fontFamily: SANS }}>No sections found for Fall 2026.</div>
             ) : sections.map(sec => (
@@ -593,7 +598,10 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
       {/* ── Sections ── */}
       <div style={{ borderTop: `1px solid ${p.lineSoft}`, paddingTop: 12 }}>
         {enriched === null ? (
-          <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute }}>Loading sections…</div>
+          <div aria-busy="true" style={{ display: "grid", gap: 8 }}>
+            <Skeleton darkMode={dm} width="34%" height={11} />
+            <Skeleton darkMode={dm} width="88%" height={30} radius={RADIUS.sm} />
+          </div>
         ) : enriched.length === 0 ? (
           <div style={{ fontFamily: SANS, fontSize: 12, color: p.textMute }}>No sections for Fall 2026.</div>
         ) : (
@@ -835,6 +843,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [coursePool, setCoursePool] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [instructorMap, setInstructorMap] = useState({});
+  const showLoading = useMinimumLoading(loading);
   const searchWrapRef = useRef(null);
   const debounceRef = useRef(null);
   const topRef = useRef(null);
@@ -919,7 +928,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
           Browse <em style={{ color: ACCENT, fontStyle: "italic" }}>courses.</em>
         </h1>
         <p style={{ margin: "0 0 36px", maxWidth: 520, fontFamily: SANS, fontSize: 15, color: p.textSub, lineHeight: 1.7 }}>
-          {loading ? "Loading the catalog…" : `${filtered.length} courses · grade data · RMP ratings.`}
+          {showLoading ? <Skeleton darkMode={dm} width={280} height={15} /> : `${filtered.length} courses · grade data · RMP ratings.`}
         </p>
 
         <div ref={searchWrapRef} style={{ position: "relative", maxWidth: 600 }}>
@@ -1002,8 +1011,10 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
 
       {/* ── Card grid ── */}
       <div ref={topRef} style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "36px 64px 96px", boxSizing: "border-box" }}>
-        {loading ? (
-          <div style={{ padding: "120px 0", textAlign: "center", fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, letterSpacing: "2px", textTransform: "uppercase" }}>Loading the catalog…</div>
+        {showLoading ? (
+          <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 16 }}>
+            {Array.from({ length: isMobile ? 5 : 8 }).map((_, i) => <SkeletonCourseCard key={i} darkMode={dm} />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: "120px 0", textAlign: "center" }}>
             <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14 }}>No matches</div>
