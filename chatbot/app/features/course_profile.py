@@ -172,9 +172,11 @@ def handle_course_profile(
     else:
         table_text += "\n[Sorted: highest GPA first — professor at top has BEST grade outcomes]"
 
-    retrieved = vector_store.query(question, n_results=5)
-    prompt = build_answer_prompt(question, "course_profile", table_text, retrieved, intent=intent)
-    answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+    # Skip vector retrieval — the analytics table already contains everything
+    # needed for a course question. Retrieval here added 100-500ms plus an
+    # optional LLM-judge call without changing the answer.
+    prompt = build_answer_prompt(question, "course_profile", table_text, "", intent=intent)
+    answer = llm.answer(prompt, max_tokens=350, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
 
     charts = [
         bar_chart(f"Average GPA by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Avg GPA", ascending=True), "Avg GPA", "Instructor", "Recency-weighted when requested."),

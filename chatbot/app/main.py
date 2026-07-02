@@ -23,7 +23,9 @@ from app.data.loader import (
 )
 from app.rag.vector_store import GradeVectorStore
 from app.rag.gemma_client import GemmaAnswerClient
-from app.rag.intent_extractor import IntentExtractor
+from app.rag.query_planner import QueryPlanner
+from app.rag.verifier import check_plan
+from app.data.indexes import DataIndexes
 from app.features.course_profile import handle_course_profile
 from app.features.professor_profile import handle_professor_profile
 from app.features.natural_filter import handle_natural_filter
@@ -54,8 +56,9 @@ STATE = {
     "sections_df": None,
     "vector_store": None,
     "llm": None,
-    "intent": None,
+    "planner": None,
     "entity_resolver": None,
+    "indexes": None,
     "supabase": None,
 }
 
@@ -88,14 +91,20 @@ async def lifespan(app: FastAPI):
     vector_store.set_clients(_supabase, llm_client=llm)
     STATE["supabase"] = _supabase
 
-    # Intent extractor: replaces keyword router — Gemma understands the question
-    intent_extractor = IntentExtractor(llm)
+    # Query planner: LLM understands the question (typos/slang included), returns
+    # a validated QueryPlan; falls back to a deterministic keyword classifier.
+    planner = QueryPlanner(llm)
 
     # Entity resolver: fuzzy-matches professor names and course codes post-extraction.
     # Pass rmp_df (the full instructors table) so it knows every canonical name and
     # can reject hallucinated names the LLM fabricates; sections_df adds Fall-term
     # instructors who have no grade history yet.
     entity_resolver = EntityResolver(df, courses_df, instructors_df=rmp_df, sections_df=sections_df)
+
+    # Precomputed lookup indexes — O(1) instructor GPA / course stats / sections
+    # at request time instead of full-DataFrame scans.
+    print("Building precomputed indexes...")
+    indexes = DataIndexes(df, courses_df, sections_df, rmp_df)
 
     STATE["df"] = df
     STATE["rmp_df"] = rmp_df
@@ -104,8 +113,9 @@ async def lifespan(app: FastAPI):
     STATE["sections_df"] = sections_df
     STATE["vector_store"] = vector_store
     STATE["llm"] = llm
-    STATE["intent"] = intent_extractor
+    STATE["planner"] = planner
     STATE["entity_resolver"] = entity_resolver
+    STATE["indexes"] = indexes
     yield
 
 
@@ -277,18 +287,29 @@ def chat(request: Request, body: ChatRequest):
 
     question = normalize_question(body.question.strip())
     warnings = default_warnings() + privacy_warnings(body.question)
+    timings: dict[str, int] = {}
 
-    # LLM intent extraction — Gemma understands the question; falls back to keywords silently
-    intent_extractor = STATE.get("intent")
-    intent = intent_extractor.extract(question) if intent_extractor else None
+    # ── Stage 1: plan ──────────────────────────────────────────────────────────
+    # QueryPlanner handles typos/slang via the LLM, validates through Pydantic,
+    # and falls back to a deterministic keyword classifier. Route disambiguation
+    # (section_lookup vs course_profile) lives in the planner prompt now — the
+    # old hardcoded section-signal override is gone.
+    t0 = time.time()
+    planner = STATE.get("planner")
+    intent = planner.plan(question) if planner else None
+    timings["plan_ms"] = int((time.time() - t0) * 1000)
 
-    # Use intent route if available, otherwise fall back to keyword router
+    # ── Stage 2: resolve entities ──────────────────────────────────────────────
+    t0 = time.time()
     if intent is not None:
-        # Apply entity resolution to correct professor/course typos from LLM extraction
         er = STATE.get("entity_resolver")
         if er is not None:
             if intent.professor_name:
-                intent.professor_name = er.resolve_professor(intent.professor_name)
+                resolved = er.resolve_professor_ex(intent.professor_name)
+                if resolved.value and resolved.confidence >= 0.6:
+                    intent.professor_name = resolved.value
+                if resolved.warning and resolved.ambiguous:
+                    warnings.append(resolved.warning)
             if intent.subject and intent.course_no:
                 intent.subject, intent.course_no = er.resolve_course_code(
                     intent.subject, intent.course_no
@@ -298,33 +319,37 @@ def chat(request: Request, body: ChatRequest):
                 resolved_prof, _ = er.resolve_question_entities(question)
                 if resolved_prof:
                     intent.professor_name = resolved_prof
-
         route = intent.route
-        # Hard override: section signals take precedence over LLM route.
-        # LLM sees a course number and routes to course_profile; we need section_lookup.
-        _q = question.lower()
-        _section_signals = [
-            "who is teaching", "who's teaching", "who teaches",
-            "teaching this semester", "teaching this fall", "teaching this upcoming",
-            "teaching next semester", "teaching fall 2026",
-            "of the professors teaching", "of professors teaching",
-            "which professors are teaching", "what professors are teaching",
-            "what time does", "what times are", "what times is",
-            "available this semester", "available this fall", "available fall 2026",
-            "sections available", "class times for",
-        ]
-        if any(sig in _q for sig in _section_signals):
-            route = "section_lookup"
         logger.info(
-            "intent route=%s conf=%.2f subj=%s course=%s prof=%s sort=%s",
-            route, intent.confidence,
+            "plan route=%s conf=%.2f caps=%s subj=%s course=%s prof=%s sort=%s",
+            route, intent.confidence, ",".join(intent.capabilities) or "-",
             intent.subject, intent.course_no,
             intent.professor_name, intent.sort_goal,
         )
     else:
         from app.features.router import route_question
         route = route_question(question)
+    timings["resolve_ms"] = int((time.time() - t0) * 1000)
 
+    # ── Stage 3: sufficiency gate ──────────────────────────────────────────────
+    # Honest short-circuit for data the DB is known to lack (prereqs, descriptions,
+    # pathways), nonexistent course codes, and unanswerable questions.
+    if intent is not None:
+        gate = check_plan(intent, indexes=STATE.get("indexes"))
+        warnings.extend(gate.warnings)
+        if not gate.sufficient:
+            honest = gate.answer_override or gate.clarification
+            return ChatResponse(
+                answer=honest,
+                route=route,
+                warnings=warnings,
+                tables=[], charts=[],
+                metadata={"honest_no_data": bool(gate.answer_override), "timings_ms": timings},
+                schedule_actions=[],
+            )
+
+    # ── Stage 4: handler ───────────────────────────────────────────────────────
+    t0 = time.time()
     try:
         if route == "major_requirements":
             answer, tables, charts, metadata = handle_major_requirements(
@@ -343,6 +368,7 @@ def chat(request: Request, body: ChatRequest):
                 history=[m.model_dump() for m in body.history],
                 sections_df=STATE.get("sections_df"),
                 rmp_df=STATE.get("rmp_df"),
+                indexes=STATE.get("indexes"),
             )
         elif route == "out_of_scope":
             answer, tables, charts, metadata = out_of_scope_response(), [], [], {}
@@ -384,12 +410,19 @@ def chat(request: Request, body: ChatRequest):
         # Log the full traceback server-side; return a generic message to the client
         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())
         raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
+    timings["handler_ms"] = int((time.time() - t0) * 1000)
 
     metadata.update({
         "use_recency": body.use_recency,
         "min_students": body.min_students,
         "top_n": body.top_n,
+        "timings_ms": timings,
+        "confidence": getattr(intent, "confidence", None) if intent is not None else None,
     })
+    logger.info(
+        "chat done route=%s plan=%dms resolve=%dms handler=%dms",
+        route, timings.get("plan_ms", 0), timings.get("resolve_ms", 0), timings.get("handler_ms", 0),
+    )
 
     answer = sanitize_answer(answer) or answer
 

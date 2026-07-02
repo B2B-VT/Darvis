@@ -128,6 +128,14 @@ def _answer_instruction(route: str, intent) -> str:
     return "2-3 sentences. Answer their exact question directly. No markdown."
 
 
+_GROUNDING_RULES = """GROUNDING RULES (strict — these override everything else):
+- For any VT-specific fact (GPAs, A/F rates, RMP ratings, meeting times, seats, locations, professor names) use ONLY the data provided above. Never invent a number or a name.
+- If a specific fact the student asked for is not in the data above, say Darvis doesn't have that data — do not guess or substitute.
+- Historical grade data (2020–2026 averages) and Fall 2026 section/timetable data are different things — never present one as the other.
+- If RMP data is absent for a professor, say it's unavailable rather than estimating.
+- Use numbers exactly as given — do not recompute, round differently, or extrapolate."""
+
+
 def build_answer_prompt(
     question: str,
     route: str,
@@ -159,7 +167,10 @@ def build_answer_prompt(
     if retrieved_context and retrieved_context.strip():
         parts.append(f"Additional context from VT academic database:\n{retrieved_context.strip()}")
 
-    # 3. Intent framing — what this student specifically wants, in their words
+    # 3. Grounding rules — the LLM phrases; the data is the source of truth
+    parts.append(_GROUNDING_RULES)
+
+    # 4. Intent framing — what this student specifically wants, in their words
     framing = _intent_framing(route, intent, original_question=question)
     if framing:
         parts.append(f"Student context: {framing}")

@@ -141,18 +141,39 @@ def parse_time_constraints(question: str) -> tuple[str, str]:
         end   = _to_24h(m.group(4), m.group(5), m.group(6))
         return start, end
 
-    # "no classes before 10am" / "nothing before 10"
-    before = re.search(r"(?:before|earlier than|no earlier)(?:\s+(?:the\s+)?times?\s+of)?\s*" + time_pat, q)
-    # "no classes after 5pm" / "nothing after 5" / "after the times of 1pm"
-    after  = re.search(r"(?:after|later than|no later)(?:\s+(?:the\s+)?times?\s+of)?\s*" + time_pat, q)
+    # Negation changes what "before"/"after" constrain:
+    #   "no classes after 5pm"    → classes must END by 5pm   (end limit)
+    #   "all classes after 1pm"   → classes must START at 1pm (start limit)
+    #   "no classes before 10am"  → classes start at 10am     (start limit)
+    #   "classes before noon"     → classes end by noon       (end limit)
+    neg = r"(?:no|nothing|not|avoid|without|don'?t)"
+    opt_of = r"(?:\s+(?:the\s+)?times?\s+of)?"
+    neg_after  = re.search(neg + r"\b[^.?!]{0,40}?\bafter" + opt_of + r"\s*" + time_pat, q)
+    neg_before = re.search(neg + r"\b[^.?!]{0,40}?\bbefore" + opt_of + r"\s*" + time_pat, q)
+    after  = re.search(r"(?:after|later than)" + opt_of + r"\s*" + time_pat, q)
+    before = re.search(r"(?:before|earlier than)" + opt_of + r"\s*" + time_pat, q)
 
-    start = _to_24h(*before.groups()) if before else "07:00"
-    end   = _to_24h(*after.groups()) if after else "22:00"
+    start, end = "07:00", "22:00"
+    if neg_after:
+        end = _to_24h(*neg_after.groups())
+    elif after:
+        start = _to_24h(*after.groups())
+    if neg_before:
+        start = _to_24h(*neg_before.groups())
+    elif before and not neg_after:
+        end = _to_24h(*before.groups())
 
     # "after noon" / "after 12" without am/pm
     if re.search(r"\bafter\s+noon\b", q) or re.search(r"\bafter\s+12\b", q):
         start = max(start, "12:00")
     if re.search(r"\bbefore\s+noon\b", q):
+        end = min(end, "12:00")
+
+    # "no 8ams" / "avoid 8ams" — earliest start 09:00
+    if re.search(r"\b(?:no|avoid|without|skip)\s+(?:any\s+)?8\s*ams?\b", q):
+        start = max(start, "09:00")
+    # "morning classes only" / "only morning classes" — done by noon
+    if re.search(r"\b(?:only\s+morning|morning\s+classes\s+only|mornings\s+only)\b", q):
         end = min(end, "12:00")
 
     return start, end
@@ -316,6 +337,7 @@ def handle_schedule_builder(
     history: list | None = None,
     sections_df=None,
     rmp_df=None,
+    indexes=None,
 ) -> tuple[str, list, list, dict]:
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
@@ -340,10 +362,14 @@ def handle_schedule_builder(
 
     # Hard constraints — regex first, fall back to LLM-extracted values
     excluded_days = parse_excluded_days(question)
+    if not excluded_days and intent is not None and getattr(intent, "excluded_days", None):
+        excluded_days = set(intent.excluded_days)
     min_gpa = parse_min_gpa(question)
     if min_gpa is None and intent is not None and getattr(intent, "min_gpa", None) is not None:
         min_gpa = float(intent.min_gpa)
     min_rmp = parse_min_rmp(question)
+    if min_rmp is None and intent is not None and getattr(intent, "min_rmp", None) is not None:
+        min_rmp = float(intent.min_rmp)
 
     # Profile data
     profile         = user_profile or {}
@@ -444,38 +470,45 @@ def handle_schedule_builder(
         w in q_low for w in ["hardest", "tough", "brutal", "lowest gpa"]
     )
 
-    # ── Build instructor GPA map (must be before filter so min_gpa can use it) ─
+    # ── Instructor GPA map (must be before filter so min_gpa can use it) ───────
+    # Fast path: precomputed startup indexes (O(1) per instructor). Fallback:
+    # one-pass scan of the grades frame for callers without indexes (tests).
     inst_gpa: dict[str, float] = {}
-    if df is not None:
+    if indexes is not None and getattr(indexes, "instructor_by_last", None):
+        inst_gpa = {
+            last: agg.weighted_gpa
+            for last, agg in indexes.instructor_by_last.items()
+            if agg.weighted_gpa is not None
+        }
+    elif df is not None:
         try:
             gpa_df = df.copy()
             if question_subject_filter:
                 gpa_df = gpa_df[gpa_df["Subject"].str.upper() == question_subject_filter]
             gpa_df = gpa_df.dropna(subset=["GPA", "Graded Enrollment"])
-            for _, row in gpa_df.iterrows():
-                last = _last(str(row["Instructor"]))
+            sums: dict[str, float] = {}
+            counts: dict[str, float] = {}
+            for inst, gpa, enroll in zip(
+                gpa_df["Instructor"], gpa_df["GPA"], gpa_df["Graded Enrollment"]
+            ):
+                last = _last(str(inst))
                 if not last:
                     continue
-                enroll = float(row["Graded Enrollment"] or 0)
-                gpa    = float(row["GPA"] or 0)
-                if last not in inst_gpa:
-                    inst_gpa[last] = gpa * enroll
-                    inst_gpa[last + "_n"] = enroll  # type: ignore[assignment]
-                else:
-                    inst_gpa[last] += gpa * enroll
-                    inst_gpa[last + "_n"] += enroll  # type: ignore[assignment]
-            for last in [k for k in inst_gpa if not k.endswith("_n")]:
-                n = inst_gpa.get(last + "_n", 0)
-                inst_gpa[last] = round(inst_gpa[last] / n, 3) if n else 0.0
-            inst_gpa = {k: v for k, v in inst_gpa.items() if not k.endswith("_n")}
+                e = float(enroll or 0)
+                sums[last] = sums.get(last, 0.0) + float(gpa or 0) * e
+                counts[last] = counts.get(last, 0.0) + e
+            inst_gpa = {
+                last: round(sums[last] / counts[last], 3)
+                for last in sums if counts.get(last)
+            }
         except Exception:
             inst_gpa = {}
 
-    # ── Build instructor RMP map (must be before filter so min_rmp can use it) ─
-    # Uses the startup-loaded instructors DataFrame — a live read here would be
-    # capped at 1,000 of the 3,800+ instructors by PostgREST.
+    # ── Instructor RMP map (must be before filter so min_rmp can use it) ───────
     inst_rmp: dict[str, float] = {}
-    if rmp_df is not None and not rmp_df.empty and "rmp_rating" in rmp_df.columns:
+    if indexes is not None and getattr(indexes, "rmp_by_last", None):
+        inst_rmp = {last: rec["rating"] for last, rec in indexes.rmp_by_last.items()}
+    elif rmp_df is not None and not rmp_df.empty and "rmp_rating" in rmp_df.columns:
         try:
             for _, row in rmp_df.dropna(subset=["rmp_rating"]).iterrows():
                 last = _last(str(row["name"]))

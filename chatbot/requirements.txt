@@ -9,6 +9,7 @@ python-multipart
 pydantic-settings
 supabase
 slowapi
+rapidfuzz                       # fast fuzzy entity matching (difflib fallback if absent)
 
 # Redis vector store — semantic + keyword search at runtime (Redis Stack /
 # Redis Cloud with the search module). Supabase `embeddings` stays the
