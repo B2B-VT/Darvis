@@ -37,6 +37,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger("sync_redis_index")
 
 _PAGE_SIZE = 1000
+# Embeddings rows are large (~1.5 KB each with a 384-dim vector). Fetching
+# 1,000 at a time can hit Supabase's statement timeout at scale. Use a smaller
+# page size and retry on timeout before giving up.
+_EMBED_PAGE_SIZE = 200
 _LOAD_BATCH_SIZE = 500
 
 
@@ -44,19 +48,36 @@ def fetch_all_embeddings(supabase) -> list[dict]:
     rows: list[dict] = []
     offset = 0
     while True:
-        resp = (
-            supabase.table("embeddings")
-            .select("id, content, source_type, source_id, metadata, embedding")
-            .range(offset, offset + _PAGE_SIZE - 1)
-            .execute()
-        )
-        batch = resp.data or []
+        last_err = None
+        batch: list[dict] = []
+        for attempt in range(3):
+            try:
+                resp = (
+                    supabase.table("embeddings")
+                    .select("id, content, source_type, source_id, metadata, embedding")
+                    .order("id")
+                    .range(offset, offset + _EMBED_PAGE_SIZE - 1)
+                    .execute()
+                )
+                batch = resp.data or []
+                last_err = None
+                break
+            except Exception as exc:
+                last_err = exc
+                wait = 2 ** attempt
+                logger.warning("  batch at offset %d failed (attempt %d/3): %s — retrying in %ds",
+                               offset, attempt + 1, exc, wait)
+                time.sleep(wait)
+        if last_err:
+            raise RuntimeError(
+                f"Supabase fetch failed at offset {offset} after 3 attempts: {last_err}"
+            ) from last_err
         if not batch:
             break
         rows.extend(batch)
-        offset += _PAGE_SIZE
+        offset += _EMBED_PAGE_SIZE
         logger.info("  fetched %d rows so far", len(rows))
-        if len(batch) < _PAGE_SIZE:
+        if len(batch) < _EMBED_PAGE_SIZE:
             break
     return rows
 
