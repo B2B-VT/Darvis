@@ -74,6 +74,12 @@ def fetch_existing_ids(db) -> set[str]:
 
 
 def upsert_batch(db, rows: list[dict]):
+    # Deduplicate by (source_type, source_id) — truncated names can collide within a batch,
+    # causing "ON CONFLICT DO UPDATE command cannot affect row a second time".
+    seen: dict[tuple, dict] = {}
+    for row in rows:
+        seen[(row["source_type"], row["source_id"])] = row
+    rows = list(seen.values())
     db.table("embeddings").upsert(rows, on_conflict="source_type,source_id").execute()
 
 
