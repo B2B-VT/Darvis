@@ -142,9 +142,9 @@ def parse_time_constraints(question: str) -> tuple[str, str]:
         return start, end
 
     # "no classes before 10am" / "nothing before 10"
-    before = re.search(r"(?:before|earlier than|no earlier)\s*" + time_pat, q)
-    # "no classes after 5pm" / "nothing after 5"
-    after  = re.search(r"(?:after|later than|no later)\s*" + time_pat, q)
+    before = re.search(r"(?:before|earlier than|no earlier)(?:\s+(?:the\s+)?times?\s+of)?\s*" + time_pat, q)
+    # "no classes after 5pm" / "nothing after 5" / "after the times of 1pm"
+    after  = re.search(r"(?:after|later than|no later)(?:\s+(?:the\s+)?times?\s+of)?\s*" + time_pat, q)
 
     start = _to_24h(*before.groups()) if before else "07:00"
     end   = _to_24h(*after.groups()) if after else "22:00"
@@ -256,7 +256,9 @@ def parse_min_gpa(question: str) -> float | None:
         r"gpa\s+(?:of\s+)?(?:not\s+lower\s+than|above|at\s+least|minimum|no\s+lower\s+than|higher\s+than|over)\s+(\d+\.?\d*)|"
         r"(?:not\s+)?lower\s+than\s+(\d+\.?\d*)\s+gpa|"
         r"(?:minimum|min)\s+(\d+\.?\d*)\s+gpa|"
-        r"gpa\s+(?:above|over|of)\s+(\d+\.?\d*)",
+        r"gpa\s+(?:above|over|of)\s+(\d+\.?\d*)|"
+        r"gpa\s+(?:of\s+)?lower\s+than\s+(\d+\.?\d*)|"
+        r"without\b.{0,40}gpa\b.{0,20}lower\s+than\s+(\d+\.?\d*)",
         q,
     )
     if m:
@@ -336,10 +338,12 @@ def handle_schedule_builder(
     else:
         question_subject_filter = parse_subject_filter(question)
 
-    # Hard constraints parsed from question text
+    # Hard constraints — regex first, fall back to LLM-extracted values
     excluded_days = parse_excluded_days(question)
-    min_gpa       = parse_min_gpa(question)
-    min_rmp       = parse_min_rmp(question)
+    min_gpa = parse_min_gpa(question)
+    if min_gpa is None and intent is not None and getattr(intent, "min_gpa", None) is not None:
+        min_gpa = float(intent.min_gpa)
+    min_rmp = parse_min_rmp(question)
 
     # Profile data
     profile         = user_profile or {}
@@ -394,8 +398,14 @@ def handle_schedule_builder(
             subjects = list({s for s, _ in requested_courses})
             if len(subjects) == 1:
                 sdf = sdf[sdf["subject"].str.upper() == subjects[0]]
-        # NaN → None so downstream `or`-defaults behave like the live-query path
-        all_sections = sdf.astype(object).where(sdf.notna(), None).to_dict("records")
+        # Convert to records; replace float NaN with None for numeric columns.
+        # Avoid .where(notna(), None) — it crashes on pandas 2+ when the `days`
+        # column contains Python lists (pd.notna(list) returns an array, not a scalar).
+        import math
+        all_sections = [
+            {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in rec.items()}
+            for rec in sdf.to_dict("records")
+        ]
     else:
         # Live fallback — paginate, since PostgREST caps any single response at
         # 1,000 rows regardless of .limit().
@@ -609,7 +619,12 @@ def handle_schedule_builder(
     for cand in candidates:
         if not any(_conflicts(cand, s) for s in schedule):
             schedule.append(cand)
-            credits_so_far += float(cand.get("credits") or 3)
+            raw_cred = cand.get("credits")
+            try:
+                c = float(raw_cred) if raw_cred is not None else 3.0
+                credits_so_far += c if c == c else 3.0  # guard NaN
+            except (TypeError, ValueError):
+                credits_so_far += 3.0
         if target_credits:
             if credits_so_far >= target_credits:
                 break
@@ -637,7 +652,7 @@ def handle_schedule_builder(
             "location":     s.get("location") or "TBA",
             "seats":        s.get("seats") or 0,
             "enrolled":     s.get("enrolled") or 0,
-            "credits":      float(s.get("credits") or 0),
+            "credits":      (lambda v: float(v) if (v is not None and v == v) else 0.0)(s.get("credits")),
             "term":         get_settings().current_term,
         }
         for s in schedule
