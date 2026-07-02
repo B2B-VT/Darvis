@@ -22,13 +22,14 @@ Render free tier sleeps after inactivity — first request takes ~30 seconds. Up
 ## Env vars (chatbot/.env)
 
 ```
-GOOGLE_API_KEY=...
-GOOGLE_MODEL=gemma-3-27b-it
+ANTHROPIC_API_KEY=...
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
 SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=...           # service role key
 REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true  # Gemma judges borderline retrieval quality before using it
+RAG_ENABLE_LLM_JUDGE=true  # Claude Haiku judges borderline retrieval quality before using it
+CURRENT_TERM=202609        # optional — current term code (also CURRENT_TERM_LABEL="Fall 2026")
 ALLOWED_ORIGINS=https://darvis.tech,http://localhost:3000
 SHOW_DOCS=true             # local only — enables /docs
 ```
@@ -41,9 +42,9 @@ Run `python -m scripts.sync_redis_index` after seeding/rebuilding Supabase `embe
 app/
 ├── main.py                 App factory, lifespan loader, intent+entity wiring, all routes (/chat, /feedback, /health, search, /retrieval/debug)
 ├── config.py               Pydantic settings from env
-├── models.py               ChatRequest, ChatResponse, TableSpec, ChartSpec, SearchItem
+├── models.py               ChatRequest, ChatResponse, ChatMessage, TableSpec, ChartSpec, SearchItem, FeedbackRequest
 ├── data/
-│   ├── loader.py           Supabase batch fetchers — grades, RMP, courses, requirements
+│   ├── loader.py           Supabase batch fetchers — grades, RMP/instructors, courses, requirements, Fall 2026 sections
 │   ├── analytics.py        Core Pandas logic — course_profile, professor_profile, natural_filter, detect_natural_params
 │   └── recency.py          Recency weighting for recent semesters
 ├── features/
@@ -54,25 +55,26 @@ app/
 │   ├── general_chat.py     Catch-all — tries natural_filter first, then LLM
 │   ├── major_requirements.py Handler for graduation/degree requirement questions
 │   ├── schedule_builder.py Handler for "build me a schedule" requests
+│   ├── section_lookup.py   Handler for Fall 2026 timetable questions ("who is teaching CS 1114?", times/days/seats/location) — uses startup-loaded sections_df, falls back to live Supabase query
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
-│   ├── gemma_client.py     Google AI Studio client — 30s timeout, returns None on failure
+│   ├── gemma_client.py     Anthropic Claude Haiku client (legacy filename) — 30s timeout, returns None on failure
 │   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
 │   ├── retriever.py        Hybrid retrieval against Redis (redisvl vector KNN + RediSearch FT, fused via RRF)
 │   ├── redis_schema.py     Shared redisvl index schema (retriever.py + scripts/sync_redis_index.py)
 │   ├── reranker.py         Reranks retrieved candidates
 │   ├── chunker.py          Splits source rows into embeddable chunks
-│   ├── embedder.py         fastembed embedding wrapper
+│   ├── embedder.py         Multi-provider embedding wrapper (OpenAI → fastembed local)
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
 │   ├── agents/planner.py   Plans retrieval steps
-│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Gemma) on borderline final attempts
+│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Claude Haiku) on borderline final attempts
 │   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          SYSTEM_PROMPT reference + build_answer_prompt
 │   └── vector_store.py     Pandas keyword fallback + Redis-backed (redisvl) semantic search
 ├── safety/
-│   ├── guardrails.py       SYSTEM_GUARDRAIL, normalize_question, sanitize_answer, typo/subject maps
+│   ├── guardrails.py       SYSTEM_GUARDRAIL, normalize_question (whitespace/quote cleanup — LLM handles typos), sanitize_answer
 │   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
 │   └── privacy.py          PII detection — returns warning if sensitive terms detected
 └── utils/
@@ -88,15 +90,16 @@ app/
 | `GET` | `/courses/search` | 60/min per IP | Typeahead course search |
 | `GET` | `/professors/search` | 60/min per IP | Typeahead professor search |
 | `POST` | `/retrieval/debug` | 30/min per IP | Runs the retrieval pipeline and returns candidate/scoring/timing telemetry |
-| `GET` | `/health` | none | Row counts and vector store size |
+| `GET` | `/health` | none | Loaded row counts (grades, instructors, sections, courses, requirements) + vector store size |
 
 ## Request flow
 
 ```
 POST /chat
-  → normalize_question (guardrails.py)             # typo fix, subject expansion
+  → normalize_question (guardrails.py)             # whitespace/quote cleanup (LLM handles typos)
   → IntentExtractor.extract (intent_extractor.py)  # LLM → structured intent (route + params); keyword router on fallback
   → EntityResolver (entity_resolver.py)            # fuzzy-correct professor/course names
+  → section-signal override (main.py)              # "who is teaching...", "what times..." force route=section_lookup over the LLM route
   → handler (features/*.py)                        # analytics + LLM or template answer
   → ChatResponse                                   # answer, tables, charts, warnings, schedule_actions
 
@@ -117,15 +120,17 @@ Route strings come from `IntentExtractor` (LLM); the keyword router is the fallb
 | `natural_filter` | Ranking/filter language ("highest GPA", "worst F rate") | `natural_filter.py` |
 | `major_requirements` | Graduation/degree requirement phrases | `major_requirements.py` |
 | `schedule_builder` | "Build me a schedule" phrases | `schedule_builder.py` |
+| `section_lookup` | Timetable phrasing ("who is teaching CS 3114", class times/days/seats/location); also forced by a hard keyword override in main.py that takes precedence over the LLM route | `section_lookup.py` |
 | `out_of_scope` | OUT_OF_SCOPE_TERMS match (currently empty list — disabled) | Canned response |
 | `general_rag` | Everything else | `general_chat.py` |
 
-## LLM (Gemma via Google AI Studio)
+## LLM (Claude Haiku via Anthropic)
 
-- Model: `gemma-3-27b-it`
-- Temperature: 0.2, max output tokens: 800
-- 30-second hard timeout at HTTP transport layer
+- Model: `claude-haiku-4-5-20251001` (`ANTHROPIC_MODEL`)
+- Temperature: 0.2 (0.1 for raw/intent calls), max output tokens: 800
+- 30-second timeout set on the Anthropic client
 - Returns `None` on any failure — caller falls back to `templated_answers.py`
+- Note: the client class is still named `GemmaAnswerClient` (rag/gemma_client.py) — legacy name from before the migration (commit 200b142)
 - Tone defined in `SYSTEM_GUARDRAIL`: advisor-style, lead with insight, support with numbers
 - Never open with "Based on historical grade data..." — this is explicitly blocked in the system prompt
 
@@ -148,25 +153,25 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 | `instructors` | `load_rmp_from_supabase()` | RMP ratings shown in professor answers |
 | `courses` | `load_courses_from_supabase()` | Course catalog, vector store context |
 | `major_requirements` | `load_requirements_from_supabase()` | Major requirement answers |
-| `sections` | Queried live in `schedule_builder.py` | Schedule building (Fall 2026, term 202609) |
-| `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search (4,576 vectors). Retrieval queries Redis at runtime, not this table directly |
+| `sections` | `load_sections_from_supabase()` at startup (term from `CURRENT_TERM` in config.py, default 202609) | Section lookups, course/professor profiles, schedule building. 10,663 rows, auto-refreshed every 4h by GitHub Actions; `schedule_builder.py` still queries `majors`/`major_requirements` live |
+| `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search. Retrieval queries Redis at runtime, not this table directly. Current 4,576 vectors are STALE (see Known issues #1) |
 | `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers |
 
 ## Known issues
 
 **Accepted limitations:**
 
-1. **Grades are CS only** — `grades` table has 1,706 rows, all CS. Every non-CS question returns empty analytics results and falls through to LLM general knowledge. UDC scraper for other subjects is pending hardware.
+1. **Embeddings are stale** — all 4,576 `embeddings` rows date to 2026-05-23, built from the pre-import dataset (3,564 course chunks, 622 grade, 210 instructor, 180 requirement). The DB now has 6,589 courses, 59,790 grade rows (152 subjects), and 3,834 instructors, so RAG retrieval misses most current data. Rebuild to ~30.8k chunks: `python -m scripts.rebuild_embeddings --wipe`, then `python -m scripts.sync_redis_index`.
 
 2. **`rmp_tags` empty** — RMP's GraphQL API does not return `teacherRatingTags`. Confirmed after running `fetch_rmp_tags.js`. Ratings and difficulty scores are populated and working. Tags are a no-op.
 
-3. **`courses.avg_gpa` mostly null** — only 137/3,564 courses have it (CS only). Resolves as more grade data is imported.
+3. **`courses.avg_gpa` partially null** — 5,468/6,589 courses have it; the remaining 1,121 have no matching grade rows.
 
 **Low priority:**
 
 4. **`grade_embeddings` table** — 0 rows, not referenced anywhere. Drop it when convenient.
 
-5. **Two professor tables** — `instructors` (210 rows) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Consolidate later.
+5. **Two professor tables** — `instructors` (3,834 rows, 1,982 with RMP ratings) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Consolidate later.
 
 ## What not to break
 

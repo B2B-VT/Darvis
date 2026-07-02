@@ -13,8 +13,8 @@ cp .env.example .env
 
 **Required env vars:**
 ```
-GOOGLE_API_KEY=your_google_ai_studio_key
-GOOGLE_MODEL=gemma-3-27b-it
+ANTHROPIC_API_KEY=your_anthropic_key
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
 SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=your_service_role_key
 REDIS_URL=redis://default:password@host:port   # Redis Stack / Redis Cloud — needed for semantic search
@@ -47,7 +47,7 @@ app/
 ├── config.py               Pydantic settings (reads from .env)
 ├── models.py               ChatRequest, ChatResponse, TableSpec, ChartSpec, SearchItem
 ├── data/
-│   ├── loader.py           Supabase batch fetchers — grades, RMP, courses, requirements
+│   ├── loader.py           Supabase batch fetchers — grades, RMP/instructors, courses, requirements, Fall 2026 sections
 │   ├── analytics.py        Core Pandas logic — course_profile, professor_profile, natural_filter
 │   └── recency.py          Recency weighting (recent semesters weighted higher)
 ├── features/
@@ -58,16 +58,17 @@ app/
 │   ├── general_chat.py     Catch-all — tries natural_filter, then LLM fallback
 │   ├── major_requirements.py "What do I need to graduate with CS?" questions
 │   ├── schedule_builder.py "Build me a schedule" requests
+│   ├── section_lookup.py   "Who is teaching CS 1114?" timetable questions — startup-loaded sections_df, live Supabase fallback
 │   └── templated_answers.py Template fallbacks when LLM is unavailable or quota'd
 ├── rag/
-│   ├── gemma_client.py     Google AI Studio client (30s HTTP timeout, judge_relevance() for LLM-judgement fallback)
+│   ├── gemma_client.py     Anthropic Claude Haiku client (legacy filename; 30s timeout, judge_relevance() for LLM-judgement fallback)
 │   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
 │   ├── retriever.py        Hybrid retrieval against Redis (redisvl vector + RediSearch FT, fused via RRF)
 │   ├── redis_schema.py     Shared redisvl index schema (retriever + sync_redis_index.py)
 │   ├── reranker.py         Reranks retrieved candidates
 │   ├── chunker.py          Splits source rows into embeddable chunks
-│   ├── embedder.py         fastembed embedding wrapper
+│   ├── embedder.py         Multi-provider embedding wrapper (OpenAI → fastembed local)
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
 │   ├── agents/             planner.py (plans retrieval) + critic.py (validates answer, LLM-judgement fallback)
@@ -75,7 +76,7 @@ app/
 │   ├── prompts.py          System prompt reference + build_answer_prompt
 │   └── vector_store.py     Keyword fallback + Redis-backed semantic search
 ├── safety/
-│   ├── guardrails.py       SYSTEM_GUARDRAIL prompt, NLP normalization, answer sanitization, typo map
+│   ├── guardrails.py       SYSTEM_GUARDRAIL prompt, normalize_question (whitespace/quote cleanup — LLM handles typos), answer sanitization
 │   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
 │   └── privacy.py          PII detection in incoming questions
 └── utils/
@@ -95,7 +96,8 @@ app/
   "user_profile": {
     "major": "Computer Science",
     "coursesTaken": ["CS 2114", "CS 2505"]
-  }
+  },
+  "history": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
 }
 ```
 
@@ -118,7 +120,7 @@ Response:
 
 ### GET /health
 
-Returns row counts and vector store size.
+Returns loaded row counts (grades, instructors, sections, courses, requirements) and vector store size.
 
 ### POST /feedback
 
@@ -137,31 +139,32 @@ Runs the full retrieval pipeline for a question and returns candidate chunks, ve
 | `natural_filter` | Ranking/filtering language ("highest GPA", "worst F rate") | `natural_filter.py` |
 | `major_requirements` | Graduation/degree requirement questions | `major_requirements.py` |
 | `schedule_builder` | "Build me a schedule" requests | `schedule_builder.py` |
+| `section_lookup` | Timetable phrasing ("who is teaching CS 3114 this semester", times/days/seats/location); also forced by a keyword override in main.py | `section_lookup.py` |
 | `out_of_scope` | OUT_OF_SCOPE_TERMS match (currently empty — disabled) | Canned response |
 | `general_rag` | Everything else | `general_chat.py` |
 
 ## LLM behavior
 
-- Model: Gemma via Google AI Studio (`gemma-3-27b-it`)
+- Model: Claude Haiku via Anthropic (`claude-haiku-4-5-20251001`, set with `ANTHROPIC_MODEL`)
 - Temperature: 0.2
 - Max output tokens: 800
-- Hard timeout: 30 seconds at HTTP transport layer
+- Timeout: 30 seconds on the Anthropic client
+- The client class/file keep their legacy names (`GemmaAnswerClient` in `rag/gemma_client.py`) from the pre-migration Gemma era
 - On any failure (timeout, 429, safety block, empty output): falls back to template answer from `templated_answers.py`
 - Tone: advisor-style — lead with the practical insight, support with numbers. Never open with "Based on historical grade data..."
 
 ## Semantic search
 
-Retrieval runs against a Redis index built with [redisvl](https://github.com/redis/redis-vl-python) — vector KNN for semantic search plus a RediSearch full-text query for keyword search, fused via RRF (`app/rag/retriever.py`). Supabase `embeddings` (4,576 rows) stays the durable source of truth; `python -m scripts.sync_redis_index` reads it and (re)builds the Redis index. Without `REDIS_URL` set, the pipeline falls back to the pandas keyword search in `vector_store.py`.
+Retrieval runs against a Redis index built with [redisvl](https://github.com/redis/redis-vl-python) — vector KNN for semantic search plus a RediSearch full-text query for keyword search, fused via RRF (`app/rag/retriever.py`). Supabase `embeddings` (4,576 rows) stays the durable source of truth; `python -m scripts.sync_redis_index` reads it and (re)builds the Redis index. Without `REDIS_URL` set, the pipeline falls back to the pandas keyword search in `vector_store.py`. Note: the current 4,576 embeddings were built 2026-05-23, before the full UDC import (59,790 grade rows / 6,589 courses / 3,834 instructors) — rerun `python -m scripts.rebuild_embeddings --wipe` + `python -m scripts.sync_redis_index` to cover current data (~30.8k chunks).
 
-A retrieval critic (`agents/critic.py`) scores every attempt; on a borderline last attempt it asks Gemma directly whether the retrieved context answers the question (`RAG_ENABLE_LLM_JUDGE`, default on) before using it — clear hits/misses skip this extra call entirely. See `RAG_ARCHITECTURE.md` for the full flow.
+A retrieval critic (`agents/critic.py`) scores every attempt; on a borderline last attempt it asks Claude Haiku directly whether the retrieved context answers the question (`RAG_ENABLE_LLM_JUDGE`, default on) before using it — clear hits/misses skip this extra call entirely. See `RAG_ARCHITECTURE.md` for the full flow.
 
 `grade_embeddings` is a separate dead table with 0 rows — ignore it.
 
 ## Known issues and pending work
 
-1. **Grades data is CS only** — 1,706 rows. Every non-CS question returns no results from the database. UDC scraper for remaining subjects (ECE, MATH, BIOL, etc.) is pending hardware.
-2. **`natural_filter.py` chart label bug** — `lowest_gpa` sort goal maps to `"Avg GPA"` chart metric label, same as `highest_gpa`. Needs a directional label.
-3. **Feedback UI not wired up** — the `POST /feedback` endpoint exists and writes to the `feedback` table, but the frontend thumbs up/down UI still needs to be connected to it.
-4. **`courses.avg_gpa` mostly null** — only 137/3,564 courses have it populated (the CS ones). Resolves automatically as more grade data is imported.
-5. **`rmp_tags` empty** — RMP's GraphQL API doesn't return `teacherRatingTags`. Confirmed via `fetch_rmp_tags.js`. Accepted limitation; ratings and difficulty are populated and working.
-6. **Two professor tables** — `instructors` (210 rows) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Resolve when convenient.
+1. **Embeddings are stale** — all 4,576 `embeddings` rows date to 2026-05-23, built against pre-import data. Rerun `python -m scripts.rebuild_embeddings --wipe` then `python -m scripts.sync_redis_index` (~30.8k chunks) to cover the full grades/courses/instructors tables.
+2. **Feedback UI not wired up** — the `POST /feedback` endpoint exists and writes to the `feedback` table, but the frontend thumbs up/down UI still needs to be connected to it.
+3. **`courses.avg_gpa` partially null** — 5,468/6,589 courses populated; 1,121 remain null where no grade data maps.
+4. **`rmp_tags` empty** — RMP's GraphQL API doesn't return `teacherRatingTags`. Confirmed via `fetch_rmp_tags.js`. Accepted limitation; ratings and difficulty are populated and working.
+5. **Two professor tables** — `instructors` (3,834 rows, 1,982 with RMP ratings) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Resolve when convenient.

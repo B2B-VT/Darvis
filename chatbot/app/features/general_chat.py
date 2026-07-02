@@ -16,10 +16,11 @@ def _last_name(name: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
-def _try_schedule_rmp_answer(question: str, history: list | None) -> str | None:
+def _try_schedule_rmp_answer(question: str, history: list | None, rmp_df=None) -> str | None:
     """
-    If asking about RMP scores for the schedule just built, answer from DB directly
-    instead of letting the LLM claim the schedule was fabricated.
+    If asking about RMP scores for the schedule just built, answer from the
+    startup-loaded instructors DataFrame directly instead of letting the LLM
+    claim the schedule was fabricated.
     """
     if not history:
         return None
@@ -47,19 +48,15 @@ def _try_schedule_rmp_answer(question: str, history: list | None) -> str | None:
     if not instructor_names:
         return None
 
+    if rmp_df is None or rmp_df.empty:
+        return None
+
     try:
-        from supabase import create_client
-        from app.config import get_settings
-        settings = get_settings()
-        client = create_client(settings.supabase_url, settings.supabase_key)
-
-        rows = client.table("instructors").select(
-            "name, rmp_rating, rmp_difficulty, rmp_count"
-        ).execute().data or []
-
+        # Startup-loaded instructors DataFrame — a live Supabase read here would
+        # be capped at 1,000 of the 3,800+ instructors by PostgREST.
         rmp_by_last: dict[str, dict] = {}
-        for row in rows:
-            ln = _last_name(row.get("name") or "")
+        for _, row in rmp_df.iterrows():
+            ln = _last_name(str(row.get("name") or ""))
             if ln and ln not in rmp_by_last:
                 rmp_by_last[ln] = row
 
@@ -67,11 +64,11 @@ def _try_schedule_rmp_answer(question: str, history: list | None) -> str | None:
         no_data: list[str] = []
         for name in instructor_names:
             row = rmp_by_last.get(_last_name(name))
-            if row and row.get("rmp_rating") is not None:
+            if row is not None and pd.notna(row.get("rmp_rating")):
                 rating = float(row["rmp_rating"])
                 count  = row.get("rmp_count") or 0
                 diff   = row.get("rmp_difficulty")
-                diff_str = f", difficulty {float(diff):.1f}" if diff is not None else ""
+                diff_str = f", difficulty {float(diff):.1f}" if pd.notna(diff) else ""
                 parts.append(f"{name}: {rating:.1f}/5 ({count} reviews{diff_str})")
             else:
                 no_data.append(name)
@@ -92,13 +89,13 @@ def _try_schedule_rmp_answer(question: str, history: list | None) -> str | None:
         return None
 
 
-def handle_general_chat(question: str, df: pd.DataFrame, llm, vector_store, intent=None, history=None, user_profile=None):
+def handle_general_chat(question: str, df: pd.DataFrame, llm, vector_store, intent=None, history=None, user_profile=None, rmp_df=None):
     """
     Catch-all for general_rag route — RAG context + LLM answer, no analytics table.
-    Schedule RMP follow-ups are answered directly from DB to prevent LLM hallucination.
+    Schedule RMP follow-ups are answered directly from loaded data to prevent LLM hallucination.
     """
     # Intercept "tell me the RMP scores of the professors you picked" before LLM
-    schedule_answer = _try_schedule_rmp_answer(question, history)
+    schedule_answer = _try_schedule_rmp_answer(question, history, rmp_df=rmp_df)
     if schedule_answer:
         return schedule_answer, [], [], {}
 

@@ -36,12 +36,13 @@ class EntityResolver:
         grades_df: "pd.DataFrame | None",
         courses_df: "pd.DataFrame | None",
         instructors_df: "pd.DataFrame | None" = None,
+        sections_df: "pd.DataFrame | None" = None,
     ) -> None:
         self._professor_names: list[str] = []
         self._professor_last_names: list[str] = []
         self._course_codes: set[str] = set()
 
-        # Build authoritative name list from instructors table first (all 210 canonical names)
+        # Build authoritative name list from instructors table first (every canonical name)
         seen: set[str] = set()
         if instructors_df is not None and not instructors_df.empty and "name" in instructors_df.columns:
             for name in instructors_df["name"].dropna().unique():
@@ -53,6 +54,15 @@ class EntityResolver:
         # Supplement with any instructors that appear in grades but not the instructors table
         if grades_df is not None and not grades_df.empty and "Instructor" in grades_df.columns:
             for name in grades_df["Instructor"].dropna().unique():
+                n = str(name).strip()
+                if n and n.upper() not in ("STAFF", "TBA", "") and n not in seen:
+                    self._professor_names.append(n)
+                    seen.add(n)
+
+        # Supplement with current-term section instructors (new hires with no
+        # grade history who may be absent from the instructors table)
+        if sections_df is not None and not sections_df.empty and "instructor" in sections_df.columns:
+            for name in sections_df["instructor"].dropna().unique():
                 n = str(name).strip()
                 if n and n.upper() not in ("STAFF", "TBA", "") and n not in seen:
                     self._professor_names.append(n)

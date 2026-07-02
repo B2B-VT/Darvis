@@ -128,8 +128,10 @@ def normalize_question(question: str) -> str:
         return question
     q = question.strip()
     q = re.sub(r"\s+", " ", q)
-    q = re.sub(r"[''`]", "'", q)
-    q = re.sub(r"[""«»]", '"', q)
+    # \u escapes on purpose — literal curly quotes here were silently
+    # rewritten to ASCII once already, which made these regexes no-ops.
+    q = re.sub(r"[\u2018\u2019`]", "'", q)          # curly/backtick -> '
+    q = re.sub(r"[\u201c\u201d\u00ab\u00bb]", '"', q)   # curly/guillemets -> "
     return q
 
 

@@ -19,6 +19,10 @@ Run from the chat-bot root:
     python -m scripts.rebuild_embeddings --force
     python -m scripts.rebuild_embeddings --dry-run
     python -m scripts.rebuild_embeddings --source grades    # rebuild one source only
+    python -m scripts.rebuild_embeddings --wipe --force     # clean rebuild — delete all rows first
+
+Use --wipe when source_id formats have changed (e.g. old build_embeddings.py
+rows): upsert alone leaves stale rows behind as near-duplicates.
 
 Requirements: SUPABASE_URL, SUPABASE_KEY in .env
 Plus at least one: OPENAI_API_KEY (preferred), GOOGLE_API_KEY, or fastembed installed.
@@ -71,6 +75,20 @@ def fetch_existing_ids(db) -> set[str]:
 
 def upsert_batch(db, rows: list[dict]):
     db.table("embeddings").upsert(rows, on_conflict="source_type,source_id").execute()
+
+
+def wipe_embeddings(db):
+    """
+    Delete ALL rows from the embeddings table so stale rows with old
+    source_id formats don't survive the rebuild as duplicates.
+    """
+    result = db.table("embeddings").select("id", count="exact").limit(1).execute()
+    before = result.count or 0
+    print(f"Wiping embeddings table ({before:,} rows)...")
+    # returning="minimal" avoids pulling every deleted row (with vectors) back
+    # over the wire; .neq("id", -1) matches every row (ids are positive).
+    db.table("embeddings").delete(returning="minimal").neq("id", -1).execute()
+    print("  Embeddings table wiped.\n")
 
 
 def embed_and_upsert(
@@ -155,6 +173,11 @@ def main():
     parser.add_argument("--force", action="store_true", help="Re-embed all chunks, even existing ones")
     parser.add_argument("--dry-run", action="store_true", help="Preview chunks without embedding")
     parser.add_argument(
+        "--wipe", action="store_true",
+        help="Delete ALL rows from the embeddings table before rebuilding "
+             "(removes stale rows whose old source_id formats upsert can't overwrite)",
+    )
+    parser.add_argument(
         "--source",
         choices=["courses", "grades", "requirements", "instructors", "all"],
         default="all",
@@ -175,6 +198,9 @@ def main():
     print(f"  Provider: {embedder.provider} (dim={embedder.dim})")
     print(f"  Mode: {'DRY RUN' if args.dry_run else ('FORCE' if args.force else 'INCREMENTAL')}")
     print(f"  Source: {args.source}\n")
+
+    if args.wipe and not args.dry_run:
+        wipe_embeddings(db)
 
     if not args.dry_run and not args.force:
         print("Checking existing embeddings...")

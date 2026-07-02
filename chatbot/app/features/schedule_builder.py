@@ -12,9 +12,7 @@ from collections import defaultdict
 from supabase import create_client
 from app.config import get_settings
 
-# Fall 2026 term code — update each semester
-CURRENT_TERM = "202609"
-MAX_COURSES   = 5
+MAX_COURSES = 5
 
 # Maps major keywords → preferred VT subject codes (ordered by relevance)
 _MAJOR_SUBJECTS: dict[str, list[str]] = {
@@ -314,6 +312,8 @@ def handle_schedule_builder(
     intent=None,
     df=None,
     history: list | None = None,
+    sections_df=None,
+    rmp_df=None,
 ) -> tuple[str, list, list, dict]:
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
@@ -385,20 +385,38 @@ def handle_schedule_builder(
             pass  # Catalog table may not be populated yet; fall back gracefully
 
     # ── Fetch sections for the current term ───────────────────────────────────
-    # Push subject filter to DB to stay well under Supabase's 1000-row default.
-    q = client.table("sections").select(
-        "crn, subject, course_number, instructor, days, start_time, end_time, "
-        "location, seats, enrolled, credits"
-    ).eq("term", CURRENT_TERM)
-    if question_subject_filter:
-        q = q.eq("subject", question_subject_filter)
-    elif requested_courses:
-        subjects = list({s for s, _ in requested_courses})
-        if len(subjects) == 1:
-            q = q.eq("subject", subjects[0])
-    res = q.limit(10000).execute()
-
-    all_sections = res.data or []
+    # Prefer the startup-loaded sections DataFrame (all rows, no PostgREST cap).
+    if sections_df is not None and not sections_df.empty:
+        sdf = sections_df
+        if question_subject_filter:
+            sdf = sdf[sdf["subject"].str.upper() == question_subject_filter]
+        elif requested_courses:
+            subjects = list({s for s, _ in requested_courses})
+            if len(subjects) == 1:
+                sdf = sdf[sdf["subject"].str.upper() == subjects[0]]
+        # NaN → None so downstream `or`-defaults behave like the live-query path
+        all_sections = sdf.astype(object).where(sdf.notna(), None).to_dict("records")
+    else:
+        # Live fallback — paginate, since PostgREST caps any single response at
+        # 1,000 rows regardless of .limit().
+        all_sections = []
+        offset = 0
+        while True:
+            pq = client.table("sections").select(
+                "crn, subject, course_number, title, instructor, days, start_time, "
+                "end_time, location, seats, enrolled, credits"
+            ).eq("term", get_settings().current_term)
+            if question_subject_filter:
+                pq = pq.eq("subject", question_subject_filter)
+            elif requested_courses:
+                subjects = list({s for s, _ in requested_courses})
+                if len(subjects) == 1:
+                    pq = pq.eq("subject", subjects[0])
+            page = pq.order("id").range(offset, offset + 999).execute().data or []
+            all_sections.extend(page)
+            if len(page) < 1000:
+                break
+            offset += 1000
 
     # ── Sort goal ─────────────────────────────────────────────────────────────
     sort_goal = getattr(intent, "sort_goal", "highest_gpa") if intent else "highest_gpa"
@@ -438,17 +456,17 @@ def handle_schedule_builder(
             inst_gpa = {}
 
     # ── Build instructor RMP map (must be before filter so min_rmp can use it) ─
+    # Uses the startup-loaded instructors DataFrame — a live read here would be
+    # capped at 1,000 of the 3,800+ instructors by PostgREST.
     inst_rmp: dict[str, float] = {}
-    try:
-        rmp_rows = client.table("instructors").select("name, rmp_rating").execute().data or []
-        for row in rmp_rows:
-            r = row.get("rmp_rating")
-            if r is not None:
-                last = _last(str(row.get("name") or ""))
+    if rmp_df is not None and not rmp_df.empty and "rmp_rating" in rmp_df.columns:
+        try:
+            for _, row in rmp_df.dropna(subset=["rmp_rating"]).iterrows():
+                last = _last(str(row["name"]))
                 if last and last not in inst_rmp:
-                    inst_rmp[last] = float(r)
-    except Exception:
-        pass
+                    inst_rmp[last] = float(row["rmp_rating"])
+        except Exception:
+            inst_rmp = {}
 
     def _inst_gpa(s: dict) -> float:
         last = _last(s.get("instructor") or "")
@@ -554,7 +572,7 @@ def handle_schedule_builder(
 
     def _relevance_score(s: dict) -> tuple:
         subj  = s["subject"].upper()
-        title = s.get("course_title", "").lower()
+        title = (s.get("title") or "").lower()
         course_key = re.sub(r"\s+", "", f"{s['subject']}{s['course_number']}").lower()
 
         # Tier 0: explicitly required by the major's catalog (highest priority)
@@ -620,7 +638,7 @@ def handle_schedule_builder(
             "seats":        s.get("seats") or 0,
             "enrolled":     s.get("enrolled") or 0,
             "credits":      float(s.get("credits") or 0),
-            "term":         CURRENT_TERM,
+            "term":         get_settings().current_term,
         }
         for s in schedule
     ]

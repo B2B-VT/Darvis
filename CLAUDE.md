@@ -74,17 +74,17 @@ cd chatbot && python -m pytest tests/
 
 **Deploy:** git push to main → Render auto-deploys (root directory set to `chatbot/` in Render config).
 
-**LLM:** Google AI Studio (Gemma). Set `GOOGLE_API_KEY` and `GOOGLE_MODEL` in `chatbot/.env`. Current model string: `gemma-3-27b-it`. Has a 30-second HTTP timeout at the transport layer. Falls back to template answers when the LLM is unavailable.
+**LLM:** Anthropic Claude Haiku (migrated from Gemma in commit `200b142` — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py`). Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` in `chatbot/.env`. Current model string: `claude-haiku-4-5-20251001`. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
 
 **Required env vars (`chatbot/.env`):**
 ```
-GOOGLE_API_KEY=...
-GOOGLE_MODEL=gemma-3-27b-it
+ANTHROPIC_API_KEY=...
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
 SUPABASE_URL=...
 SUPABASE_KEY=...                    # service role key
 REDIS_URL=...                       # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true           # Gemma judges borderline retrieval quality
+RAG_ENABLE_LLM_JUDGE=true           # Claude Haiku judges borderline retrieval quality
 ALLOWED_ORIGINS=https://darvis.tech,...
 SHOW_DOCS=true                      # local only — enables /docs (Swagger UI)
 ```
@@ -174,7 +174,6 @@ Row counts verified live 2026-07-01:
 - `courses.avg_gpa` still null for 1,121 of 6,589 courses (no grade rows for those courses).
 
 **Medium priority:**
-- `natural_filter.py`: `lowest_gpa` sort goal sets chart metric label to `"Avg GPA"` — same as `highest_gpa`. Add directional label.
 - Feedback collection: `POST /feedback` endpoint exists in chatbot (writes to `feedback` table). Frontend thumbs up/down UI still needs to be wired up.
 - `grade_embeddings` table is dead (0 rows, unused). Can be dropped.
 

@@ -4,7 +4,7 @@ Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence 
 
 ## What it does
 
-- Browse and search VT courses by subject, GPA range, Pathways, and credits
+- Browse and search VT courses by subject, GPA range, and credits (Pathways filter present in the UI but awaiting Pathways data import)
 - See historical grade distributions (GPA, A/A- rate, F rate, withdrawals) per course and per professor, sourced from VT UDC
 - View RateMyProfessors ratings and difficulty scores on professor profiles
 - Ask the AI chatbot questions like "which CS 3114 professor has the strongest outcomes?" or "what do I need to graduate with a CS degree?"
@@ -16,7 +16,7 @@ Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence 
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 18 + Vite, CSS-in-JS, Clerk auth |
-| Chatbot backend | FastAPI (Python), Pandas, Google AI Studio (Gemma) |
+| Chatbot backend | FastAPI (Python), Pandas, Claude Haiku (Anthropic API) |
 | Data scripts | Node.js (scrapers + importers) |
 | Database | Supabase (Postgres) — embeddings source of truth, synced into Redis (redisvl) for retrieval |
 | Frontend hosting | Vercel |
@@ -27,6 +27,7 @@ Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence 
 
 ```
 Darvis/
+├── .github/workflows/      update-timetable.yml — Banner scrape every 4h
 ├── CLAUDE.md               Full architecture context for Claude Code sessions
 ├── README.md               This file
 ├── frontend/               React + Vite frontend — deployed on Vercel
@@ -42,7 +43,7 @@ Darvis/
 │   ├── requirements.txt
 │   └── README.md
 └── backend/                Node.js data pipeline (not a server)
-    ├── scrapers/           Browser-console grade scrapers + RMP + catalog scrapers
+    ├── scrapers/           UDC grade scrapers (browser-console + Playwright), Banner timetable scrapers, RMP, catalog, prereq scrapers
     ├── scripts/            Supabase importers
     └── README.md
 ```
@@ -60,28 +61,22 @@ npm run dev      # http://localhost:5173
 ```bash
 cd chatbot
 source .venv/bin/activate
-cp .env.example .env    # fill in GOOGLE_API_KEY, SUPABASE_URL, SUPABASE_KEY
+cp .env.example .env    # fill in ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_KEY, REDIS_URL
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
 ## Data pipeline status
 
-| Subject area | Grades scraped | In Supabase |
-|---|---|---|
-| CS | Yes | 1,706 rows |
-| ECE, MATH, BIOL, all others | No | Pending — waiting on hardware |
-
-Sections (Fall 2026 timetable): 10,129 rows in Supabase.
-RMP ratings: 65 instructors matched and imported.
-Major requirements: 183 majors, 16,151 requirement rows.
+Grades: 59,790 rows across all 152 subjects (2020-21 through 2025-26) — full UDC import complete. Re-scrape only when VT releases a new academic year of data.
+Sections (Fall 2026 timetable): 10,663 rows in Supabase — auto-refreshed every 4 hours by a GitHub Actions Banner scrape (`.github/workflows/update-timetable.yml`).
+RMP ratings: 1,982 of 3,834 instructors matched and imported.
+Major requirements: 183 majors, 16,290 requirement rows.
 
 ## Pending work
 
 See `CLAUDE.md` for the full issue list. Top items:
 
-1. Scrape and import remaining UDC subjects (ECE, MATH, BIOL, etc.)
-2. Fix `natural_filter.py` chart label for the `lowest_gpa` sort goal
-3. Wire the frontend thumbs up/down UI to the existing `POST /feedback` endpoint
-4. Populate `courses.pathways` from VT Pathways static data
-5. Upgrade Render to Starter ($7/month) to eliminate cold-start latency
-```
+1. Finish the embeddings rebuild and Redis re-sync (~30.8k chunks) — `python -m scripts.rebuild_embeddings --wipe` then `python -m scripts.sync_redis_index` in `chatbot/`; the previous vectors were built 2026-05-23 against pre-import data and no longer cover the full grades/courses/instructors tables
+2. Wire the frontend thumbs up/down UI to the existing `POST /feedback` endpoint
+3. Populate `courses.pathways` from VT Pathways static data
+4. Upgrade Render to Starter ($7/month) to eliminate cold-start latency

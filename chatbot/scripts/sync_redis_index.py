@@ -2,7 +2,7 @@
 scripts/sync_redis_index.py
 
 Reads the `embeddings` table from Supabase (the durable source of truth,
-populated by build_embeddings.py / rebuild_embeddings.py / embed_grades.py)
+populated by build_embeddings.py / rebuild_embeddings.py)
 and loads every row into the Redis index that app/rag/retriever.py queries
 at runtime via redisvl.
 
@@ -149,21 +149,31 @@ def main() -> int:
 
 
 def _load_sections(supabase, index, index_name: str, dim: int) -> None:
-    """Fetch Fall 2026 sections, chunk, embed, and load into Redis."""
+    """Fetch current-term sections, chunk, embed, and load into Redis."""
     try:
         from app.rag.chunker import DocumentChunker
         from app.rag.embedder import EmbeddingService
 
+        term = get_settings().current_term
         logger.info("Fetching sections from Supabase...")
-        resp = (
-            supabase.table("sections")
-            .select("crn, subject, course_number, instructor, days, start_time, end_time, location, seats, enrolled, credits, term")
-            .eq("term", "202609")
-            .execute()
-        )
-        sections = resp.data or []
+        sections: list[dict] = []
+        offset = 0
+        while True:
+            resp = (
+                supabase.table("sections")
+                .select("crn, subject, course_number, instructor, days, start_time, end_time, location, seats, enrolled, credits, term")
+                .eq("term", term)
+                .order("id")
+                .range(offset, offset + _PAGE_SIZE - 1)
+                .execute()
+            )
+            batch = resp.data or []
+            sections.extend(batch)
+            if len(batch) < _PAGE_SIZE:
+                break
+            offset += _PAGE_SIZE
         if not sections:
-            logger.warning("No sections found for term 202609 — skipping section embedding")
+            logger.warning("No sections found for term %s — skipping section embedding", term)
             return
 
         chunks = DocumentChunker.chunk_sections(sections)
@@ -175,9 +185,11 @@ def _load_sections(supabase, index, index_name: str, dim: int) -> None:
             logger.warning("Embedder unavailable — skipping section embedding")
             return
 
+        logger.info("Embedding %d section chunks...", len(chunks))
+        vectors = embedder.embed_batch([c.content for c in chunks])
+
         sec_docs = []
-        for i, chunk in enumerate(chunks):
-            vec = embedder.embed(chunk.content)
+        for i, (chunk, vec) in enumerate(zip(chunks, vectors)):
             if vec is None or len(vec) != dim:
                 continue
             sec_docs.append({
@@ -188,7 +200,9 @@ def _load_sections(supabase, index, index_name: str, dim: int) -> None:
                 "course_number": chunk.metadata.get("course_number") or "",
                 "content": chunk.content,
                 "metadata": json.dumps(chunk.metadata),
-                "embedding": vec,
+                # redisvl hash storage needs packed float32 bytes — a raw list
+                # makes redis-py raise DataError and the chunk is silently lost
+                "embedding": struct.pack(f"{len(vec)}f", *vec),
             })
 
         if sec_docs:

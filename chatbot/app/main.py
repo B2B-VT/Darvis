@@ -92,9 +92,10 @@ async def lifespan(app: FastAPI):
     intent_extractor = IntentExtractor(llm)
 
     # Entity resolver: fuzzy-matches professor names and course codes post-extraction.
-    # Pass rmp_df (all 210 instructors) so it knows every canonical name and can
-    # reject hallucinated names the LLM fabricates.
-    entity_resolver = EntityResolver(df, courses_df, instructors_df=rmp_df)
+    # Pass rmp_df (the full instructors table) so it knows every canonical name and
+    # can reject hallucinated names the LLM fabricates; sections_df adds Fall-term
+    # instructors who have no grade history yet.
+    entity_resolver = EntityResolver(df, courses_df, instructors_df=rmp_df, sections_df=sections_df)
 
     STATE["df"] = df
     STATE["rmp_df"] = rmp_df
@@ -192,9 +193,18 @@ def health():
     df = STATE.get("df")
     vector_store = STATE.get("vector_store")
     rag_status = vector_store.rag_status() if vector_store else {}
+
+    def _loaded(key: str) -> int:
+        loaded_df = STATE.get(key)
+        return 0 if loaded_df is None else int(len(loaded_df))
+
     return {
         "status": "ok",
         "rows_loaded": 0 if df is None else int(len(df)),
+        "instructors_loaded": _loaded("rmp_df"),
+        "sections_loaded": _loaded("sections_df"),
+        "courses_loaded": _loaded("courses_df"),
+        "requirements_loaded": _loaded("requirements_df"),
         "vector_records": 0 if vector_store is None else vector_store.count(),
         "rag": rag_status,
     }
@@ -331,6 +341,8 @@ def chat(request: Request, body: ChatRequest):
             answer, tables, charts, metadata = handle_schedule_builder(
                 question, user_profile=body.user_profile, intent=intent, df=df,
                 history=[m.model_dump() for m in body.history],
+                sections_df=STATE.get("sections_df"),
+                rmp_df=STATE.get("rmp_df"),
             )
         elif route == "out_of_scope":
             answer, tables, charts, metadata = out_of_scope_response(), [], [], {}
@@ -345,7 +357,7 @@ def chat(request: Request, body: ChatRequest):
                 sections_df=STATE.get("sections_df"),
             )
             if result is None:
-                answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
+                answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
             else:
                 answer, tables, charts, metadata = result
         elif route == "professor_profile":
@@ -367,7 +379,7 @@ def chat(request: Request, body: ChatRequest):
                 user_profile=body.user_profile,
             )
         else:
-            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile)
+            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
     except Exception as exc:
         # Log the full traceback server-side; return a generic message to the client
         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())

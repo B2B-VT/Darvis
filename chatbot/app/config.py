@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="", alias="REDIS_URL")
     rag_redis_index_name: str = Field(default="darvis_embeddings", alias="RAG_REDIS_INDEX_NAME")
 
+    # ── Academic term (sections table) ──────────────────────────────────────────
+    # Single source of truth for the current registration term. Update via env
+    # each semester instead of hunting hardcodes across loader/features/scripts.
+    current_term: str = Field(default="202609", alias="CURRENT_TERM")
+    current_term_label: str = Field(default="Fall 2026", alias="CURRENT_TERM_LABEL")
+
     # ── Optional embedding / reranking providers ────────────────────────────────
     # OpenAI: used for text-embedding-3-small or text-embedding-3-large.
     # Falls back to Google gemini-embedding-001, then fastembed if not set.
@@ -100,6 +106,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         populate_by_name = True
+        extra = "ignore"
 
     @property
     def origins_list(self) -> list[str]:

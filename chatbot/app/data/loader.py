@@ -72,6 +72,7 @@ def load_from_supabase() -> pd.DataFrame:
                 result = (
                     client.table("grades")
                     .select("*")
+                    .order("id")
                     .range(offset, offset + BATCH - 1)
                     .execute()
                 )
@@ -129,13 +130,23 @@ def load_rmp_from_supabase() -> pd.DataFrame:
     present but NaN for instructors who have no RMP data.
     """
     client = _supabase_client()
+    BATCH = 1000
+    offset = 0
+    rows: list[dict] = []
     try:
-        result = (
-            client.table("instructors")
-            .select("name, dept, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, avg_gpa, subjects, course_count, rmp_id")
-            .execute()
-        )
-        rows = result.data or []
+        while True:
+            result = (
+                client.table("instructors")
+                .select("name, dept, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, avg_gpa, subjects, course_count, rmp_id")
+                .order("id")
+                .range(offset, offset + BATCH - 1)
+                .execute()
+            )
+            batch = result.data or []
+            rows.extend(batch)
+            if len(batch) < BATCH:
+                break
+            offset += BATCH
     except Exception as exc:
         print(f"  Warning: could not load instructor data — {exc}")
         return pd.DataFrame()
@@ -170,7 +181,8 @@ def load_sections_from_supabase() -> pd.DataFrame:
             result = (
                 client.table("sections")
                 .select("crn,term,subject,course_number,section,title,instructor,days,start_time,end_time,location,seats,enrolled,credits")
-                .eq("term", "202609")
+                .eq("term", get_settings().current_term)
+                .order("id")
                 .range(offset, offset + BATCH - 1)
                 .execute()
             )
@@ -258,6 +270,7 @@ def load_requirements_from_supabase() -> pd.DataFrame:
                 client.table("major_requirements")
                 .select("course_code, course_title, credits_min, credits_max, requirement_type, requirement_group, majors(major_name, college, degree)")
                 .not_.is_("course_code", "null")
+                .order("id")
                 .range(offset, offset + BATCH - 1)
                 .execute()
             )

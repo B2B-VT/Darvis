@@ -12,23 +12,20 @@ from app.safety.entity_resolver import EntityResolver
 
 # ── normalize_question ────────────────────────────────────────────────────────
 
-@pytest.mark.parametrize("raw, expected_fragment", [
-    ("wwich prof is hardist for cs 3114", "which"),
-    ("wwich prof is hardist for cs 3114", "hardest"),
-    ("is hamoda good for algorithims", "algorithms"),
-    ("whihc cse coarses are easist", "which"),
-    ("whihc cse coarses are easist", "cs"),
-    ("whihc cse coarses are easist", "courses"),
-    ("whihc cse coarses are easist", "easiest"),
-    ("what reqirements do i need for comp sci", "requirements"),
-    ("what reqirements do i need for comp sci", "cs"),
-    ("mth 2114 grade distribution", "math"),
-])
-def test_normalize_contains(raw, expected_fragment):
-    result = normalize_question(raw)
-    assert expected_fragment in result.lower(), (
-        f"normalize_question({raw!r}) -> {result!r}, expected fragment {expected_fragment!r}"
-    )
+# normalize_question is whitespace/quote cleanup only — typos, slang, and
+# abbreviations are handled downstream by the LLM IntentExtractor.
+
+def test_normalize_collapses_whitespace():
+    assert normalize_question("  cs   3114\n grade    distribution ") == "cs 3114 grade distribution"
+
+
+def test_normalize_preserves_typos_for_llm():
+    # Typo correction is intentionally NOT done here anymore
+    assert normalize_question("whihc cse coarses are easist") == "whihc cse coarses are easist"
+
+
+def test_normalize_unifies_quotes():
+    assert normalize_question("what's “hardest” class") == "what's \"hardest\" class"
 
 
 def test_normalize_preserves_course_code():

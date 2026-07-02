@@ -56,10 +56,14 @@ class GradeVectorStore:
         courses_df: pd.DataFrame | None = None,
         requirements_df: pd.DataFrame | None = None,
     ) -> None:
-        """Store DataFrames for use in keyword fallback. Called at startup."""
-        self._df = df.copy() if df is not None else pd.DataFrame()
-        self._courses = courses_df.copy() if courses_df is not None else None
-        self._requirements = requirements_df.copy() if requirements_df is not None else None
+        """
+        Store DataFrames for use in keyword fallback. Called at startup.
+        References, not copies — callers never mutate these, and copying
+        duplicates ~60MB on Render's 512MB instance.
+        """
+        self._df = df if df is not None else pd.DataFrame()
+        self._courses = courses_df
+        self._requirements = requirements_df
         self._count = len(self._df)
         logger.info(
             "[vector_store] DataFrames stored: %d grade rows, %d courses, %d requirements",
