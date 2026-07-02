@@ -411,22 +411,28 @@ def handle_schedule_builder(
         # 1,000 rows regardless of .limit().
         all_sections = []
         offset = 0
-        while True:
-            pq = client.table("sections").select(
-                "crn, subject, course_number, title, instructor, days, start_time, "
-                "end_time, location, seats, enrolled, credits"
-            ).eq("term", get_settings().current_term)
-            if question_subject_filter:
-                pq = pq.eq("subject", question_subject_filter)
-            elif requested_courses:
-                subjects = list({s for s, _ in requested_courses})
-                if len(subjects) == 1:
-                    pq = pq.eq("subject", subjects[0])
-            page = pq.order("id").range(offset, offset + 999).execute().data or []
-            all_sections.extend(page)
-            if len(page) < 1000:
-                break
-            offset += 1000
+        try:
+            while True:
+                pq = client.table("sections").select(
+                    "crn, subject, course_number, instructor, days, start_time, "
+                    "end_time, location, seats, enrolled, credits"
+                ).eq("term", get_settings().current_term)
+                if question_subject_filter:
+                    pq = pq.eq("subject", question_subject_filter)
+                elif requested_courses:
+                    subjects = list({s for s, _ in requested_courses})
+                    if len(subjects) == 1:
+                        pq = pq.eq("subject", subjects[0])
+                page = pq.order("id").range(offset, offset + 999).execute().data or []
+                all_sections.extend(page)
+                if len(page) < 1000:
+                    break
+                offset += 1000
+        except Exception as exc:
+            return (
+                f"I couldn't load Fall 2026 section data right now ({exc}). "
+                "Try again in a moment, or browse the Schedule page directly."
+            ), [], [], {}
 
     # ── Sort goal ─────────────────────────────────────────────────────────────
     sort_goal = getattr(intent, "sort_goal", "highest_gpa") if intent else "highest_gpa"

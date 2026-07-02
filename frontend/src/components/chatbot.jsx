@@ -920,6 +920,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   };
 
   const deleteSession = (id) => {
+    clearTimeout(convSaveTimers.current[id]);
+    delete convSaveTimers.current[id];
     setSessions(prev => prev.filter(s => s.id !== id));
     if (currentSessionId === id) startNewChat();
     if (user?.id) API.deleteConversation(user.id, id).catch(() => {});

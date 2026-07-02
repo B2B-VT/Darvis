@@ -180,7 +180,7 @@ def load_sections_from_supabase() -> pd.DataFrame:
         try:
             result = (
                 client.table("sections")
-                .select("crn,term,subject,course_number,section,title,instructor,days,start_time,end_time,location,seats,enrolled,credits")
+                .select("crn,term,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled,credits")
                 .eq("term", get_settings().current_term)
                 .order("id")
                 .range(offset, offset + BATCH - 1)
