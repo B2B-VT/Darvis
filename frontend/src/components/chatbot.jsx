@@ -21,11 +21,13 @@ const SUGGESTED = [
 ];
 
 const THINKING_MESSAGES = [
-  "Understanding your question…",
-  "Checking available data…",
-  "Looking through what Cyrus knows…",
-  "Matching this to your planning needs…",
-  "Building your response…",
+  "Thinking",
+  "Understanding your question",
+  "Checking available data",
+  "Reviewing course context",
+  "Looking through Darvis data",
+  "Preparing your answer",
+  "Almost ready",
 ];
 
 // ── Input sanitization & NLP normalization ────────────────────────
@@ -450,38 +452,28 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
 function ThinkingIndicator({ darkMode, status }) {
   const dm = darkMode;
   const p = palette(dm);
+  const muted = dm ? "rgba(255,255,255,0.46)" : "rgba(26,18,15,0.48)";
+  const bright = dm ? "rgba(255,255,255,0.92)" : "rgba(26,18,15,0.82)";
 
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minHeight: 58 }}>
-      <div style={{
-        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-        background: dm ? "#1f1f1f" : "#f1eee9",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        overflow: "hidden",
-        border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}`,
-      }}>
-        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Cyrus" style={{ width: 18, height: 18 }} />
-      </div>
-      <div style={{
-        padding: "3px 0 0",
-        minWidth: 180,
-        display: "flex",
-        gap: 10,
-        alignItems: "center",
-        color: p.textSub,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          {[0,1,2].map(i => (
-            <span key={i} style={{
-              width: 6, height: 6, borderRadius: "50%",
-              background: dm ? "rgba(255,255,255,0.62)" : "rgba(26,18,15,0.46)",
-              animation: `chatPulse 1.15s ease-in-out ${i * 0.18}s infinite`,
-            }} />
-          ))}
-        </div>
-        <div aria-live="polite" style={{ fontSize: 15, color: p.textSub, fontWeight: 500, lineHeight: 1.4 }}>
-          {status}
-        </div>
+    <div style={{ minHeight: 32, display: "flex", alignItems: "center" }}>
+      <div
+        aria-live="polite"
+        className="chat-thinking-text"
+        style={{
+          fontSize: 15,
+          fontWeight: 500,
+          lineHeight: 1.45,
+          color: p.textSub,
+          backgroundImage: `linear-gradient(90deg, ${muted} 0%, ${muted} 35%, ${bright} 50%, ${muted} 65%, ${muted} 100%)`,
+          backgroundSize: "220% 100%",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          animation: "chatTextShimmer 2.2s ease-in-out infinite",
+        }}
+      >
+        {status}
       </div>
     </div>
   );
@@ -526,16 +518,22 @@ function newProjectId() {
   return "proj_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 }
 
-function relativeTime(ts) {
-  const diff = Date.now() - ts;
-  const mins  = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days  = Math.floor(diff / 86400000);
-  if (mins < 1)   return "just now";
-  if (mins < 60)  return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7)   return `${days}d ago`;
-  return new Date(ts).toLocaleDateString();
+function SidebarIcon({ name, size = 22, strokeWidth = 1.9 }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  };
+  if (name === "new") return <svg {...common}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>;
+  if (name === "search") return <svg {...common}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>;
+  if (name === "project") return <svg {...common}><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9z"/></svg>;
+  if (name === "collapse") return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="4"/><path d="M14 4v16"/></svg>;
+  return null;
 }
 
 // ── Session list item ─────────────────────────────────────────────
@@ -551,21 +549,18 @@ function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c,
         display: "flex", alignItems: "center", position: "relative",
         background: active ? c.active : hov ? c.hover : "transparent",
         borderRadius: 8,
-        margin: "1px 8px",
-        paddingRight: 6,
+        margin: "1px 12px",
+        paddingRight: 4,
         transition: "background 0.12s",
       }}
     >
-      <div onClick={onSelect} style={{ flex: 1, padding: `8px 0 8px ${indent ? 20 : 10}px`, minWidth: 0, cursor: "pointer" }}>
+      <div onClick={onSelect} style={{ flex: 1, padding: `8px 0 8px ${indent ? 22 : 10}px`, minWidth: 0, cursor: "pointer" }}>
         <div style={{
-          fontSize: 13, fontWeight: active ? 600 : 500,
+          fontSize: 14, fontWeight: active ? 600 : 400,
           color: active ? c.text : c.sub,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           lineHeight: 1.35,
         }}>{session.title}</div>
-        <div style={{ fontSize: 10.5, color: c.faint, fontWeight: 500, marginTop: 1 }}>
-          {relativeTime(session.createdAt)}
-        </div>
       </div>
 
       {hov && (
@@ -659,7 +654,9 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
         onMouseLeave={() => setHov(false)}
         style={{
           display: "flex", alignItems: "center",
-          padding: "5px 8px 5px 10px",
+          margin: "1px 12px",
+          padding: "7px 8px 7px 10px",
+          borderRadius: 8,
           background: hov ? c.hover : "transparent",
           cursor: "pointer",
           userSelect: "none",
@@ -685,9 +682,9 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
             style={{
               flex: 1, background: "none", border: "none",
               borderBottom: `1px solid ${c.border}`,
-              color: c.text, fontSize: 11, fontWeight: 700,
+              color: c.text, fontSize: 14, fontWeight: 500,
               outline: "none", padding: "1px 2px",
-              fontFamily: SANS,
+              fontFamily: c.font,
             }}
           />
         ) : (
@@ -695,8 +692,8 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
             onClick={() => setCollapsed(v => !v)}
             onDoubleClick={e => { e.stopPropagation(); setRenaming(true); }}
             style={{
-              flex: 1, fontSize: 11, fontWeight: 700,
-              color: c.text, letterSpacing: "0.2px",
+              flex: 1, fontSize: 14, fontWeight: 400,
+              color: c.sub, letterSpacing: 0,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}
           >{project.name}</span>
@@ -740,9 +737,10 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────
-function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed, historyLoading }) {
+function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed, historyLoading, onToggleCollapse }) {
   const dm = darkMode;
   const p = palette(dm);
+  const sidebarFont = `"Segoe UI", ${SANS}`;
   const c = {
     bg:     dm ? "#050505" : p.bgRaised,
     border: dm ? "rgba(255,255,255,0.10)" : p.line,
@@ -751,10 +749,13 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     faint:  dm ? "rgba(255,255,255,0.45)" : p.textMute,
     hover:  dm ? "rgba(255,255,255,0.07)" : p.cardHover,
     active: dm ? "rgba(255,255,255,0.11)" : "rgba(26,18,15,0.08)",
+    font:   sidebarFont,
   };
 
   const [addingProj, setAddingProj]   = useState(false);
   const [newProjName, setNewProjName] = useState("");
+  const [searchOpen, setSearchOpen]   = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const showHistoryLoading = useMinimumLoading(historyLoading);
 
   const panelStyle = isMobile ? {
@@ -762,13 +763,13 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     top: 60,
     right: 0,
     bottom: 0,
-    width: 280,
+    width: 306,
     zIndex: 200,
     transform: open ? "translateX(0)" : "translateX(100%)",
     transition: `transform 0.22s ${EASE}`,
     boxShadow: open ? "-8px 0 24px rgba(0,0,0,0.30)" : "none",
   } : {
-    width: collapsed ? 0 : 260,
+    width: collapsed ? 0 : 306,
     flexShrink: 0,
     borderLeft: `1px solid ${c.border}`,
     overflow: "hidden",
@@ -795,6 +796,13 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     setAddingProj(false);
   };
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleSessions = normalizedQuery
+    ? sessions.filter(s => (s.title || "Untitled chat").toLowerCase().includes(normalizedQuery))
+    : sessions;
+  const visibleIds = new Set(visibleSessions.map(s => s.id));
+  const visibleUnorganized = unorganized.filter(s => visibleIds.has(s.id));
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -808,72 +816,108 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
       <div style={{
         ...panelStyle,
         background: c.bg,
+        fontFamily: sidebarFont,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
       }}>
         {/* Header */}
         <div style={{
-          padding: "14px 12px 10px",
-          borderBottom: `1px solid ${c.border}`,
-          display: "grid", gap: 8,
+          padding: "22px 20px 14px",
+          display: "grid", gap: 18,
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-            <div style={{ color: c.text, fontSize: 17, fontWeight: 750, letterSpacing: 0 }}>
+            <div style={{ color: c.text, fontSize: 21, fontWeight: 700, letterSpacing: -0.3 }}>
               Cyrus
             </div>
             <button
-              onClick={onNew}
+              onClick={() => isMobile ? onClose?.() : onToggleCollapse?.()}
+              title={isMobile ? "Close sidebar" : "Collapse sidebar"}
+              aria-label={isMobile ? "Close sidebar" : "Collapse sidebar"}
               style={{
                 background: "transparent",
-                color: c.text,
-                border: `1px solid ${c.border}`,
-                borderRadius: 9,
-                padding: "7px 10px",
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: "pointer",
-                fontFamily: SANS,
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-              New chat
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button
-              onClick={() => { setAddingProj(v => !v); setNewProjName(""); }}
-              title="New project"
-              style={{
-                flex: 1,
-                background: "transparent",
+                color: c.sub,
                 border: "none",
                 borderRadius: 8,
-                padding: "8px 8px",
+                width: 34,
+                height: 34,
                 cursor: "pointer",
-                color: c.sub,
                 display: "flex",
                 alignItems: "center",
-                gap: 9,
-                fontSize: 13,
-                fontWeight: 500,
-                fontFamily: SANS,
+                justifyContent: "center",
               }}
               onMouseEnter={e => e.currentTarget.style.background = c.hover}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2a2 2 0 0 1-1.6-.8L10.4 4A2 2 0 0 0 8.8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/>
-              </svg>
-              New project
+              <SidebarIcon name="collapse" size={23} />
             </button>
           </div>
+
+          <div style={{ display: "grid", gap: 2 }}>
+            {[
+              { label: "New chat", icon: "new", action: onNew },
+              { label: "New Project", icon: "project", action: () => { setAddingProj(v => !v); setNewProjName(""); } },
+              { label: "Search Chats", icon: "search", action: () => setSearchOpen(v => !v) },
+            ].map(item => (
+              <button
+                key={item.label}
+                onClick={item.action}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "9px 0",
+                  cursor: "pointer",
+                  color: c.text,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 13,
+                  fontSize: 18,
+                  fontWeight: 400,
+                  fontFamily: sidebarFont,
+                  textAlign: "left",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = c.hover}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
+                </span>
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {searchOpen && (
+          <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 9,
+              background: dm ? "rgba(255,255,255,0.08)" : "rgba(26,18,15,0.06)",
+              border: `1px solid ${c.border}`,
+              borderRadius: 10,
+              padding: "8px 10px",
+            }}>
+              <SidebarIcon name="search" size={18} strokeWidth={1.8} />
+              <input
+                autoFocus
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search chats"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: c.text,
+                  fontSize: 14,
+                  fontFamily: sidebarFont,
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* New project input */}
         {addingProj && (
@@ -894,7 +938,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                 flex: 1, background: c.hover,
                 border: `1px solid ${c.border}`, borderRadius: RADIUS.xs,
                 padding: "5px 8px", fontSize: 12, color: c.text,
-                outline: "none", fontFamily: SANS,
+                outline: "none", fontFamily: sidebarFont,
               }}
               onFocus={e => e.currentTarget.style.borderColor = ACCENT}
               onBlur={e => e.currentTarget.style.borderColor = c.border}
@@ -906,50 +950,64 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                 background: newProjName.trim() ? ACCENT : "rgba(134,31,65,0.2)",
                 color: "white", border: "none", borderRadius: RADIUS.xs,
                 padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                fontFamily: SANS,
+                fontFamily: sidebarFont,
               }}
             >Create</button>
           </div>
         )}
 
         {/* Session list */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "10px 0" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 0 16px" }}>
           {showHistoryLoading ? (
             <SkeletonSidebar darkMode={dm} rows={8} style={{ borderRight: "none", padding: "4px 12px 12px" }} />
-          ) : sessions.length === 0 ? (
+          ) : visibleSessions.length === 0 ? (
             <div style={{
               padding: "28px 16px", textAlign: "center",
-              color: c.faint, fontSize: 12, lineHeight: 1.6, fontFamily: SANS,
+              color: c.faint, fontSize: 13, lineHeight: 1.6, fontFamily: sidebarFont,
             }}>
-              No past chats yet.<br />Ask something to get started.
+              {normalizedQuery ? "No matching chats." : <>No past chats yet.<br />Ask something to get started.</>}
             </div>
           ) : (
             <>
               {/* Projects */}
-              {projects.map(project => (
-                <ProjectGroup
-                  key={project.id}
-                  project={project}
-                  sessions={byProject[project.id] || []}
-                  currentId={currentId}
-                  onSelectSession={onSelect}
-                  onDeleteSession={onDelete}
-                  onMoveSession={onMoveSession}
-                  onDeleteProject={onDeleteProject}
-                  onRenameProject={onRenameProject}
-                  projects={projects}
-                  c={c}
-                />
-              ))}
-
-              {/* Unorganized sessions */}
-              {unorganized.length > 0 && (
+              {projects.length > 0 && (
                 <>
                   <div style={{
-                    padding: "12px 14px 5px",
-                    fontSize: 13, fontWeight: 700, color: c.text,
-                  }}>{projects.length > 0 ? "Other" : "Chats"}</div>
-                  {unorganized.map(session => (
+                    padding: "12px 20px 7px",
+                    fontSize: 17, fontWeight: 700, color: c.text,
+                    fontFamily: sidebarFont,
+                  }}>Projects</div>
+                  {projects.map(project => {
+                    const projectSessions = (byProject[project.id] || []).filter(s => visibleIds.has(s.id));
+                    if (normalizedQuery && projectSessions.length === 0) return null;
+                    return (
+                      <ProjectGroup
+                        key={project.id}
+                        project={project}
+                        sessions={projectSessions}
+                        currentId={currentId}
+                        onSelectSession={onSelect}
+                        onDeleteSession={onDelete}
+                        onMoveSession={onMoveSession}
+                        onDeleteProject={onDeleteProject}
+                        onRenameProject={onRenameProject}
+                        projects={projects}
+                        c={c}
+                      />
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Unorganized sessions */}
+              {visibleUnorganized.length > 0 && (
+                <>
+                  <div style={{
+                    padding: projects.length > 0 ? "18px 20px 7px" : "12px 20px 7px",
+                    fontSize: 17, fontWeight: 700, color: c.text,
+                    fontFamily: sidebarFont,
+                  }}>Chats</div>
+                  {visibleUnorganized.map(session => (
                     <SessionItem
                       key={session.id}
                       session={session}
@@ -1190,11 +1248,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const errMsg = {
         role: "bot",
         isError: true,
-        answer: isTimeout
-          ? "The request timed out. Render's free tier takes ~30 seconds to spin up after inactivity. Try again in a moment."
-          : isNetwork
-          ? "Couldn't reach the server. Check your connection or try again in ~30 seconds."
-          : `Something went wrong on the server. Try again — if it keeps failing, the question may need rephrasing.`,
+        answer: "Something went wrong while preparing the response. Try again.",
         tables: [], charts: [], warnings: [],
       };
       const final = [...withUser, errMsg];
@@ -1250,11 +1304,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setServerDown(isNetwork);
       const errMsg = {
         role: "bot", isError: true,
-        answer: isTimeout
-          ? "The request timed out. Render's free tier takes ~30 seconds to spin up after inactivity. Try again in a moment."
-          : isNetwork
-          ? "Couldn't reach the server. Check your connection or try again in ~30 seconds."
-          : "Something went wrong on the server. Try again — if it keeps failing, the question may need rephrasing.",
+        answer: "Something went wrong while preparing the response. Try again.",
         tables: [], charts: [], warnings: [],
       };
       const final = messages.map((m, i) => i === botMsgIdx ? errMsg : m);
@@ -1272,13 +1322,13 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const canSend = (input.trim() || attachments.length > 0) && !loading;
 
   const PromptIcon = ({ type }) => {
-    const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
-    if (type === 0) return <svg {...common}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>;
-    if (type === 1) return <svg {...common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6M19 8v6"/></svg>;
-    if (type === 2) return <svg {...common}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>;
-    if (type === 3) return <svg {...common}><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/></svg>;
-    if (type === 4) return <svg {...common}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
-    return <svg {...common}><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>;
+    const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.85, strokeLinecap: "round", strokeLinejoin: "round" };
+    if (type === 0) return <svg {...common}><rect x="3.5" y="4" width="17" height="17" rx="3"/><path d="M16 2.5v4M8 2.5v4M3.5 10h17"/></svg>;
+    if (type === 1) return <svg {...common}><path d="M16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1 1-4 11.5-11.5z"/></svg>;
+    if (type === 2) return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
+    if (type === 3) return <svg {...common}><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg>;
+    if (type === 4) return <svg {...common}><path d="M4 7h16M6 12h12M8 17h8"/><path d="M3 4.5A1.5 1.5 0 0 1 4.5 3h15A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-15z"/></svg>;
+    return <svg {...common}><path d="M5 6h14M5 12h14M5 18h8"/><circle cx="18" cy="18" r="2.5"/></svg>;
   };
 
   const renderAttachmentPreviews = (compact = false) => attachments.length > 0 && (
@@ -1384,7 +1434,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Ask Cyrus anything about your semester…"
+          placeholder="Ask Cyrus anything"
           rows={1}
           style={{
             flex: 1,
@@ -1475,8 +1525,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           </div>
         )}
 
-        {/* ── Desktop header with history toggle ─────────────── */}
-        {!isMobile && (
+        {/* ── Desktop restore control, shown only when the sidebar is hidden ── */}
+        {!isMobile && !sidebarVisible && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "flex-end",
             padding: "10px 18px", borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
@@ -1486,17 +1536,19 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               onClick={() => setSidebarVisible(v => !v)}
               title={sidebarVisible ? "Hide history" : "Show history"}
               style={{
-                background: "transparent", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : p.line}`,
-                borderRadius: RADIUS.sm, padding: "5px 12px", cursor: "pointer",
-                color: p.textSub, fontSize: 11, fontWeight: 600,
-                fontFamily: SANS,
-                display: "flex", alignItems: "center", gap: 6,
+                background: "transparent",
+                border: "none",
+                borderRadius: 8,
+                width: 34,
+                height: 34,
+                cursor: "pointer",
+                color: p.textSub,
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}
+              onMouseEnter={e => e.currentTarget.style.background = dm ? "rgba(255,255,255,0.07)" : p.cardHover}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-                <rect x="1" y="1" width="12" height="12" rx="2"/><line x1="9" y1="1" x2="9" y2="13"/>
-              </svg>
-              {sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+              <SidebarIcon name="collapse" size={22} strokeWidth={1.8} />
             </button>
           </div>
         )}
@@ -1538,29 +1590,29 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               {SUGGESTED.map((item, i) => (
                 <button key={item.label} onClick={() => send(item.prompt)} disabled={loading} style={{
                   background: "transparent",
-                  border: `1px solid ${dm ? "rgba(255,255,255,0.15)" : p.line}`,
+                  border: `1px solid ${dm ? "rgba(255,255,255,0.18)" : p.line}`,
                   borderRadius: RADIUS.pill,
-                  padding: isMobile ? "9px 13px" : "10px 17px",
-                  color: p.textSub,
+                  padding: isMobile ? "9px 13px" : "11px 18px",
+                  color: dm ? "rgba(255,255,255,0.72)" : p.textSub,
                   fontSize: isMobile ? 13 : 15,
-                  fontWeight: 600,
+                  fontWeight: 500,
                   cursor: "pointer",
                   fontFamily: SANS,
                   transition: `all 0.15s ${EASE}`,
                   lineHeight: 1.2,
                   display: "flex",
                   alignItems: "center",
-                  gap: 9,
-                  minHeight: isMobile ? 40 : 44,
+                  gap: 10,
+                  minHeight: isMobile ? 40 : 46,
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.30)" : "rgba(26,18,15,0.24)";
-                  e.currentTarget.style.color = p.text;
+                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.32)" : "rgba(26,18,15,0.24)";
+                  e.currentTarget.style.color = dm ? "rgba(255,255,255,0.92)" : p.text;
                   e.currentTarget.style.background = dm ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.55)";
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.15)" : p.line;
-                  e.currentTarget.style.color = p.textSub;
+                  e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.18)" : p.line;
+                  e.currentTarget.style.color = dm ? "rgba(255,255,255,0.72)" : p.textSub;
                   e.currentTarget.style.background = "transparent";
                 }}
                 >
@@ -1742,13 +1794,21 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           isMobile={isMobile}
           collapsed={!sidebarVisible}
           historyLoading={historyLoading}
+          onToggleCollapse={() => setSidebarVisible(v => !v)}
         />
       )}
 
       <style>{`
-        @keyframes chatPulse {
-          0%, 80%, 100% { transform: translateY(0) scale(0.86); opacity: 0.45; }
-          40% { transform: translateY(-5px) scale(1); opacity: 1; }
+        @keyframes chatTextShimmer {
+          0% { background-position: 160% 0; }
+          100% { background-position: -60% 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .chat-thinking-text {
+            animation: none !important;
+            background-image: none !important;
+            -webkit-text-fill-color: currentColor !important;
+          }
         }
         ::selection {
           background: lightblue;
