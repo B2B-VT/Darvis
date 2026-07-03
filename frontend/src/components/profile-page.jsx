@@ -8,6 +8,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).href;
 import { API } from "../api.js";
 import { glassCard, palette, ACCENT, SANS, SERIF, MONO, RADIUS, SHADOW } from "../theme.jsx";
+import { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonCard, SkeletonText, useMinimumLoading } from "./skeletons.jsx";
 
 // ── Constants ─────────────────────────────────────────────────────
 const MAJORS = [
@@ -26,11 +27,15 @@ const MAJORS = [
 const YEARS      = ["Freshman","Sophomore","Junior","Senior","Graduate","Other"];
 const TERMS      = ["Fall 2024","Spring 2025","Summer 2025","Fall 2025","Spring 2026","Summer 2026"];
 const GRAD_TERMS = ["Spring 2025","Summer 2025","Fall 2025","Spring 2026","Fall 2026","Spring 2027","Fall 2027","Spring 2028"];
+const VT_SEAL_SRC = "/images/virginia-tech-seal.webp";
 const INTEREST_SUGGESTIONS = [
   "Machine Learning","Web Development","Systems Programming","Cybersecurity","Data Science",
   "Mobile Apps","Game Development","Robotics","Research","Startups","Open Source",
   "Cloud Computing","Competitive Programming","Finance / Quant","Product Management",
 ];
+
+const schoolMarkFor = school =>
+  /virginia\s*tech|virginia\s+polytechnic|\bvt\b/i.test(school || "") ? VT_SEAL_SRC : "";
 const HOBBY_SUGGESTIONS = [
   "Hiking","Photography","Reading","Gaming","Music","Cooking","Travel","Art","Sports",
   "Fitness","Chess","Podcasts","Writing","Volunteering","Woodworking",
@@ -292,23 +297,23 @@ function LinkedInImport({ onImport, dm }) {
     <div>
       <input ref={fileRef} type="file" accept=".pdf" onChange={handleFile} style={{ display: "none" }} />
       {status === "idle" && (
-        <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "1.5px solid rgba(0,119,181,0.5)", background: "rgba(0,119,181,0.08)", color: "#0077b5", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: SANS }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,119,181,0.15)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,119,181,0.08)"; }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-          Import from LinkedIn Profile PDF
+        <button onClick={() => fileRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "1.5px solid rgba(134,31,65,0.35)", background: "rgba(134,31,65,0.08)", color: ACCENT, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: SANS }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(134,31,65,0.14)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(134,31,65,0.08)"; }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+          Import profile PDF
         </button>
       )}
       {status === "parsing" && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>Reading your LinkedIn PDF…</div>}
       {status === "error" && (
         <div style={{ fontSize: 13, color: "#e74c3c", fontFamily: SANS }}>
-          Couldn't extract profile data. Make sure you uploaded a LinkedIn profile PDF (Save to PDF from your profile page).{" "}
+          Couldn't extract profile data. Make sure you uploaded a profile export PDF.{" "}
           <button onClick={() => setStatus("idle")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 13, padding: 0, fontFamily: SANS }}>Try again</button>
         </div>
       )}
       {status === "preview" && preview && (
         <div style={{ ...glassCard(dm), borderRadius: 12, padding: 16 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: "#0077b5", marginBottom: 12, letterSpacing: "1.4px", textTransform: "uppercase" }}>LinkedIn Import Preview</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, marginBottom: 12, letterSpacing: "1.4px", textTransform: "uppercase" }}>Profile import preview</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
             {preview.firstName && <div style={{ fontSize: 13, color: p.text }}><b>Name:</b> {preview.firstName} {preview.lastName}</div>}
             {preview.headline  && <div style={{ fontSize: 13, color: p.text }}><b>Headline:</b> {preview.headline}</div>}
@@ -319,43 +324,86 @@ function LinkedInImport({ onImport, dm }) {
             {preview.interests?.length  > 0 && <div style={{ fontSize: 13, color: p.text }}><b>Skills:</b> {preview.interests.slice(0, 5).join(", ")}{preview.interests.length > 5 ? ` +${preview.interests.length - 5} more` : ""}</div>}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { onImport(preview); setStatus("idle"); setPreview(null); }} style={{ background: "#0077b5", color: "white", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Apply to profile</button>
+            <button onClick={() => { onImport(preview); setStatus("idle"); setPreview(null); }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Apply to profile</button>
             <button onClick={() => { setStatus("idle"); setPreview(null); }} style={{ background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: p.textSub, borderRadius: 8, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
           </div>
         </div>
       )}
       <div style={{ fontSize: 11, color: p.textMute, marginTop: 8, lineHeight: 1.5 }}>
-        On LinkedIn: open your profile → More → Save to PDF
+        Local parsing only. No scraping or external profile import is performed.
       </div>
     </div>
   );
 }
 
 // ── Glass section card ────────────────────────────────────────────
-function SCard({ title, dm, onEdit, children }) {
+function EditGlyph({ size = 17 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+    </svg>
+  );
+}
+
+function PlusGlyph({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  );
+}
+
+function SCard({ title, dm, onEdit, onAdd, children, footer }) {
   const p = palette(dm);
   return (
-    <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "20px 24px", marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <span style={{
-          fontFamily: MONO, fontSize: 10, fontWeight: 600,
-          letterSpacing: "1.4px", textTransform: "uppercase",
-          color: ACCENT,
-        }}>{title}</span>
-        {onEdit && (
-          <button onClick={onEdit} style={{
-            background: "none",
-            border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`,
-            borderRadius: RADIUS.sm, padding: "4px 10px",
-            color: dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)",
-            fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: SANS,
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"; e.currentTarget.style.color = dm ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)"; }}>Edit</button>
-        )}
+    <section style={{
+      background: dm ? "rgba(18,18,18,0.92)" : "#fff",
+      border: `1px solid ${p.line}`,
+      borderRadius: 10,
+      marginBottom: 10,
+      overflow: "hidden",
+      boxShadow: dm ? "0 14px 36px rgba(0,0,0,0.22)" : "0 1px 2px rgba(26,18,15,0.06)",
+      color: p.text,
+      transition: "background 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease",
+    }}>
+      <div style={{ padding: "20px 22px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12 }}>
+          <h2 style={{ margin: 0, color: p.text, fontSize: 21, fontWeight: 780, letterSpacing: -0.25, fontFamily: SANS }}>{title}</h2>
+          {(onAdd || onEdit) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {onAdd && (
+                <button aria-label={`Add ${title}`} onClick={onAdd} style={{
+                  background: "transparent", border: "none", borderRadius: "50%",
+                  width: 34, height: 34, color: p.textSub, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"; e.currentTarget.style.color = p.text; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = p.textSub; }}>
+                  <PlusGlyph />
+                </button>
+              )}
+              {onEdit && (
+                <button aria-label={`Edit ${title}`} onClick={onEdit} style={{
+                  background: "transparent", border: "none", borderRadius: "50%",
+                  width: 34, height: 34, color: p.textSub, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"; e.currentTarget.style.color = p.text; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = p.textSub; }}>
+                  <EditGlyph />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
+      {footer && (
+        <div style={{ borderTop: `1px solid ${p.line}`, padding: "12px 20px", textAlign: "center" }}>
+          {footer}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -363,10 +411,10 @@ function SCard({ title, dm, onEdit, children }) {
 function Avatar({ user, size = 80 }) {
   const initials = [user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || (user?.username?.[0] || "?").toUpperCase();
   if (user?.imageUrl && !user.imageUrl.includes("gravatar") && !user.imageUrl.endsWith("default")) {
-    return <img src={user.imageUrl} alt="Profile" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0 }} />;
+    return <img src={user.imageUrl} alt="Profile" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid rgba(255,255,255,0.96)", flexShrink: 0 }} />;
   }
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white", fontWeight: 700, fontSize: Math.round(size * 0.34), display: "flex", alignItems: "center", justifyContent: "center", border: "4px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>{initials}</div>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, #6b1833 0%, #861F41 55%, #b03060 100%)", color: "white", fontWeight: 700, fontSize: Math.round(size * 0.34), display: "flex", alignItems: "center", justifyContent: "center", border: "4px solid rgba(255,255,255,0.96)", flexShrink: 0 }}>{initials}</div>
   );
 }
 
@@ -504,6 +552,100 @@ function PostComposer({ user, dm, onPost }) {
   );
 }
 
+function ProfileSkeleton({ darkMode, isMobile }) {
+  return (
+    <div aria-busy="true" style={{ minHeight: "calc(100vh - 60px)", padding: isMobile ? "16px" : "24px 32px 72px", maxWidth: 1180, margin: "0 auto" }}>
+      <SkeletonCard darkMode={darkMode} style={{ padding: 0, overflow: "hidden", borderRadius: 10, marginBottom: 16 }}>
+        <Skeleton darkMode={darkMode} height={isMobile ? 120 : 190} radius={0} />
+        <div style={{ padding: "0 22px 22px" }}>
+          <SkeletonAvatar darkMode={darkMode} size={isMobile ? 92 : 136} radius={999} style={{ marginTop: isMobile ? -46 : -68, border: "4px solid transparent" }} />
+          <Skeleton darkMode={darkMode} width={220} height={28} style={{ marginTop: 14, marginBottom: 10 }} />
+          <SkeletonText darkMode={darkMode} lines={2} widths={["72%", "42%"]} />
+          <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+            <SkeletonButton darkMode={darkMode} width={112} />
+            <SkeletonButton darkMode={darkMode} width={120} />
+            <SkeletonButton darkMode={darkMode} width={96} />
+          </div>
+        </div>
+      </SkeletonCard>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 330px", gap: 16 }}>
+        <div style={{ display: "grid", gap: 10 }}>
+          {[0, 1, 2, 3].map(i => (
+            <SkeletonCard key={i} darkMode={darkMode} style={{ borderRadius: 10, minHeight: i === 1 ? 210 : 140 }}>
+              <Skeleton darkMode={darkMode} width="32%" height={22} style={{ marginBottom: 18 }} />
+              <SkeletonText darkMode={darkMode} lines={i === 1 ? 5 : 3} />
+            </SkeletonCard>
+          ))}
+        </div>
+        <div style={{ display: "grid", gap: 10 }}>
+          {[0, 1, 2].map(i => (
+            <SkeletonCard key={i} darkMode={darkMode} style={{ borderRadius: 10, minHeight: 128 }}>
+              <SkeletonText darkMode={darkMode} lines={4} widths={["70%", "95%", "86%", "54%"]} />
+            </SkeletonCard>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ children, action }) {
+  return (
+    <div style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.72 }}>
+      {children} {action}
+    </div>
+  );
+}
+
+function CompanyMark({ label, src, dm }) {
+  return src ? (
+    <img src={src} alt="" style={{ width: 50, height: 50, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+  ) : (
+    <div style={{
+      width: 50, height: 50, borderRadius: 8, flexShrink: 0,
+      background: dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: ACCENT, fontWeight: 800, fontSize: 16,
+    }}>
+      {(label || "D").slice(0, 1).toUpperCase()}
+    </div>
+  );
+}
+
+function ItemRow({ dm, title, subtitle, meta, description, mark, last }) {
+  const p = palette(dm);
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: last ? 0 : 18, borderBottom: last ? "none" : `1px solid ${p.line}`, marginBottom: last ? 0 : 18 }}>
+      <CompanyMark label={title || subtitle} src={mark} dm={dm} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 15, fontWeight: 760, color: p.text, lineHeight: 1.32 }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 14, color: p.text, opacity: 0.84, lineHeight: 1.35, marginTop: 2 }}>{subtitle}</div>}
+        {meta && <div style={{ fontSize: 13, color: p.textSub, marginTop: 3, lineHeight: 1.35 }}>{meta}</div>}
+        {description && <p style={{ margin: "10px 0 0", fontSize: 14, color: p.text, opacity: 0.86, lineHeight: 1.58 }}>{description}</p>}
+      </div>
+    </div>
+  );
+}
+
+function SidebarCard({ dm, title, children }) {
+  const p = palette(dm);
+  return (
+    <aside style={{
+      background: dm ? "rgba(18,18,18,0.92)" : "#fff",
+      border: `1px solid ${p.line}`,
+      borderRadius: 10,
+      padding: "18px 20px",
+      marginBottom: 10,
+      boxShadow: dm ? "0 14px 36px rgba(0,0,0,0.18)" : "0 1px 2px rgba(26,18,15,0.06)",
+      color: p.text,
+      transition: "background 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease",
+    }}>
+      <h3 style={{ margin: "0 0 14px", fontSize: 17, color: p.text, fontWeight: 760 }}>{title}</h3>
+      {children}
+    </aside>
+  );
+}
+
 // ── Edit modal ────────────────────────────────────────────────────
 function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInImport }) {
   const p = palette(dm);
@@ -529,8 +671,8 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
           <button onClick={onClose} style={{ background: dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", border: "none", borderRadius: 8, width: 34, height: 34, cursor: "pointer", fontSize: 16, color: p.textSub }}>✕</button>
         </div>
 
-        <div style={{ marginBottom: 20, padding: "14px 16px", background: "rgba(0,119,181,0.06)", border: "1px solid rgba(0,119,181,0.15)", borderRadius: 12 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: "#0077b5", marginBottom: 10 }}>Auto-fill from LinkedIn</div>
+        <div style={{ marginBottom: 20, padding: "14px 16px", background: "rgba(134,31,65,0.06)", border: "1px solid rgba(134,31,65,0.15)", borderRadius: 12 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: ACCENT, marginBottom: 10 }}>Optional import</div>
           <LinkedInImport dm={dm} onImport={onLinkedInImport} />
         </div>
 
@@ -546,6 +688,15 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
           </div>
           <div><label style={LS}>Headline</label><input value={form.headline} onChange={e => set("headline", e.target.value)} placeholder="e.g. CS student at Virginia Tech" style={IS} onFocus={onF} onBlur={onB} /></div>
           <div><label style={LS}>About / Bio</label><textarea value={form.bio} onChange={e => set("bio", e.target.value)} placeholder="Tell people about yourself…" rows={4} style={{ ...IS, resize: "vertical", lineHeight: 1.6 }} onFocus={onF} onBlur={onB} /></div>
+          <div>
+            <label style={LS}>Profile visibility</label>
+            {/* TODO: Apply this preference to public/non-owner profile routing when social profiles ship. */}
+            <select value={form.profileVisibility || "darvis"} onChange={e => set("profileVisibility", e.target.value)} style={{ ...IS, appearance: "none", cursor: "pointer" }} onFocus={onF} onBlur={onB}>
+              <option value="public" style={{ color: "black", background: "white" }}>Public</option>
+              <option value="darvis" style={{ color: "black", background: "white" }}>Darvis users only</option>
+              <option value="private" style={{ color: "black", background: "white" }}>Only me</option>
+            </select>
+          </div>
 
           <SL>Links</SL>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -656,6 +807,115 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
   );
 }
 
+function InlineSectionEditor({ section, dm, form, set, onSave, onCancel, saving, error }) {
+  const p = palette(dm);
+  const IS = { width: "100%", padding: "9px 12px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.035)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 9, color: p.text, fontSize: 13, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
+  const LS = { fontSize: 10, fontWeight: 800, color: p.textSub, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 5, display: "block" };
+  const panel = { display: "grid", gap: 12, padding: 14, borderRadius: 12, background: dm ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.03)", border: `1px solid ${p.line}` };
+  const row2 = { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 };
+  const row3 = { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 };
+  const addExp = () => set("experience", [...(form.experience || []), { company: "", title: "", location: "", startDate: "", endDate: "", current: false, description: "" }]);
+  const updExp = (i, k, v) => set("experience", form.experience.map((e, idx) => idx === i ? { ...e, [k]: v } : e));
+  const delExp = i => set("experience", form.experience.filter((_, idx) => idx !== i));
+  const addEdu = () => set("education", [...(form.education || []), { school: "", degree: "", field: "", startYear: "", endYear: "" }]);
+  const updEdu = (i, k, v) => set("education", form.education.map((e, idx) => idx === i ? { ...e, [k]: v } : e));
+  const delEdu = i => set("education", form.education.filter((_, idx) => idx !== i));
+
+  const Field = ({ label, children }) => <div><label style={LS}>{label}</label>{children}</div>;
+  const Actions = () => (
+    <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 2 }}>
+      <button onClick={onCancel} style={{ background: "transparent", border: `1px solid ${p.line}`, color: p.textSub, borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: SANS }}>Cancel</button>
+      <button onClick={onSave} disabled={saving} style={{ background: ACCENT, border: "none", color: "white", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 800, cursor: saving ? "default" : "pointer", opacity: saving ? 0.72 : 1, fontFamily: SANS }}>{saving ? "Saving..." : "Save"}</button>
+    </div>
+  );
+
+  let body = null;
+  if (section === "about") {
+    body = <Field label="About"><textarea rows={5} value={form.bio} onChange={e => set("bio", e.target.value)} placeholder="Tell people about yourself..." style={{ ...IS, resize: "vertical", lineHeight: 1.6 }} /></Field>;
+  } else if (section === "academic") {
+    body = (
+      <>
+        <div style={row2}>
+          <Field label="Major"><input list="majors-inline" value={form.major} onChange={e => set("major", e.target.value)} placeholder="Computer Science" style={IS} /><datalist id="majors-inline">{MAJORS.map(m => <option key={m} value={m} />)}</datalist></Field>
+          <Field label="Minor"><input value={form.minor} onChange={e => set("minor", e.target.value)} placeholder="Mathematics" style={IS} /></Field>
+        </div>
+        <div style={row3}>
+          <Field label="Year"><select value={form.year} onChange={e => set("year", e.target.value)} style={IS}><option value="">Select</option>{YEARS.map(y => <option key={y} value={y}>{y}</option>)}</select></Field>
+          <Field label="Current term"><select value={form.term} onChange={e => set("term", e.target.value)} style={IS}><option value="">Select</option>{TERMS.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+          <Field label="Graduation"><select value={form.gradTerm} onChange={e => set("gradTerm", e.target.value)} style={IS}><option value="">Select</option>{GRAD_TERMS.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+        </div>
+      </>
+    );
+  } else if (section === "experience") {
+    body = (
+      <>
+        {(form.experience || []).map((exp, i) => (
+          <div key={i} style={{ display: "grid", gap: 10, padding: 12, borderRadius: 10, border: `1px solid ${p.line}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <strong style={{ color: p.text, fontSize: 13 }}>Experience {i + 1}</strong>
+              <button onClick={() => delExp(i)} style={{ background: "transparent", border: "none", color: "#e74c3c", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>Remove</button>
+            </div>
+            <div style={row2}>
+              <Field label="Title"><input value={exp.title} onChange={e => updExp(i, "title", e.target.value)} placeholder="Role" style={IS} /></Field>
+              <Field label="Company"><input value={exp.company} onChange={e => updExp(i, "company", e.target.value)} placeholder="Organization" style={IS} /></Field>
+            </div>
+            <div style={row3}>
+              <Field label="Location"><input value={exp.location} onChange={e => updExp(i, "location", e.target.value)} placeholder="Remote" style={IS} /></Field>
+              <Field label="Start"><input value={exp.startDate} onChange={e => updExp(i, "startDate", e.target.value)} placeholder="Jun 2026" style={IS} /></Field>
+              <Field label="End"><input value={exp.current ? "Present" : exp.endDate} disabled={exp.current} onChange={e => updExp(i, "endDate", e.target.value)} placeholder="Aug 2026" style={{ ...IS, opacity: exp.current ? 0.6 : 1 }} /></Field>
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 7, color: p.textSub, fontSize: 12, cursor: "pointer" }}><input type="checkbox" checked={!!exp.current} onChange={e => updExp(i, "current", e.target.checked)} style={{ accentColor: ACCENT }} /> Current role</label>
+            <Field label="Description"><textarea rows={3} value={exp.description} onChange={e => updExp(i, "description", e.target.value)} placeholder="What did you do?" style={{ ...IS, resize: "vertical", lineHeight: 1.5 }} /></Field>
+          </div>
+        ))}
+        <button onClick={addExp} style={{ background: "transparent", border: `1px dashed ${p.line}`, color: p.textSub, borderRadius: 9, padding: 10, cursor: "pointer", fontWeight: 700, fontFamily: SANS }}>Add experience</button>
+      </>
+    );
+  } else if (section === "education") {
+    body = (
+      <>
+        {(form.education || []).map((edu, i) => (
+          <div key={i} style={{ display: "grid", gap: 10, padding: 12, borderRadius: 10, border: `1px solid ${p.line}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <strong style={{ color: p.text, fontSize: 13 }}>Education {i + 1}</strong>
+              <button onClick={() => delEdu(i)} style={{ background: "transparent", border: "none", color: "#e74c3c", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>Remove</button>
+            </div>
+            <Field label="School"><input value={edu.school} onChange={e => updEdu(i, "school", e.target.value)} placeholder="School" style={IS} /></Field>
+            <div style={row2}>
+              <Field label="Degree"><input value={edu.degree} onChange={e => updEdu(i, "degree", e.target.value)} placeholder="B.S." style={IS} /></Field>
+              <Field label="Field"><input value={edu.field} onChange={e => updEdu(i, "field", e.target.value)} placeholder="Computer Science" style={IS} /></Field>
+            </div>
+            <div style={row2}>
+              <Field label="Start year"><input value={edu.startYear} onChange={e => updEdu(i, "startYear", e.target.value)} placeholder="2024" style={IS} /></Field>
+              <Field label="End year"><input value={edu.endYear} onChange={e => updEdu(i, "endYear", e.target.value)} placeholder="2027" style={IS} /></Field>
+            </div>
+          </div>
+        ))}
+        <button onClick={addEdu} style={{ background: "transparent", border: `1px dashed ${p.line}`, color: p.textSub, borderRadius: 9, padding: 10, cursor: "pointer", fontWeight: 700, fontFamily: SANS }}>Add education</button>
+      </>
+    );
+  } else if (section === "skills") {
+    body = <TagInput tags={form.interests} onChange={v => set("interests", v)} placeholder="Type a skill, press Enter..." suggestions={INTEREST_SUGGESTIONS} dm={dm} id="profile-inline-skills" />;
+  } else if (section === "clubs") {
+    body = <TagInput tags={form.hobbies} onChange={v => set("hobbies", v)} placeholder="Type a club or interest, press Enter..." suggestions={HOBBY_SUGGESTIONS} dm={dm} id="profile-inline-clubs" />;
+  } else if (section === "courses") {
+    body = (
+      <>
+        <TagInput tags={form.coursesTaken} onChange={v => set("coursesTaken", v)} placeholder="e.g. CS 2114, MATH 2224..." dm={dm} id="profile-inline-courses" />
+        <TranscriptUpload dm={dm} onCoursesFound={courses => set("coursesTaken", [...new Set([...form.coursesTaken, ...courses])])} />
+      </>
+    );
+  }
+
+  return (
+    <div style={panel}>
+      {body}
+      {error && <div style={{ color: "#e74c3c", fontSize: 13, lineHeight: 1.45 }}>{error}</div>}
+      <Actions />
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────
 export default function ProfilePage({ darkMode }) {
   const { user, isLoaded } = useUser();
@@ -664,12 +924,15 @@ export default function ProfilePage({ darkMode }) {
   const p  = palette(dm);
 
   const [editing, setEditing]             = useState(false);
+  const [editingSection, setEditingSection] = useState("");
   const [saving, setSaving]               = useState(false);
   const [error, setError]                 = useState("");
   const [isMobile, setIsMobile]           = useState(() => window.innerWidth < 768);
   const [bannerEditing, setBannerEditing] = useState(false);
   const [bannerSaving, setBannerSaving]   = useState(false);
   const [posts, setPosts]                 = useState([]);
+  const [postsLoading, setPostsLoading]   = useState(false);
+  const [postsError, setPostsError]       = useState("");
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -688,8 +951,14 @@ export default function ProfilePage({ darkMode }) {
 
   useEffect(() => {
     if (!user?.id) return;
-    API.getPosts(user.id).then(setPosts).catch(() => {});
+    setPostsLoading(true);
+    setPostsError("");
+    API.getPosts(user.id)
+      .then(setPosts)
+      .catch(() => setPostsError("Activity could not be loaded."))
+      .finally(() => setPostsLoading(false));
   }, [user?.id]);
+  const showPostsLoading = useMinimumLoading(postsLoading);
 
   const meta = user?.unsafeMetadata || {};
 
@@ -702,6 +971,7 @@ export default function ProfilePage({ darkMode }) {
     interests: meta.interests || [], coursesTaken: meta.coursesTaken || [],
     bio: meta.bio || "", location: meta.location || "",
     headline: meta.headline || "", hobbies: meta.hobbies || [],
+    profileVisibility: meta.profileVisibility || "darvis",
     linkedIn: meta.linkedIn || "", github: meta.github || "", website: meta.website || "",
     experience: meta.experience || [],
     education:  meta.education  || [],
@@ -738,7 +1008,8 @@ export default function ProfilePage({ darkMode }) {
           gpa: form.gpa, gradTerm: form.gradTerm,
           interests: form.interests, coursesTaken: form.coursesTaken,
           bio: form.bio, location: form.location, headline: form.headline,
-          hobbies: form.hobbies, linkedIn: form.linkedIn,
+          hobbies: form.hobbies, profileVisibility: form.profileVisibility,
+          linkedIn: form.linkedIn,
           github: form.github, website: form.website,
           experience: form.experience,
           education:  form.education,
@@ -751,13 +1022,63 @@ export default function ProfilePage({ darkMode }) {
     setSaving(false);
   };
 
-  if (!isLoaded) return null;
+  const startEdit = () => { setForm(freshForm()); setError(""); setEditing(true); setEditingSection(""); };
+  const startSectionEdit = section => { setForm(freshForm()); setError(""); setEditing(false); setEditingSection(section); };
+  const cancelSectionEdit = () => { setError(""); setEditingSection(""); setForm(freshForm()); };
+  const saveSection = async () => {
+    setSaving(true); setError("");
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...meta, onboardingComplete: true,
+          major: form.major, minor: form.minor,
+          year: form.year, term: form.term,
+          gpa: form.gpa, gradTerm: form.gradTerm,
+          interests: form.interests, coursesTaken: form.coursesTaken,
+          bio: form.bio, location: form.location, headline: form.headline,
+          hobbies: form.hobbies, profileVisibility: form.profileVisibility,
+          linkedIn: form.linkedIn,
+          github: form.github, website: form.website,
+          experience: form.experience,
+          education:  form.education,
+        },
+      });
+      setEditingSection("");
+    } catch (e) {
+      setError(e?.errors?.[0]?.longMessage || e?.message || "Something went wrong.");
+    }
+    setSaving(false);
+  };
 
-  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "User";
-  const gpaNum = parseFloat(meta.gpa);
-  const gpaColor = !isNaN(gpaNum) ? (gpaNum >= 3.5 ? "#22a84a" : gpaNum >= 3.0 ? "#b45309" : "#c0392b") : ACCENT;
-  const autoHeadline = meta.headline || [meta.major, meta.year ? `${meta.year} at Virginia Tech` : "Virginia Tech"].filter(Boolean).join(" · ");
-  const startEdit = () => { setForm(freshForm()); setError(""); setEditing(true); };
+  if (!isLoaded) return <ProfileSkeleton darkMode={dm} isMobile={isMobile} />;
+  if (!user) {
+    return (
+      <div style={{ minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: SANS }}>
+        <SkeletonCard darkMode={dm} style={{ maxWidth: 420, textAlign: "center" }}>
+          <div style={{ color: p.text, fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Profile unavailable</div>
+          <div style={{ color: p.textSub, fontSize: 14 }}>Sign in again to view your Darvis profile.</div>
+        </SkeletonCard>
+      </div>
+    );
+  }
+
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Darvis Student";
+  const school = meta.school || "Virginia Tech";
+  const schoolMark = schoolMarkFor(school);
+  const autoHeadline = meta.headline || [meta.major || "Student", school].filter(Boolean).join(" at ");
+  const completionItems = [
+    !!displayName,
+    !!meta.headline,
+    !!meta.bio,
+    !!meta.major,
+    !!meta.gradTerm,
+    (meta.interests || []).length > 0,
+    (meta.experience || []).length > 0,
+    (meta.education || []).length > 0,
+  ];
+  const completion = Math.round((completionItems.filter(Boolean).length / completionItems.length) * 100);
+  const visibilityLabel = meta.profileVisibility === "public" ? "Public" : meta.profileVisibility === "private" ? "Only me" : "Darvis users only";
+  const email = user?.emailAddresses?.[0]?.emailAddress;
 
   const Chip = ({ children }) => (
     <span style={{ background: "rgba(134,31,65,0.15)", color: ACCENT, border: "1px solid rgba(134,31,65,0.28)", borderRadius: RADIUS.pill, padding: "5px 14px", fontSize: 12, fontWeight: 700, fontFamily: SANS }}>{children}</span>
@@ -765,185 +1086,283 @@ export default function ProfilePage({ darkMode }) {
 
   const bannerPreset = BANNER_PRESETS.find(b => b.key === meta.bannerPreset) || BANNER_PRESETS[0];
   const bannerBg = meta.bannerUrl ? `url(${meta.bannerUrl}) center/cover no-repeat` : bannerPreset.style;
+  const profileUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareProfile = () => {
+    const text = `${displayName} on Darvis`;
+    if (navigator.share) navigator.share({ title: text, url: profileUrl }).catch(() => {});
+    else navigator.clipboard?.writeText(profileUrl).catch(() => {});
+  };
 
   return (
-    <div style={{ minHeight: "calc(100vh - 60px)", fontFamily: SANS, paddingBottom: 80 }}>
+    <div style={{ minHeight: "calc(100vh - 60px)", fontFamily: SANS, padding: isMobile ? "14px 12px 80px" : "24px 28px 88px", background: dm ? "#000" : "#f3f2ef", color: p.text, transition: "background 0.24s ease, color 0.24s ease" }}>
+      <div style={{ maxWidth: 1160, margin: "0 auto" }}>
 
-      {/* Cover banner */}
-      <div data-banner-trigger style={{ background: bannerBg, height: isMobile ? 120 : 180, position: "relative", cursor: "pointer" }}
-        onClick={() => setBannerEditing(v => !v)}>
-        {!meta.bannerUrl && <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 50%, rgba(134,31,65,0.3) 0%, transparent 60%)" }} />}
-        {bannerEditing && (
-          <div data-banner-picker onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: -8, right: 14, transform: "translateY(100%)", zIndex: 50, background: dm ? "rgba(18,14,12,0.96)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: RADIUS.md, padding: 16, boxShadow: SHADOW.xl, minWidth: 280 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase", marginBottom: 12 }}>Choose banner</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
-              {BANNER_PRESETS.map(b => {
-                const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
-                return <button key={b.key} title={b.key} onClick={async () => { setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } }); } finally { setBannerSaving(false); } }} style={{ height: 36, borderRadius: RADIUS.xs, cursor: "pointer", background: b.style, border: active ? "2.5px solid white" : "2px solid transparent", boxShadow: active ? "0 0 0 2px #861F41" : "none", padding: 0 }} />;
-              })}
+        <section style={{
+          background: dm ? "rgba(18,18,18,0.94)" : "#fff",
+          border: `1px solid ${p.line}`,
+          borderRadius: 10,
+          overflow: "hidden",
+          marginBottom: 10,
+          boxShadow: dm ? "0 18px 50px rgba(0,0,0,0.26)" : "0 1px 2px rgba(26,18,15,0.08)",
+          color: p.text,
+          transition: "background 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease",
+        }}>
+          <div data-banner-trigger style={{ background: bannerBg, height: isMobile ? 138 : 214, position: "relative", cursor: "pointer" }}
+            onClick={() => setBannerEditing(v => !v)}>
+            {!meta.bannerUrl && <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 28% 50%, rgba(255,255,255,0.12) 0%, transparent 52%), linear-gradient(90deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))" }} />}
+            <button type="button" aria-label="Edit cover image" onClick={e => { e.stopPropagation(); setBannerEditing(v => !v); }} style={{
+              position: "absolute", right: 22, bottom: 18,
+              width: 40, height: 40, borderRadius: "50%",
+              border: "none", background: "rgba(255,255,255,0.92)",
+              color: "#1f1f1f", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.22)",
+            }}>
+              <EditGlyph size={18} />
+            </button>
+            {bannerEditing && (
+              <div data-banner-picker onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 12, right: 68, zIndex: 50, background: dm ? "rgba(18,18,18,0.98)" : "rgba(255,255,255,0.98)", backdropFilter: "blur(20px)", border: `1px solid ${p.line}`, borderRadius: 10, padding: 16, boxShadow: SHADOW.xl, minWidth: isMobile ? 250 : 310 }}>
+                <div style={{ fontSize: 13, fontWeight: 760, color: p.text, marginBottom: 12 }}>Choose cover</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
+                  {BANNER_PRESETS.map(b => {
+                    const active = !meta.bannerUrl && (meta.bannerPreset || "vt-default") === b.key;
+                    return <button key={b.key} title={b.key} onClick={async () => { setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerPreset: b.key, bannerUrl: "" } }); } finally { setBannerSaving(false); } }} style={{ height: 36, borderRadius: 8, cursor: "pointer", background: b.style, border: active ? "2.5px solid white" : "2px solid transparent", boxShadow: active ? "0 0 0 2px #861F41" : "none", padding: 0 }} />;
+                  })}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 6 }}>Image URL</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input placeholder="https://..." defaultValue={meta.bannerUrl || ""} id="banner-url-input" style={{ flex: 1, minWidth: 0, padding: "8px 10px", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `1px solid ${p.line}`, borderRadius: 8, color: p.text, fontSize: 12, fontFamily: SANS, outline: "none" }} />
+                  <button disabled={bannerSaving} onClick={async () => { const url = document.getElementById("banner-url-input")?.value?.trim(); setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } }); } finally { setBannerSaving(false); } }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 800, cursor: bannerSaving ? "default" : "pointer", fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1 }}>{bannerSaving ? "..." : "Apply"}</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{ padding: isMobile ? "0 18px 20px" : "0 28px 28px", position: "relative" }}>
+            <div style={{ marginTop: isMobile ? -54 : -76, marginBottom: 12, width: isMobile ? 112 : 154, height: isMobile ? 112 : 154, borderRadius: "50%", background: dm ? "#121212" : "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Avatar user={user} size={isMobile ? 104 : 146} />
             </div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: p.textSub, marginBottom: 6, fontFamily: SANS }}>Or paste an image URL</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <input placeholder="https://…" defaultValue={meta.bannerUrl || ""} id="banner-url-input" style={{ flex: 1, padding: "7px 10px", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: RADIUS.xs, color: p.text, fontSize: 12, fontFamily: SANS, outline: "none" }} />
-              <button disabled={bannerSaving} onClick={async () => { const url = document.getElementById("banner-url-input")?.value?.trim(); setBannerSaving(true); try { await user.update({ unsafeMetadata: { ...meta, bannerUrl: url || "", bannerPreset: url ? "" : (meta.bannerPreset || "vt-default") } }); } finally { setBannerSaving(false); } }} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.xs, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: bannerSaving ? "default" : "pointer", fontFamily: SANS, opacity: bannerSaving ? 0.7 : 1 }}>{bannerSaving ? "…" : "Apply"}</button>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) auto", gap: 20, alignItems: "start" }}>
+              <div style={{ minWidth: 0 }}>
+                <h1 style={{ margin: "0 0 5px", color: p.text, fontWeight: 760, fontSize: isMobile ? 27 : 32, letterSpacing: -0.6 }}>{displayName}</h1>
+                <div style={{ color: p.text, fontSize: 17, lineHeight: 1.4, marginBottom: 7 }}>{autoHeadline}</div>
+                <div style={{ color: p.textSub, fontSize: 14, lineHeight: 1.55 }}>
+                  {[school, meta.major, meta.gradTerm ? `Expected ${meta.gradTerm}` : null].filter(Boolean).join(" · ")}
+                </div>
+                <div style={{ color: p.textSub, fontSize: 14, lineHeight: 1.55 }}>
+                  {[meta.location || "Blacksburg, VA", meta.year].filter(Boolean).join(" · ")}
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+                  <button onClick={startEdit} style={{ background: "#0a66c2", color: "white", border: "none", borderRadius: RADIUS.pill, padding: "8px 18px", fontWeight: 760, fontSize: 14, cursor: "pointer", fontFamily: SANS }}>Edit profile</button>
+                  <button onClick={shareProfile} style={{ background: "transparent", border: `1.5px solid ${dm ? "rgba(255,255,255,0.36)" : "#0a66c2"}`, color: dm ? p.text : "#0a66c2", borderRadius: RADIUS.pill, padding: "7px 17px", fontWeight: 760, fontSize: 14, cursor: "pointer", fontFamily: SANS }}>Share profile</button>
+                  <button onClick={() => openUserProfile()} style={{ background: "transparent", border: `1.5px solid ${p.line}`, color: p.textSub, borderRadius: RADIUS.pill, padding: "7px 17px", fontWeight: 760, fontSize: 14, cursor: "pointer", fontFamily: SANS }}>Account</button>
+                </div>
+              </div>
+              <div style={{ minWidth: isMobile ? 0 : 250, display: "grid", gap: 9, alignSelf: "end", justifyItems: isMobile ? "start" : "end", textAlign: isMobile ? "left" : "right" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, color: p.text, fontWeight: 760, fontSize: 15, justifyContent: isMobile ? "flex-start" : "flex-end" }}>
+                  {schoolMark ? (
+                    <img src={schoolMark} alt="" style={{ width: 38, height: 38, borderRadius: "50%", background: "white", objectFit: "cover" }} />
+                  ) : (
+                    <CompanyMark label={school} dm={dm} />
+                  )}
+                  {school}
+                </div>
+                <div style={{ fontSize: 12, color: p.textSub, lineHeight: 1.5, padding: "5px 10px", border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.035)" }}>
+                  Profile visibility: <strong style={{ color: p.text }}>{visibilityLabel}</strong>
+                </div>
+              </div>
             </div>
-            <button onClick={() => setBannerEditing(false)} style={{ marginTop: 10, width: "100%", background: "none", border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: RADIUS.xs, padding: "6px", color: p.textSub, fontSize: 12, cursor: "pointer", fontFamily: SANS }}>Done</button>
           </div>
-        )}
-      </div>
+        </section>
 
-      {/* Profile header */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "0 16px" : "0 40px" }}>
-        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: isMobile ? 12 : 20, marginTop: isMobile ? -44 : -56, paddingBottom: 20, borderBottom: `1px solid ${p.line}`, position: "relative", zIndex: 2 }}>
-          <div style={{ border: `4px solid ${dm ? "#0A0908" : "#FAF6F0"}`, borderRadius: "50%", flexShrink: 0 }}>
-            <Avatar user={user} size={isMobile ? 72 : 96} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0, paddingBottom: isMobile ? 0 : 4 }}>
-            <h1 style={{ margin: "0 0 4px", color: p.text, fontWeight: 400, fontSize: isMobile ? 22 : 28, fontFamily: SERIF, letterSpacing: "-0.4px" }}>{displayName}</h1>
-            <div style={{ color: p.textSub, fontSize: 14, marginBottom: 4, fontWeight: 500, fontFamily: SANS }}>{autoHeadline}</div>
-            {meta.location && <div style={{ color: p.textMute, fontSize: 12, display: "flex", alignItems: "center", gap: 4, fontFamily: SANS }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              {meta.location}
-            </div>}
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
-            <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "9px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
-              onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-              onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Edit profile</button>
-            <button onClick={() => openUserProfile()} style={{ background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", border: `1px solid ${p.line}`, color: p.textSub, borderRadius: RADIUS.sm, padding: "9px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textSub; }}>Account</button>
-            <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${p.line}`, color: p.textMute, borderRadius: RADIUS.sm, padding: "9px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: SANS }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#e74c3c"; e.currentTarget.style.color = "#e74c3c"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = p.line; e.currentTarget.style.color = p.textMute; }}>Sign out</button>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 300px", gap: 16, marginTop: 16, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 330px", gap: 16, alignItems: "start" }}>
 
           {/* Main column */}
           <div>
             <PostComposer user={user} dm={dm} onPost={post => setPosts(prev => [post, ...prev])} />
 
-            {meta.bio && (
-              <SCard title="About" dm={dm} onEdit={startEdit}>
+            <SCard title="About" dm={dm} onEdit={() => startSectionEdit("about")}>
+              {editingSection === "about" ? (
+                <InlineSectionEditor section="about" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : meta.bio ? (
                 <p style={{ margin: 0, fontSize: 14, color: p.text, lineHeight: 1.75, fontFamily: SANS }}>{meta.bio}</p>
-              </SCard>
-            )}
-
-            {(meta.experience || []).length > 0 && (
-              <SCard title="Experience" dm={dm} onEdit={startEdit}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {meta.experience.map((exp, i) => (
-                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.experience.length - 1 ? 16 : 0, borderBottom: i < meta.experience.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
-                      <div style={{ width: 40, height: 40, borderRadius: RADIUS.sm, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🏢</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text, fontFamily: SANS }}>{exp.title}</div>
-                        <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</div>
-                        {(exp.startDate || exp.endDate || exp.current) && (
-                          <div style={{ fontSize: 11, color: p.textMute, marginTop: 3, fontFamily: MONO }}>{exp.startDate}{exp.endDate || exp.current ? ` — ${exp.current ? "Present" : exp.endDate}` : ""}</div>
-                        )}
-                        {exp.description && <p style={{ margin: "6px 0 0", fontSize: 13, color: p.textSub, lineHeight: 1.6, fontFamily: SANS }}>{exp.description}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </SCard>
-            )}
-
-            {(meta.education || []).length > 0 && (
-              <SCard title="Education" dm={dm} onEdit={startEdit}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {meta.education.map((edu, i) => (
-                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", paddingBottom: i < meta.education.length - 1 ? 16 : 0, borderBottom: i < meta.education.length - 1 ? `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` : "none" }}>
-                      <div style={{ width: 40, height: 40, borderRadius: RADIUS.sm, background: dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: p.text, fontFamily: SANS }}>{edu.school}</div>
-                        <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>{[edu.degree, edu.field].filter(Boolean).join(" · ")}</div>
-                        {(edu.startYear || edu.endYear) && <div style={{ fontSize: 11, color: p.textMute, marginTop: 3, fontFamily: MONO }}>{edu.startYear}{edu.endYear ? ` — ${edu.endYear}` : ""}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </SCard>
-            )}
-
-            <SCard title="Skills & Interests" dm={dm} onEdit={startEdit}>
-              {(meta.interests || []).length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{meta.interests.map(t => <Chip key={t}>{t}</Chip>)}</div>
               ) : (
-                <div style={{ color: p.textSub, fontSize: 14 }}>No interests yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add some →</button></div>
+                <EmptyState action={<button onClick={() => startSectionEdit("about")} style={{ background: "none", border: "none", color: "#0a66c2", cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS, fontWeight: 760 }}>Add an about section</button>}>No bio yet.</EmptyState>
               )}
             </SCard>
 
-            {(meta.hobbies || []).length > 0 && (
-              <SCard title="Hobbies" dm={dm} onEdit={startEdit}>
+            <SCard title="Academic Info" dm={dm} onEdit={() => startSectionEdit("academic")}>
+              {editingSection === "academic" ? (
+                <InlineSectionEditor section="academic" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+                {[
+                  ["School", school],
+                  ["Major", meta.major],
+                  ["Minor", meta.minor],
+                  ["Class year", meta.year],
+                  ["Current term", meta.term],
+                  ["Graduation", meta.gradTerm],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ padding: "12px 14px", borderRadius: 8, background: dm ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.035)", border: `1px solid ${p.line}` }}>
+                    <div style={{ fontSize: 12, color: p.textSub, marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 14, color: value ? p.text : p.textMute, fontWeight: 720 }}>{value || "Not added"}</div>
+                  </div>
+                ))}
+              </div>}
+            </SCard>
+
+            <SCard title="Activity" dm={dm} footer={posts.length > 2 ? <span style={{ color: p.textSub, fontWeight: 760 }}>Showing recent activity</span> : null}>
+              {showPostsLoading ? (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <SkeletonCard darkMode={dm}><SkeletonText darkMode={dm} lines={3} /></SkeletonCard>
+                  <SkeletonCard darkMode={dm}><SkeletonText darkMode={dm} lines={3} /></SkeletonCard>
+                </div>
+              ) : postsError ? (
+                <EmptyState>{postsError}</EmptyState>
+              ) : posts.length > 0 ? (
+                <div style={{ display: "grid", gap: 10 }}>{posts.slice(0, 3).map(post => (
+                  <PostCard key={post.id} post={post} dm={dm} onDelete={async () => {
+                    await API.deletePost(post.id).catch(() => {});
+                    setPosts(prev => prev.filter(q => q.id !== post.id));
+                  }} />
+                ))}</div>
+              ) : (
+                <EmptyState>No recent activity yet.</EmptyState>
+              )}
+            </SCard>
+
+            <SCard title="Experience" dm={dm} onEdit={() => startSectionEdit("experience")} onAdd={() => startSectionEdit("experience")}>
+              {editingSection === "experience" ? (
+                <InlineSectionEditor section="experience" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : (meta.experience || []).length > 0 ? meta.experience.map((exp, i) => (
+                <ItemRow
+                  key={i}
+                  dm={dm}
+                  title={exp.title || "Role"}
+                  subtitle={[exp.company, exp.location].filter(Boolean).join(" · ")}
+                  meta={[exp.startDate, exp.current ? "Present" : exp.endDate].filter(Boolean).join(" - ")}
+                  description={exp.description}
+                  last={i === meta.experience.length - 1}
+                />
+              )) : <EmptyState action={<button onClick={() => startSectionEdit("experience")} style={{ background: "none", border: "none", color: "#0a66c2", cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS, fontWeight: 760 }}>Add experience</button>}>No experience listed yet.</EmptyState>}
+            </SCard>
+
+            <SCard title="Projects" dm={dm}>
+              <EmptyState>Project entries are not supported as standalone profile data yet. Share project updates through Activity for now.</EmptyState>
+            </SCard>
+
+            <SCard title="Education" dm={dm} onEdit={() => startSectionEdit("education")} onAdd={() => startSectionEdit("education")}>
+              {editingSection === "education" ? (
+                <InlineSectionEditor section="education" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : (meta.education || []).length > 0 ? meta.education.map((edu, i) => (
+                <ItemRow
+                  key={i}
+                  dm={dm}
+                  title={edu.school || school}
+                  subtitle={[edu.degree, edu.field].filter(Boolean).join(" · ")}
+                  meta={[edu.startYear, edu.endYear].filter(Boolean).join(" - ")}
+                  mark={schoolMarkFor(edu.school || school)}
+                  last={i === meta.education.length - 1}
+                />
+              )) : (
+                <ItemRow dm={dm} title={school} subtitle={meta.major || "Academic profile"} meta={meta.gradTerm ? `Expected ${meta.gradTerm}` : ""} mark={schoolMark} last />
+              )}
+            </SCard>
+
+            <SCard title="Skills & Interests" dm={dm} onEdit={() => startSectionEdit("skills")}>
+              {editingSection === "skills" ? (
+                <InlineSectionEditor section="skills" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : (meta.interests || []).length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{meta.interests.map(t => <Chip key={t}>{t}</Chip>)}</div>
+              ) : (
+                <div style={{ color: p.textSub, fontSize: 14 }}>No interests yet. <button onClick={() => startSectionEdit("skills")} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add some →</button></div>
+              )}
+            </SCard>
+
+            <SCard title="Clubs & Campus Interests" dm={dm} onEdit={() => startSectionEdit("clubs")}>
+              {editingSection === "clubs" ? (
+                <InlineSectionEditor section="clubs" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : (meta.hobbies || []).length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {meta.hobbies.map(h => (
                     <span key={h} style={{ background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, borderRadius: RADIUS.pill, padding: "5px 14px", fontSize: 12, fontWeight: 600, color: p.text, fontFamily: SANS }}>{h}</span>
                   ))}
                 </div>
-              </SCard>
-            )}
+              ) : <EmptyState>No clubs or campus interests added yet.</EmptyState>}
+            </SCard>
 
-            <SCard title="Courses Taken" dm={dm} onEdit={startEdit}>
-              {(meta.coursesTaken || []).length > 0 ? (
+            <SCard title="Courses" dm={dm} onEdit={() => startSectionEdit("courses")}>
+              {editingSection === "courses" ? (
+                <InlineSectionEditor section="courses" dm={dm} form={form} set={set} onSave={saveSection} onCancel={cancelSectionEdit} saving={saving} error={error} />
+              ) : (meta.coursesTaken || []).length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {meta.coursesTaken.map(c => (
                     <span key={c} style={{ background: p.card, border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: RADIUS.xs, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: p.text, fontFamily: MONO }}>{c}</span>
                   ))}
                 </div>
               ) : (
-                <div style={{ color: p.textSub, fontSize: 14 }}>No courses yet. <button onClick={startEdit} style={{ background: "none", border: "none", color: ACCENT, cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS }}>Add or upload transcript →</button></div>
+                <EmptyState action={<button onClick={() => startSectionEdit("courses")} style={{ background: "none", border: "none", color: "#0a66c2", cursor: "pointer", fontSize: 14, padding: 0, fontFamily: SANS, fontWeight: 760 }}>Add courses</button>}>No courses listed yet.</EmptyState>
               )}
             </SCard>
 
-            {posts.length > 0 && (
-              <div>
-                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: ACCENT, marginBottom: 16 }}>Activity</div>
-                {posts.map(post => (
-                  <PostCard key={post.id} post={post} dm={dm} onDelete={async () => {
-                    await API.deletePost(post.id).catch(() => {});
-                    setPosts(prev => prev.filter(q => q.id !== post.id));
-                  }} />
-                ))}
-              </div>
-            )}
+            <SCard title="Schedule Preview" dm={dm}>
+              <EmptyState>Your saved schedule is private by default and is not shown on the profile unless explicit sharing support is added.</EmptyState>
+            </SCard>
 
-            {!meta.bio && !meta.experience?.length && !meta.education?.length && (
-              <div style={{ ...glassCard(dm), borderRadius: RADIUS.lg, padding: "22px 24px", marginBottom: 12, textAlign: "center" }}>
-                <div style={{ color: p.textSub, fontSize: 14, marginBottom: 12, fontFamily: SANS }}>Your profile is looking bare. Add a bio, experience, and courses.</div>
-                <button onClick={startEdit} style={{ background: ACCENT, color: "white", border: "none", borderRadius: RADIUS.sm, padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: SANS }}>Complete your profile</button>
-              </div>
-            )}
+            <SCard title="Saved Planning" dm={dm}>
+              <EmptyState>Saved schedules and planning artifacts stay private unless Darvis adds explicit sharing controls.</EmptyState>
+            </SCard>
           </div>
 
           {/* Sidebar */}
-          <div>
-            <SCard title="Academic Details" dm={dm} onEdit={startEdit}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ position: "static" }}>
+            <SidebarCard dm={dm} title="Profile strength">
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 58, height: 58, borderRadius: "50%", background: `conic-gradient(${ACCENT} ${completion * 3.6}deg, ${dm ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.09)"} 0deg)`, display: "grid", placeItems: "center" }}>
+                  <div style={{ width: 46, height: 46, borderRadius: "50%", background: dm ? "#121212" : "#fff", display: "grid", placeItems: "center", color: p.text, fontWeight: 800, fontSize: 13 }}>{completion}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: p.text, fontSize: 14, fontWeight: 760 }}>Student profile</div>
+                  <div style={{ color: p.textSub, fontSize: 13, lineHeight: 1.45 }}>Add bio, skills, courses, and experience to make your profile more useful.</div>
+                </div>
+              </div>
+            </SidebarCard>
+
+            <SidebarCard dm={dm} title="Quick links">
+              <div style={{ display: "grid", gap: 10 }}>
                 {[
-                  { label: "Major", value: meta.major },
-                  { label: "Minor", value: meta.minor },
-                  { label: "Year", value: meta.year },
-                  { label: "Current Term", value: meta.term },
-                  { label: "Expected Grad", value: meta.gradTerm },
-                  { label: "GPA", value: meta.gpa ? parseFloat(meta.gpa).toFixed(2) : null, accent: gpaColor },
-                ].map(({ label, value, accent }) => value ? (
-                  <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 12, color: p.textSub, fontWeight: 500, fontFamily: SANS }}>{label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: accent || p.text, fontFamily: MONO }}>{value}</span>
+                  ["Edit profile", startEdit],
+                  ["Privacy settings", startEdit],
+                  ["Saved schedules", () => {}],
+                  ["Chat history", () => {}],
+                ].map(([label, action]) => (
+                  <button key={label} onClick={action} style={{ background: "transparent", border: "none", padding: 0, color: "#0a66c2", fontSize: 14, fontWeight: 760, textAlign: "left", cursor: "pointer", fontFamily: SANS }}>{label}</button>
+                ))}
+              </div>
+            </SidebarCard>
+
+            <SidebarCard dm={dm} title="Academic details">
+              <div style={{ display: "grid", gap: 11 }}>
+                {[
+                  ["School", school],
+                  ["Major", meta.major],
+                  ["Minor", meta.minor],
+                  ["Year", meta.year],
+                  ["Graduation", meta.gradTerm],
+                ].map(([label, value]) => value ? (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <span style={{ fontSize: 13, color: p.textSub }}>{label}</span>
+                    <span style={{ fontSize: 13, color: p.text, fontWeight: 760, textAlign: "right" }}>{value}</span>
                   </div>
                 ) : null)}
-                {!meta.major && !meta.year && <div style={{ fontSize: 13, color: p.textSub, fontFamily: SANS }}>No academic info yet.</div>}
+                {!meta.major && !meta.year && <EmptyState>No academic info yet.</EmptyState>}
               </div>
-            </SCard>
+            </SidebarCard>
 
             {(meta.linkedIn || meta.github || meta.website || user?.emailAddresses?.[0]?.emailAddress) && (
-              <SCard title="Contact" dm={dm}>
+              <SidebarCard title="Contact" dm={dm}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
-                    { href: `mailto:${user?.emailAddresses?.[0]?.emailAddress}`, label: user?.emailAddresses?.[0]?.emailAddress, show: !!user?.emailAddresses?.[0]?.emailAddress },
+                    { href: `mailto:${email}`, label: email, show: !!email },
                     { href: meta.linkedIn, label: "LinkedIn", show: !!meta.linkedIn },
                     { href: meta.github, label: "GitHub", show: !!meta.github },
                     { href: meta.website, label: "Website", show: !!meta.website },
@@ -955,13 +1374,16 @@ export default function ProfilePage({ darkMode }) {
                       onMouseLeave={e => e.currentTarget.style.color = p.textSub}>{label}</a>
                   ))}
                 </div>
-              </SCard>
+              </SidebarCard>
             )}
 
-            <div style={{ fontSize: 12, color: p.textMute, padding: "4px", lineHeight: 1.5, fontFamily: SANS }}>
-              Change email, password, or photo in{" "}
-              <button onClick={() => openUserProfile()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: ACCENT, fontWeight: 700, fontSize: 12, fontFamily: SANS, textDecoration: "underline" }}>Account settings</button>.
-            </div>
+            <SidebarCard dm={dm} title="Suggested students">
+              <EmptyState>Student suggestions are not available yet.</EmptyState>
+            </SidebarCard>
+
+            <SidebarCard dm={dm} title="Suggested clubs">
+              <EmptyState>Club recommendations will appear here after Darvis supports them.</EmptyState>
+            </SidebarCard>
           </div>
         </div>
       </div>

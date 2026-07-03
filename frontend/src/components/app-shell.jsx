@@ -349,7 +349,6 @@ export default function AppShell({
               {!collapsed && (
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: 12.5, color: p.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
-                  <div style={{ fontSize: 10.5, color: p.textMute, marginTop: 1 }}>VT Student</div>
                 </div>
               )}
             </button>
