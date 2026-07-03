@@ -59,7 +59,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
     { id: "search",      label: "Courses" },
     { id: "instructors", label: "Instructors" },
     { id: "schedule",    label: "Schedule" },
-    { id: "chatbot",     label: "Chatbot" },
+    { id: "chatbot",     label: "Cyrus" },
     { id: "forums",      label: "Forums" },
   ];
 

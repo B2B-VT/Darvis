@@ -16,6 +16,7 @@ import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
 import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
+import { LoadingShell } from "./components/skeletons.jsx";
 
 injectGlobalStyles();
 
@@ -44,6 +45,7 @@ export default function App() {
   // Schedule sync — load from Supabase on sign-in, clear on sign-out
   const scheduleInitialized = useRef(false);
   const scheduleSaveTimer   = useRef(null);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
   // Refs so the logout flush always sees the latest data without stale closures
   const lastUserIdRef       = useRef(null);
   const lastScheduleRef     = useRef([]);
@@ -55,6 +57,7 @@ export default function App() {
     if (isSignedIn && userLoaded && user) {
       lastUserIdRef.current = user.id;
       scheduleInitialized.current = false;
+      setScheduleLoading(true);
       API.getSchedule(user.id)
         .then(async saved => {
           if (saved.length > 0) {
@@ -66,8 +69,9 @@ export default function App() {
           }
           setSchedule(saved);
           scheduleInitialized.current = true;
+          setScheduleLoading(false);
         })
-        .catch(() => { scheduleInitialized.current = true; });
+        .catch(() => { scheduleInitialized.current = true; setScheduleLoading(false); });
     } else if (!isSignedIn) {
       // Flush immediately — the debounce timer would be cancelled by the re-render
       clearTimeout(scheduleSaveTimer.current);
@@ -76,6 +80,7 @@ export default function App() {
       }
       lastUserIdRef.current = null;
       setSchedule([]);
+      setScheduleLoading(false);
       scheduleInitialized.current = false;
     }
   }, [isSignedIn, userLoaded, authLoaded]);
@@ -175,21 +180,7 @@ export default function App() {
 
   // Show nothing until Clerk finishes loading (avoids auth gate flash)
   if (!authLoaded) {
-    const p = palette(darkMode);
-    return (
-      <div style={{
-        background: p.bg,
-        minHeight: "100vh",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: SANS,
-      }}>
-        <div style={{
-          width: 32, height: 32, border: "2.5px solid rgba(134,31,65,0.25)",
-          borderTopColor: "#861F41", borderRadius: "50%",
-          animation: "dvSpin 0.7s linear infinite",
-        }} />
-      </div>
-    );
+    return <LoadingShell darkMode={darkMode} />;
   }
 
   const renderPage = () => {
@@ -231,6 +222,7 @@ export default function App() {
           onAdd={addSection} onRemove={removeSection}
           onCourseClick={openCourse}
           setPage={navigateTo}
+          loading={scheduleLoading}
         />
       );
     }

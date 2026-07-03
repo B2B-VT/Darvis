@@ -4,7 +4,7 @@ import { SignInButton } from "@clerk/clerk-react";
 const PAGE_LABELS = {
   search:   "Browse Courses",
   schedule: "Schedule Builder",
-  chatbot:  "Darvis",
+  chatbot:  "Cyrus",
   forums:   "Forums",
 };
 

@@ -7,7 +7,6 @@ import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, gla
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
 @keyframes lpSpinSlow { to { transform: rotate(360deg); } }
-@keyframes lpMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes lpHeroLine {
   from { transform: translateY(110%); }
   to   { transform: translateY(0); }
@@ -109,10 +108,10 @@ export function CampusBackground({ darkMode }) {
 
 // ── FAQ ───────────────────────────────────────────────────────────────────────
 const FAQ_ITEMS = [
-  { q: "Is Darvis free to use?", a: "Yes, completely free. Grade data, professor ratings, the schedule builder, and the AI chatbot are all included with every account." },
+  { q: "Is Darvis free to use?", a: "Yes, completely free. Grade data, professor ratings, the schedule builder, and Cyrus are all included with every account." },
   { q: "Where does the grade data come from?", a: "Grade distributions are sourced from Virginia Tech's University Data Commons (UDC) — the same public records VT releases each semester. We parse, structure, and make them searchable." },
   { q: "How current is the course data?", a: "Schedule sections are current for Fall 2026 (term 202609). Grade history covers 2001 to Spring 2025 for CS, with additional departments being added." },
-  { q: "What can the AI chatbot actually do?", a: "Ask it anything — \"Which professor grades easiest in CS 3114?\", \"What's the average GPA for MATH 2224?\", or \"Add CS 3114 with Hamouda to my schedule.\" It answers in plain English backed by real grade data." },
+  { q: "What can Cyrus actually do?", a: "Ask Cyrus anything — \"Which professor grades easiest in CS 3114?\", \"What's the average GPA for MATH 2224?\", or \"Add CS 3114 with Hamouda to my schedule.\" Cyrus answers in plain English backed by real grade data." },
   { q: "Is this affiliated with Virginia Tech?", a: "No. Darvis is an independent student-built tool using publicly available data. We are not officially affiliated with Virginia Tech or any other institution." },
 ];
 
@@ -330,7 +329,7 @@ const STORY_FEATURES = [
   ["01", "Grade distributions", "24 years of history. Every section, every term, every grade band."],
   ["02", "Instructor comparison", "Outcomes, ratings, and difficulty side by side."],
   ["03", "Schedule builder", "Conflict-free timetables assembled in seconds."],
-  ["04", "Ask anything", "A chatbot that answers in plain English, backed by the data."],
+  ["04", "Ask Cyrus", "An academic assistant that answers in plain English, backed by the data."],
 ];
 
 function ScrollStory({ dark, t, isMobile, pad }) {
@@ -434,41 +433,45 @@ function ScrollStory({ dark, t, isMobile, pad }) {
             </g>
           </svg>
         </div>
+        <div style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: isMobile ? 24 : 42,
+          padding: pad,
+          boxSizing: "border-box",
+          pointerEvents: "none",
+        }}>
+          <div style={{
+            maxWidth: 1150,
+            margin: "0 auto",
+            borderTop: `1px solid ${t.lineSoft}`,
+            borderBottom: `1px solid ${t.lineSoft}`,
+            padding: isMobile ? "14px 0" : "17px 0",
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <span style={{
+                fontFamily: MONO,
+                fontSize: isMobile ? 9 : "clamp(7px, 0.58vw, 9.5px)",
+                letterSpacing: isMobile ? "0.8px" : "0.08em",
+                color: t.textMute,
+                textTransform: "uppercase",
+                lineHeight: 1.4,
+                textAlign: "center",
+                whiteSpace: isMobile ? "normal" : "nowrap",
+                width: "100%",
+              }}>
+                Retrieval-aware academic intelligence · fuzzy entity resolution · grade-distribution analytics · schedule-context routing · advisor-safe guardrails · low-latency response pipeline
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
-  );
-}
-
-// ── Rotating stamp (circular SVG text — de-branded) ───────────────────────────
-function RotatingStamp({ dark }) {
-  const ink = dark ? "rgba(244,239,233,0.4)" : "rgba(26,18,15,0.4)";
-  return (
-    <div aria-hidden="true" style={{ width: 110, height: 110, position: "relative" }}>
-      <svg viewBox="0 0 100 100" style={{
-        width: "100%", height: "100%",
-        animation: "lpSpinSlow 22s linear infinite",
-      }}>
-        <defs>
-          <path id="lp-circle" d="M 50,50 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
-        </defs>
-        <text fill={ink} fontSize="8.2" fontFamily="'JetBrains Mono', monospace" letterSpacing="2.2">
-          <textPath href="#lp-circle">DARVIS · COURSE INTELLIGENCE · EST 2025 ·</textPath>
-        </text>
-      </svg>
-      <svg viewBox="0 0 100 100" style={{
-        position: "absolute", inset: 0, width: "100%", height: "100%",
-        animation: "lpSpinSlow 30s linear infinite reverse",
-      }}>
-        <circle cx="50" cy="50" r="26" fill="none" stroke={ACCENT}
-          strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3 6" />
-      </svg>
-      <svg viewBox="0 0 24 24" style={{
-        position: "absolute", top: "50%", left: "50%",
-        width: 22, height: 22, transform: "translate(-50%, -50%)",
-      }}>
-        <path d="M12 3v18M5 7.5l14 9M19 7.5l-14 9" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    </div>
   );
 }
 
@@ -700,9 +703,7 @@ function Showcase({ dark, t }) {
 }
 
 // ── Data marquees — two counter-scrolling card streams (all data is fake) ─────
-// Top row: example course cards drifting right; hover pauses the stream and the
-// card unfolds its grade distribution. Bottom row (slightly overlapping):
-// example instructor cards drifting left; hover pauses + reveals their stats.
+// Top row: example course cards drifting right; bottom row drifts left.
 const FAKE_COURSES = [
   { code: "CSX 2140", title: "Intro to Data Systems",   gpa: 3.42, profs: 5, n: "1,240", dist: [48, 31, 14, 4, 3] },
   { code: "MTH 2210", title: "Discrete Structures",     gpa: 2.91, profs: 7, n: "2,118", dist: [29, 33, 24, 8, 6] },
@@ -726,7 +727,6 @@ const FAKE_PROFS = [
 const GRADE_COLORS = ["#4ade80", "#93c5fd", "#fbbf24", "#fb923c", "#f87171"];
 const GRADE_KEYS = ["A", "B", "C", "D", "F"];
 
-// SVG ring showing GPA out of 4.0
 function GpaRing({ gpa, t }) {
   const r = 17, C = 2 * Math.PI * r;
   const col = gpa >= 3.3 ? "#4ade80" : gpa >= 3.0 ? "#86efac" : gpa >= 2.7 ? "#fbbf24" : "#f87171";
@@ -762,7 +762,6 @@ function CourseCard({ c, t, dark }) {
         </div>
         <GpaRing gpa={c.gpa} t={t} />
       </div>
-      {/* Unfolds on hover — grade distribution */}
       <div className="lp-card-more">
         <svg width="100%" height="10" style={{ display: "block", borderRadius: 5, overflow: "hidden" }} aria-hidden="true">
           {c.dist.reduce((acc, pct, i) => {
@@ -812,7 +811,6 @@ function ProfCard({ pr, t, dark }) {
           <div style={{ fontFamily: MONO, fontSize: 9, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
         </div>
       </div>
-      {/* Unfolds on hover — instructor stats */}
       <div className="lp-card-more">
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
           {[["AVG GPA", pr.gpa.toFixed(2)], ["DIFFICULTY", pr.diff.toFixed(1)], ["TAKE AGAIN", `${pr.again}%`]].map(([k, v]) => (
@@ -833,8 +831,7 @@ function ProfCard({ pr, t, dark }) {
 
 function DataMarquees({ dark, t }) {
   return (
-    <div aria-label="Example of how Darvis displays course and instructor data (sample data)">
-      {/* Courses — drift right, hover to pause + unfold grade data */}
+    <div aria-label="Example of how Darvis displays course and instructor data">
       <div className="lp-mq lp-mq-r">
         <div className="lp-mq-track">
           {[...FAKE_COURSES, ...FAKE_COURSES].map((c, i) => (
@@ -842,7 +839,6 @@ function DataMarquees({ dark, t }) {
           ))}
         </div>
       </div>
-      {/* Instructors — drift left, slightly overlapping the row above */}
       <div className="lp-mq lp-mq-l" style={{ marginTop: -25 }}>
         <div className="lp-mq-track">
           {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
@@ -850,12 +846,100 @@ function DataMarquees({ dark, t }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function AcademicDivider({ dark, t, isMobile }) {
+  const pattern = "CS 3114 / ECE 2504 / MATH 2224 / PHYS 2305 / STAT 4705 /";
+  const handleMove = (event) => {
+    if (isMobile) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+    event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`);
+    event.currentTarget.style.setProperty("--reveal", "1");
+  };
+  const handleLeave = (event) => {
+    if (isMobile) return;
+    event.currentTarget.style.setProperty("--reveal", "0");
+  };
+
+  return (
+    <div
+      aria-hidden="true"
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{
+        "--mx": "50%",
+        "--my": "50%",
+        "--reveal": "0",
+        position: "relative",
+        width: "100%",
+        height: isMobile ? 96 : 148,
+        margin: isMobile ? "4px 0 0" : "8px 0 0",
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
       <div style={{
-        textAlign: "center", marginTop: 18,
-        fontFamily: MONO, fontSize: 9.5, letterSpacing: "1.6px",
-        textTransform: "uppercase", color: t.textFaint,
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 1,
+        background: `linear-gradient(90deg, transparent, ${t.lineSoft}, transparent)`,
+      }} />
+      <div style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 1,
+        background: `linear-gradient(90deg, transparent, ${t.lineSoft}, transparent)`,
+      }} />
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: dark
+          ? `linear-gradient(180deg, transparent, ${ACCENT}0f 50%, transparent)`
+          : `linear-gradient(180deg, transparent, ${ACCENT}08 50%, transparent)`,
+      }} />
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        display: "grid",
+        placeItems: "center",
+        opacity: isMobile ? 0.1 : "var(--reveal)",
+        transition: "opacity 180ms ease",
+        WebkitMaskImage: isMobile
+          ? "linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)"
+          : "radial-gradient(180px circle at var(--mx) var(--my), #000 0%, #000 42%, rgba(0,0,0,0.45) 70%, transparent 100%)",
+        maskImage: isMobile
+          ? "linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)"
+          : "radial-gradient(180px circle at var(--mx) var(--my), #000 0%, #000 42%, rgba(0,0,0,0.45) 70%, transparent 100%)",
       }}>
-        Sample data — hover any card
+        <div style={{
+          width: "140%",
+          transform: "rotate(-1deg)",
+          display: "grid",
+          gap: isMobile ? 11 : 14,
+          color: dark ? "rgba(244,239,233,0.32)" : "rgba(26,18,15,0.24)",
+          fontFamily: MONO,
+          fontSize: isMobile ? 9.5 : 12,
+          letterSpacing: "1.8px",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        }}>
+          {[0, 1, 2, 3, 4, 5].map((row) => (
+            <div key={row} style={{ transform: `translateX(${row % 2 ? "-5%" : "3%"})` }}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <span key={i} style={{ marginRight: 24 }}>
+                  {pattern}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1033,7 +1117,7 @@ function TypingDots({ t }) {
   );
 }
 
-// ── Chatbot section — scroll scrubs through three Q&A exchanges ───────────────
+// ── Cyrus section — scroll scrubs through three Q&A exchanges ───────────────
 // Sticky section: each third of the scroll shows one exchange (question, then
 // typing dots, then the answer) and highlights the matching bullet on the left.
 const CHAT_EXCHANGES = [
@@ -1129,7 +1213,7 @@ function ChatSection({ dark, t, isMobile, pad }) {
           <span style={{
             fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
             color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-          }}><KickerDot />Ask Darvis</span>
+          }}><KickerDot />Ask Cyrus</span>
           <h2 style={{
             fontFamily: SERIF, fontWeight: 400, margin: 0,
             fontSize: "clamp(30px, 3.6vw, 48px)", letterSpacing: "-0.5px",
@@ -1179,7 +1263,7 @@ function ChatSection({ dark, t, isMobile, pad }) {
                 width: 7, height: 7, borderRadius: "50%", background: "#4ade80",
                 animation: "lpPulse 2s ease-in-out infinite",
               }} />
-              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute }}>DARVIS.AI · ONLINE</span>
+              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "1.4px", color: t.textMute }}>CYRUS · ONLINE</span>
               <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", color: t.textFaint }}>
                 QUERY 0{active + 1}/03
               </span>
@@ -1498,11 +1582,6 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
     { val: 100,  suffix: "%",    label: "Free to use" },
   ];
 
-  const marqueeItems = [
-    "CS 2114", "MATH 2224", "PHYS 2305", "ECE 2504", "CS 3114",
-    "BIOL 2104", "HIST 1015", "CS 4664", "PSYC 1004", "MATH 2114",
-  ];
-
   const Btn = ({ label, primary, onClick }) => {
     const hasArrow = label.endsWith("→");
     const text = hasArrow ? label.slice(0, -1).trimEnd() : label;
@@ -1626,36 +1705,11 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
           </div>
         </div>
 
-        {/* Rotating stamp — bottom right */}
-        {!isMobile && (
-          <div className="lp-h-fade dv-d4" style={{ position: "absolute", right: 64, bottom: 48, zIndex: 1 }}>
-            <RotatingStamp dark={darkMode} />
-          </div>
-        )}
-
-        {/* Scroll cue */}
-        <div className="lp-h-fade dv-d5" style={{
-          position: "absolute", left: "50%", bottom: 22, transform: "translateX(-50%)",
-          zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-        }}>
-          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "2px", color: t.textFaint }}>SCROLL</span>
-          <svg width="14" height="22" viewBox="0 0 14 22" fill="none">
-            <rect x="1" y="1" width="12" height="20" rx="6" stroke={t.textFaint} strokeWidth="1.5" />
-            <circle cx="7" cy="7" r="2" fill={ACCENT}>
-              <animate attributeName="cy" values="6;13;6" dur="1.8s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite" />
-            </circle>
-          </svg>
-        </div>
       </section>
 
       {/* ── DATA MARQUEES — counter-scrolling course + instructor streams ────── */}
-      <section style={{ paddingTop: isMobile ? 40 : 64, paddingBottom: isMobile ? 48 : 72, position: "relative" }}>
-        <Reveal style={{ textAlign: "center", marginBottom: 30, padding: pad }}>
-          <span style={{
-            fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", fontFamily: MONO,
-            color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 14,
-          }}><KickerDot />Inside the catalog</span>
+      <section style={{ paddingTop: isMobile ? 44 : 68, paddingBottom: isMobile ? 38 : 58, position: "relative" }}>
+        <Reveal style={{ textAlign: "center", marginBottom: isMobile ? 22 : 28, padding: pad }}>
           <h2 style={{
             fontFamily: SERIF, fontWeight: 400, margin: 0,
             fontSize: "clamp(28px, 3.2vw, 42px)", letterSpacing: "-0.5px",
@@ -1668,31 +1722,14 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
       {/* ── SCROLL STORY — features + chart line that morphs into DARVIS ─────── */}
       <ScrollStory dark={darkMode} t={t} isMobile={isMobile} pad={pad} />
 
-      {/* ── MARQUEE (mono HUD strip) ──────────────────────────────────────────── */}
-      <div style={{
-        overflow: "hidden",
-        borderTop: `1px solid ${t.lineSoft}`,
-        borderBottom: `1px solid ${t.lineSoft}`,
-        padding: "16px 0",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", animation: "lpMarquee 38s linear infinite", width: "max-content" }}>
-          {[...marqueeItems, ...marqueeItems].map((item, i) => (
-            <span key={i} style={{ display: "flex", alignItems: "center" }}>
-              <span style={{
-                fontFamily: MONO, fontSize: 12, letterSpacing: "1.5px",
-                color: t.textMute, whiteSpace: "nowrap",
-              }}>{item}</span>
-              <span style={{ fontFamily: MONO, fontSize: 12, color: ACCENT, opacity: 0.65, margin: "0 22px" }}>/</span>
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* ── STATIC ACADEMIC DIVIDER ─────────────────────────────────────────── */}
+      <AcademicDivider dark={darkMode} t={t} isMobile={isMobile} />
 
       {/* ── STATS ─────────────────────────────────────────────────────────────── */}
       <section ref={statsRef} style={{
         maxWidth: 1150, margin: "0 auto", position: "relative",
         padding: pad, boxSizing: "border-box",
-        paddingTop: isMobile ? 56 : 90, paddingBottom: isMobile ? 56 : 90,
+        paddingTop: isMobile ? 38 : 54, paddingBottom: isMobile ? 56 : 90,
       }}>
         {!isMobile && <TopoLines dark={darkMode} />}
         <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>

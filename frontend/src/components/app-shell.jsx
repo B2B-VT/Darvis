@@ -175,7 +175,7 @@ export default function AppShell({
     { id: "search",      label: "Courses",    icon: Icons.courses     },
     { id: "instructors", label: "Instructors", icon: Icons.instructors },
     { id: "schedule",    label: "Schedule",   icon: Icons.schedule, badge: isSignedIn ? (schedule?.length || 0) : 0 },
-    { id: "chatbot",     label: "AI Advisor", icon: Icons.chatbot     },
+    { id: "chatbot",     label: "Cyrus", icon: Icons.chatbot     },
     { id: "forums",      label: "Forums",     icon: Icons.forums      },
   ];
 
@@ -277,7 +277,6 @@ export default function AppShell({
           }} />
           <div>
             <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 14.5, color: p.text, letterSpacing: "-0.3px" }}>Darvis</div>
-            <div style={{ fontFamily: SANS, fontSize: 10.5, color: p.textMute, marginTop: 1.5 }}>VT Academic Intelligence</div>
           </div>
         </button>
       )}
@@ -505,7 +504,7 @@ export default function AppShell({
   const bottomNavItems = [
     { id: "search",      label: "Courses",    icon: Icons.courses     },
     { id: "schedule",    label: "Schedule",   icon: Icons.schedule    },
-    { id: "chatbot",     label: "AI",         icon: Icons.chatbot     },
+    { id: "chatbot",     label: "Cyrus",      icon: Icons.chatbot     },
     { id: "instructors", label: "Professors", icon: Icons.instructors },
   ];
 

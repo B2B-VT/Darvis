@@ -8,6 +8,7 @@ import {
   MONO, SERIF, SANS, ACCENT, EASE,
   palette, glassCard, glassInput, RADIUS, SHADOW,
 } from "../theme.jsx";
+import { Skeleton, SkeletonProfessorCard, useMinimumLoading } from "./skeletons.jsx";
 
 function sanitize(raw) {
   if (!raw) return "";
@@ -138,6 +139,7 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
   const searchRef = useRef(null);
   const dm = darkMode;
   const p = palette(dm);
+  const showLoading = useMinimumLoading(loading);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 640);
@@ -206,7 +208,7 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
           Find <em style={{ color: ACCENT, fontStyle: "italic" }}>instructors.</em>
         </h1>
         <p style={{ margin: "0 0 32px", maxWidth: 520, fontFamily: SANS, fontSize: 15, color: p.textSub, lineHeight: 1.7 }}>
-          {loading ? "Loading faculty…" : `${filtered.length} instructor${filtered.length !== 1 ? "s" : ""} · RMP ratings · grade data.`}
+          {showLoading ? <Skeleton darkMode={dm} width={260} height={15} /> : `${filtered.length} instructor${filtered.length !== 1 ? "s" : ""} · RMP ratings · grade data.`}
         </p>
 
         {/* Search */}
@@ -235,8 +237,10 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
         </div>
 
         {/* Grid */}
-        {loading ? (
-          <div style={{ padding: "120px 0", textAlign: "center", fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, letterSpacing: "2px", textTransform: "uppercase" }}>Loading faculty…</div>
+        {showLoading ? (
+          <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+            {Array.from({ length: isMobile ? 5 : 10 }).map((_, i) => <SkeletonProfessorCard key={i} darkMode={dm} />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: "120px 0", textAlign: "center" }}>
             <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 14 }}>No results</div>
