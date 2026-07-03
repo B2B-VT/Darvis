@@ -653,24 +653,62 @@ def handle_schedule_builder(
             target_credits = int(m.group(1))
 
     # ── Greedy conflict-free schedule ──────────────────────────────────────────
+    def _get_cred(s: dict) -> float:
+        raw = s.get("credits")
+        try:
+            c = float(raw) if raw is not None else 3.0
+            return c if c == c else 3.0  # guard NaN
+        except (TypeError, ValueError):
+            return 3.0
+
     schedule: list[dict] = []
     credits_so_far = 0.0
-    for cand in candidates:
-        if not any(_conflicts(cand, s) for s in schedule):
-            schedule.append(cand)
-            raw_cred = cand.get("credits")
-            try:
-                c = float(raw_cred) if raw_cred is not None else 3.0
-                credits_so_far += c if c == c else 3.0  # guard NaN
-            except (TypeError, ValueError):
-                credits_so_far += 3.0
-        if target_credits:
-            if credits_so_far >= target_credits:
+
+    if target_credits:
+        # Pass 1 (strict): never exceed target_credits — prefer undershoot
+        strict_sched: list[dict] = []
+        strict_credits = 0.0
+        for cand in candidates:
+            if any(_conflicts(cand, s) for s in strict_sched):
+                continue
+            c = _get_cred(cand)
+            if strict_credits + c > target_credits:
+                continue  # would overshoot — skip this course
+            strict_sched.append(cand)
+            strict_credits += c
+            if strict_credits >= target_credits - 0.5:
                 break
-            if len(schedule) >= 10:  # hard safety cap when chasing a credit target
+            if len(strict_sched) >= 10:
                 break
-        elif len(schedule) >= MAX_COURSES:
-            break
+
+        # Pass 2 (relaxed): allow any overshoot — used as fallback when credits
+        # don't divide evenly (e.g. all 3-cr courses, 19-credit target → 18 vs 21)
+        relaxed_sched: list[dict] = []
+        relaxed_credits = 0.0
+        for cand in candidates:
+            if any(_conflicts(cand, s) for s in relaxed_sched):
+                continue
+            relaxed_sched.append(cand)
+            relaxed_credits += _get_cred(cand)
+            if relaxed_credits >= target_credits:
+                break
+            if len(relaxed_sched) >= 10:
+                break
+
+        # Pick the result closest to the requested target
+        strict_diff  = abs(strict_credits  - target_credits) if strict_sched  else float("inf")
+        relaxed_diff = abs(relaxed_credits - target_credits) if relaxed_sched else float("inf")
+        if strict_diff <= relaxed_diff:
+            schedule, credits_so_far = strict_sched, strict_credits
+        else:
+            schedule, credits_so_far = relaxed_sched, relaxed_credits
+    else:
+        for cand in candidates:
+            if not any(_conflicts(cand, s) for s in schedule):
+                schedule.append(cand)
+                credits_so_far += _get_cred(cand)
+            if len(schedule) >= MAX_COURSES:
+                break
 
     if not schedule:
         return (
@@ -753,11 +791,19 @@ def handle_schedule_builder(
                 f"Some instructors ({names}) have no historical grade data, "
                 f"so I couldn't confirm the {min_gpa}+ GPA requirement for them."
             )
-    if target_credits and credits_so_far < target_credits:
-        caveats.append(
-            f"I could only reach {credits_so_far:.0f} credits meeting your constraints "
-            f"— not enough sections were available to hit {target_credits}."
-        )
+    if target_credits and abs(credits_so_far - target_credits) > 0.5:
+        if credits_so_far < target_credits:
+            caveats.append(
+                f"I built an {credits_so_far:.0f}-credit schedule (you asked for {target_credits}) "
+                f"— adding another course would have exceeded your target given available sections "
+                "and your other constraints."
+            )
+        else:
+            caveats.append(
+                f"I built a {credits_so_far:.0f}-credit schedule (you asked for {target_credits}) "
+                f"— I couldn't find a combination that summed to exactly {target_credits} credits "
+                "without violating your other constraints."
+            )
     if excluded_days and schedule:
         # Verify no Friday (or other excluded day) slipped through
         day_names_rev = {v: k for k, v in _DAY_NAMES.items()}

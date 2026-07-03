@@ -292,7 +292,7 @@ export const API = {
   // ── Conversation sync ──────────────────────────────────────────────
   async getConversations(userId) {
     const { data } = await db.from('user_conversations')
-      .select('session_id, title, messages, created_at, updated_at')
+      .select('session_id, title, messages, created_at, updated_at, project_id')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false });
     return data || [];
@@ -301,7 +301,8 @@ export const API = {
   async saveConversation(userId, session) {
     await db.from('user_conversations').upsert(
       { user_id: userId, session_id: session.id, title: session.title,
-        messages: session.messages, updated_at: new Date().toISOString() },
+        messages: session.messages, updated_at: new Date().toISOString(),
+        project_id: session.projectId || null },
       { onConflict: 'user_id,session_id' }
     );
   },

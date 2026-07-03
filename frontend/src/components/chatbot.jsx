@@ -1078,7 +1078,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               id: r.session_id, title: r.title,
               messages: Array.isArray(r.messages) ? r.messages : [],
               createdAt: new Date(r.created_at).getTime(),
-              projectId: null, _updatedAt: r.updated_at,
+              projectId: r.project_id || local?.projectId || null,
+              _updatedAt: r.updated_at,
             };
           }
         });
@@ -1171,7 +1172,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   };
 
   const moveSession = (sessionId, projectId) => {
-    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, projectId: projectId || null } : s));
+    const newPid = projectId || null;
+    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, projectId: newPid } : s));
+    if (user?.id) {
+      const session = sessions.find(s => s.id === sessionId);
+      if (session) {
+        API.saveConversation(user.id, { ...session, projectId: newPid }).catch(() => {});
+      }
+    }
   };
 
   const send = useCallback(async (questionOverride) => {

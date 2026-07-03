@@ -358,10 +358,23 @@ def chat(request: Request, body: ChatRequest):
             )
         elif route == "section_lookup":
             from app.features.section_lookup import handle_section_lookup
-            answer, tables, charts, metadata = handle_section_lookup(
-                question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
-                sections_df=STATE.get("sections_df"),
-            )
+            course_no = getattr(intent, "course_no", None) if intent else None
+            if not course_no and body.history:
+                # No specific course — likely a follow-up about a prior schedule
+                # (e.g. "what building are those classes in?"). Route to general_chat
+                # which intercepts schedule follow-ups using sections_df directly.
+                answer, tables, charts, metadata = handle_general_chat(
+                    question, df, llm, vector_store, intent=intent,
+                    history=[m.model_dump() for m in body.history],
+                    user_profile=body.user_profile,
+                    rmp_df=STATE.get("rmp_df"),
+                    sections_df=STATE.get("sections_df"),
+                )
+            else:
+                answer, tables, charts, metadata = handle_section_lookup(
+                    question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
+                    sections_df=STATE.get("sections_df"),
+                )
         elif route == "schedule_builder":
             answer, tables, charts, metadata = handle_schedule_builder(
                 question, user_profile=body.user_profile, intent=intent, df=df,
@@ -405,7 +418,7 @@ def chat(request: Request, body: ChatRequest):
                 user_profile=body.user_profile,
             )
         else:
-            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
+            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
     except Exception as exc:
         # Log the full traceback server-side; return a generic message to the client
         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())
