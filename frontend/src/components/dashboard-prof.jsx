@@ -6,6 +6,7 @@ import { StarRating } from "./nav-auth.jsx";
 import { GpaBadge, GradeGrid } from "./courses.jsx";
 import { BookIcon, ClockIcon, MapPinIcon, UserIcon, CalendarIcon } from "./icons.jsx";
 import { SkeletonCard, SkeletonChart, useMinimumLoading } from "./skeletons.jsx";
+import { ACCENT, MONO, RADIUS, SANS, SERIF, SHADOW, palette } from "../theme.jsx";
 
 const COURSE_COLORS = [
   { bg:"#fde8ee", border:"#861F41", text:"#861F41" },
@@ -295,16 +296,36 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
   const rmpId      = prof?.rmpId ?? null;
   // RMP profile search URL (VT school ID = 1349)
   const rmpSearchUrl = `https://www.ratemyprofessors.com/search/professors/1349?q=${encodeURIComponent((prof?.name || "").split(" ").pop())}`;
-
-  const ratingBar = (label, val) => val == null ? null : (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 13, color: colors.sub, fontWeight: 600 }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: colors.text }}>{val.toFixed(1)} / 5</span>
-      </div>
-      <div style={{ height: 8, background: dm ? "rgba(255,255,255,0.1)" : "#e5e0ea", borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${(val / 5) * 100}%`, background: "#861F41", borderRadius: 4, transition: "width 0.5s" }} />
-      </div>
+  const p = palette(dm);
+  const bestGpa = courses.length ? courses[0]?.avgGpa : null;
+  const overallGpa = courses.length
+    ? courses.reduce((sum, course) => sum + (course.avgGpa || 0), 0) / courses.length
+    : null;
+  const metricCard = (label, value, sub, tone = p.text) => (
+    <div style={{
+      background: p.card,
+      border: `1px solid ${p.line}`,
+      borderRadius: RADIUS.md,
+      padding: isMobile ? "14px 16px" : "16px 18px",
+      minHeight: 82,
+      boxSizing: "border-box",
+    }}>
+      <div style={{
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: p.textMute,
+        letterSpacing: "1.2px",
+        textTransform: "uppercase",
+        marginBottom: 8,
+      }}>{label}</div>
+      <div style={{
+        color: tone,
+        fontSize: 24,
+        fontWeight: 800,
+        lineHeight: 1,
+        fontFamily: label.includes("GPA") ? MONO : SANS,
+      }}>{value}</div>
+      {sub && <div style={{ color: p.textSub, fontSize: 12, marginTop: 7, lineHeight: 1.4 }}>{sub}</div>}
     </div>
   );
 
@@ -312,239 +333,321 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
     <div
       onClick={e => e.target === e.currentTarget && onClose()}
       style={{
-        position: "fixed", inset: 0, zIndex: 400,
-        background: "rgba(0,0,0,0.6)",
-        display: "flex", alignItems: "flex-start", justifyContent: "center",
-        padding: isMobile ? 0 : "32px 24px",
+        position: "fixed",
+        inset: 0,
+        zIndex: 400,
+        background: "rgba(0,0,0,0.58)",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: isMobile ? 0 : "40px 24px",
         overflowY: "auto",
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        backdropFilter: "blur(5px)",
+        WebkitBackdropFilter: "blur(5px)",
+        fontFamily: SANS,
       }}
     >
       <div style={{
-        background: colors.bg,
-        borderRadius: isMobile ? "20px 20px 0 0" : 20,
-        boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
-        width: "100%", maxWidth: 960,
-        border: `1px solid ${dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+        background: dm ? "#0f0f0f" : "#ffffff",
+        border: `1px solid ${p.line}`,
+        borderRadius: isMobile ? `${RADIUS.xl}px ${RADIUS.xl}px 0 0` : RADIUS.xl,
+        boxShadow: SHADOW.xl,
+        width: "100%",
+        maxWidth: 1040,
         marginBottom: isMobile ? 0 : 40,
+        marginTop: isMobile ? "auto" : 0,
+        overflow: "hidden",
         ...(isMobile ? { position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "92vh", overflowY: "auto" } : {}),
       }}>
-        {/* Mobile drag handle */}
         {isMobile && (
           <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
-            <div style={{ width: 40, height: 4, borderRadius: 2, background: dm ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)" }} />
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: p.line }} />
           </div>
         )}
 
-        {/* Header */}
-        <div style={{ background: "linear-gradient(135deg, #6b1833 0%, #861F41 60%, #a02850 100%)", padding: isMobile ? "16px 20px 20px" : "28px 32px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 16 }}>
-              <div style={{
-                width: isMobile ? 48 : 64, height: isMobile ? 48 : 64, borderRadius: "50%",
-                background: "#f0c050", color: "#861F41",
-                fontWeight: 700, fontSize: isMobile ? 20 : 26,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                border: "3px solid rgba(255,255,255,0.3)", flexShrink: 0,
-              }}>{(prof?.name || "?").charAt(0)}</div>
-              <div>
-                <h2 style={{ margin: 0, color: "white", fontWeight: 800, fontSize: isMobile ? 18 : 22 }}>{prof?.name}</h2>
-                {dept && (
-                  <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 14, marginTop: 3 }}>
-                    {deptNames[dept] ? `Department of ${deptNames[dept]}` : dept}
-                  </div>
+        <div style={{
+          padding: isMobile ? "18px 20px 16px" : "28px 32px 20px",
+          borderBottom: `1px solid ${p.line}`,
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+                <span style={{
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: ACCENT,
+                  letterSpacing: "1.4px",
+                  textTransform: "uppercase",
+                }}>{dept || "Instructor"}</span>
+                {rmpRating != null && (
+                  <span style={{
+                    fontFamily: MONO,
+                    fontSize: 10,
+                    color: p.textSub,
+                    background: p.card,
+                    borderRadius: RADIUS.pill,
+                    padding: "2px 10px",
+                    border: `1px solid ${p.line}`,
+                  }}>{rmpCount} RMP rating{rmpCount === 1 ? "" : "s"}</span>
+                )}
+                {courses.length > 0 && (
+                  <span style={{
+                    fontFamily: MONO,
+                    fontSize: 10,
+                    color: p.textSub,
+                    background: p.card,
+                    borderRadius: RADIUS.pill,
+                    padding: "2px 10px",
+                    border: `1px solid ${p.line}`,
+                  }}>{courses.length} course{courses.length === 1 ? "" : "s"} on record</span>
                 )}
               </div>
+              <h2 style={{
+                margin: 0,
+                color: p.text,
+                fontFamily: SERIF,
+                fontSize: isMobile ? 24 : 30,
+                fontWeight: 400,
+                lineHeight: 1.15,
+              }}>{prof?.name}</h2>
+              {dept && (
+                <div style={{ color: p.textSub, fontSize: 14, marginTop: 8 }}>
+                  {deptNames[dept] ? `Department of ${deptNames[dept]}` : dept}
+                </div>
+              )}
             </div>
             <button onClick={onClose} style={{
-              background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8,
-              color: "white", width: 34, height: 34, cursor: "pointer",
-              fontSize: 17, display: "flex", alignItems: "center", justifyContent: "center",
+              background: p.card,
+              border: `1px solid ${p.line}`,
+              borderRadius: RADIUS.xs,
+              color: p.textSub,
+              width: 34,
+              height: 34,
+              cursor: "pointer",
+              fontSize: 16,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               flexShrink: 0,
             }}>✕</button>
           </div>
         </div>
 
-      <div style={{ padding: isMobile ? "16px 16px 24px" : "24px 32px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "300px 1fr", gap: 20, alignItems: "flex-start" }}>
-          {/* Left: RMP card */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: colors.card, border: `1.5px solid ${colors.border}`, borderRadius: 16, padding: "24px" }}>
-              {rmpRating != null ? (
-                <>
-                  <div style={{ textAlign: "center", marginBottom: 20 }}>
-                    <div style={{ fontSize: 52, fontWeight: 700, color: "#861F41", lineHeight: 1 }}>{rmpRating.toFixed(1)}</div>
-                    <StarRating rating={rmpRating} size={18} />
-                    <div style={{ color: colors.sub, fontSize: 13, marginTop: 6 }}>Based on {rmpCount} ratings</div>
-                    <div style={{ display: "inline-block", marginTop: 8, background: "#fdf4f6", border: "1px solid #f5c0cc", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 700, color: "#861F41" }}>
-                      RateMyProfessors
-                    </div>
+        <div style={{ padding: isMobile ? "18px 20px 24px" : "24px 32px 32px" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))",
+            gap: 10,
+            marginBottom: 28,
+          }}>
+            {metricCard("RMP quality", rmpRating != null ? rmpRating.toFixed(1) : "—", rmpRating != null ? "Overall rating" : "No RMP profile", ACCENT)}
+            {metricCard("Difficulty", rmpDiff != null ? rmpDiff.toFixed(1) : "—", rmpDiff != null ? "Lower is easier" : "No difficulty data")}
+            {metricCard("Best avg GPA", bestGpa != null ? bestGpa.toFixed(2) : "—", courses.length ? "Highest course average" : "No grade rows", "#22c55e")}
+            {metricCard("Overall avg GPA", overallGpa != null ? overallGpa.toFixed(2) : "—", courses.length ? "Across taught courses" : "No grade rows")}
+          </div>
+
+          {rmpRating != null && (
+            <div style={{
+              background: p.card,
+              border: `1px solid ${p.line}`,
+              borderRadius: RADIUS.md,
+              padding: isMobile ? "14px 16px" : "16px 18px",
+              marginBottom: 28,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", marginBottom: tags.length ? 12 : 0 }}>
+                <div>
+                  <div style={{ fontFamily: MONO, fontSize: 10, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase", fontWeight: 600 }}>
+                    RateMyProfessors summary
                   </div>
-                  {ratingBar("Overall Quality", rmpRating)}
-                  {ratingBar("Difficulty", rmpDiff)}
-                  {tags.length > 0 && (
-                    <div style={{ marginTop: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: colors.sub, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Student Tags</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {tags.map(t => (
-                          <span key={t} style={{ background: dm ? "rgba(255,255,255,0.08)" : "#f0edf8", color: dm ? "rgba(255,255,255,0.7)" : "#5a3a6a", borderRadius: 20, padding: "4px 10px", fontSize: 12, fontWeight: 700 }}>{t}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ textAlign: "center", padding: "16px 0" }}>
-                  <img
-                    src="/images/no-rmp-data.png"
-                    alt=""
-                    style={{
-                      width: 42,
-                      height: 42,
-                      objectFit: "contain",
-                      marginBottom: 8,
-                      opacity: dm ? 0.92 : 0.86,
-                    }}
-                  />
-                  <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 6 }}>No RMP data</div>
-                  <div style={{ fontSize: 13, color: colors.sub, lineHeight: 1.5 }}>
-                    This instructor doesn't have a Rate My Professors profile yet.
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+                    <StarRating rating={rmpRating} size={14} />
+                    <span style={{ color: p.textSub, fontSize: 13 }}>{rmpRating.toFixed(1)} quality · {rmpDiff != null ? `${rmpDiff.toFixed(1)} difficulty · ` : ""}{rmpCount} rating{rmpCount === 1 ? "" : "s"}</span>
                   </div>
+                </div>
+                <a href={rmpSearchUrl} target="_blank" rel="noopener noreferrer" style={{
+                  color: ACCENT,
+                  textDecoration: "none",
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.8px",
+                  textTransform: "uppercase",
+                }}>View on RMP ↗</a>
+              </div>
+              {tags.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {tags.slice(0, 8).map(tag => (
+                    <span key={tag} style={{
+                      background: dm ? "rgba(255,255,255,0.06)" : "rgba(134,31,65,0.07)",
+                      color: p.textSub,
+                      border: `1px solid ${p.line}`,
+                      borderRadius: RADIUS.pill,
+                      padding: "4px 10px",
+                      fontSize: 10,
+                      fontFamily: MONO,
+                      fontWeight: 600,
+                    }}>{tag}</span>
+                  ))}
                 </div>
               )}
             </div>
+          )}
 
-            {/* Grade summary card */}
-            {courses.length > 0 && (
-              <div style={{ background: colors.card, border: `1.5px solid ${colors.border}`, borderRadius: 16, padding: "20px" }}>
-                <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 800, color: colors.text }}>Grade Summary</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 13, color: colors.sub }}>Courses taught</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>{courses.length}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 13, color: colors.sub }}>Best avg GPA</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1a7a38" }}>{courses[0]?.avgGpa?.toFixed(2)}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 13, color: colors.sub }}>Overall avg GPA</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>
-                      {courses.length > 0 ? (courses.reduce((s, c) => s + c.avgGpa, 0) / courses.length).toFixed(2) : "—"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 12 }}>
+            Courses taught
+            {!showLoading && <span style={{ color: p.textSub, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontFamily: SANS, fontSize: 12 }}> — {courses.length} on record</span>}
           </div>
+          {showLoading ? (
+            <SkeletonChart darkMode={dm} height={220} />
+          ) : courses.length === 0 ? (
+            <div style={{ color: p.textSub, fontSize: 13, fontFamily: SANS, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: 24 }}>
+              No course data found for this instructor.
+            </div>
+          ) : (
+            <div style={{
+              border: `1px solid ${p.line}`,
+              borderRadius: RADIUS.md,
+              overflow: "hidden",
+              marginBottom: 28,
+            }}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "84px 1fr 70px" : "120px 1fr 90px 220px",
+                gap: 12,
+                padding: "10px 14px",
+                background: p.card,
+                borderBottom: `1px solid ${p.line}`,
+                fontFamily: MONO,
+                fontSize: 10,
+                color: p.textMute,
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                fontWeight: 700,
+              }}>
+                <div>Course</div>
+                <div>Title</div>
+                <div>GPA</div>
+                {!isMobile && <div>Grades</div>}
+              </div>
+              {courses.map((course, idx) => (
+                <button
+                  key={course.id}
+                  type="button"
+                  onClick={() => onCourseClick({ subject: course.subject, number: course.number, title: course.title, avgGpa: course.avgGpa, gradeDistribution: course.gradeDistribution, id: course.id, credits: 3, description: "", pathways: [] })}
+                  style={{
+                    width: "100%",
+                    display: "grid",
+                    gridTemplateColumns: isMobile ? "84px 1fr 70px" : "120px 1fr 90px 220px",
+                    gap: 12,
+                    alignItems: "center",
+                    padding: "12px 14px",
+                    border: "none",
+                    borderBottom: idx < courses.length - 1 ? `1px solid ${p.lineSoft}` : "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontFamily: SANS,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = p.card; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <div style={{ fontFamily: MONO, color: ACCENT, fontSize: 12, fontWeight: 700 }}>{course.subject} {course.number}</div>
+                  <div style={{ color: p.text, fontSize: 14, fontWeight: 700, lineHeight: 1.35 }}>{course.title}</div>
+                  <div>{course.avgGpa > 0 ? <GpaBadge gpa={course.avgGpa} darkMode={dm} /> : <span style={{ color: p.textMute }}>—</span>}</div>
+                  {!isMobile && <GradeMiniBar dist={course.gradeDistribution} darkMode={dm} />}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* Right: courses + grade distributions */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {!showLoading && courses.length > 0 && (
+            <>
+              <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 12 }}>
+                Grade distributions — strongest courses
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 12, marginBottom: rmpRating != null ? 28 : 0 }}>
+                {courses.slice(0, 4).map(course => (
+                  <div key={course.id} style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: "16px 18px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
+                      <div style={{ color: p.text, fontWeight: 800, fontSize: 14, lineHeight: 1.35 }}>
+                        <span style={{ color: ACCENT, fontFamily: MONO, fontSize: 12 }}>{course.subject} {course.number}</span>
+                        <br />{course.title}
+                      </div>
+                      {course.avgGpa > 0 && <GpaBadge gpa={course.avgGpa} darkMode={dm} />}
+                    </div>
+                    <GradeGrid dist={course.gradeDistribution} darkMode={dm} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {rmpRating != null && (
             <div>
-              <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Courses Taught</h2>
-              {showLoading ? (
-                <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
-                  {Array.from({ length: isMobile ? 4 : 6 }).map((_, i) => <SkeletonCard key={i} darkMode={dm} height={118} />)}
-                </div>
-              ) : courses.length === 0 ? (
-                <div style={{ color: colors.sub, fontSize: 14 }}>No course data found for this instructor.</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
-                  {courses.map(course => (
-                    <button key={course.id} onClick={() => onCourseClick({ subject: course.subject, number: course.number, title: course.title, avgGpa: course.avgGpa, gradeDistribution: course.gradeDistribution, id: course.id, credits: 3, description: "", pathways: [] })} style={{
-                      background: colors.card, border: `1.5px solid ${colors.border}`,
-                      borderRadius: 14, padding: "16px", cursor: "pointer", textAlign: "left",
-                      fontFamily: "'Plus Jakarta Sans', sans-serif", transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = "#861F41"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(134,31,65,0.12)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.boxShadow = "none"; }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                        <span style={{ background: "#861F41", color: "white", borderRadius: 7, padding: "3px 10px", fontWeight: 800, fontSize: 12 }}>
-                          {course.subject} {course.number}
-                        </span>
-                        {course.avgGpa > 0 && <GpaBadge gpa={course.avgGpa} />}
-                      </div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>{course.title}</div>
-                    </button>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px" }}>Student reviews</div>
+                <a href={rmpSearchUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: ACCENT, fontWeight: 700, textDecoration: "none", fontFamily: MONO }}>View on RMP ↗</a>
+              </div>
+              {rmpReviews.length > 0 ? (
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+                  {rmpReviews.slice(0, 4).map((review, i) => (
+                    <ReviewCard key={i} review={review} darkMode={dm} colors={{ ...colors, card: p.card, border: p.line, text: p.text, sub: p.textSub }} />
                   ))}
+                </div>
+              ) : (
+                <div style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: "18px 20px", color: p.textSub, fontSize: 13 }}>
+                  {rmpCount} rating{rmpCount === 1 ? "" : "s"} available on RateMyProfessors. Darvis links out instead of storing individual review text when it is unavailable locally.
                 </div>
               )}
             </div>
-
-            {/* Grade distributions */}
-            {showLoading ? (
-              <div>
-                <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Grade Distributions</h2>
-                <SkeletonChart darkMode={dm} height={120} />
-              </div>
-            ) : courses.length > 0 && (
-              <div>
-                <h2 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 800, color: colors.text }}>Grade Distributions</h2>
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {courses.slice(0, 4).map(course => (
-                    <div key={course.id} style={{ background: colors.card, border: `1.5px solid ${colors.border}`, borderRadius: 14, padding: "18px 20px" }}>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: colors.text, marginBottom: 12 }}>
-                        {course.subject} {course.number}: {course.title}
-                      </div>
-                      <GradeGrid dist={course.gradeDistribution} darkMode={dm} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Student Reviews */}
-            {rmpRating != null && (
-              <div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: colors.text }}>Student Reviews</h2>
-                  <a href={rmpSearchUrl} target="_blank" rel="noopener noreferrer" style={{
-                    fontSize: 13, color: "#861F41", fontWeight: 700, textDecoration: "none",
-                  }}>View on RMP ↗</a>
-                </div>
-
-                {rmpReviews.length > 0 ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {rmpReviews.slice(0, 6).map((review, i) => (
-                      <ReviewCard key={i} review={review} darkMode={dm} colors={colors} />
-                    ))}
-                    {rmpReviews.length > 6 && (
-                      <a href={rmpSearchUrl} target="_blank" rel="noopener noreferrer" style={{
-                        display: "block", textAlign: "center", padding: "12px",
-                        background: colors.card, border: `1.5px solid ${colors.border}`,
-                        borderRadius: 12, color: "#861F41", fontWeight: 700, fontSize: 14,
-                        textDecoration: "none",
-                      }}>
-                        View all {rmpReviews.length} reviews on RateMyProfessors ↗
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{
-                    background: colors.card, border: `1.5px solid ${colors.border}`,
-                    borderRadius: 14, padding: "28px 24px", textAlign: "center",
-                  }}>
-                    <div style={{ fontSize: 28, marginBottom: 10 }}>💬</div>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: colors.text, marginBottom: 6 }}>
-                      {rmpCount} ratings on RateMyProfessors
-                    </div>
-                    <div style={{ fontSize: 13, color: colors.sub, marginBottom: 16, lineHeight: 1.5 }}>
-                      We don't store individual reviews locally yet. Read them directly on RMP.
-                    </div>
-                    <a href={rmpSearchUrl} target="_blank" rel="noopener noreferrer" style={{
-                      display: "inline-block", background: "#861F41", color: "white",
-                      borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14,
-                      textDecoration: "none",
-                    }}>Read reviews on RateMyProfessors ↗</a>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
-      </div>
+    </div>
+  );
+
+}
+
+function GradeMiniBar({ dist, darkMode }) {
+  const dm = darkMode;
+  const groups = [
+    { key: "A", color: "#16a34a", value: (dist?.A || 0) + (dist?.["A-"] || 0) },
+    { key: "B", color: "#0891b2", value: (dist?.["B+"] || 0) + (dist?.B || 0) + (dist?.["B-"] || 0) },
+    { key: "C", color: "#d97706", value: (dist?.["C+"] || 0) + (dist?.C || 0) + (dist?.["C-"] || 0) },
+    { key: "D", color: "#ea580c", value: (dist?.["D+"] || 0) + (dist?.D || 0) + (dist?.["D-"] || 0) },
+    { key: "F", color: "#dc2626", value: dist?.F || 0 },
+  ].filter(group => group.value > 0);
+  const total = groups.reduce((sum, group) => sum + group.value, 0) || 1;
+
+  return (
+    <div style={{
+      height: 18,
+      borderRadius: 8,
+      overflow: "hidden",
+      background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+      display: "flex",
+      border: dm ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,0,0,0.04)",
+    }}>
+      {groups.map(group => (
+        <div
+          key={group.key}
+          title={`${group.key}: ${Math.round(group.value)}%`}
+          style={{
+            width: `${(group.value / total) * 100}%`,
+            minWidth: group.value > 0 ? 3 : 0,
+            background: group.color,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: 9,
+            fontWeight: 800,
+          }}
+        >
+          {group.value >= 12 ? `${Math.round(group.value)}%` : ""}
+        </div>
+      ))}
     </div>
   );
 }

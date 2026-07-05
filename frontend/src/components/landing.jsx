@@ -2,6 +2,7 @@
 // scroll-driven SVG · light/dark
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
+import { API } from "../api.js";
 import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, glassCard, RADIUS } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
@@ -702,30 +703,31 @@ function Showcase({ dark, t }) {
   );
 }
 
-// ── Data marquees — two counter-scrolling card streams (all data is fake) ─────
-// Top row: example course cards drifting right; bottom row drifts left.
-const FAKE_COURSES = [
-  { code: "CSX 2140", title: "Intro to Data Systems",   gpa: 3.42, profs: 5, n: "1,240", dist: [48, 31, 14, 4, 3] },
-  { code: "MTH 2210", title: "Discrete Structures",     gpa: 2.91, profs: 7, n: "2,118", dist: [29, 33, 24, 8, 6] },
-  { code: "PHY 1850", title: "Mechanics & Waves",       gpa: 3.05, profs: 4, n: "1,876", dist: [35, 32, 21, 7, 5] },
-  { code: "ECN 2005", title: "Microeconomics",          gpa: 3.18, profs: 6, n: "2,431", dist: [40, 31, 19, 6, 4] },
-  { code: "STA 3100", title: "Applied Statistics",      gpa: 3.33, profs: 3, n: "986",   dist: [45, 30, 17, 5, 3] },
-  { code: "CSX 3320", title: "Algorithms II",           gpa: 2.74, profs: 6, n: "1,654", dist: [24, 31, 27, 10, 8] },
-  { code: "BIO 1400", title: "Cell Biology",            gpa: 3.21, profs: 5, n: "2,044", dist: [41, 30, 19, 6, 4] },
-  { code: "HUM 2200", title: "World Literature",        gpa: 3.61, profs: 2, n: "742",   dist: [58, 27, 11, 2, 2] },
-];
-const FAKE_PROFS = [
-  { name: "Dr. Eleanor Voss",    dept: "CSX", rating: 4.6, diff: 2.8, gpa: 3.41, again: 92 },
-  { name: "Prof. Marcus Hale",   dept: "MTH", rating: 4.2, diff: 3.4, gpa: 2.98, again: 81 },
-  { name: "Dr. Priya Anand",     dept: "STA", rating: 4.8, diff: 2.5, gpa: 3.52, again: 95 },
-  { name: "Prof. Daniel Okafor", dept: "PHY", rating: 3.9, diff: 3.8, gpa: 2.87, again: 74 },
-  { name: "Dr. Sofia Marin",     dept: "ECN", rating: 4.4, diff: 2.9, gpa: 3.22, again: 88 },
-  { name: "Prof. Theo Lindqvist",dept: "CSX", rating: 4.1, diff: 3.1, gpa: 3.05, again: 79 },
-  { name: "Dr. Amara Diallo",    dept: "BIO", rating: 4.7, diff: 2.6, gpa: 3.44, again: 93 },
-  { name: "Prof. Ivan Petrov",   dept: "HUM", rating: 4.0, diff: 2.2, gpa: 3.58, again: 85 },
-];
+// ── Data marquees — two counter-scrolling card streams with live Darvis data ──
 const GRADE_COLORS = ["#4ade80", "#93c5fd", "#fbbf24", "#fb923c", "#f87171"];
 const GRADE_KEYS = ["A", "B", "C", "D", "F"];
+
+function CompactSkeletonCard({ t, dark }) {
+  return (
+    <div className="lp-card" style={{
+      width: 318, minHeight: 136, flexShrink: 0, marginRight: 18,
+      background: t.card, border: `1px solid ${t.line}`,
+      "--card-solid": dark ? "#181311" : "#FFFFFF",
+      borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
+      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
+    }}>
+      <div style={{ height: 12, width: 76, borderRadius: 999, background: t.lineSoft, marginBottom: 14 }} />
+      <div style={{ height: 18, width: 210, borderRadius: 8, background: t.lineSoft, marginBottom: 10 }} />
+      <div style={{ height: 12, width: 160, borderRadius: 8, background: t.lineSoft }} />
+    </div>
+  );
+}
+
+function formatCount(n) {
+  const value = Number(n) || 0;
+  return value >= 1000 ? value.toLocaleString() : `${value}`;
+}
 
 function GpaRing({ gpa, t }) {
   const r = 17, C = 2 * Math.PI * r;
@@ -743,9 +745,9 @@ function GpaRing({ gpa, t }) {
   );
 }
 
-function CourseCard({ c, t, dark }) {
+function CourseCard({ c, t, dark, onClick }) {
   return (
-    <div className="lp-card" style={{
+    <button type="button" className="lp-card" onClick={() => onClick?.(c)} style={{
       width: 318, minHeight: 136, flexShrink: 0, marginRight: 18,
       display: "flex", flexDirection: "column", justifyContent: "center",
       background: t.card, border: `1px solid ${t.line}`,
@@ -753,14 +755,15 @@ function CourseCard({ c, t, dark }) {
       borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
+      cursor: "pointer", textAlign: "left", fontFamily: SANS,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: ACCENT, letterSpacing: "0.8px" }}>{c.code}</div>
           <div style={{ fontSize: 15.5, fontWeight: 600, color: t.text, marginTop: 5, lineHeight: 1.3 }}>{c.title}</div>
-          <div style={{ fontSize: 12, color: t.textMute, marginTop: 4 }}>{c.profs} instructors · {c.n} students</div>
+          <div style={{ fontSize: 12, color: t.textMute, marginTop: 4 }}>{c.profs || "—"} instructors · {formatCount(c.n)} students</div>
         </div>
-        <GpaRing gpa={c.gpa} t={t} />
+        <GpaRing gpa={c.avgGpa || c.gpa || 0} t={t} />
       </div>
       <div className="lp-card-more">
         <svg width="100%" height="10" style={{ display: "block", borderRadius: 5, overflow: "hidden" }} aria-hidden="true">
@@ -780,14 +783,19 @@ function CourseCard({ c, t, dark }) {
           ))}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
-function ProfCard({ pr, t, dark }) {
+function ProfCard({ pr, t, dark, onClick }) {
   const initials = pr.name.split(" ").slice(-1)[0].slice(0, 2).toUpperCase();
+  const dept = pr.dept || pr.department || (Array.isArray(pr.subjects) ? pr.subjects[0] : "") || "VT";
+  const rating = pr.rmpRating ?? pr.rating ?? 0;
+  const diff = pr.rmpDifficulty ?? pr.diff ?? null;
+  const gpa = pr.avgGpa ?? pr.gpa ?? null;
+  const count = pr.rmpCount ?? 0;
   return (
-    <div className="lp-card" style={{
+    <button type="button" className="lp-card" onClick={() => onClick?.(pr)} style={{
       width: 318, minHeight: 136, flexShrink: 0, marginRight: 18,
       display: "flex", flexDirection: "column", justifyContent: "center",
       background: t.card, border: `1px solid ${t.line}`,
@@ -795,6 +803,7 @@ function ProfCard({ pr, t, dark }) {
       borderRadius: 18, padding: "20px 22px", boxSizing: "border-box",
       backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.25)" : "0 4px 18px rgba(26,18,15,0.06)",
+      cursor: "pointer", textAlign: "left", fontFamily: SANS,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -804,16 +813,16 @@ function ProfCard({ pr, t, dark }) {
         </svg>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: t.text }}>{pr.name}</div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: t.textMute, letterSpacing: "0.8px", marginTop: 3 }}>{pr.dept} DEPT</div>
+          <div style={{ fontFamily: MONO, fontSize: 11, color: t.textMute, letterSpacing: "0.8px", marginTop: 3 }}>{dept} DEPT</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 22, fontFamily: SERIF, color: ACCENT }}>{pr.rating.toFixed(1)}</div>
+          <div style={{ fontSize: 22, fontFamily: SERIF, color: ACCENT }}>{rating.toFixed(1)}</div>
           <div style={{ fontFamily: MONO, fontSize: 9, color: t.textMute, letterSpacing: "0.5px" }}>RATING</div>
         </div>
       </div>
       <div className="lp-card-more">
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          {[["AVG GPA", pr.gpa.toFixed(2)], ["DIFFICULTY", pr.diff.toFixed(1)], ["TAKE AGAIN", `${pr.again}%`]].map(([k, v]) => (
+          {[["AVG GPA", gpa != null ? gpa.toFixed(2) : "—"], ["DIFFICULTY", diff != null ? diff.toFixed(1) : "—"], ["RMP RATINGS", count ? formatCount(count) : "—"]].map(([k, v]) => (
             <div key={k}>
               <div style={{ fontSize: 14, fontFamily: SERIF, color: t.text }}>{v}</div>
               <div style={{ fontFamily: MONO, fontSize: 8.5, color: t.textMute, letterSpacing: "0.5px", marginTop: 1 }}>{k}</div>
@@ -822,28 +831,53 @@ function ProfCard({ pr, t, dark }) {
         </div>
         <svg width="100%" height="6" style={{ display: "block", borderRadius: 3 }} aria-hidden="true">
           <rect x="0" y="0" width="100%" height="6" rx="3" fill={t.lineSoft} />
-          <rect x="0" y="0" width={`${pr.again}%`} height="6" rx="3" fill={ACCENT} opacity="0.7" />
+          <rect x="0" y="0" width={`${Math.min((rating / 5) * 100, 100)}%`} height="6" rx="3" fill={ACCENT} opacity="0.7" />
         </svg>
       </div>
-    </div>
+    </button>
   );
 }
 
-function DataMarquees({ dark, t }) {
+function DataMarquees({ dark, t, onCourseClick, onProfClick }) {
+  const [rows, setRows] = useState({ courses: [], instructors: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    API.getLandingMarqueeData()
+      .then(data => {
+        if (!alive) return;
+        setRows({
+          courses: data.courses || [],
+          instructors: data.instructors || [],
+        });
+      })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  const courseCards = rows.courses.length ? rows.courses : [];
+  const profCards = rows.instructors.length ? rows.instructors : [];
+
   return (
-    <div aria-label="Example of how Darvis displays course and instructor data">
+    <div aria-label="Live examples of how Darvis displays course and instructor data">
       <div className="lp-mq lp-mq-r">
         <div className="lp-mq-track">
-          {[...FAKE_COURSES, ...FAKE_COURSES].map((c, i) => (
-            <CourseCard key={i} c={c} t={t} dark={dark} />
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <CompactSkeletonCard key={i} t={t} dark={dark} />)
+            : [...courseCards, ...courseCards].map((c, i) => (
+              <CourseCard key={`${c.code}-${i}`} c={c} t={t} dark={dark} onClick={onCourseClick} />
+            ))}
         </div>
       </div>
       <div className="lp-mq lp-mq-l" style={{ marginTop: -25 }}>
         <div className="lp-mq-track">
-          {[...FAKE_PROFS, ...FAKE_PROFS].map((pr, i) => (
-            <ProfCard key={i} pr={pr} t={t} dark={dark} />
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <CompactSkeletonCard key={i} t={t} dark={dark} />)
+            : [...profCards, ...profCards].map((pr, i) => (
+              <ProfCard key={`${pr.name}-${i}`} pr={pr} t={t} dark={dark} onClick={onProfClick} />
+            ))}
         </div>
       </div>
     </div>
@@ -1555,7 +1589,7 @@ function DataViz({ dark, t, isMobile, pad }) {
   );
 }
 
-export default function LandingPage({ onEnter, onNavigate, darkMode }) {
+export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseClick, onProfClick }) {
   const t = palette(darkMode);
   const statsRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
@@ -1716,7 +1750,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             color: t.text, lineHeight: 1.1,
           }}>Every course. Every instructor. <span style={{ fontStyle: "italic", color: ACCENT }}>One glance.</span></h2>
         </Reveal>
-        <DataMarquees dark={darkMode} t={t} />
+        <DataMarquees dark={darkMode} t={t} onCourseClick={onCourseClick} onProfClick={onProfClick} />
       </section>
 
       {/* ── SCROLL STORY — features + chart line that morphs into DARVIS ─────── */}

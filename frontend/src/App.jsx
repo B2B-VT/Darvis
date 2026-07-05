@@ -206,11 +206,11 @@ export default function App() {
   const renderPage = () => {
     // If somehow on a protected page without being signed in, show landing
     if (PROTECTED.has(page) && !isSignedIn) {
-      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} />;
+      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} onCourseClick={openCourse} onProfClick={openProf} />;
     }
 
     if (page === "landing") {
-      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} />;
+      return <LandingPage onEnter={() => navigateTo("search")} onNavigate={navigateTo} darkMode={darkMode} onCourseClick={openCourse} onProfClick={openProf} />;
     }
     if (page === "profile") {
       return <ProfilePage darkMode={darkMode} setPage={navigateTo} />;

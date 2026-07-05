@@ -127,6 +127,98 @@ export const API = {
     return (data || []).map(r => r.subject);
   },
 
+  // Live data for the landing page marquee. Kept intentionally small so the
+  // public homepage can show real course/professor signals without pulling the
+  // full catalog or instructor directory.
+  async getLandingMarqueeData() {
+    const subjectPool = [
+      'CS', 'BIT', 'MATH', 'STAT', 'PHYS', 'CHEM', 'BIOL', 'ECE',
+      'ACIS', 'ECON', 'ENGL', 'HIST', 'PSYC', 'FIN', 'MGT', 'MKTG',
+      'CMDA', 'COMM', 'AAD', 'HTM',
+    ];
+
+    const [courseResults, instructorRes] = await Promise.all([
+      Promise.all(subjectPool.map(subject => db
+        .from('courses')
+        .select('id, subject, course_number, title, credits, avg_gpa, description, pathways')
+        .eq('subject', subject)
+        .not('avg_gpa', 'is', null)
+        .gte('avg_gpa', 2.35)
+        .order('course_number')
+        .limit(14)
+      )),
+      db
+        .from('instructors')
+        .select('name, dept, subjects, avg_gpa, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, rmp_reviews, rmp_id')
+        .not('rmp_rating', 'is', null)
+        .not('rmp_difficulty', 'is', null)
+        .not('avg_gpa', 'is', null)
+        .order('rmp_count', { ascending: false })
+        .limit(60),
+    ]);
+    const courseError = courseResults.find(result => result.error)?.error;
+    if (courseError) throw courseError;
+    if (instructorRes.error) throw instructorRes.error;
+
+    const courses = chooseLandingCourses(courseResults.flatMap(result => result.data || [])).slice(0, 8);
+    const enrichedCourses = await Promise.all(courses.map(async row => {
+      const base = formatCourse(row);
+      const { data: grades } = await db
+        .from('grades')
+        .select('instructor, gpa, graded_enrollment, a_pct, a_minus_pct, b_plus_pct, b_pct, b_minus_pct, c_plus_pct, c_pct, c_minus_pct, d_plus_pct, d_pct, d_minus_pct, f_pct')
+        .eq('subject', row.subject)
+        .eq('course_number', row.course_number);
+
+      const rows = grades || [];
+      const totalStudents = rows.reduce((sum, r) => sum + (Number(r.graded_enrollment) || 0), 0);
+      const instructors = new Set(rows.map(r => r.instructor).filter(Boolean));
+      const weighted = fields => {
+        if (!totalStudents) return 0;
+        return rows.reduce((sum, r) => {
+          const enrollment = Number(r.graded_enrollment) || 0;
+          const pct = fields.reduce((inner, field) => inner + (Number(r[field]) || 0), 0);
+          return sum + pct * enrollment;
+        }, 0) / totalStudents;
+      };
+      const distRaw = [
+        weighted(['a_pct', 'a_minus_pct']),
+        weighted(['b_plus_pct', 'b_pct', 'b_minus_pct']),
+        weighted(['c_plus_pct', 'c_pct', 'c_minus_pct']),
+        weighted(['d_plus_pct', 'd_pct', 'd_minus_pct']),
+        weighted(['f_pct']),
+      ];
+      const distTotal = distRaw.reduce((sum, n) => sum + n, 0) || 1;
+      const dist = distRaw.map(n => Math.round((n / distTotal) * 100));
+      const correction = 100 - dist.reduce((sum, n) => sum + n, 0);
+      dist[0] += correction;
+
+      return {
+        ...base,
+        code: `${base.subject} ${base.number}`,
+        profs: instructors.size || base.totalSections || 0,
+        n: totalStudents,
+        dist,
+      };
+    }));
+
+    const instructors = chooseLandingInstructors(instructorRes.data || []).slice(0, 8).map(r => ({
+      name:          r.name,
+      department:    r.dept || '',
+      dept:          r.dept || (Array.isArray(r.subjects) ? r.subjects[0] : '') || '',
+      subjects:      r.subjects || [],
+      courseCount:   0,
+      avgGpa:        r.avg_gpa != null ? parseFloat(r.avg_gpa) : null,
+      rmpRating:     r.rmp_rating != null ? parseFloat(r.rmp_rating) : null,
+      rmpDifficulty: r.rmp_difficulty != null ? parseFloat(r.rmp_difficulty) : null,
+      rmpCount:      r.rmp_count || 0,
+      rmpTags:       Array.isArray(r.rmp_tags) ? r.rmp_tags : [],
+      rmpReviews:    Array.isArray(r.rmp_reviews) ? r.rmp_reviews : [],
+      rmpId:         r.rmp_id || null,
+    }));
+
+    return { courses: enrichedCourses, instructors };
+  },
+
   // Returns Fall 2026 sections for a given course from the sections table.
   // Sections are sorted by start_time then instructor.
   async getSections(subject, courseNumber, term = '202609') {
@@ -345,6 +437,58 @@ function formatCourse(row) {
     profIds:  [],
     sections: [],
   };
+}
+
+function chooseLandingCourses(rows) {
+  const useful = rows
+    .filter(r => r.subject && r.course_number && r.title && r.avg_gpa != null)
+    .sort((a, b) => {
+      const aLevel = parseInt(String(a.course_number).match(/\d/) ? a.course_number : '9999', 10);
+      const bLevel = parseInt(String(b.course_number).match(/\d/) ? b.course_number : '9999', 10);
+      return aLevel - bLevel || String(a.title).localeCompare(String(b.title));
+    });
+  const bySubject = useful.reduce((map, row) => {
+    if (!map[row.subject]) map[row.subject] = [];
+    map[row.subject].push(row);
+    return map;
+  }, {});
+
+  const onePerSubject = shuffle([...Object.values(bySubject)])
+    .map(subjectRows => shuffle(subjectRows)[0])
+    .filter(Boolean);
+
+  const picked = onePerSubject.slice(0, 8);
+  for (const row of shuffle(useful)) {
+    const key = `${row.subject} ${row.course_number}`;
+    if (picked.some(c => `${c.subject} ${c.course_number}` === key)) continue;
+    picked.push(row);
+    if (picked.length >= 8) break;
+  }
+  return picked;
+}
+
+function chooseLandingInstructors(rows) {
+  const byDept = rows
+    .filter(r => r.name && r.rmp_rating != null && r.rmp_difficulty != null && r.avg_gpa != null)
+    .reduce((map, row) => {
+      const dept = row.dept || (Array.isArray(row.subjects) ? row.subjects[0] : '') || 'VT';
+      if (!map[dept]) map[dept] = [];
+      map[dept].push(row);
+      return map;
+    }, {});
+
+  return shuffle([...Object.values(byDept)])
+    .map(deptRows => shuffle(deptRows)[0])
+    .filter(Boolean);
+}
+
+function shuffle(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
 
 // Aggregates raw grade rows into a per-term summary for the trend chart.
