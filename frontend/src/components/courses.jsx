@@ -283,7 +283,7 @@ function SectionBreakdown({ sections, darkMode }) {
 }
 
 // ── Course Detail Modal ───────────────────────────────────────────
-export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick }) {
+export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick, initialTab = "description" }) {
   const dm = darkMode;
   const p = palette(dm);
   const [detail, setDetail] = useState(null);
@@ -304,11 +304,11 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
   }, []);
 
   useEffect(() => {
-    setDetailLoading(true); setDetail(null); setTab('description'); setShowAllInstructors(false);
+    setDetailLoading(true); setDetail(null); setTab(initialTab); setShowAllInstructors(false);
     API.getCourse(course.subject, course.number)
       .then(d => { setDetail(d); setDetailLoading(false); })
       .catch(() => setDetailLoading(false));
-  }, [course.subject, course.number]);
+  }, [course.subject, course.number, initialTab]);
 
   useEffect(() => {
     setSectionsLoading(true); setSections([]);
@@ -619,9 +619,51 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
                 const hasDays  = !isPlaceholder(days);
                 const isOpen   = sec.seats > 0 ? sec.enrolled < sec.seats : true;
                 const rmp      = sec.rmp;
+                const openSection = () => onClick(course, "sections");
+                const baseSectionBg = dm ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)";
+                const hoverSectionBg = dm ? "rgba(255,255,255,0.055)" : "rgba(0,0,0,0.035)";
+                const sectionLabel = `Open details for section ${sec.crn} of ${course.subject} ${course.number}`;
 
                 return (
-                  <div key={sec.crn} style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: "10px 14px", background: dm ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                  <div
+                    key={sec.crn}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={sectionLabel}
+                    title={sectionLabel}
+                    onClick={openSection}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openSection();
+                      }
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = dm ? "rgba(255,255,255,0.18)" : "rgba(26,18,15,0.18)";
+                      e.currentTarget.style.background = hoverSectionBg;
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = p.line;
+                      e.currentTarget.style.background = baseSectionBg;
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = ACCENT;
+                      e.currentTarget.style.background = hoverSectionBg;
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = p.line;
+                      e.currentTarget.style.background = baseSectionBg;
+                    }}
+                    style={{
+                      border: `1px solid ${p.line}`,
+                      borderRadius: RADIUS.md,
+                      padding: "10px 14px",
+                      background: baseSectionBg,
+                      cursor: "pointer",
+                      outline: "none",
+                      transition: "background 0.15s, border-color 0.15s",
+                    }}
+                  >
                     {/* Row 1: CRN + status + seats */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                       <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, color: p.text }}>{sec.crn}</span>
@@ -657,7 +699,10 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
                     {/* Row 3: instructor + RMP */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button
-                        onClick={() => onProfClick?.(sec.rmp ?? { name: sec.instructor })}
+                        onClick={e => {
+                          e.stopPropagation();
+                          onProfClick?.(sec.rmp ?? { name: sec.instructor });
+                        }}
                         style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: p.textSub, transition: "color 0.15s" }}
                         onMouseEnter={e => e.currentTarget.style.color = ACCENT}
                         onMouseLeave={e => e.currentTarget.style.color = p.textSub}

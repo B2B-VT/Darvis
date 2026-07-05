@@ -395,7 +395,17 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
                 </>
               ) : (
                 <div style={{ textAlign: "center", padding: "16px 0" }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+                  <img
+                    src="/images/no-rmp-data.png"
+                    alt=""
+                    style={{
+                      width: 42,
+                      height: 42,
+                      objectFit: "contain",
+                      marginBottom: 8,
+                      opacity: dm ? 0.92 : 0.86,
+                    }}
+                  />
                   <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 6 }}>No RMP data</div>
                   <div style={{ fontSize: 13, color: colors.sub, lineHeight: 1.5 }}>
                     This instructor doesn't have a Rate My Professors profile yet.

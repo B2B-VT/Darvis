@@ -15,6 +15,28 @@ function sanitize(raw) {
   return raw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").replace(/[ \t]+/g, " ").slice(0, 200);
 }
 
+function normalizeCode(value) {
+  return String(value || "").trim().toUpperCase();
+}
+
+function getInstructorDepartments(instructor, courseMap = {}) {
+  const values = new Set();
+  const dept = normalizeCode(instructor.department);
+  if (dept) values.add(dept);
+  (instructor.subjects || []).forEach(subject => {
+    const code = normalizeCode(subject);
+    if (code) values.add(code);
+  });
+  const courseSet = courseMap[instructor.name];
+  if (courseSet) {
+    [...courseSet].forEach(course => {
+      const code = normalizeCode(String(course).split(/\s+/)[0]);
+      if (code) values.add(code);
+    });
+  }
+  return [...values];
+}
+
 // ── Avatar ────────────────────────────────────────────────────────
 function Avatar({ name, size = 52 }) {
   const initials = name
@@ -132,11 +154,14 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [departmentQuery, setDepartmentQuery] = useState("");
+  const [departmentOpen, setDepartmentOpen] = useState(false);
   const [rmpOnly, setRmpOnly] = useState(false);
   const [sortBy, setSortBy] = useState("name");
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
   const [instructorCourseMap, setInstructorCourseMap] = useState({});
   const searchRef = useRef(null);
+  const departmentRef = useRef(null);
   const dm = darkMode;
   const p = palette(dm);
   const showLoading = useMinimumLoading(loading);
@@ -172,11 +197,47 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const close = e => {
+      if (!departmentRef.current?.contains(e.target)) setDepartmentOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  const departmentOptions = useMemo(() => {
+    const codes = new Set();
+    instructors.forEach(instructor => {
+      getInstructorDepartments(instructor, instructorCourseMap).forEach(code => codes.add(code));
+    });
+    return [...codes].sort((a, b) => a.localeCompare(b));
+  }, [instructors, instructorCourseMap]);
+
+  const departmentMatches = useMemo(() => {
+    const q = normalizeCode(departmentQuery);
+    return q
+      ? departmentOptions.filter(code => code.startsWith(q))
+      : departmentOptions;
+  }, [departmentOptions, departmentQuery]);
+
   const filtered = useMemo(() => {
     let list = [...instructors];
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      list = list.filter(i => i.name.toLowerCase().includes(q));
+      list = list.filter(i => {
+        const depts = getInstructorDepartments(i, instructorCourseMap);
+        return i.name.toLowerCase().includes(q)
+          || depts.some(code => code.toLowerCase().includes(q));
+      });
+    }
+    if (departmentQuery.trim()) {
+      const q = normalizeCode(departmentQuery);
+      const exactOption = departmentOptions.includes(q);
+      list = list.filter(i =>
+        getInstructorDepartments(i, instructorCourseMap).some(code =>
+          exactOption ? code === q : code.startsWith(q)
+        )
+      );
     }
     if (rmpOnly) list = list.filter(i => i.rmpRating != null);
     list.sort((a, b) => {
@@ -188,7 +249,7 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       return a.name.localeCompare(b.name);
     });
     return list;
-  }, [instructors, query, rmpOnly, sortBy, instructorCourseMap]);
+  }, [instructors, query, departmentQuery, departmentOptions, rmpOnly, sortBy, instructorCourseMap]);
 
   const chipStyle = (active) => ({
     fontFamily: MONO, fontSize: 10, fontWeight: active ? 600 : 400,
@@ -198,6 +259,17 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
     color: active ? ACCENT : p.textSub,
     transition: "all 0.15s", letterSpacing: "0.3px",
   });
+
+  const filterInputStyle = {
+    ...glassInput(dm),
+    borderRadius: RADIUS.md,
+    padding: "0 13px",
+    height: 46,
+    color: p.text,
+    fontFamily: SANS,
+    display: "flex",
+    alignItems: "center",
+  };
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: SANS }}>
@@ -225,14 +297,103 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "20px 16px 60px" : "36px 64px 96px", boxSizing: "border-box" }}>
 
         {/* Filter row */}
-        <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, alignItems: "center", marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${p.line}`, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <button onClick={() => setRmpOnly(v => !v)} style={chipStyle(rmpOnly)}>Has RMP rating</button>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(240px, 360px) minmax(220px, auto)", gap: 14, alignItems: "end", marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${p.line}` }}>
+          <div ref={departmentRef} style={{ position: "relative", zIndex: 25 }}>
+            <label htmlFor="instructor-department-filter" style={{ display: "block", fontFamily: MONO, fontSize: 10, fontWeight: 700, color: p.textFaint, letterSpacing: "1.4px", textTransform: "uppercase", marginBottom: 7 }}>
+              Department / Major
+            </label>
+            <div style={filterInputStyle}>
+              <input
+                id="instructor-department-filter"
+                value={departmentQuery}
+                onChange={e => { setDepartmentQuery(sanitize(e.target.value).toUpperCase()); setDepartmentOpen(true); }}
+                onFocus={() => setDepartmentOpen(true)}
+                placeholder="Search subjects..."
+                style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: p.text, fontFamily: SANS, fontSize: 14 }}
+              />
+              {departmentQuery && (
+                <button aria-label="Clear department filter" onClick={() => { setDepartmentQuery(""); setDepartmentOpen(true); }} style={{ background: "transparent", border: "none", color: p.textFaint, cursor: "pointer", fontSize: 15, padding: "0 2px" }}>✕</button>
+              )}
+            </div>
+            {departmentOpen && departmentMatches.length > 0 && (
+              <div style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                zIndex: 200,
+                maxHeight: 280,
+                overflowY: "auto",
+                borderRadius: `0 0 ${RADIUS.md}px ${RADIUS.md}px`,
+                border: `1px solid ${dm ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.76)"}`,
+                borderTop: "none",
+                background: dm
+                  ? "linear-gradient(135deg, rgba(35,35,35,0.88), rgba(22,22,22,0.82))"
+                  : "linear-gradient(135deg, rgba(255,255,255,0.86), rgba(245,242,244,0.78))",
+                backdropFilter: "blur(18px) saturate(150%)",
+                WebkitBackdropFilter: "blur(18px) saturate(150%)",
+                boxShadow: SHADOW.md,
+                overflowX: "hidden",
+              }}>
+                {departmentMatches.map(code => {
+                  const active = normalizeCode(departmentQuery) === code;
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => { setDepartmentQuery(code); setDepartmentOpen(false); }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        background: active ? "rgba(134,31,65,0.22)" : "transparent",
+                        border: "none",
+                        borderTop: `1px solid ${p.lineSoft}`,
+                        color: active ? (dm ? "#fff" : ACCENT) : p.text,
+                        cursor: "pointer",
+                        fontFamily: SANS,
+                        fontSize: 15,
+                        fontWeight: active ? 760 : 500,
+                        letterSpacing: "0.2px",
+                        padding: "11px 16px",
+                        textAlign: "left",
+                      }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = p.card; }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      {code}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textFaint, letterSpacing: "1.5px", textTransform: "uppercase" }}>Sort</span>
-            {[["name","Name A→Z"],["rmp_desc","RMP ↓"],["rmp_asc","RMP ↑"],["courses","Most Courses"]].map(([val, label]) => (
-              <button key={val} onClick={() => setSortBy(val)} style={{ background: "none", border: "none", padding: "4px 0", color: sortBy === val ? p.text : p.textFaint, fontFamily: MONO, fontWeight: sortBy === val ? 600 : 400, fontSize: 10, letterSpacing: "0.5px", cursor: "pointer", borderBottom: `1.5px solid ${sortBy === val ? ACCENT : "transparent"}`, transition: "color 0.15s, border-color 0.15s" }}>{label}</button>
-            ))}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: isMobile ? "flex-start" : "space-between" }}>
+            <button
+              type="button"
+              aria-pressed={rmpOnly}
+              onClick={() => setRmpOnly(v => !v)}
+              style={{
+                ...chipStyle(rmpOnly),
+                minHeight: 42,
+                padding: "10px 16px",
+                fontSize: 12,
+                borderRadius: RADIUS.pill,
+                borderColor: rmpOnly ? "rgba(134,31,65,0.55)" : p.line,
+                boxShadow: rmpOnly ? "0 0 0 3px rgba(134,31,65,0.10)" : "none",
+              }}
+            >
+              Has RateMyProfessor (RMP) Data
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: p.textFaint, letterSpacing: "1.5px", textTransform: "uppercase", flexShrink: 0 }}>Sort</span>
+              {[["name","Name A→Z"],["rmp_desc","RMP ↓"],["rmp_asc","RMP ↑"],["courses","Most Courses"]].map(([val, label]) => (
+                <button key={val} onClick={() => setSortBy(val)} style={{ background: "none", border: "none", padding: "4px 0", color: sortBy === val ? p.text : p.textFaint, fontFamily: MONO, fontWeight: sortBy === val ? 600 : 400, fontSize: 10, letterSpacing: "0.5px", cursor: "pointer", borderBottom: `1.5px solid ${sortBy === val ? ACCENT : "transparent"}`, transition: "color 0.15s, border-color 0.15s", whiteSpace: "nowrap" }}>{label}</button>
+              ))}
+            </div>
           </div>
         </div>
 

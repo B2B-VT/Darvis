@@ -1867,26 +1867,8 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
             </p>
           </Reveal>
 
-          {/* Data sources */}
-          <Reveal delay={0.08}>
-            <div style={{
-              fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.8px",
-              textTransform: "uppercase", color: ACCENT, marginBottom: 16,
-            }}>Data sources</div>
-            {[
-              ["Grade distributions", "Publicly released university grade records"],
-              ["Professor ratings", "Aggregated student review platforms"],
-              ["Timetable & sections", "Live course catalog each semester"],
-            ].map(([k, v]) => (
-              <div key={k} style={{ marginBottom: 13 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{k}</div>
-                <div style={{ fontSize: 12, color: t.textMute, marginTop: 2, lineHeight: 1.5 }}>{v}</div>
-              </div>
-            ))}
-          </Reveal>
-
           {/* Explore */}
-          <Reveal delay={0.16}>
+          <Reveal delay={0.08}>
             <div style={{
               fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.8px",
               textTransform: "uppercase", color: ACCENT, marginBottom: 16,
@@ -1905,6 +1887,29 @@ export default function LandingPage({ onEnter, onNavigate, darkMode }) {
               onMouseEnter={e => { e.currentTarget.style.color = ACCENT; }}
               onMouseLeave={e => { e.currentTarget.style.color = t.textSub; }}
               >{label} →</button>
+            ))}
+          </Reveal>
+
+          {/* Legal */}
+          <Reveal delay={0.16}>
+            <div style={{
+              fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.8px",
+              textTransform: "uppercase", color: ACCENT, marginBottom: 16,
+            }}>Legal</div>
+            {[
+              ["Privacy Policy", "/privacy", () => onNavigate?.("privacy")],
+              ["Terms of Use", "/terms", () => onNavigate?.("terms")],
+              ["Support", "mailto:darvis.b2b@gmail.com"],
+              ["Contact", "mailto:darvis.b2b@gmail.com"],
+            ].map(([label, href, go]) => (
+              <a key={label} href={href} onClick={go ? e => { e.preventDefault(); go(); } : undefined} style={{
+                display: "block", background: "none", border: "none", padding: "5px 0",
+                fontSize: 13.5, fontWeight: 500, color: t.textSub, cursor: "pointer",
+                fontFamily: SANS, textAlign: "left", textDecoration: "none",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = ACCENT; }}
+              onMouseLeave={e => { e.currentTarget.style.color = t.textSub; }}
+              >{label} →</a>
             ))}
           </Reveal>
         </div>

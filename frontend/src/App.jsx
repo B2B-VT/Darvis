@@ -15,6 +15,7 @@ import AuthModal from "./components/auth-modal.jsx";
 import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
+import LegalPage from "./components/legal-page.jsx";
 import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
 import { LoadingShell } from "./components/skeletons.jsx";
 
@@ -22,6 +23,19 @@ injectGlobalStyles();
 
 // Pages that require authentication
 const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors"]);
+
+const pageToPath = page => {
+  if (page === "privacy") return "/privacy";
+  if (page === "terms") return "/terms";
+  if (page === "landing") return "/";
+  return "/";
+};
+
+const pathToPage = path => {
+  if (path === "/privacy") return "privacy";
+  if (path === "/terms") return "terms";
+  return null;
+};
 
 export default function App() {
   const { isSignedIn, isLoaded: authLoaded, getToken } = useAuth();
@@ -33,6 +47,8 @@ export default function App() {
   }, [authLoaded, isSignedIn, getToken]);
 
   const [page, setPage] = useState(() => {
+    const routePage = pathToPage(window.location.pathname);
+    if (routePage) return routePage;
     try { return localStorage.getItem("hokieDarvis_page") || "landing"; } catch { return "landing"; }
   });
   const [darkMode, setDarkMode] = useState(() => {
@@ -94,6 +110,7 @@ export default function App() {
     return () => clearTimeout(scheduleSaveTimer.current);
   }, [schedule]);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedCourseTab, setSelectedCourseTab] = useState("description");
   const [selectedProf,   setSelectedProf]   = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pendingPage, setPendingPage] = useState(null);
@@ -123,7 +140,7 @@ export default function App() {
   // Seed browser history with a valid state so back button stays inside the app.
   // Without this, back exits into Clerk's OAuth callback URLs (which Google rejects as 400).
   useEffect(() => {
-    window.history.replaceState({ page: "landing" }, "");
+    window.history.replaceState({ page }, "", pageToPath(page));
   }, []);
 
   // Handle browser back/forward — read the state we pushed and update React accordingly.
@@ -150,7 +167,7 @@ export default function App() {
   useEffect(() => {
     if (isSignedIn && pendingPage) {
       setPage(pendingPage);
-      window.history.pushState({ page: pendingPage }, "");
+      window.history.pushState({ page: pendingPage }, "", pageToPath(pendingPage));
       setPendingPage(null);
       setShowAuthModal(false);
     }
@@ -164,7 +181,7 @@ export default function App() {
       setShowAuthModal(true);
     } else {
       setPage(newPage);
-      window.history.pushState({ page: newPage }, "");
+      window.history.pushState({ page: newPage }, "", pageToPath(newPage));
     }
   };
 
@@ -172,7 +189,10 @@ export default function App() {
   const addSection    = sec => { if (!schedule.some(s => s.crn === sec.crn)) setSchedule(prev => [...prev, sec]); };
   const removeSection = crn => setSchedule(prev => prev.filter(s => s.crn !== crn));
 
-  const openCourse = course => setSelectedCourse(course);
+  const openCourse = (course, initialTab = "description") => {
+    setSelectedCourseTab(initialTab);
+    setSelectedCourse(course);
+  };
 
   // Prof opens as an overlay modal on top of whatever is showing — no page change needed.
   const openProf  = prof => setSelectedProf(prof);
@@ -210,6 +230,12 @@ export default function App() {
     }
     if (page === "faqs") {
       return <FaqsPage darkMode={darkMode} setPage={navigateTo} />;
+    }
+    if (page === "privacy") {
+      return <LegalPage type="privacy" darkMode={darkMode} setPage={navigateTo} />;
+    }
+    if (page === "terms") {
+      return <LegalPage type="terms" darkMode={darkMode} setPage={navigateTo} />;
     }
     if (page === "instructors") {
       return <InstructorsPage darkMode={darkMode} onProfClick={openProf} />;
@@ -265,6 +291,7 @@ export default function App() {
           onAdd={addSection} onRemove={removeSection}
           onClose={() => setSelectedCourse(null)}
           onProfClick={openProf}
+          initialTab={selectedCourseTab}
         />
       )}
 

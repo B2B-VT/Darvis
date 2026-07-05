@@ -346,30 +346,41 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
     }).catch(() => {});
   };
 
-  const btnBase = {
+  const iconBtn = {
     background: "none",
-    border: `1px solid ${p.line}`,
-    borderRadius: RADIUS.pill, padding: "3px 11px",
-    color: p.textMute,
-    fontSize: 11, fontWeight: 600, cursor: "pointer",
-    fontFamily: SANS,
+    border: "none",
+    borderRadius: 8,
+    width: 30,
+    height: 30,
+    padding: 0,
+    color: dm ? "rgba(255,255,255,0.62)" : "rgba(26,18,15,0.48)",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     transition: "all 0.15s",
   };
 
-  return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: 0, width: "100%" }}>
-      {/* Avatar */}
-      <div style={{
-        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-        background: dm ? "#1f1f1f" : "#f1eee9",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        marginTop: 2, overflow: "hidden",
-        border: `1px solid ${dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"}`,
-      }}>
-        <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Cyrus" style={{ width: 18, height: 18 }} />
-      </div>
+  const ActionIcon = ({ type }) => {
+    const common = { width: 19, height: 19, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round", strokeLinejoin: "round" };
+    if (type === "copy") return <svg {...common}><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>;
+    if (type === "good") return <svg {...common}><path d="M7 10v11"/><path d="M15 5.5 14 10h5.4a1.8 1.8 0 0 1 1.75 2.2l-1.6 6.5A2.9 2.9 0 0 1 16.75 21H5.8A1.8 1.8 0 0 1 4 19.2V11.8A1.8 1.8 0 0 1 5.8 10H8l3.45-5.15A1.9 1.9 0 0 1 15 5.5Z"/></svg>;
+    if (type === "bad") return <svg {...common}><path d="M17 14V3"/><path d="M9 18.5 10 14H4.6a1.8 1.8 0 0 1-1.75-2.2l1.6-6.5A2.9 2.9 0 0 1 7.25 3H18.2A1.8 1.8 0 0 1 20 4.8v7.4a1.8 1.8 0 0 1-1.8 1.8H16l-3.45 5.15A1.9 1.9 0 0 1 9 18.5Z"/></svg>;
+    if (type === "share") return <svg {...common}><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>;
+    if (type === "retry") return <svg {...common}><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>;
+    return <svg {...common}><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>;
+  };
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+  const handleFeedback = () => {};
+  const handleShare = () => {
+    const text = msg.answer || "";
+    if (navigator.share) navigator.share({ text }).catch(() => {});
+    else navigator.clipboard?.writeText(text).catch(() => {});
+  };
+
+  return (
+    <div style={{ minWidth: 0, width: "100%" }}>
+      <div style={{ width: "100%", minWidth: 0 }}>
         {/* Answer text */}
         <div style={{
           ...(msg.isError ? {
@@ -423,26 +434,69 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
           </div>
         )}
 
-        {/* Action row — copy + retry */}
-        <div style={{ display: "flex", gap: 6, marginTop: 9 }}>
+        {/* Action row */}
+        <div style={{ display: "flex", gap: 4, marginTop: 10, alignItems: "center" }}>
           <button
             onClick={handleCopy}
-            style={{ ...btnBase, color: copied ? ACCENT : btnBase.color, borderColor: copied ? "rgba(134,31,65,0.35)" : p.line }}
-            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; }}
-            onMouseLeave={e => { e.currentTarget.style.color = copied ? ACCENT : p.textMute; }}
+            aria-label={copied ? "Copied" : "Copy response"}
+            title={copied ? "Copied" : "Copy"}
+            style={{ ...iconBtn, color: copied ? ACCENT : iconBtn.color }}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = copied ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
-            {copied ? "Copied!" : "Copy"}
+            <ActionIcon type="copy" />
+          </button>
+          <button
+            onClick={handleFeedback}
+            aria-label="Good response"
+            title="Good response"
+            style={iconBtn}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+          >
+            <ActionIcon type="good" />
+          </button>
+          <button
+            onClick={handleFeedback}
+            aria-label="Bad response"
+            title="Bad response"
+            style={iconBtn}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+          >
+            <ActionIcon type="bad" />
+          </button>
+          <button
+            onClick={handleShare}
+            aria-label="Share response"
+            title="Share"
+            style={iconBtn}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+          >
+            <ActionIcon type="share" />
           </button>
           {(msg.isError || onRetry) && question && (
             <button
               onClick={() => onRetry(question)}
-              style={btnBase}
-              onMouseEnter={e => { e.currentTarget.style.color = ACCENT; e.currentTarget.style.borderColor = "rgba(134,31,65,0.35)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = p.textMute; e.currentTarget.style.borderColor = p.line; }}
+              aria-label="Try again"
+              title="Try again"
+              style={iconBtn}
+              onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
             >
-              ↺ Retry
+              <ActionIcon type="retry" />
             </button>
           )}
+          <button
+            aria-label="More actions"
+            title="More"
+            style={iconBtn}
+            onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+          >
+            <ActionIcon type="more" />
+          </button>
         </div>
       </div>
     </div>
@@ -742,7 +796,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
   const p = palette(dm);
   const sidebarFont = `"Segoe UI", ${SANS}`;
   const c = {
-    bg:     dm ? "#050505" : p.bgRaised,
+    bg:     dm ? "linear-gradient(180deg, rgba(10,8,7,0.96) 0%, rgba(5,5,5,0.98) 58%, rgba(16,7,6,0.96) 100%)" : p.bgRaised,
     border: dm ? "rgba(255,255,255,0.10)" : p.line,
     text:   dm ? "rgba(255,255,255,0.92)" : p.text,
     sub:    dm ? "rgba(255,255,255,0.76)" : p.textSub,
@@ -1055,6 +1109,10 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const convSaveTimers = useRef({});
   const dm = darkMode;
   const p = palette(dm);
+  const chatSurface = dm
+    ? "radial-gradient(circle at 16% 0%, rgba(134,31,65,0.13), transparent 34%), radial-gradient(circle at 92% 10%, rgba(196,115,64,0.08), transparent 32%), linear-gradient(180deg, #090807 0%, #050505 48%, #080504 100%)"
+    : "linear-gradient(180deg, #faf6f0 0%, #f3eee8 100%)";
+  const chatPanel = dm ? "rgba(8,7,6,0.78)" : "rgba(255,255,255,0.72)";
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -1496,20 +1554,20 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     <div style={{
       display: "flex",
       height: "100%",
-      background: dm ? "#000" : "transparent",
+      background: chatSurface,
       fontFamily: SANS,
       overflow: "hidden",
     }}>
 
       {/* ── Chat area ───────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0, background: chatPanel }}>
 
         {/* Mobile top bar */}
         {isMobile && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 16px", borderBottom: `1px solid ${p.line}`,
-            background: dm ? "#000" : p.bg, flexShrink: 0,
+            background: dm ? "rgba(8,7,6,0.86)" : p.bg, flexShrink: 0,
           }}>
             <button
               onClick={() => setSidebarOpen(o => !o)}
@@ -1540,7 +1598,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "flex-end",
             padding: "10px 18px", borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
-            flexShrink: 0, background: dm ? "#000" : p.bg,
+            flexShrink: 0, background: dm ? "rgba(8,7,6,0.86)" : p.bg,
           }}>
             <button
               onClick={() => setSidebarVisible(v => !v)}
@@ -1570,7 +1628,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
             alignItems: "center", justifyContent: "center",
             padding: isMobile ? "36px 16px 92px" : "40px 28px 112px",
             overflowY: "auto",
-            background: dm ? "#000" : "transparent",
+            background: "transparent",
           }}>
             <h1 style={{
               margin: isMobile ? "0 0 28px" : "0 0 44px",
@@ -1647,7 +1705,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
 
         {/* ── Messages ────────────────────────────────────────── */}
         {!isEmpty && (
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: isMobile ? "16px 0 16px" : "32px 0 24px", width: "100%", scrollBehavior: "smooth", background: dm ? "#000" : "transparent" }}>
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: isMobile ? "16px 0 16px" : "32px 0 24px", width: "100%", scrollBehavior: "smooth", background: "transparent" }}>
             <div style={{ maxWidth: 760, margin: "0 auto", padding: isMobile ? "0 14px" : "0 28px", display: "flex", flexDirection: "column", gap: isMobile ? 18 : 28 }}>
               {messages.map((msg, i) => (
                 msg.role === "user" ? (
@@ -1707,7 +1765,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         {/* ── Input bar ───────────────────────────────────────── */}
         {!isEmpty && (
         <div style={{
-          background: dm ? "rgba(0,0,0,0.92)" : "rgba(250,246,240,0.88)",
+          background: dm ? "linear-gradient(180deg, rgba(8,7,6,0.76), rgba(8,7,6,0.96))" : "rgba(250,246,240,0.88)",
           backdropFilter: "blur(22px) saturate(150%)",
           WebkitBackdropFilter: "blur(22px) saturate(150%)",
           borderTop: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
