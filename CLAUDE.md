@@ -25,6 +25,10 @@ npm run dev        # http://localhost:5173
 
 **Deploy:** git push to main → Vercel auto-deploys.
 
+**Tooling:** no ESLint/Prettier config and no test runner (Jest/Vitest) set up yet — plain JS, manual formatting.
+
+**Tooling:** no ESLint/Prettier config and no test runner (Jest/Vitest) set up yet — plain JS, manual formatting.
+
 **Key files:**
 - `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env`
 - `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state
