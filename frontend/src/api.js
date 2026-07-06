@@ -2,6 +2,9 @@
 // Query functions for the Darvis frontend.
 // All functions return data in the shape the existing components expect.
 import { db } from "./supabase.js";
+import { DARVIS_CONFIG } from "./config.js";
+
+const CHAT_API_BASE = (DARVIS_CONFIG.chatApiUrl || "").replace(/\/chat\/?$/, "");
 
 export const API = {
 
@@ -402,6 +405,59 @@ export const API = {
     await db.from('user_conversations')
       .delete().eq('user_id', userId).eq('session_id', sessionId);
   },
+
+  async getRmpReviews(rmpId, limit = 12) {
+    if (!rmpId || !CHAT_API_BASE) return [];
+    const url = `${CHAT_API_BASE}/rmp/reviews?rmp_id=${encodeURIComponent(rmpId)}&limit=${encodeURIComponent(limit)}`;
+    const response = await fetch(url, { method: "GET" });
+    if (!response.ok) throw new Error("Unable to fetch RateMyProfessors reviews.");
+    const payload = await response.json();
+    return Array.isArray(payload?.reviews) ? payload.reviews : [];
+  },
+
+  async getEchoReviews({ targetType, professorName, subject, number, limit = 20 } = {}) {
+    let query = db
+      .from('echo_reviews')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (targetType) query = query.eq('target_type', targetType);
+    if (professorName) query = query.eq('professor_name', professorName);
+    if (subject) query = query.eq('course_subject', subject);
+    if (number) query = query.eq('course_number', number);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map(formatEchoReview);
+  },
+
+  async createEchoReview(review) {
+    const payload = {
+      user_id:              review.userId,
+      display_name:         review.displayName || '',
+      target_type:          review.targetType,
+      professor_name:       review.professorName || null,
+      course_subject:       review.courseSubject || null,
+      course_number:        review.courseNumber || null,
+      course_title:         review.courseTitle || null,
+      quality_rating:       review.qualityRating,
+      difficulty_rating:    review.difficultyRating,
+      would_take_again:     review.wouldTakeAgain,
+      for_credit:           review.forCredit,
+      used_textbook:        review.usedTextbook,
+      attendance_mandatory: review.attendanceMandatory,
+      grade_received:       review.gradeReceived || null,
+      tags:                 review.tags || [],
+      review_text:          review.reviewText,
+      status:               review.status || 'published',
+      updated_at:           new Date().toISOString(),
+    };
+    const { data, error } = await db.from('echo_reviews').insert([payload]).select().single();
+    if (error) throw error;
+    return formatEchoReview(data);
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -489,6 +545,29 @@ function shuffle(items) {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+function formatEchoReview(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    displayName: row.display_name || 'Darvis student',
+    targetType: row.target_type,
+    professorName: row.professor_name,
+    courseSubject: row.course_subject,
+    courseNumber: row.course_number,
+    courseTitle: row.course_title,
+    qualityRating: row.quality_rating != null ? parseFloat(row.quality_rating) : null,
+    difficultyRating: row.difficulty_rating != null ? parseFloat(row.difficulty_rating) : null,
+    wouldTakeAgain: row.would_take_again,
+    forCredit: row.for_credit,
+    usedTextbook: row.used_textbook,
+    attendanceMandatory: row.attendance_mandatory,
+    gradeReceived: row.grade_received,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    reviewText: row.review_text || '',
+    createdAt: row.created_at,
+  };
 }
 
 // Aggregates raw grade rows into a per-term summary for the trend chart.

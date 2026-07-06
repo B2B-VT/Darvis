@@ -299,6 +299,9 @@ export default function App() {
         <ProfessorProfile
           prof={selectedProf} darkMode={darkMode}
           onCourseClick={openCourse} onClose={closeProf}
+          currentUser={user}
+          isSignedIn={!!isSignedIn}
+          onRequireSignIn={() => { setPendingPage(page); setShowAuthModal(true); }}
         />
       )}
 

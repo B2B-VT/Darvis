@@ -1,7 +1,10 @@
 import logging
+import asyncio
 import json
 import time
 import traceback
+import urllib.error
+import urllib.request
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -42,6 +45,14 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%S",
 )
 logger = logging.getLogger("darvis")
+
+RMP_GRAPHQL_URL = "https://www.ratemyprofessors.com/graphql"
+RMP_HEADERS = {
+    "Content-Type": "application/json",
+    "Authorization": "Basic dGVzdDp0ZXN0",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    "Referer": "https://www.ratemyprofessors.com/",
+}
 
 # ── Rate limiter (slowapi) ─────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address, default_limits=[])
@@ -199,6 +210,90 @@ def health():
         "vector_records": 0 if vector_store is None else vector_store.count(),
         "rag": rag_status,
     }
+
+
+def _normalize_rmp_review(node: dict) -> dict:
+    helpful = node.get("helpfulRating")
+    clarity = node.get("clarityRating")
+    quality_values = [float(v) for v in (helpful, clarity) if isinstance(v, (int, float))]
+    quality = round(sum(quality_values) / len(quality_values), 1) if quality_values else None
+    difficulty = node.get("difficultyRating")
+
+    return {
+        "id": node.get("id") or node.get("legacyId"),
+        "comment": (node.get("comment") or "").strip(),
+        "class": node.get("class"),
+        "date": node.get("date"),
+        "quality": quality,
+        "difficulty": float(difficulty) if isinstance(difficulty, (int, float)) else None,
+        "grade": node.get("grade"),
+        "tags": node.get("ratingTags") if isinstance(node.get("ratingTags"), list) else [],
+    }
+
+
+def _fetch_rmp_reviews_sync(rmp_id: str, limit: int) -> list[dict]:
+    query = """
+      query TeacherReviewsQuery($id: ID!, $count: Int!) {
+        node(id: $id) {
+          ... on Teacher {
+            ratings(first: $count) {
+              edges {
+                node {
+                  id
+                  legacyId
+                  comment
+                  class
+                  date
+                  difficultyRating
+                  helpfulRating
+                  clarityRating
+                  grade
+                  ratingTags
+                }
+              }
+            }
+          }
+        }
+      }
+    """
+    payload = json.dumps({
+        "query": query,
+        "variables": {"id": rmp_id, "count": max(1, min(limit, 20))},
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        RMP_GRAPHQL_URL,
+        data=payload,
+        headers=RMP_HEADERS,
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=8) as response:
+        data = json.loads(response.read().decode("utf-8"))
+
+    if data.get("errors"):
+        raise ValueError(data["errors"][0].get("message", "RMP GraphQL request failed."))
+
+    edges = data.get("data", {}).get("node", {}).get("ratings", {}).get("edges", [])
+    reviews = [_normalize_rmp_review(edge.get("node") or {}) for edge in edges]
+    return [review for review in reviews if review.get("comment")]
+
+
+@app.get("/rmp/reviews")
+@limiter.limit("30/minute")
+async def rmp_reviews(
+    request: Request,
+    rmp_id: str = Query(..., min_length=3, max_length=80),
+    limit: int = Query(12, ge=1, le=20),
+):
+    """Fetch live public RateMyProfessors review excerpts for a known RMP teacher id."""
+    try:
+        reviews = await asyncio.to_thread(_fetch_rmp_reviews_sync, rmp_id, limit)
+        return {"reviews": reviews}
+    except urllib.error.HTTPError as exc:
+        logger.warning("RMP review fetch failed for %s: HTTP %s", rmp_id, exc.code)
+        raise HTTPException(status_code=502, detail="RateMyProfessors reviews are temporarily unavailable.")
+    except Exception as exc:
+        logger.warning("RMP review fetch failed for %s: %s", rmp_id, exc)
+        raise HTTPException(status_code=502, detail="RateMyProfessors reviews are temporarily unavailable.")
 
 
 @app.post("/retrieval/debug")
