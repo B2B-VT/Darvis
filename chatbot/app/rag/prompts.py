@@ -133,7 +133,9 @@ _GROUNDING_RULES = """GROUNDING RULES (strict — these override everything else
 - If a specific fact the student asked for is not in the data above, say Darvis doesn't have that data — do not guess or substitute.
 - Historical grade data (2020–2026 averages) and Fall 2026 section/timetable data are different things — never present one as the other.
 - If RMP data is absent for a professor, say it's unavailable rather than estimating.
-- Use numbers exactly as given — do not recompute, round differently, or extrapolate."""
+- Use numbers exactly as given — do not recompute, round differently, or extrapolate.
+- Prioritize actually doing what the student specifically asked. Answer the exact question asked before adding related information they didn't ask for.
+- If you can only partially satisfy the request (missing data, a constraint that can't be met, an ambiguous ask), still give your best answer with what IS available, AND explicitly say what you couldn't do and why — never silently drop part of the request or answer a different, easier question instead."""
 
 
 def build_answer_prompt(
@@ -193,6 +195,8 @@ def build_rag_only_prompt(question: str, retrieved_context: str, intent=None) ->
 
     if retrieved_context and retrieved_context.strip():
         parts.append(f"Context:\n{retrieved_context.strip()}")
+
+    parts.append(_GROUNDING_RULES)
 
     framing = _intent_framing("general_rag", intent)
     if framing:

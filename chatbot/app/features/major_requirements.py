@@ -12,6 +12,7 @@ import re
 import pandas as pd
 from app.utils.charts import table_spec
 from app.config import get_settings
+from app.rag.prompts import build_rag_only_prompt
 
 
 # Common abbreviations → full major name (lowercase for matching)
@@ -221,21 +222,17 @@ def handle_major_requirements(
         )
         return answer, [table_dict], [], {"route": "major_requirements", "matched_major": major_name}
 
-    # ── Path 2: No structured match — use vector store + LLM ─────────────────
-    if vector_store is not None:
+    # ── Path 2: No structured match — grounded vector store + LLM ────────────
+    # (No ungrounded "just ask the LLM" fallback beyond this — guessing at
+    # major requirements from general knowledge risks confidently wrong
+    # course lists, which is worse than an honest "I don't have this".)
+    if vector_store is not None and llm is not None:
         context = vector_store.query(question, n_results=8)
         if context:
-            prompt = f"Context from VT catalog:\n{context}\n\nQuestion: {question}"
-            answer = llm.answer(prompt) if llm else None
+            prompt = build_rag_only_prompt(question, context, intent=intent)
+            answer = llm.answer(prompt)
             if answer:
                 return answer, [], [], {"route": "major_requirements", "matched_major": None}
-
-    # ── Path 3: Nothing worked — answer from general LLM knowledge ───────────
-    if llm:
-        prompt = f"Question: {question}"
-        answer = llm.answer(prompt)
-        if answer:
-            return answer, [], [], {"route": "major_requirements", "matched_major": None}
 
     return (
         "I don't have specific requirement data for that major. Try asking with the full major name, "
