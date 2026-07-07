@@ -100,6 +100,7 @@ def handle_course_profile(
     history: list | None = None,
     user_profile: dict | None = None,
     sections_df: pd.DataFrame | None = None,
+    indexes=None,
 ):
     settings = get_settings()
 
@@ -125,6 +126,10 @@ def handle_course_profile(
 
     result_all = course_profile(df, subject, course_no, min_students, use_recency)
 
+    description = ""
+    if indexes is not None and subject and course_no:
+        description = indexes.course_descriptions.get((subject.upper(), course_no.strip()), "") or ""
+
     if sort_ascending and not result_all.empty and "Avg GPA" in result_all.columns:
         # For "hardest/worst" queries: sort ALL instructors by ascending GPA first so the
         # actual worst instructor is included, then take top_n. Without this, .head(top_n)
@@ -136,7 +141,7 @@ def handle_course_profile(
         result = result_all.head(top_n)
 
     if result.empty:
-        retrieved = vector_store.query(question, n_results=6)
+        retrieved = vector_store.query(question, n_results=6) or description
         prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
         answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
         sec_tables = _build_sections_table(sections_df, subject, course_no)
@@ -174,8 +179,10 @@ def handle_course_profile(
 
     # Skip vector retrieval — the analytics table already contains everything
     # needed for a course question. Retrieval here added 100-500ms plus an
-    # optional LLM-judge call without changing the answer.
-    prompt = build_answer_prompt(question, "course_profile", table_text, "", intent=intent)
+    # optional LLM-judge call without changing the answer. The scraped catalog
+    # description is cheap (already in memory) and lets "what is X about"
+    # questions get answered instead of just grade/instructor comparisons.
+    prompt = build_answer_prompt(question, "course_profile", table_text, description, intent=intent)
     answer = llm.answer(prompt, max_tokens=350, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
 
     charts = [

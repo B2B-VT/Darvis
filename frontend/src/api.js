@@ -65,7 +65,7 @@ export const API = {
       if (q && q.trim()) {
         const safe = q.trim().replace(/[%_]/g, '\\$&');
         const parts = safe.split(/\s+/);
-        let orFilter = `title.ilike.%${safe}%,course_number.ilike.%${safe}%,subject.ilike.%${safe}%`;
+        let orFilter = `title.ilike.%${safe}%,course_number.ilike.%${safe}%,subject.ilike.%${safe}%,description.ilike.%${safe}%`;
         if (parts.length >= 2) {
           // Handle "CS 1014" style queries — first token is subject, rest is course number
           const subj = parts[0];

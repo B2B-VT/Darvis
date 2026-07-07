@@ -493,6 +493,7 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
                 history=[m.model_dump() for m in body.history],
                 user_profile=body.user_profile,
                 sections_df=STATE.get("sections_df"),
+                indexes=STATE.get("indexes"),
             )
             if result is None:
                 answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))

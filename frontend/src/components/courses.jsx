@@ -2006,7 +2006,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const searchSuggestions = useMemo(() => {
     if (!query.trim() || query.trim().length < 2) return [];
     const lower = query.trim().toLowerCase();
-    return coursePool.filter(c => `${c.subject} ${c.number}`.toLowerCase().includes(lower) || c.title.toLowerCase().includes(lower) || c.subject.toLowerCase().startsWith(lower)).slice(0, 8);
+    return coursePool.filter(c => `${c.subject} ${c.number}`.toLowerCase().includes(lower) || c.title.toLowerCase().includes(lower) || c.subject.toLowerCase().startsWith(lower) || (c.description || '').toLowerCase().includes(lower)).slice(0, 8);
   }, [coursePool, query]);
 
   useEffect(() => {
