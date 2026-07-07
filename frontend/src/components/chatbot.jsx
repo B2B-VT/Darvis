@@ -1,5 +1,5 @@
 // Chatbot page — full AI chat experience powered by the FastAPI backend
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
 import { DARVIS_CONFIG } from "../config.js";
@@ -50,6 +50,33 @@ function normalizeInput(raw) {
   let s = sanitizeInput(raw);
   s = normalizeCourseCode(s);
   return s;
+}
+
+// ── Input autocomplete / spell-correct helpers ────────────────────
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : 1 + Math.min(prev[j - 1], prev[j], cur[j - 1]);
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+// The word (or "SUBJ NNNN" pair) currently being typed at the end of the input —
+// what a suggestion dropdown should match against and replace on selection.
+function trailingToken(text) {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (!words.length) return "";
+  const last = words[words.length - 1];
+  const prev = words[words.length - 2] || "";
+  if (/^\d{1,4}$/.test(last) && /^[A-Za-z]{2,6}$/.test(prev)) return `${prev} ${last}`;
+  return last;
 }
 
 function renderInlineMarkdown(text, keyPrefix = "md") {
@@ -1140,6 +1167,9 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const [attachments,       setAttachments]      = useState([]);
   const [thinkingStatus,    setThinkingStatus]   = useState("Thinking");
+  const [entityPool,        setEntityPool]       = useState({ courses: [], instructors: [] });
+  const [showEntitySuggest, setShowEntitySuggest] = useState(false);
+  const [activeSuggestion,  setActiveSuggestion]  = useState(0);
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
@@ -1155,6 +1185,12 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  // Loaded once for the input's course/professor autocomplete + spell-correct.
+  useEffect(() => {
+    API.getCourses({}).then(list => setEntityPool(p => ({ ...p, courses: list }))).catch(() => {});
+    API.getInstructors().then(list => setEntityPool(p => ({ ...p, instructors: list }))).catch(() => {});
   }, []);
 
   // Load conversations from Supabase on sign-in, merge with localStorage (remote wins)
@@ -1538,7 +1574,83 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     }
   }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
 
-  const handleKey = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  const entitySuggestions = useMemo(() => {
+    const token = trailingToken(input).trim();
+    if (token.length < 2) return [];
+    const lower = token.toLowerCase();
+    const results = [];
+    const seen = new Set();
+
+    for (const c of entityPool.courses) {
+      const code = `${c.subject} ${c.number}`.toLowerCase();
+      if (code.startsWith(lower) && !seen.has(code)) {
+        results.push({ type: "course", value: `${c.subject} ${c.number}`, sub: c.title });
+        seen.add(code);
+        if (results.length >= 5) break;
+      }
+    }
+    if (results.length < 6) {
+      for (const inst of entityPool.instructors) {
+        const name = typeof inst === "string" ? inst : inst?.name;
+        if (!name) continue;
+        const last = name.split(" ").slice(-1)[0].toLowerCase();
+        if ((last.startsWith(lower) || name.toLowerCase().includes(lower)) && !seen.has(name)) {
+          results.push({ type: "professor", value: name, sub: "Professor" });
+          seen.add(name);
+          if (results.length >= 6) break;
+        }
+      }
+    }
+
+    // Spell-correct fallback — only when nothing matched directly.
+    if (results.length === 0 && lower.length >= 3) {
+      const flat = lower.replace(/\s+/g, "");
+      const candidates = [];
+      for (const c of entityPool.courses) {
+        const code = `${c.subject}${c.number}`.toLowerCase();
+        if (Math.abs(code.length - flat.length) > 2) continue;
+        const d = levenshtein(flat, code);
+        if (d <= 2) candidates.push({ d, item: { type: "course", value: `${c.subject} ${c.number}`, sub: c.title } });
+      }
+      for (const inst of entityPool.instructors) {
+        const name = typeof inst === "string" ? inst : inst?.name;
+        if (!name) continue;
+        const last = name.split(" ").slice(-1)[0].toLowerCase();
+        if (Math.abs(last.length - lower.length) > 2) continue;
+        const d = levenshtein(lower, last);
+        if (d <= 2) candidates.push({ d, item: { type: "professor", value: name, sub: "Professor" } });
+      }
+      candidates.sort((a, b) => a.d - b.d);
+      for (const cnd of candidates.slice(0, 6)) results.push(cnd.item);
+    }
+
+    return results.slice(0, 6);
+  }, [input, entityPool]);
+
+  useEffect(() => { setActiveSuggestion(0); }, [entitySuggestions]);
+
+  const applySuggestion = item => {
+    const words = input.split(/\s+/).filter(Boolean);
+    const tokenWords = trailingToken(input).split(/\s+/).length;
+    const before = words.slice(0, Math.max(0, words.length - tokenWords)).join(" ");
+    setInput((before ? before + " " : "") + item.value + " ");
+    setShowEntitySuggest(false);
+    inputRef.current?.focus();
+  };
+
+  const handleKey = e => {
+    if (showEntitySuggest && entitySuggestions.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setActiveSuggestion(i => (i + 1) % entitySuggestions.length); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setActiveSuggestion(i => (i - 1 + entitySuggestions.length) % entitySuggestions.length); return; }
+      if (e.key === "Escape") { e.preventDefault(); setShowEntitySuggest(false); return; }
+      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+        e.preventDefault();
+        applySuggestion(entitySuggestions[activeSuggestion]);
+        return;
+      }
+    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  };
 
   const isEmpty = messages.length === 0;
   const canSend = (input.trim() || attachments.length > 0) && !loading;
@@ -1592,7 +1704,38 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   );
 
   const renderComposer = ({ hero = false } = {}) => (
-    <>
+    <div style={{ position: "relative" }}>
+      {showEntitySuggest && entitySuggestions.length > 0 && (
+        <div style={{
+          position: "absolute", bottom: "100%", left: 0, right: 0, marginBottom: 8,
+          background: dm ? "rgba(28,26,24,0.98)" : "rgba(255,255,255,0.98)",
+          border: `1px solid ${p.line}`, borderRadius: RADIUS.md,
+          boxShadow: dm ? "0 -8px 30px rgba(0,0,0,0.35)" : "0 -8px 30px rgba(26,18,15,0.14)",
+          overflow: "hidden", zIndex: 50,
+        }}>
+          {entitySuggestions.map((s, i) => (
+            <button key={`${s.type}-${s.value}`}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => applySuggestion(s)}
+              onMouseEnter={() => setActiveSuggestion(i)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                padding: "9px 14px",
+                background: i === activeSuggestion ? (dm ? "rgba(255,255,255,0.07)" : "rgba(26,18,15,0.05)") : "transparent",
+                border: "none", borderTop: i > 0 ? `1px solid ${p.line}` : "none",
+                cursor: "pointer", textAlign: "left", fontFamily: SANS,
+              }}
+            >
+              <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: ACCENT, textTransform: "uppercase", flexShrink: 0, minWidth: 64 }}>
+                {s.type === "course" ? s.value : "Prof"}
+              </span>
+              <span style={{ fontSize: 13, color: p.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {s.type === "course" ? s.sub : s.value}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       {renderAttachmentPreviews(hero)}
       <div style={{
         display: "flex",
@@ -1654,7 +1797,9 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         <textarea
           ref={inputRef}
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={e => { setInput(e.target.value); setShowEntitySuggest(true); }}
+          onFocus={() => setShowEntitySuggest(true)}
+          onBlur={() => setTimeout(() => setShowEntitySuggest(false), 150)}
           onKeyDown={handleKey}
           placeholder="Ask Cyrus anything"
           rows={1}
@@ -1701,7 +1846,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           </svg>
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
