@@ -282,20 +282,865 @@ function SectionBreakdown({ sections, darkMode }) {
   );
 }
 
+function InstructorGradeTable({ instructors, darkMode, isMobile, onProfClick, rmpMap }) {
+  const p = palette(darkMode);
+  return (
+    <div style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.md, overflow: "hidden", marginBottom: 28 }}>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr 76px 70px" : "1fr 100px 90px 220px",
+        gap: 12,
+        padding: "10px 14px",
+        background: p.card,
+        borderBottom: `1px solid ${p.line}`,
+        fontFamily: MONO,
+        fontSize: 10,
+        color: p.textMute,
+        textTransform: "uppercase",
+        letterSpacing: "1px",
+        fontWeight: 700,
+      }}>
+        <div>Professor</div>
+        <div>Sections</div>
+        <div>GPA</div>
+        {!isMobile && <div>Grades</div>}
+      </div>
+      {instructors.map((instructor, idx) => {
+        const rmp = rmpMap?.[instructor.name];
+        const profObj = rmp
+          ? { id: instructor.name, name: rmp.name || instructor.name, rmpRating: rmp.rmp_rating, rmpDifficulty: rmp.rmp_difficulty, rmpCount: rmp.rmp_count, rmpTags: rmp.rmp_tags ?? [], rmpReviews: rmp.rmp_reviews ?? [], rmpId: rmp.rmp_id ?? null }
+          : { id: instructor.name, name: instructor.name };
+        return (
+          <button
+            key={instructor.id}
+            type="button"
+            onClick={() => onProfClick?.(profObj)}
+            style={{
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr 76px 70px" : "1fr 100px 90px 220px",
+              gap: 12,
+              alignItems: "center",
+              padding: "12px 14px",
+              border: "none",
+              borderBottom: idx < instructors.length - 1 ? `1px solid ${p.lineSoft}` : "none",
+              background: "transparent",
+              cursor: "pointer",
+              textAlign: "left",
+              fontFamily: SANS,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = p.card; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <div style={{ color: p.text, fontSize: 14, fontWeight: 800, lineHeight: 1.35 }}>{instructor.name}</div>
+            <div style={{ color: p.textSub, fontFamily: MONO, fontSize: 11 }}>{instructor.sections}</div>
+            <div>{instructor.avgGpa > 0 ? <GpaBadge gpa={instructor.avgGpa} darkMode={darkMode} /> : <span style={{ color: p.textMute }}>—</span>}</div>
+            {!isMobile && <GradeMiniBar dist={instructor.gradeDistribution} darkMode={darkMode} />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function GradeAnalyticsSection({ instructors, selectedId, onSelect, darkMode, isMobile }) {
+  const dm = darkMode;
+  const p = palette(dm);
+  const [activeBand, setActiveBand] = useState("A");
+  const selectedInstructor = selectedId === "all"
+    ? null
+    : instructors.find(instructor => instructor.id === selectedId) || null;
+  const dist = selectedInstructor
+    ? normalizeGradeDistribution(selectedInstructor.gradeDistribution)
+    : buildAggregateDistribution(instructors);
+  const groups = gradeGroups(dist);
+  const strongest = groups.reduce((best, group) => group.value > best.value ? group : best, groups[0]);
+  const activeGroup = groups.find(group => group.key === activeBand) || strongest || groups[0];
+  const scopeLabel = selectedInstructor ? selectedInstructor.name : "all professors on record";
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 14, marginBottom: 12 }}>
+        <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px" }}>
+          Grade analytics
+        </div>
+        {strongest && (
+          <div style={{ color: strongest.color, fontFamily: MONO, fontSize: 11, fontWeight: 800, letterSpacing: "0.8px", textTransform: "uppercase" }}>
+            Peak {strongest.label} · {Math.round(strongest.value)}%
+          </div>
+        )}
+      </div>
+
+      <div style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: isMobile ? 14 : 16 }}>
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 14, borderBottom: `1px solid ${p.lineSoft || p.line}` }}>
+          <GradeScopeChip active={selectedId === "all"} label="All professors" onClick={() => onSelect("all")} darkMode={dm} />
+          {instructors.slice(0, 10).map(instructor => (
+            <GradeScopeChip key={instructor.id} active={selectedId === instructor.id} label={instructor.name} onClick={() => onSelect(instructor.id)} darkMode={dm} />
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 260px", gap: 12, marginBottom: 14 }}>
+          <div style={{ border: `1px solid ${activeGroup.color}`, background: `linear-gradient(135deg, ${activeGroup.colorSoft}, ${dm ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.5)"})`, borderRadius: RADIUS.sm, padding: "12px 14px" }}>
+            <div style={{ color: activeGroup.color, fontFamily: MONO, fontSize: 10, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 5 }}>
+              Selected band · {activeGroup.label}
+            </div>
+            <div style={{ color: p.text, fontSize: 14, fontWeight: 800, lineHeight: 1.4 }}>
+              About {Math.round(activeGroup.value)}% of outcomes for {scopeLabel} land in the {activeGroup.label} range.
+            </div>
+            <div style={{ color: p.textSub, fontSize: 12, lineHeight: 1.5, marginTop: 5 }}>
+              {gradeBandInsight(activeGroup)}
+            </div>
+          </div>
+          <div style={{ border: `1px solid ${p.lineSoft || p.line}`, borderRadius: RADIUS.sm, padding: "12px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ color: p.textMute, fontFamily: MONO, fontSize: 10, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase" }}>
+              Tip
+            </div>
+            <div style={{ color: p.textSub, fontSize: 12, lineHeight: 1.5, marginTop: 5 }}>
+              Switch professors above, then click a grade band in any chart to compare where outcomes concentrate.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.2fr 0.9fr 0.9fr", gap: 14, alignItems: "stretch" }}>
+          <HistogramChart groups={groups} activeBand={activeBand} onBandSelect={setActiveBand} darkMode={dm} />
+          <RadarChart groups={groups} activeBand={activeBand} onBandSelect={setActiveBand} darkMode={dm} />
+          <PieChart groups={groups} activeBand={activeBand} onBandSelect={setActiveBand} darkMode={dm} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfessorRecommendation({ instructors, darkMode, isMobile, onProfClick, rmpMap }) {
+  const p = palette(darkMode);
+  const recommendation = buildProfessorRecommendation(instructors);
+
+  if (!recommendation) {
+    return (
+      <div style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: isMobile ? 16 : 18, marginBottom: 28 }}>
+        <div style={{ fontFamily: MONO, fontSize: isMobile ? 12 : 13, fontWeight: 900, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase", marginBottom: 8 }}>
+          AI recommendation
+        </div>
+        <div style={{ color: p.textSub, fontSize: 13, lineHeight: 1.6 }}>
+          Not enough grade data to recommend a professor for this scope.
+        </div>
+      </div>
+    );
+  }
+
+  const { professor, runnerUp, reason, confidence } = recommendation;
+  const rmp = rmpMap?.[professor.name];
+  const profObj = rmp
+    ? { id: professor.name, name: rmp.name || professor.name, rmpRating: rmp.rmp_rating, rmpDifficulty: rmp.rmp_difficulty, rmpCount: rmp.rmp_count, rmpTags: rmp.rmp_tags ?? [], rmpReviews: rmp.rmp_reviews ?? [], rmpId: rmp.rmp_id ?? null }
+    : { id: professor.name, name: professor.name };
+  const dist = normalizeGradeDistribution(professor.gradeDistribution);
+  const risk = Math.round(dist.F || 0);
+
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, ${confidence.panelBg}, ${darkMode ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.75)"})`,
+      border: `1px solid ${confidence.panelBorder}`,
+      borderRadius: RADIUS.md,
+      padding: isMobile ? 16 : 18,
+      marginBottom: 28,
+      boxShadow: darkMode ? "0 18px 50px rgba(0,0,0,0.18)" : `0 14px 34px ${confidence.shadow}`,
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap", marginBottom: 14 }}>
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: isMobile ? 12 : 13, fontWeight: 900, color: ACCENT, letterSpacing: "1.4px", textTransform: "uppercase" }}>
+            AI recommendation
+          </div>
+        </div>
+        <span style={{ color: confidence.color, background: confidence.bg, border: `1px solid ${confidence.border}`, borderRadius: RADIUS.pill, padding: "5px 10px", fontFamily: MONO, fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+          {confidence.label} confidence
+        </span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1.35fr) minmax(260px, 0.65fr)", gap: 14, alignItems: "stretch" }}>
+        <div style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.sm, background: darkMode ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.6)", padding: "15px 16px" }}>
+          <div style={{ color: p.textMute, fontFamily: MONO, fontSize: 10, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 7 }}>
+            Best fit from grade data
+          </div>
+          <button
+            type="button"
+            onClick={() => onProfClick?.(profObj)}
+            style={{ padding: 0, border: "none", background: "transparent", color: p.text, fontSize: isMobile ? 22 : 26, fontWeight: 900, lineHeight: 1.1, cursor: "pointer", textAlign: "left", fontFamily: SANS }}
+          >
+            {professor.name}
+          </button>
+          <p style={{ margin: "10px 0 0", color: p.textSub, fontSize: 13, lineHeight: 1.65 }}>
+            {reason}
+          </p>
+          {runnerUp && (
+            <div style={{ marginTop: 10, color: p.textMute, fontSize: 12, lineHeight: 1.5 }}>
+              Closest alternative: <span style={{ color: p.textSub, fontWeight: 800 }}>{runnerUp.name}</span> with {runnerUp.avgGpa.toFixed(2)} avg GPA.
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+          <RecommendationStat label="Avg GPA" value={professor.avgGpa.toFixed(2)} tone={gpaColor(professor.avgGpa) || "#22c55e"} darkMode={darkMode} />
+          <RecommendationStat label="A/B share" value={`${Math.round((dist.A || 0) + (dist.B || 0))}%`} tone="#22c55e" darkMode={darkMode} />
+          <RecommendationStat label="F risk" value={`${risk}%`} tone={risk <= 5 ? "#22c55e" : risk <= 12 ? "#f59e0b" : "#ef4444"} darkMode={darkMode} />
+          <RecommendationStat label="Records" value={String(professor.sections)} tone={p.text} darkMode={darkMode} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecommendationStat({ label, value, tone, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.sm, background: darkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.56)", padding: "11px 12px" }}>
+      <div style={{ color: p.textMute, fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 7, fontWeight: 800 }}>{label}</div>
+      <div style={{ color: tone, fontFamily: MONO, fontSize: 18, fontWeight: 900 }}>{value}</div>
+    </div>
+  );
+}
+
+function CourseEchoSection({ course, instructors, reviews, stats, loading, error, showForm, setShowForm, onSubmit, isSignedIn, onRequireSignIn, darkMode, isMobile }) {
+  const p = palette(darkMode);
+  return (
+    <div style={{ marginTop: 30 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px" }}>Echo</div>
+          <div style={{ color: p.textSub, fontSize: 12, marginTop: 4 }}>Darvis-native student feedback for this course.</div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (!isSignedIn) onRequireSignIn?.();
+            else setShowForm(v => !v);
+          }}
+          style={{
+            background: showForm ? "rgba(255,255,255,0.06)" : ACCENT,
+            color: showForm ? p.text : "white",
+            border: `1px solid ${showForm ? p.line : "rgba(134,31,65,0.9)"}`,
+            borderRadius: RADIUS.pill,
+            padding: "8px 14px",
+            fontFamily: MONO,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: "0.8px",
+            textTransform: "uppercase",
+            cursor: "pointer",
+          }}
+        >
+          {showForm ? "Close" : "Add Echo"}
+        </button>
+      </div>
+
+      {showForm && (
+        <CourseEchoForm
+          course={course}
+          instructors={instructors}
+          darkMode={darkMode}
+          isMobile={isMobile}
+          onCancel={() => setShowForm(false)}
+          onSubmit={onSubmit}
+        />
+      )}
+
+      <div style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: isMobile ? 14 : 16 }}>
+        {loading ? (
+          <div aria-busy="true" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+            {Array.from({ length: isMobile ? 1 : 3 }).map((_, i) => <Skeleton key={i} darkMode={darkMode} height={140} radius={RADIUS.sm} />)}
+          </div>
+        ) : reviews.length > 0 ? (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
+              <EchoStat label="Course quality" value={stats.quality} suffix="/5" darkMode={darkMode} />
+              <EchoStat label="Difficulty" value={stats.difficulty} suffix="/5" darkMode={darkMode} />
+              <EchoStat label="Would retake" value={stats.takeAgainPct} suffix="%" darkMode={darkMode} />
+              <EchoStat label="Entries" value={reviews.length} darkMode={darkMode} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+              {reviews.slice(0, 3).map(review => <EchoCard key={review.id} review={review} darkMode={darkMode} />)}
+            </div>
+          </>
+        ) : (
+          <div style={{ color: p.textSub, fontSize: 13, lineHeight: 1.6 }}>
+            {error || `No Echo yet. Be the first to leave Darvis-native feedback for ${course.subject} ${course.number}.`}
+          </div>
+        )}
+      </div>
+      <div style={{ color: p.textMute, fontSize: 12, lineHeight: 1.55, marginTop: 10, padding: "0 2px" }}>
+        Echo is student-submitted and subjective. Focus on course experience, workload, structure, and planning tradeoffs.
+      </div>
+    </div>
+  );
+}
+
+const ECHO_TAGS = [
+  "Clear structure", "Heavy workload", "Project-based", "Test heavy", "Reading heavy",
+  "Useful assignments", "Group projects", "Attendance matters", "Fair grading",
+  "Fast paced", "Good for major", "Good elective", "Needs prep", "Online friendly",
+];
+
+const ECHO_GRADES = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "F", "P/F", "Prefer not to say"];
+
+function CourseEchoForm({ course, instructors, darkMode, isMobile, onCancel, onSubmit }) {
+  const p = palette(darkMode);
+  const [form, setForm] = useState({
+    professorName: "",
+    qualityRating: 4,
+    difficultyRating: 3,
+    wouldTakeAgain: null,
+    forCredit: true,
+    usedTextbook: null,
+    attendanceMandatory: null,
+    gradeReceived: "",
+    tags: [],
+    reviewText: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const canSubmit = form.qualityRating && form.difficultyRating && form.reviewText.trim().length >= 20;
+  const toggleTag = tag => {
+    setForm(prev => {
+      const has = prev.tags.includes(tag);
+      if (has) return { ...prev, tags: prev.tags.filter(t => t !== tag) };
+      if (prev.tags.length >= 3) return prev;
+      return { ...prev, tags: [...prev.tags, tag] };
+    });
+  };
+  const submit = async () => {
+    if (!canSubmit || saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      await onSubmit(form);
+    } catch {
+      setError("Echo could not save. Try again in a moment.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: isMobile ? 16 : 18, marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
+        <div>
+          <div style={{ color: p.text, fontWeight: 900, fontSize: 15 }}>Add Echo</div>
+          <div style={{ color: p.textSub, fontSize: 12, marginTop: 4 }}>Help students understand {course.subject} {course.number} workload, pacing, and expectations.</div>
+        </div>
+        <button type="button" onClick={onCancel} style={{ background: "transparent", border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, color: p.textSub, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}>Cancel</button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+        <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          <span style={echoLabelStyle(p)}>Professor context</span>
+          <select value={form.professorName} onChange={e => setForm(prev => ({ ...prev, professorName: e.target.value }))} style={echoInputStyle(p)}>
+            <option value="">General course feedback</option>
+            {instructors.map(instructor => <option key={instructor.id} value={instructor.name}>{instructor.name}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          <span style={echoLabelStyle(p)}>Grade received</span>
+          <select value={form.gradeReceived} onChange={e => setForm(prev => ({ ...prev, gradeReceived: e.target.value }))} style={echoInputStyle(p)}>
+            <option value="">Optional</option>
+            {ECHO_GRADES.map(grade => <option key={grade} value={grade}>{grade}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginTop: 14 }}>
+        <EchoRatingScale label="Course quality" low="Poor" high="Excellent" value={form.qualityRating} onChange={value => setForm(prev => ({ ...prev, qualityRating: value }))} darkMode={darkMode} />
+        <EchoRatingScale label="Difficulty" low="Very easy" high="Very difficult" value={form.difficultyRating} onChange={value => setForm(prev => ({ ...prev, difficultyRating: value }))} darkMode={darkMode} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+        <EchoYesNo label="Would retake?" value={form.wouldTakeAgain} onChange={value => setForm(prev => ({ ...prev, wouldTakeAgain: value }))} darkMode={darkMode} />
+        <EchoYesNo label="For credit?" value={form.forCredit} onChange={value => setForm(prev => ({ ...prev, forCredit: value }))} darkMode={darkMode} />
+        <EchoYesNo label="Textbook used?" value={form.usedTextbook} onChange={value => setForm(prev => ({ ...prev, usedTextbook: value }))} darkMode={darkMode} />
+        <EchoYesNo label="Attendance mandatory?" value={form.attendanceMandatory} onChange={value => setForm(prev => ({ ...prev, attendanceMandatory: value }))} darkMode={darkMode} />
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <div style={echoLabelStyle(p)}>Select up to 3 tags</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
+          {ECHO_TAGS.map(tag => {
+            const active = form.tags.includes(tag);
+            return (
+              <button key={tag} type="button" onClick={() => toggleTag(tag)} style={{
+                background: active ? "rgba(134,31,65,0.22)" : "rgba(255,255,255,0.045)",
+                border: `1px solid ${active ? "rgba(134,31,65,0.75)" : p.line}`,
+                color: active ? ACCENT : p.textSub,
+                borderRadius: RADIUS.pill,
+                padding: "6px 10px",
+                fontSize: 11,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}>{tag}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      <label style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 16 }}>
+        <span style={echoLabelStyle(p)}>Write feedback</span>
+        <textarea
+          value={form.reviewText}
+          onChange={e => setForm(prev => ({ ...prev, reviewText: e.target.value.slice(0, 700) }))}
+          placeholder="What should other students know about this course?"
+          style={{ ...echoInputStyle(p), minHeight: 130, resize: "vertical", lineHeight: 1.55 }}
+        />
+      </label>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginTop: 8 }}>
+        <div style={{ color: error ? "#f87171" : p.textMute, fontSize: 11, lineHeight: 1.5 }}>
+          {error || "Guideline: focus on academic experience, not personal attacks or private information."}
+        </div>
+        <div style={{ color: form.reviewText.length < 20 ? "#f59e0b" : p.textMute, fontFamily: MONO, fontSize: 11 }}>{form.reviewText.length}/700</div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+        <button type="button" disabled={!canSubmit || saving} onClick={submit} style={{
+          background: canSubmit && !saving ? ACCENT : "rgba(255,255,255,0.08)",
+          color: canSubmit && !saving ? "white" : p.textMute,
+          border: "none",
+          borderRadius: RADIUS.pill,
+          padding: "10px 16px",
+          fontFamily: MONO,
+          fontSize: 11,
+          fontWeight: 900,
+          letterSpacing: "0.8px",
+          textTransform: "uppercase",
+          cursor: canSubmit && !saving ? "pointer" : "not-allowed",
+        }}>{saving ? "Saving" : "Publish Echo"}</button>
+      </div>
+    </div>
+  );
+}
+
+function EchoRatingScale({ label, low, high, value, onChange, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div>
+      <div style={echoLabelStyle(p)}>{label}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 3, marginTop: 9 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <button key={n} type="button" onClick={() => onChange(n)} style={{
+            height: 34,
+            border: `1px solid ${n <= value ? "rgba(134,31,65,0.8)" : p.line}`,
+            background: n <= value ? "rgba(134,31,65,0.32)" : "rgba(255,255,255,0.045)",
+            color: n <= value ? "#fff" : p.textSub,
+            fontFamily: MONO,
+            fontWeight: 900,
+            cursor: "pointer",
+            borderRadius: n === 1 ? "16px 5px 5px 16px" : n === 5 ? "5px 16px 16px 5px" : 5,
+          }}>{n}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", color: p.textMute, fontSize: 11, marginTop: 6 }}>
+        <span>1 · {low}</span><span>5 · {high}</span>
+      </div>
+    </div>
+  );
+}
+
+function EchoYesNo({ label, value, onChange, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div>
+      <div style={echoLabelStyle(p)}>{label}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 8 }}>
+        {[["Yes", true], ["No", false]].map(([labelText, bool]) => {
+          const active = value === bool;
+          return (
+            <button key={labelText} type="button" onClick={() => onChange(bool)} style={{
+              background: active ? "rgba(134,31,65,0.25)" : "rgba(255,255,255,0.04)",
+              color: active ? ACCENT : p.textSub,
+              border: `1px solid ${active ? "rgba(134,31,65,0.75)" : p.line}`,
+              borderRadius: RADIUS.pill,
+              padding: "7px 10px",
+              cursor: "pointer",
+              fontWeight: 800,
+              fontSize: 12,
+            }}>{labelText}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function EchoStat({ label, value, suffix = "", darkMode }) {
+  const p = palette(darkMode);
+  const display = typeof value === "number" ? (suffix === "/5" ? value.toFixed(1) : Math.round(value)) : "—";
+  return (
+    <div style={{ border: `1px solid ${p.lineSoft || p.line}`, borderRadius: RADIUS.sm, padding: "11px 12px", background: darkMode ? "rgba(255,255,255,0.025)" : "rgba(134,31,65,0.025)" }}>
+      <div style={{ color: p.textMute, fontFamily: MONO, fontSize: 9.5, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 7 }}>{label}</div>
+      <div style={{ color: label.includes("quality") ? ACCENT : p.text, fontFamily: MONO, fontSize: 18, fontWeight: 900 }}>{display}{display !== "—" ? suffix : ""}</div>
+    </div>
+  );
+}
+
+function EchoCard({ review, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div style={{ border: `1px solid ${p.lineSoft || p.line}`, borderRadius: RADIUS.sm, padding: "14px 15px", background: darkMode ? "rgba(255,255,255,0.03)" : "rgba(134,31,65,0.025)", minHeight: 160 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 9 }}>
+        <div>
+          <div style={{ color: p.text, fontWeight: 900, fontSize: 13 }}>{review.displayName}</div>
+          <div style={{ color: p.textMute, fontFamily: MONO, fontSize: 10, marginTop: 3 }}>{formatEchoDate(review.createdAt)}</div>
+        </div>
+        <div style={{ color: ACCENT, fontFamily: MONO, fontSize: 12, fontWeight: 900 }}>{review.qualityRating?.toFixed?.(1) || "—"}/5</div>
+      </div>
+      {(review.professorName || review.gradeReceived) && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
+          {review.professorName && <EchoMiniChip>{review.professorName}</EchoMiniChip>}
+          {review.gradeReceived && <EchoMiniChip>Grade {review.gradeReceived}</EchoMiniChip>}
+          {review.wouldTakeAgain != null && <EchoMiniChip>{review.wouldTakeAgain ? "Would retake" : "Would not retake"}</EchoMiniChip>}
+        </div>
+      )}
+      <p style={{ color: p.textSub, fontSize: 13, lineHeight: 1.55, margin: 0, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{review.reviewText}</p>
+      {review.tags?.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+          {review.tags.slice(0, 3).map(tag => <EchoMiniChip key={tag}>{tag}</EchoMiniChip>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EchoMiniChip({ children }) {
+  return <span style={{ color: ACCENT, background: "rgba(134,31,65,0.14)", border: "1px solid rgba(134,31,65,0.34)", borderRadius: RADIUS.pill, padding: "3px 7px", fontFamily: MONO, fontSize: 9.5, fontWeight: 800 }}>{children}</span>;
+}
+
+function echoLabelStyle(p) {
+  return { color: p.textMute, fontFamily: MONO, fontSize: 10, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase" };
+}
+
+function echoInputStyle(p) {
+  return {
+    background: "rgba(255,255,255,0.045)",
+    border: `1px solid ${p.line}`,
+    borderRadius: RADIUS.sm,
+    color: p.text,
+    padding: "11px 12px",
+    fontFamily: SANS,
+    fontSize: 13,
+    outline: "none",
+  };
+}
+
+function buildEchoStats(reviews) {
+  const avg = key => reviews.length ? reviews.reduce((sum, review) => sum + (review[key] || 0), 0) / reviews.length : null;
+  const answeredRetake = reviews.filter(review => review.wouldTakeAgain != null);
+  return {
+    quality: avg("qualityRating"),
+    difficulty: avg("difficultyRating"),
+    takeAgainPct: answeredRetake.length ? (answeredRetake.filter(review => review.wouldTakeAgain).length / answeredRetake.length) * 100 : null,
+  };
+}
+
+function formatEchoDate(value) {
+  if (!value) return "";
+  try { return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+  catch { return ""; }
+}
+
+function GradeScopeChip({ active, label, onClick, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <button type="button" onClick={onClick} style={{
+      border: `1px solid ${active ? "rgba(134,31,65,0.75)" : p.line}`,
+      background: active ? "rgba(134,31,65,0.22)" : "transparent",
+      color: active ? ACCENT : p.textSub,
+      borderRadius: RADIUS.pill,
+      padding: "6px 11px",
+      fontFamily: MONO,
+      fontSize: 10,
+      fontWeight: 800,
+      letterSpacing: "0.6px",
+      whiteSpace: "nowrap",
+      cursor: "pointer",
+    }}>{label}</button>
+  );
+}
+
+function ChartShell({ title, subtitle, children, darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div style={{ minHeight: 230, background: darkMode ? "rgba(255,255,255,0.025)" : "rgba(134,31,65,0.025)", border: `1px solid ${p.lineSoft || p.line}`, borderRadius: RADIUS.sm, padding: 14, display: "flex", flexDirection: "column" }}>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ color: p.text, fontWeight: 800, fontSize: 13 }}>{title}</div>
+        <div style={{ color: p.textMute, fontSize: 11, marginTop: 3 }}>{subtitle}</div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function HistogramChart({ groups, activeBand, onBandSelect, darkMode }) {
+  const p = palette(darkMode);
+  const max = Math.max(...groups.map(group => group.value), 1);
+  return (
+    <ChartShell title="Histogram" subtitle="Click a bar to inspect that band" darkMode={darkMode}>
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 10, minHeight: 154 }}>
+        {groups.map(group => {
+          const active = activeBand === group.key;
+          return (
+            <button key={group.key} type="button" onClick={() => onBandSelect(group.key)} title={`${group.label}: ${Math.round(group.value)}%`} style={{ flex: 1, minWidth: 42, height: "100%", border: "none", background: "transparent", padding: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", gap: 8, cursor: "pointer", opacity: active || !activeBand ? 1 : 0.62 }}>
+              <div style={{ width: "100%", height: `${Math.max(10, (group.value / max) * 132)}px`, borderRadius: "10px 10px 4px 4px", background: `linear-gradient(180deg, ${group.color}, ${group.colorSoft})`, boxShadow: active ? `0 0 0 2px ${group.color}, 0 16px 34px ${group.shadow}` : `0 12px 30px ${group.shadow}`, transition: "height 180ms ease, transform 180ms ease", transform: active ? "translateY(-4px)" : "translateY(0)" }} />
+              <div style={{ color: p.textSub, fontFamily: MONO, fontSize: 10, fontWeight: 800 }}>{group.label}</div>
+              <div style={{ color: group.color, fontFamily: MONO, fontSize: 11, fontWeight: 800 }}>{Math.round(group.value)}%</div>
+            </button>
+          );
+        })}
+      </div>
+    </ChartShell>
+  );
+}
+
+function RadarChart({ groups, activeBand, onBandSelect, darkMode }) {
+  const p = palette(darkMode);
+  const center = 72;
+  const maxRadius = 58;
+  const points = groups.map((group, index) => {
+    const angle = (-90 + index * (360 / groups.length)) * Math.PI / 180;
+    const radius = Math.max(8, (Math.min(group.value, 100) / 100) * maxRadius);
+    return {
+      ...group,
+      x: center + Math.cos(angle) * radius,
+      y: center + Math.sin(angle) * radius,
+      lx: center + Math.cos(angle) * (maxRadius + 16),
+      ly: center + Math.sin(angle) * (maxRadius + 16),
+    };
+  });
+  const polygon = points.map(point => `${point.x},${point.y}`).join(" ");
+
+  return (
+    <ChartShell title="Radar" subtitle="Click a point to focus the chart" darkMode={darkMode}>
+      <div style={{ flex: 1, display: "grid", placeItems: "center" }}>
+        <svg width="180" height="170" viewBox="0 0 144 144" role="img" aria-label="Radar chart of grade distribution">
+          {[20, 40, 60].map(radius => <circle key={radius} cx={center} cy={center} r={radius} fill="none" stroke={p.lineSoft || p.line} strokeWidth="1" />)}
+          {points.map(point => <line key={point.key} x1={center} y1={center} x2={point.lx} y2={point.ly} stroke={p.lineSoft || p.line} strokeWidth="1" />)}
+          <polygon points={polygon} fill="rgba(134,31,65,0.26)" stroke={ACCENT} strokeWidth="2" />
+          {points.map(point => (
+            <g key={point.key} onClick={() => onBandSelect(point.key)} style={{ cursor: "pointer", opacity: activeBand === point.key ? 1 : 0.68 }}>
+              <circle cx={point.x} cy={point.y} r={activeBand === point.key ? "5.2" : "3.4"} fill={point.color} stroke={activeBand === point.key ? "white" : "none"} strokeWidth="1.5" />
+              <text x={point.lx} y={point.ly + 3} fill={activeBand === point.key ? point.color : p.textSub} fontSize="8" fontFamily={MONO} fontWeight={activeBand === point.key ? "800" : "500"} textAnchor="middle">{point.label}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </ChartShell>
+  );
+}
+
+function PieChart({ groups, activeBand, onBandSelect, darkMode }) {
+  const p = palette(darkMode);
+  const total = groups.reduce((sum, group) => sum + group.value, 0) || 1;
+  let cursor = 0;
+  const gradientStops = groups.map(group => {
+    const start = cursor;
+    cursor += (group.value / total) * 100;
+    return `${group.color} ${start}% ${cursor}%`;
+  }).join(", ");
+
+  return (
+    <ChartShell title="Pie" subtitle="Use the legend to compare shares" darkMode={darkMode}>
+      <div style={{ flex: 1, display: "grid", gridTemplateRows: "1fr auto", gap: 12, placeItems: "center" }}>
+        <div style={{ width: 132, height: 132, borderRadius: "50%", background: `conic-gradient(${gradientStops})`, boxShadow: "inset 0 0 0 18px rgba(0,0,0,0.18), 0 18px 40px rgba(0,0,0,0.2)", border: `1px solid ${p.line}`, display: "grid", placeItems: "center" }}>
+          <div style={{ width: 62, height: 62, borderRadius: "50%", background: p.card, border: `1px solid ${p.line}`, display: "grid", placeItems: "center", color: p.text, fontFamily: MONO, fontSize: 11, fontWeight: 800 }}>
+            {activeBand}
+          </div>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, justifyContent: "center" }}>
+          {groups.map(group => (
+            <button key={group.key} type="button" onClick={() => onBandSelect(group.key)} style={{ display: "inline-flex", alignItems: "center", gap: 5, color: activeBand === group.key ? group.color : p.textSub, fontSize: 10, fontFamily: MONO, border: `1px solid ${activeBand === group.key ? group.color : "transparent"}`, background: activeBand === group.key ? group.colorSoft : "transparent", borderRadius: RADIUS.pill, padding: "3px 6px", cursor: "pointer" }}>
+              <span style={{ width: 7, height: 7, borderRadius: 999, background: group.color }} />
+              {group.label} {Math.round(group.value)}%
+            </button>
+          ))}
+        </div>
+      </div>
+    </ChartShell>
+  );
+}
+
+function normalizeGradeDistribution(dist = {}) {
+  return {
+    A: (Number(dist.A) || 0) + (Number(dist["A-"]) || 0),
+    B: (Number(dist["B+"]) || 0) + (Number(dist.B) || 0) + (Number(dist["B-"]) || 0),
+    C: (Number(dist["C+"]) || 0) + (Number(dist.C) || 0) + (Number(dist["C-"]) || 0),
+    D: (Number(dist["D+"]) || 0) + (Number(dist.D) || 0) + (Number(dist["D-"]) || 0),
+    F: Number(dist.F) || 0,
+  };
+}
+
+function buildAggregateDistribution(items) {
+  const totals = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  if (!items.length) return totals;
+  items.forEach(item => {
+    const dist = normalizeGradeDistribution(item.gradeDistribution);
+    Object.keys(totals).forEach(key => { totals[key] += dist[key] || 0; });
+  });
+  Object.keys(totals).forEach(key => { totals[key] = totals[key] / items.length; });
+  return totals;
+}
+
+function gradeGroups(dist) {
+  return [
+    { key: "A", label: "A", value: dist.A || 0, color: "#22c55e", colorSoft: "rgba(34,197,94,0.26)", shadow: "rgba(34,197,94,0.15)" },
+    { key: "B", label: "B", value: dist.B || 0, color: "#06b6d4", colorSoft: "rgba(6,182,212,0.24)", shadow: "rgba(6,182,212,0.14)" },
+    { key: "C", label: "C", value: dist.C || 0, color: "#f59e0b", colorSoft: "rgba(245,158,11,0.24)", shadow: "rgba(245,158,11,0.14)" },
+    { key: "D", label: "D", value: dist.D || 0, color: "#f97316", colorSoft: "rgba(249,115,22,0.24)", shadow: "rgba(249,115,22,0.14)" },
+    { key: "F", label: "F", value: dist.F || 0, color: "#ef4444", colorSoft: "rgba(239,68,68,0.24)", shadow: "rgba(239,68,68,0.14)" },
+  ];
+}
+
+function gradeBandInsight(group) {
+  if (!group) return "Use this to compare how outcomes shift between professors.";
+  if (group.key === "A") return "A larger A band usually signals stronger top-end outcomes, but compare it with B/C bands before assuming the course is easy.";
+  if (group.key === "B") return "A strong B band often means outcomes are clustered around solid performance rather than extreme highs or lows.";
+  if (group.key === "C") return "A larger C band can indicate a more demanding professor/course pairing or wider variation in student preparedness.";
+  if (group.key === "D") return "Watch this band when balancing schedule risk; even a modest D share can matter in a packed semester.";
+  if (group.key === "F") return "Use the F band as a risk signal, especially when pairing this class with other difficult courses.";
+  return "Use this to compare how outcomes shift between professors.";
+}
+
+function GradeMiniBar({ dist, darkMode }) {
+  const dm = darkMode;
+  const groups = [
+    { key: "A", color: "#16a34a", value: (dist?.A || 0) + (dist?.["A-"] || 0) },
+    { key: "B", color: "#0891b2", value: (dist?.["B+"] || 0) + (dist?.B || 0) + (dist?.["B-"] || 0) },
+    { key: "C", color: "#d97706", value: (dist?.["C+"] || 0) + (dist?.C || 0) + (dist?.["C-"] || 0) },
+    { key: "D", color: "#ea580c", value: (dist?.["D+"] || 0) + (dist?.D || 0) + (dist?.["D-"] || 0) },
+    { key: "F", color: "#dc2626", value: dist?.F || 0 },
+  ].filter(group => group.value > 0);
+  const total = groups.reduce((sum, group) => sum + group.value, 0) || 1;
+  return (
+    <div style={{ height: 18, borderRadius: 8, overflow: "hidden", background: dm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", display: "flex", border: dm ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,0,0,0.04)" }}>
+      {groups.map(group => (
+        <div key={group.key} title={`${group.key}: ${Math.round(group.value)}%`} style={{ width: `${(group.value / total) * 100}%`, minWidth: group.value > 0 ? 3 : 0, background: group.color, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 9, fontWeight: 800 }}>
+          {group.value >= 12 ? `${Math.round(group.value)}%` : ""}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function buildInstructorGradeSummaries(sections) {
+  const map = {};
+  sections.forEach(section => {
+    const name = section.instructor || "Unknown";
+    if (!map[name]) map[name] = { id: name, name, rows: [] };
+    map[name].rows.push(section);
+  });
+  return Object.values(map).map(item => {
+    const totalEnroll = item.rows.reduce((sum, row) => sum + (Number(row.gradedEnrollment) || 0), 0);
+    const weighted = getter => {
+      if (!totalEnroll) return 0;
+      return item.rows.reduce((sum, row) => sum + getter(row) * (Number(row.gradedEnrollment) || 0), 0) / totalEnroll;
+    };
+    const dist = {};
+    ["A","A-","B+","B","B-","C+","C","C-","D+","D","D-","F"].forEach(grade => {
+      dist[grade] = Math.round(weighted(row => Number(row.gradeDistribution?.[grade]) || 0));
+    });
+    return {
+      id: item.id,
+      name: item.name,
+      sections: item.rows.length,
+      enrollment: totalEnroll,
+      avgGpa: Math.round(weighted(row => Number(row.gpa) || 0) * 100) / 100,
+      gradeDistribution: dist,
+    };
+  }).sort((a, b) => (b.avgGpa || 0) - (a.avgGpa || 0));
+}
+
+function buildProfessorRecommendation(instructors) {
+  const eligible = instructors.filter(instructor => instructor.avgGpa > 0 && instructor.enrollment > 0);
+  if (!eligible.length) return null;
+
+  const maxEnrollment = Math.max(...eligible.map(instructor => instructor.enrollment), 1);
+  const scored = eligible.map(instructor => {
+    const dist = normalizeGradeDistribution(instructor.gradeDistribution);
+    const abShare = (dist.A || 0) + (dist.B || 0);
+    const fRisk = dist.F || 0;
+    const sampleScore = Math.min(1, Math.log10(Math.max(instructor.enrollment, 1)) / Math.log10(Math.max(maxEnrollment, 10)));
+    const score =
+      (instructor.avgGpa / 4) * 46 +
+      (abShare / 100) * 30 +
+      ((100 - fRisk) / 100) * 16 +
+      sampleScore * 8;
+    return { ...instructor, dist, abShare, fRisk, score };
+  }).sort((a, b) => b.score - a.score);
+
+  const professor = scored[0];
+  const runnerUp = scored[1] || null;
+  const scoreGap = runnerUp ? professor.score - runnerUp.score : 18;
+  const confidence = scoreGap >= 10 && professor.sections >= 3
+    ? { label: "High", color: "#22c55e", bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.32)", panelBg: "rgba(34,197,94,0.16)", panelBorder: "rgba(34,197,94,0.42)", shadow: "rgba(34,197,94,0.10)" }
+    : scoreGap >= 5
+      ? { label: "Moderate", color: "#f59e0b", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.32)", panelBg: "rgba(245,158,11,0.16)", panelBorder: "rgba(245,158,11,0.42)", shadow: "rgba(245,158,11,0.10)" }
+      : { label: "Low", color: "#ef4444", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.32)", panelBg: "rgba(239,68,68,0.14)", panelBorder: "rgba(239,68,68,0.36)", shadow: "rgba(239,68,68,0.08)" };
+
+  const reasonBits = [
+    `${professor.avgGpa.toFixed(2)} average GPA`,
+    `${Math.round(professor.abShare)}% A/B outcomes`,
+    `${Math.round(professor.fRisk)}% F risk`,
+    `${professor.sections} historical record${professor.sections === 1 ? "" : "s"}`,
+  ];
+  const runnerText = runnerUp
+    ? ` The margin over ${runnerUp.name} is ${Math.max(0, scoreGap).toFixed(1)} model points, so compare both if schedules are close.`
+    : "";
+
+  return {
+    professor,
+    runnerUp,
+    confidence,
+    reason: `${professor.name} is the strongest grade-data pick because this professor combines ${reasonBits.join(", ")}.${runnerText}`,
+  };
+}
+
+function buildCourseGradeMetrics(sections, course) {
+  const instructors = buildInstructorGradeSummaries(sections);
+  const sourceDist = instructors.length
+    ? buildAggregateDistribution(instructors)
+    : normalizeGradeDistribution(course?.gradeDistribution || {});
+  const groups = gradeGroups(sourceDist);
+  const peak = groups.reduce((best, group) => group.value > best.value ? group : best, groups[0]);
+  const best = instructors[0];
+  const totalEnroll = sections.reduce((sum, row) => sum + (Number(row.gradedEnrollment) || 0), 0);
+  const avg = totalEnroll
+    ? sections.reduce((sum, row) => sum + (Number(row.gpa) || 0) * (Number(row.gradedEnrollment) || 0), 0) / totalEnroll
+    : Number(course?.avgGpa) || 0;
+  return {
+    avgGpa: avg > 0 ? avg.toFixed(2) : "—",
+    bestGpa: best?.avgGpa > 0 ? best.avgGpa.toFixed(2) : "—",
+    bestInstructor: best?.name || "",
+    sections: String(sections.length),
+    peakBand: peak?.label || "—",
+    peakPct: Math.round(peak?.value || 0),
+    peakColor: peak?.color || ACCENT,
+  };
+}
+
 // ── Course Detail Modal ───────────────────────────────────────────
-export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick, initialTab = "description" }) {
+export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick, initialTab = "description", currentUser, isSignedIn, onRequireSignIn }) {
   const dm = darkMode;
   const p = palette(dm);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(true);
   const [sections, setSections] = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
+  const [liveDescription, setLiveDescription] = useState(null);
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [descriptionError, setDescriptionError] = useState("");
   const [tab, setTab] = useState('description');
   const [showAllInstructors, setShowAllInstructors] = useState(false);
+  const [selectedGradeInstructorId, setSelectedGradeInstructorId] = useState("all");
+  const [echoReviews, setEchoReviews] = useState([]);
+  const [echoLoading, setEchoLoading] = useState(false);
+  const [echoError, setEchoError] = useState("");
+  const [showEchoForm, setShowEchoForm] = useState(false);
   const INSTR_LIMIT = 10;
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 700);
   const showDetailLoading = useMinimumLoading(detailLoading);
   const showSectionsLoading = useMinimumLoading(sectionsLoading);
+  const showDescriptionLoading = useMinimumLoading(descriptionLoading);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 700);
@@ -304,7 +1149,7 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
   }, []);
 
   useEffect(() => {
-    setDetailLoading(true); setDetail(null); setTab(initialTab); setShowAllInstructors(false);
+    setDetailLoading(true); setDetail(null); setTab(initialTab); setShowAllInstructors(false); setSelectedGradeInstructorId("all");
     API.getCourse(course.subject, course.number)
       .then(d => { setDetail(d); setDetailLoading(false); })
       .catch(() => setDetailLoading(false));
@@ -315,6 +1160,45 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
     API.getSections(course.subject, course.number)
       .then(rows => { setSections(rows); setSectionsLoading(false); })
       .catch(() => setSectionsLoading(false));
+  }, [course.subject, course.number]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const storedDescription = (course.description || detail?.description || "").trim();
+    setLiveDescription(null);
+    setDescriptionError("");
+
+    if (detailLoading || storedDescription) {
+      setDescriptionLoading(false);
+      return () => { cancelled = true; };
+    }
+
+    setDescriptionLoading(true);
+    API.getLiveCourseDescription(course.subject, course.number)
+      .then(result => {
+        if (!cancelled) setLiveDescription(result || { description: "" });
+      })
+      .catch(() => {
+        if (!cancelled) setDescriptionError("Catalog description unavailable right now.");
+      })
+      .finally(() => {
+        if (!cancelled) setDescriptionLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [course.subject, course.number, course.description, detail?.description, detailLoading]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setEchoReviews([]);
+    setEchoError("");
+    setShowEchoForm(false);
+    setEchoLoading(true);
+    API.getEchoReviews({ targetType: "course", subject: course.subject, number: course.number, limit: 12 })
+      .then(reviews => { if (!cancelled) setEchoReviews(reviews); })
+      .catch(() => { if (!cancelled) setEchoError("Echo is unavailable right now."); })
+      .finally(() => { if (!cancelled) setEchoLoading(false); });
+    return () => { cancelled = true; };
   }, [course.subject, course.number]);
 
   const rmpMap = detail?.rmpMap || {};
@@ -330,6 +1214,51 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
     rmpReviews:    rmpMap[name]?.rmp_reviews    ?? [],
     rmpId:         rmpMap[name]?.rmp_id         ?? null,
   }));
+  const descriptionText = (course.description || detail?.description || liveDescription?.description || "").trim();
+  const liveDescriptionSourceUrl = !course.description && !detail?.description ? liveDescription?.sourceUrl : "";
+  const gradeSections = detail?.rawSections || [];
+  const instructorGradeSummaries = useMemo(() => buildInstructorGradeSummaries(gradeSections), [gradeSections]);
+  const gradeMetrics = useMemo(() => buildCourseGradeMetrics(gradeSections, course), [gradeSections, course]);
+  const echoStats = buildEchoStats(echoReviews);
+  useEffect(() => {
+    if (selectedGradeInstructorId !== "all" && !instructorGradeSummaries.some(instructor => instructor.id === selectedGradeInstructorId)) {
+      setSelectedGradeInstructorId("all");
+    }
+  }, [instructorGradeSummaries, selectedGradeInstructorId]);
+  const displayName = currentUser?.fullName || currentUser?.primaryEmailAddress?.emailAddress?.split("@")[0] || "Darvis student";
+  const handleEchoSubmit = async (form) => {
+    if (!isSignedIn || !currentUser?.id) {
+      onRequireSignIn?.();
+      return;
+    }
+    const saved = await API.createEchoReview({
+      ...form,
+      userId: currentUser.id,
+      displayName,
+      targetType: "course",
+      professorName: form.professorName || null,
+      courseSubject: course.subject,
+      courseNumber: course.number,
+      courseTitle: course.title,
+      status: "published",
+    });
+    setEchoReviews(prev => [saved, ...prev]);
+    setShowEchoForm(false);
+  };
+  const metricCard = (label, value, sub, tone = p.text) => (
+    <div style={{
+      background: p.card,
+      border: `1px solid ${p.line}`,
+      borderRadius: RADIUS.md,
+      padding: isMobile ? "14px 16px" : "16px 18px",
+      minHeight: 82,
+      boxSizing: "border-box",
+    }}>
+      <div style={{ fontFamily: MONO, fontSize: 9.5, color: p.textMute, letterSpacing: "1.2px", textTransform: "uppercase", marginBottom: 8, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 22, fontWeight: 900, color: tone, lineHeight: 1 }}>{value}</div>
+      <div style={{ color: p.textSub, fontSize: 12, marginTop: 8 }}>{sub}</div>
+    </div>
+  );
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: isMobile ? "0" : "40px 24px", overflowY: "auto", backdropFilter: "blur(4px)" }}
@@ -391,29 +1320,127 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
                 <span key={pw} style={{ fontSize: 11, fontFamily: MONO, fontWeight: 600, padding: "3px 10px", borderRadius: RADIUS.pill, background: "rgba(134,31,65,0.10)", color: ACCENT, border: "1px solid rgba(134,31,65,0.20)" }}>Pathway {pw}</span>
               ))}
             </div>
-            {course.description ? (
-              <p style={{ margin: 0, fontSize: 15, color: p.text, lineHeight: 1.75, fontFamily: SANS }}>{course.description}</p>
+            {descriptionText ? (
+              <>
+                <p style={{ margin: 0, fontSize: 15, color: p.text, lineHeight: 1.75, fontFamily: SANS }}>{descriptionText}</p>
+                {liveDescriptionSourceUrl && (
+                  <a
+                    href={liveDescriptionSourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: "inline-flex", marginTop: 16, color: ACCENT, fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", textDecoration: "none" }}
+                  >
+                    Source: Virginia Tech Catalog ↗
+                  </a>
+                )}
+              </>
+            ) : showDescriptionLoading ? (
+              <div style={{ display: "grid", gap: 10, maxWidth: 760 }}>
+                <Skeleton darkMode={dm} height={14} width="88%" radius={6} />
+                <Skeleton darkMode={dm} height={14} width="76%" radius={6} />
+                <span style={{ marginTop: 2, fontSize: 12, color: p.textMute, fontFamily: MONO, letterSpacing: "0.8px", textTransform: "uppercase" }}>Loading catalog description</span>
+              </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 14, color: p.textMute, fontStyle: "italic", fontFamily: SANS }}>No course description available.</p>
+              <p style={{ margin: 0, fontSize: 14, color: p.textMute, fontStyle: "italic", fontFamily: SANS }}>{descriptionError || "Catalog description unavailable."}</p>
             )}
           </div>
         )}
 
         {/* Grades */}
         {tab === 'grades' && (
-          <div style={{ padding: isMobile ? "16px 20px 24px" : "24px 32px 28px" }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 14 }}>Grade distribution — all sections</div>
-            <GradeGrid dist={course.gradeDistribution} darkMode={dm} />
-            <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginTop: 28, marginBottom: 12 }}>
-              Section-by-section breakdown
-              {detail && <span style={{ color: p.textSub, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontFamily: SANS, fontSize: 12 }}> — {detail.rawSections.length} on record</span>}
-            </div>
+          <div style={{ padding: isMobile ? "20px" : "28px 32px 34px" }}>
             {showDetailLoading ? (
-              <SkeletonTable darkMode={dm} rows={6} cols={4} />
+              <SkeletonTable darkMode={dm} rows={7} cols={5} />
             ) : detail && detail.rawSections.length > 0 ? (
-              <SectionBreakdown sections={detail.rawSections} darkMode={dm} />
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))", gap: 12, marginBottom: 28 }}>
+                  {metricCard("Overall avg GPA", gradeMetrics.avgGpa, "Across all recorded sections", gpaColor(Number(gradeMetrics.avgGpa)) || p.text)}
+                  {metricCard("Best professor GPA", gradeMetrics.bestGpa, gradeMetrics.bestInstructor || "Highest instructor average", "#22c55e")}
+                  {metricCard("Sections", gradeMetrics.sections, "Historical records in UDC")}
+                  {metricCard("Peak grade band", gradeMetrics.peakBand, `${gradeMetrics.peakPct}% of outcomes`, gradeMetrics.peakColor)}
+                </div>
+
+                <ProfessorRecommendation
+                  instructors={instructorGradeSummaries}
+                  darkMode={dm}
+                  isMobile={isMobile}
+                  onProfClick={onProfClick}
+                  rmpMap={rmpMap}
+                />
+
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 12 }}>
+                  Professors on record
+                  <span style={{ color: p.textSub, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontFamily: SANS, fontSize: 12 }}> — {instructorGradeSummaries.length} on record</span>
+                </div>
+                <InstructorGradeTable instructors={instructorGradeSummaries} darkMode={dm} isMobile={isMobile} onProfClick={onProfClick} rmpMap={rmpMap} />
+
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginTop: 28, marginBottom: 12 }}>
+                  Grade distributions — strongest professors
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 12, marginBottom: 28 }}>
+                  {instructorGradeSummaries.slice(0, 4).map(instructor => (
+                    <button key={instructor.id} type="button" onClick={() => setSelectedGradeInstructorId(instructor.id)} style={{ background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: "16px 18px", textAlign: "left", cursor: "pointer", fontFamily: SANS }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
+                        <div style={{ color: p.text, fontWeight: 800, fontSize: 14, lineHeight: 1.35 }}>
+                          <span style={{ color: ACCENT, fontFamily: MONO, fontSize: 12 }}>{instructor.sections} section{instructor.sections === 1 ? "" : "s"}</span>
+                          <br />{instructor.name}
+                        </div>
+                        {instructor.avgGpa > 0 && <GpaBadge gpa={instructor.avgGpa} darkMode={dm} />}
+                      </div>
+                      <GradeGrid dist={instructor.gradeDistribution} darkMode={dm} />
+                    </button>
+                  ))}
+                </div>
+
+                <GradeAnalyticsSection
+                  instructors={instructorGradeSummaries}
+                  selectedId={selectedGradeInstructorId}
+                  onSelect={setSelectedGradeInstructorId}
+                  darkMode={dm}
+                  isMobile={isMobile}
+                />
+
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginTop: 28, marginBottom: 12 }}>
+                  Section-by-section breakdown
+                  <span style={{ color: p.textSub, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontFamily: SANS, fontSize: 12 }}> — {gradeSections.length} on record</span>
+                </div>
+                <SectionBreakdown sections={gradeSections} darkMode={dm} />
+
+                <CourseEchoSection
+                  course={course}
+                  instructors={instructorGradeSummaries}
+                  reviews={echoReviews}
+                  stats={echoStats}
+                  loading={echoLoading}
+                  error={echoError}
+                  showForm={showEchoForm}
+                  setShowForm={setShowEchoForm}
+                  onSubmit={handleEchoSubmit}
+                  isSignedIn={isSignedIn}
+                  onRequireSignIn={onRequireSignIn}
+                  darkMode={dm}
+                  isMobile={isMobile}
+                />
+              </>
             ) : (
-              <div style={{ color: p.textSub, fontSize: 13, fontFamily: SANS }}>No data available.</div>
+              <>
+                <div style={{ color: p.textSub, fontSize: 13, fontFamily: SANS, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.md, padding: 24 }}>No grade data available.</div>
+                <CourseEchoSection
+                  course={course}
+                  instructors={[]}
+                  reviews={echoReviews}
+                  stats={echoStats}
+                  loading={echoLoading}
+                  error={echoError}
+                  showForm={showEchoForm}
+                  setShowForm={setShowEchoForm}
+                  onSubmit={handleEchoSubmit}
+                  isSignedIn={isSignedIn}
+                  onRequireSignIn={onRequireSignIn}
+                  darkMode={dm}
+                  isMobile={isMobile}
+                />
+              </>
             )}
           </div>
         )}
@@ -578,6 +1605,18 @@ function CourseCard({ course, darkMode, onClick, onProfClick, instructorMap }) {
           ? <GpaBadge gpa={gpa} darkMode={dm} />
           : <span style={{ fontSize: 11, fontFamily: MONO, color: p.textMute, background: p.card, border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "2px 10px" }}>No grade data</span>
         }
+        <span style={{
+          fontFamily: MONO,
+          fontSize: 10,
+          fontWeight: 700,
+          color: course.fallSections > 0 ? "#22c55e" : p.textMute,
+          background: course.fallSections > 0 ? "rgba(34,197,94,0.12)" : p.card,
+          border: `1px solid ${course.fallSections > 0 ? "rgba(34,197,94,0.28)" : p.line}`,
+          borderRadius: RADIUS.pill,
+          padding: "2px 8px",
+        }}>
+          {course.fallSections > 0 ? `${course.fallSections} Fall 2026` : "Not Fall 2026"}
+        </span>
       </div>
 
       {/* ── Title ── */}
@@ -802,10 +1841,10 @@ function SubjectSearch({ subjects, selected, onChange, darkMode }) {
 }
 
 // ── FilterPanel ───────────────────────────────────────────────────
-function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode, setSortMode, creditsFilter, setCreditsFilter, gpaOnly, setGpaOnly, darkMode, isMobile, onClear }) {
+function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode, setSortMode, creditsFilter, setCreditsFilter, gpaOnly, setGpaOnly, fallOnly, setFallOnly, darkMode, isMobile, onClear }) {
   const dm = darkMode;
   const p  = palette(dm);
-  const hasActive = selectedSubjects.length > 0 || creditsFilter.length > 0 || gpaOnly;
+  const hasActive = selectedSubjects.length > 0 || creditsFilter.length > 0 || gpaOnly || fallOnly;
 
   const S = ({ title, children }) => (
     <FilterSection title={title} accentColor={ACCENT} lineColor={p.line}>{children}</FilterSection>
@@ -841,8 +1880,8 @@ function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode
           <option value="alpha">Alphabetical (A→Z)</option>
           <option value="gpa_desc">GPA: High → Low</option>
           <option value="gpa_asc">GPA: Low → High</option>
-          <option value="sections_desc">Most Sections</option>
-          <option value="sections_asc">Fewest Sections</option>
+          <option value="sections_desc">Most Fall 2026 Sections</option>
+          <option value="sections_asc">Fewest Fall 2026 Sections</option>
         </select>
       </S>
 
@@ -866,6 +1905,13 @@ function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode
           style={{ ...pillStyle(gpaOnly), width: "100%", textAlign: "center", padding: "7px 12px" }}
         >Has GPA data</button>
       </S>
+
+      <S title="Offering">
+        <button
+          onClick={() => setFallOnly(v => !v)}
+          style={{ ...pillStyle(fallOnly), width: "100%", textAlign: "center", padding: "7px 12px" }}
+        >Offered Fall 2026</button>
+      </S>
     </div>
   );
 }
@@ -879,6 +1925,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [sortMode, setSortMode]         = useState("alpha");
   const [creditsFilter, setCreditsFilter] = useState([]);
   const [gpaOnly, setGpaOnly]           = useState(false);
+  const [fallOnly, setFallOnly]         = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   const [courses, setCourses] = useState([]);
@@ -939,6 +1986,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       ));
     }
     if (gpaOnly) list = list.filter(c => c.avgGpa > 0);
+    if (fallOnly) list = list.filter(c => (c.fallSections || 0) > 0);
     list.sort((a, b) => {
       const alpha = `${a.subject}${a.number}`.localeCompare(`${b.subject}${b.number}`);
       if (sortMode === "gpa_desc") {
@@ -953,17 +2001,17 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
         if (b.avgGpa > 0) return 1;
         return alpha;
       }
-      if (sortMode === "sections_desc") return (b.totalSections || 0) - (a.totalSections || 0);
-      if (sortMode === "sections_asc")  return (a.totalSections || 0) - (b.totalSections || 0);
+      if (sortMode === "sections_desc") return (b.fallSections || 0) - (a.fallSections || 0) || alpha;
+      if (sortMode === "sections_asc")  return (a.fallSections || 0) - (b.fallSections || 0) || alpha;
       return alpha;
     });
     return list;
-  }, [courses, sortMode, creditsFilter, gpaOnly]);
+  }, [courses, sortMode, creditsFilter, gpaOnly, fallOnly]);
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageCourses = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const goToPage = pg => { setPage(pg); topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
-  const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0);
+  const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0) + (fallOnly ? 1 : 0);
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: SANS }}>
@@ -1018,14 +2066,14 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
               <option value="alpha">A → Z</option>
               <option value="gpa_desc">GPA ↓</option>
               <option value="gpa_asc">GPA ↑</option>
-              <option value="sections_desc">Most Sections</option>
-              <option value="sections_asc">Fewest Sections</option>
+              <option value="sections_desc">Fall sections ↓</option>
+              <option value="sections_asc">Fall sections ↑</option>
             </select>
 
             <div style={{ flex: 1 }} />
             <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, flexShrink: 0 }}>{filtered.length} results</span>
             {activeFilters > 0 && (
-              <button onClick={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); setPage(1); }}
+              <button onClick={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); setFallOnly(false); setPage(1); }}
                 style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: MONO, fontWeight: 600, fontSize: 11, color: p.textFaint, flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.color = ACCENT}
                 onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
@@ -1033,7 +2081,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
             )}
           </div>
 
-          {/* Row 2: credits pills + GPA toggle */}
+          {/* Row 2: credits pills + current offering + GPA toggle */}
           <div style={{ display: "flex", flexWrap: "nowrap", gap: 6, alignItems: "center", overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: isMobile ? 4 : 0 }}>
             <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textFaint, textTransform: "uppercase", letterSpacing: "1px", marginRight: 4 }}>Credits</span>
             {["1","2","3","4+"].map(cr => {
@@ -1049,6 +2097,10 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
             <button onClick={() => { setGpaOnly(v => !v); setPage(1); }}
               style={{ fontFamily: MONO, fontSize: 11, fontWeight: gpaOnly ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", border: `1px solid ${gpaOnly ? "rgba(134,31,65,0.40)" : p.line}`, background: gpaOnly ? "rgba(134,31,65,0.12)" : "transparent", color: gpaOnly ? ACCENT : p.textSub, transition: "all 0.14s" }}>
               Has GPA data
+            </button>
+            <button onClick={() => { setFallOnly(v => !v); setPage(1); }}
+              style={{ fontFamily: MONO, fontSize: 11, fontWeight: fallOnly ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", border: `1px solid ${fallOnly ? "rgba(134,31,65,0.40)" : p.line}`, background: fallOnly ? "rgba(134,31,65,0.12)" : "transparent", color: fallOnly ? ACCENT : p.textSub, transition: "all 0.14s" }}>
+              Offered Fall 2026
             </button>
           </div>
         </div>

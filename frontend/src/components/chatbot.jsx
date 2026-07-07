@@ -10,6 +10,9 @@ import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
 Chart.register(...registerables);
 
 const CHAT_API = DARVIS_CONFIG.chatApiUrl;
+const CHAT_STREAM_API = CHAT_API.endsWith("/chat")
+  ? CHAT_API.replace(/\/chat$/, "/chat/stream")
+  : `${CHAT_API.replace(/\/$/, "")}/stream`;
 
 const SUGGESTED = [
   { label: "Build a schedule", prompt: "Build me a schedule where I don’t wake up before 11." },
@@ -20,14 +23,12 @@ const SUGGESTED = [
   { label: "Explain a course", prompt: "Explain this course using grade and professor data." },
 ];
 
-const THINKING_MESSAGES = [
-  "Thinking",
-  "Understanding your question",
-  "Checking available data",
-  "Reviewing course context",
-  "Looking through Darvis data",
-  "Preparing your answer",
-  "Almost ready",
+const FALLBACK_THINKING_PHASES = [
+  { after: 0, message: "Thinking" },
+  { after: 3600, message: "Understanding your question" },
+  { after: 6200, message: "Checking available data" },
+  { after: 9800, message: "Preparing your answer" },
+  { after: 18000, message: "Almost ready" },
 ];
 
 // ── Input sanitization & NLP normalization ────────────────────────
@@ -435,7 +436,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
         )}
 
         {/* Action row */}
-        <div style={{ display: "flex", gap: 4, marginTop: 10, alignItems: "center" }}>
+        {!msg._streaming && <div style={{ display: "flex", gap: 4, marginTop: 10, alignItems: "center" }}>
           <button
             onClick={handleCopy}
             aria-label={copied ? "Copied" : "Copy response"}
@@ -497,7 +498,7 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
           >
             <ActionIcon type="more" />
           </button>
-        </div>
+        </div>}
       </div>
     </div>
   );
@@ -531,6 +532,42 @@ function ThinkingIndicator({ darkMode, status }) {
       </div>
     </div>
   );
+}
+
+function parseSseEvents(buffer) {
+  const events = [];
+  let rest = buffer;
+  let boundary = rest.indexOf("\n\n");
+  while (boundary !== -1) {
+    const raw = rest.slice(0, boundary);
+    rest = rest.slice(boundary + 2);
+    boundary = rest.indexOf("\n\n");
+
+    let event = "message";
+    const dataLines = [];
+    raw.split("\n").forEach(line => {
+      if (line.startsWith("event:")) event = line.slice(6).trim();
+      if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+    });
+    if (!dataLines.length) continue;
+    try {
+      events.push({ event, data: JSON.parse(dataLines.join("\n")) });
+    } catch {
+      events.push({ event, data: { raw: dataLines.join("\n") } });
+    }
+  }
+  return { events, rest };
+}
+
+function applyScheduleActions(data, addSection, setPage) {
+  if (data?.schedule_actions?.length > 0 && addSection) {
+    data.schedule_actions.forEach(sec => addSection(sec));
+    setTimeout(() => setPage?.("schedule"), 1200);
+  }
+}
+
+function buildBotMessage(data) {
+  return { role: "bot", ...data };
 }
 
 // ── Session storage helpers ───────────────────────────────────────
@@ -1102,7 +1139,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const [attachments,       setAttachments]      = useState([]);
-  const [thinkingIndex,     setThinkingIndex]    = useState(0);
+  const [thinkingStatus,    setThinkingStatus]   = useState("Thinking");
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
@@ -1162,17 +1199,22 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   useEffect(() => { saveProjects(projects); }, [projects]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: loading ? "auto" : "smooth", block: "end" });
   }, [messages, loading]);
 
   useEffect(() => {
     if (!loading) {
-      setThinkingIndex(0);
+      setThinkingStatus("Thinking");
       return;
     }
+    const startedAt = Date.now();
     const id = setInterval(() => {
-      setThinkingIndex(i => (i + 1) % THINKING_MESSAGES.length);
-    }, 1700);
+      const elapsed = Date.now() - startedAt;
+      const phase = [...FALLBACK_THINKING_PHASES]
+        .reverse()
+        .find(item => elapsed >= item.after);
+      if (phase) setThinkingStatus(current => current === "Thinking" || FALLBACK_THINKING_PHASES.some(p => p.message === current) ? phase.message : current);
+    }, 450);
     return () => clearInterval(id);
   }, [loading]);
 
@@ -1282,27 +1324,84 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" }))
         .filter(m => m.content);
 
-      const res = await fetch(CHAT_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history }),
-        signal: controller.signal,
-      });
+      const payload = { question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history };
+      let streamStarted = false;
+      let streamedAnswer = "";
+      let finalData = null;
+
+      try {
+        const streamRes = await fetch(CHAT_STREAM_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const contentType = streamRes.headers.get("content-type") || "";
+        if (!streamRes.ok || !streamRes.body || !contentType.includes("text/event-stream")) {
+          throw new Error(`Streaming unavailable: HTTP ${streamRes.status}`);
+        }
+
+        const reader = streamRes.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+          const parsed = parseSseEvents(buffer);
+          buffer = parsed.rest;
+
+          for (const item of parsed.events) {
+            if (item.event === "status" && item.data?.message) {
+              setThinkingStatus(item.data.message);
+            } else if (item.event === "answer_chunk") {
+              streamStarted = true;
+              streamedAnswer += item.data?.text || "";
+              const streamingMsg = {
+                role: "bot",
+                answer: streamedAnswer,
+                tables: [],
+                charts: [],
+                warnings: [],
+                _streaming: true,
+              };
+              const partial = [...withUser, streamingMsg];
+              setMessages(partial);
+              setSessions(prev => prev.map(s =>
+                s.id === sessionId ? { ...s, messages: partial } : s
+              ));
+            } else if (item.event === "final") {
+              finalData = item.data;
+            } else if (item.event === "error") {
+              throw new Error(item.data?.message || "Streaming error");
+            }
+          }
+        }
+
+        if (!finalData && streamStarted) {
+          finalData = { answer: streamedAnswer, route: "stream", tables: [], charts: [], warnings: [], metadata: {}, schedule_actions: [] };
+        }
+      } catch (streamErr) {
+        if (streamStarted) throw streamErr;
+
+        const res = await fetch(CHAT_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.detail || `HTTP ${res.status}`);
+        }
+        finalData = await res.json();
+      }
+
       clearTimeout(timeoutId);
+      applyScheduleActions(finalData, addSection, setPage);
 
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.detail || `HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-
-      if (data.schedule_actions && data.schedule_actions.length > 0 && addSection) {
-        data.schedule_actions.forEach(sec => addSection(sec));
-        setTimeout(() => setPage?.("schedule"), 1200);
-      }
-
-      const botMsg = { role: "bot", ...data };
+      const botMsg = buildBotMessage(finalData);
       const final = [...withUser, botMsg];
       setMessages(final);
       setSessions(prev => prev.map(s =>
@@ -1345,23 +1444,78 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     const timeoutId = setTimeout(() => controller.abort(), 50000);
 
     try {
-      const res = await fetch(CHAT_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history: messages.slice(0, botMsgIdx).filter(m => !m.isError && (m.role === "user" || m.role === "bot")).slice(-10).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content) }),
-        signal: controller.signal,
-      });
+      const payload = {
+        question,
+        use_recency: useRecency,
+        min_students: minStudents,
+        top_n: topN,
+        user_profile: userProfile || null,
+        history: messages.slice(0, botMsgIdx).filter(m => !m.isError && (m.role === "user" || m.role === "bot")).slice(-10).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
+      };
+      let streamStarted = false;
+      let streamedAnswer = "";
+      let finalData = null;
+
+      try {
+        const streamRes = await fetch(CHAT_STREAM_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const contentType = streamRes.headers.get("content-type") || "";
+        if (!streamRes.ok || !streamRes.body || !contentType.includes("text/event-stream")) {
+          throw new Error(`Streaming unavailable: HTTP ${streamRes.status}`);
+        }
+
+        const reader = streamRes.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+          const parsed = parseSseEvents(buffer);
+          buffer = parsed.rest;
+
+          for (const item of parsed.events) {
+            if (item.event === "status" && item.data?.message) {
+              setThinkingStatus(item.data.message);
+            } else if (item.event === "answer_chunk") {
+              streamStarted = true;
+              streamedAnswer += item.data?.text || "";
+              const streamingMsg = { role: "bot", answer: streamedAnswer, tables: [], charts: [], warnings: [], _streaming: true };
+              const partial = messages.map((m, i) => i === botMsgIdx ? streamingMsg : m);
+              setMessages(partial);
+              if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: partial } : s));
+            } else if (item.event === "final") {
+              finalData = item.data;
+            } else if (item.event === "error") {
+              throw new Error(item.data?.message || "Streaming error");
+            }
+          }
+        }
+        if (!finalData && streamStarted) {
+          finalData = { answer: streamedAnswer, route: "stream", tables: [], charts: [], warnings: [], metadata: {}, schedule_actions: [] };
+        }
+      } catch (streamErr) {
+        if (streamStarted) throw streamErr;
+        const res = await fetch(CHAT_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.detail || `HTTP ${res.status}`);
+        }
+        finalData = await res.json();
+      }
+
       clearTimeout(timeoutId);
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.detail || `HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.schedule_actions && data.schedule_actions.length > 0 && addSection) {
-        data.schedule_actions.forEach(sec => addSection(sec));
-        setTimeout(() => setPage?.("schedule"), 1200);
-      }
-      const botMsg = { role: "bot", ...data };
+      applyScheduleActions(finalData, addSection, setPage);
+      const botMsg = buildBotMessage(finalData);
       const final = messages.map((m, i) => i === botMsgIdx ? botMsg : m);
       setMessages(final);
       if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
@@ -1754,8 +1908,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               ))}
 
               {/* Loading indicator */}
-              {loading && (
-                <ThinkingIndicator darkMode={dm} status={THINKING_MESSAGES[thinkingIndex]} />
+              {loading && !messages.some(msg => msg._streaming) && (
+                <ThinkingIndicator darkMode={dm} status={thinkingStatus} />
               )}
               <div ref={bottomRef} />
             </div>

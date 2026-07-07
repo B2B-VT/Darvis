@@ -2,6 +2,11 @@
 // Query functions for the Darvis frontend.
 // All functions return data in the shape the existing components expect.
 import { db } from "./supabase.js";
+import { DARVIS_CONFIG } from "./config.js";
+
+const CHAT_API_BASE = (DARVIS_CONFIG.chatApiUrl || "").replace(/\/chat\/?$/, "");
+const CURRENT_SECTIONS_TERM = "202609";
+let currentSectionCountsPromise = null;
 
 export const API = {
 
@@ -27,7 +32,7 @@ export const API = {
         .eq('subject', sec.subject)
         .eq('course_number', sec.course_number)
         .maybeSingle();
-      return row ? [formatCourse(row)] : [];
+      return row ? enrichCurrentSectionCounts([formatCourse(row)]) : [];
     }
 
     const BATCH = 1000;
@@ -86,7 +91,7 @@ export const API = {
       offset += BATCH;
     }
 
-    return allData.map(formatCourse);
+    return enrichCurrentSectionCounts(allData.map(formatCourse));
   },
 
   // Returns all instructors from the instructors table.
@@ -125,6 +130,98 @@ export const API = {
     const { data, error } = await db.rpc('get_distinct_subjects');
     if (error) throw error;
     return (data || []).map(r => r.subject);
+  },
+
+  // Live data for the landing page marquee. Kept intentionally small so the
+  // public homepage can show real course/professor signals without pulling the
+  // full catalog or instructor directory.
+  async getLandingMarqueeData() {
+    const subjectPool = [
+      'CS', 'BIT', 'MATH', 'STAT', 'PHYS', 'CHEM', 'BIOL', 'ECE',
+      'ACIS', 'ECON', 'ENGL', 'HIST', 'PSYC', 'FIN', 'MGT', 'MKTG',
+      'CMDA', 'COMM', 'AAD', 'HTM',
+    ];
+
+    const [courseResults, instructorRes] = await Promise.all([
+      Promise.all(subjectPool.map(subject => db
+        .from('courses')
+        .select('id, subject, course_number, title, credits, avg_gpa, description, pathways')
+        .eq('subject', subject)
+        .not('avg_gpa', 'is', null)
+        .gte('avg_gpa', 2.35)
+        .order('course_number')
+        .limit(14)
+      )),
+      db
+        .from('instructors')
+        .select('name, dept, subjects, avg_gpa, rmp_rating, rmp_difficulty, rmp_count, rmp_tags, rmp_reviews, rmp_id')
+        .not('rmp_rating', 'is', null)
+        .not('rmp_difficulty', 'is', null)
+        .not('avg_gpa', 'is', null)
+        .order('rmp_count', { ascending: false })
+        .limit(60),
+    ]);
+    const courseError = courseResults.find(result => result.error)?.error;
+    if (courseError) throw courseError;
+    if (instructorRes.error) throw instructorRes.error;
+
+    const courses = chooseLandingCourses(courseResults.flatMap(result => result.data || [])).slice(0, 8);
+    const enrichedCourses = await Promise.all(courses.map(async row => {
+      const base = formatCourse(row);
+      const { data: grades } = await db
+        .from('grades')
+        .select('instructor, gpa, graded_enrollment, a_pct, a_minus_pct, b_plus_pct, b_pct, b_minus_pct, c_plus_pct, c_pct, c_minus_pct, d_plus_pct, d_pct, d_minus_pct, f_pct')
+        .eq('subject', row.subject)
+        .eq('course_number', row.course_number);
+
+      const rows = grades || [];
+      const totalStudents = rows.reduce((sum, r) => sum + (Number(r.graded_enrollment) || 0), 0);
+      const instructors = new Set(rows.map(r => r.instructor).filter(Boolean));
+      const weighted = fields => {
+        if (!totalStudents) return 0;
+        return rows.reduce((sum, r) => {
+          const enrollment = Number(r.graded_enrollment) || 0;
+          const pct = fields.reduce((inner, field) => inner + (Number(r[field]) || 0), 0);
+          return sum + pct * enrollment;
+        }, 0) / totalStudents;
+      };
+      const distRaw = [
+        weighted(['a_pct', 'a_minus_pct']),
+        weighted(['b_plus_pct', 'b_pct', 'b_minus_pct']),
+        weighted(['c_plus_pct', 'c_pct', 'c_minus_pct']),
+        weighted(['d_plus_pct', 'd_pct', 'd_minus_pct']),
+        weighted(['f_pct']),
+      ];
+      const distTotal = distRaw.reduce((sum, n) => sum + n, 0) || 1;
+      const dist = distRaw.map(n => Math.round((n / distTotal) * 100));
+      const correction = 100 - dist.reduce((sum, n) => sum + n, 0);
+      dist[0] += correction;
+
+      return {
+        ...base,
+        code: `${base.subject} ${base.number}`,
+        profs: instructors.size || base.totalSections || 0,
+        n: totalStudents,
+        dist,
+      };
+    }));
+
+    const instructors = chooseLandingInstructors(instructorRes.data || []).slice(0, 8).map(r => ({
+      name:          r.name,
+      department:    r.dept || '',
+      dept:          r.dept || (Array.isArray(r.subjects) ? r.subjects[0] : '') || '',
+      subjects:      r.subjects || [],
+      courseCount:   0,
+      avgGpa:        r.avg_gpa != null ? parseFloat(r.avg_gpa) : null,
+      rmpRating:     r.rmp_rating != null ? parseFloat(r.rmp_rating) : null,
+      rmpDifficulty: r.rmp_difficulty != null ? parseFloat(r.rmp_difficulty) : null,
+      rmpCount:      r.rmp_count || 0,
+      rmpTags:       Array.isArray(r.rmp_tags) ? r.rmp_tags : [],
+      rmpReviews:    Array.isArray(r.rmp_reviews) ? r.rmp_reviews : [],
+      rmpId:         r.rmp_id || null,
+    }));
+
+    return { courses: enrichedCourses, instructors };
   },
 
   // Returns Fall 2026 sections for a given course from the sections table.
@@ -311,6 +408,78 @@ export const API = {
     await db.from('user_conversations')
       .delete().eq('user_id', userId).eq('session_id', sessionId);
   },
+
+  async getRmpReviews(rmpId, limit = 12) {
+    if (!rmpId || !CHAT_API_BASE) return [];
+    const url = `${CHAT_API_BASE}/rmp/reviews?rmp_id=${encodeURIComponent(rmpId)}&limit=${encodeURIComponent(limit)}`;
+    const response = await fetch(url, { method: "GET" });
+    if (!response.ok) throw new Error("Unable to fetch RateMyProfessors reviews.");
+    const payload = await response.json();
+    return Array.isArray(payload?.reviews) ? payload.reviews : [];
+  },
+
+  async getLiveCourseDescription(subject, number) {
+    if (!subject || !number || !CHAT_API_BASE) return null;
+    const params = new URLSearchParams({
+      subject: String(subject).toUpperCase(),
+      number: String(number),
+    });
+    const response = await fetch(`${CHAT_API_BASE}/catalog/course-description?${params.toString()}`, {
+      method: "GET",
+    });
+    if (!response.ok) throw new Error("Unable to fetch catalog description.");
+    const payload = await response.json();
+    return {
+      description: payload?.description || "",
+      source: payload?.source || "Virginia Tech Catalog",
+      sourceUrl: payload?.source_url || "",
+      cached: Boolean(payload?.cached),
+    };
+  },
+
+  async getEchoReviews({ targetType, professorName, subject, number, limit = 20 } = {}) {
+    let query = db
+      .from('echo_reviews')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (targetType) query = query.eq('target_type', targetType);
+    if (professorName) query = query.eq('professor_name', professorName);
+    if (subject) query = query.eq('course_subject', subject);
+    if (number) query = query.eq('course_number', number);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map(formatEchoReview);
+  },
+
+  async createEchoReview(review) {
+    const payload = {
+      user_id:              review.userId,
+      display_name:         review.displayName || '',
+      target_type:          review.targetType,
+      professor_name:       review.professorName || null,
+      course_subject:       review.courseSubject || null,
+      course_number:        review.courseNumber || null,
+      course_title:         review.courseTitle || null,
+      quality_rating:       review.qualityRating,
+      difficulty_rating:    review.difficultyRating,
+      would_take_again:     review.wouldTakeAgain,
+      for_credit:           review.forCredit,
+      used_textbook:        review.usedTextbook,
+      attendance_mandatory: review.attendanceMandatory,
+      grade_received:       review.gradeReceived || null,
+      tags:                 review.tags || [],
+      review_text:          review.reviewText,
+      status:               review.status || 'published',
+      updated_at:           new Date().toISOString(),
+    };
+    const { data, error } = await db.from('echo_reviews').insert([payload]).select().single();
+    if (error) throw error;
+    return formatEchoReview(data);
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -327,6 +496,7 @@ function formatCourse(row) {
     description:   row.description || '',
     pathways:      row.pathways  || [],
     totalSections: row.total_sections || 0,
+    fallSections:  row.fall_sections  || 0,
     // Grade distribution in the shape GradeGrid expects
     gradeDistribution: {
       'A':   row.a_pct        || 0,
@@ -345,6 +515,117 @@ function formatCourse(row) {
     // Phase 2 (timetable) and Phase 3 (RMP) — not yet populated
     profIds:  [],
     sections: [],
+  };
+}
+
+async function getCurrentSectionCounts() {
+  if (!currentSectionCountsPromise) {
+    currentSectionCountsPromise = (async () => {
+      const PAGE = 1000;
+      let from = 0;
+      const counts = new Map();
+      while (true) {
+        const { data, error } = await db
+          .from('sections')
+          .select('subject, course_number')
+          .eq('term', CURRENT_SECTIONS_TERM)
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        const rows = data || [];
+        rows.forEach(row => {
+          const key = `${row.subject}::${row.course_number}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        });
+        if (rows.length < PAGE) break;
+        from += PAGE;
+      }
+      return counts;
+    })();
+  }
+  return currentSectionCountsPromise;
+}
+
+async function enrichCurrentSectionCounts(courses) {
+  if (!courses.length) return courses;
+  const counts = await getCurrentSectionCounts();
+  return courses.map(course => ({
+    ...course,
+    fallSections: counts.get(`${course.subject}::${course.number}`) || 0,
+  }));
+}
+
+function chooseLandingCourses(rows) {
+  const useful = rows
+    .filter(r => r.subject && r.course_number && r.title && r.avg_gpa != null)
+    .sort((a, b) => {
+      const aLevel = parseInt(String(a.course_number).match(/\d/) ? a.course_number : '9999', 10);
+      const bLevel = parseInt(String(b.course_number).match(/\d/) ? b.course_number : '9999', 10);
+      return aLevel - bLevel || String(a.title).localeCompare(String(b.title));
+    });
+  const bySubject = useful.reduce((map, row) => {
+    if (!map[row.subject]) map[row.subject] = [];
+    map[row.subject].push(row);
+    return map;
+  }, {});
+
+  const onePerSubject = shuffle([...Object.values(bySubject)])
+    .map(subjectRows => shuffle(subjectRows)[0])
+    .filter(Boolean);
+
+  const picked = onePerSubject.slice(0, 8);
+  for (const row of shuffle(useful)) {
+    const key = `${row.subject} ${row.course_number}`;
+    if (picked.some(c => `${c.subject} ${c.course_number}` === key)) continue;
+    picked.push(row);
+    if (picked.length >= 8) break;
+  }
+  return picked;
+}
+
+function chooseLandingInstructors(rows) {
+  const byDept = rows
+    .filter(r => r.name && r.rmp_rating != null && r.rmp_difficulty != null && r.avg_gpa != null)
+    .reduce((map, row) => {
+      const dept = row.dept || (Array.isArray(row.subjects) ? row.subjects[0] : '') || 'VT';
+      if (!map[dept]) map[dept] = [];
+      map[dept].push(row);
+      return map;
+    }, {});
+
+  return shuffle([...Object.values(byDept)])
+    .map(deptRows => shuffle(deptRows)[0])
+    .filter(Boolean);
+}
+
+function shuffle(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function formatEchoReview(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    displayName: row.display_name || 'Darvis student',
+    targetType: row.target_type,
+    professorName: row.professor_name,
+    courseSubject: row.course_subject,
+    courseNumber: row.course_number,
+    courseTitle: row.course_title,
+    qualityRating: row.quality_rating != null ? parseFloat(row.quality_rating) : null,
+    difficultyRating: row.difficulty_rating != null ? parseFloat(row.difficulty_rating) : null,
+    wouldTakeAgain: row.would_take_again,
+    forCredit: row.for_credit,
+    usedTextbook: row.used_textbook,
+    attendanceMandatory: row.attendance_mandatory,
+    gradeReceived: row.grade_received,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    reviewText: row.review_text || '',
+    createdAt: row.created_at,
   };
 }
 

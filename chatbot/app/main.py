@@ -1,11 +1,15 @@
 import logging
+import asyncio
+import json
 import time
 import traceback
+import urllib.error
+import urllib.request
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -43,6 +47,14 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%S",
 )
 logger = logging.getLogger("darvis")
+
+RMP_GRAPHQL_URL = "https://www.ratemyprofessors.com/graphql"
+RMP_HEADERS = {
+    "Content-Type": "application/json",
+    "Authorization": "Basic dGVzdDp0ZXN0",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    "Referer": "https://www.ratemyprofessors.com/",
+}
 
 # ── Rate limiter (slowapi) ─────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address, default_limits=[])
@@ -218,6 +230,90 @@ def health():
         "vector_records": 0 if vector_store is None else vector_store.count(),
         "rag": rag_status,
     }
+
+
+def _normalize_rmp_review(node: dict) -> dict:
+    helpful = node.get("helpfulRating")
+    clarity = node.get("clarityRating")
+    quality_values = [float(v) for v in (helpful, clarity) if isinstance(v, (int, float))]
+    quality = round(sum(quality_values) / len(quality_values), 1) if quality_values else None
+    difficulty = node.get("difficultyRating")
+
+    return {
+        "id": node.get("id") or node.get("legacyId"),
+        "comment": (node.get("comment") or "").strip(),
+        "class": node.get("class"),
+        "date": node.get("date"),
+        "quality": quality,
+        "difficulty": float(difficulty) if isinstance(difficulty, (int, float)) else None,
+        "grade": node.get("grade"),
+        "tags": node.get("ratingTags") if isinstance(node.get("ratingTags"), list) else [],
+    }
+
+
+def _fetch_rmp_reviews_sync(rmp_id: str, limit: int) -> list[dict]:
+    query = """
+      query TeacherReviewsQuery($id: ID!, $count: Int!) {
+        node(id: $id) {
+          ... on Teacher {
+            ratings(first: $count) {
+              edges {
+                node {
+                  id
+                  legacyId
+                  comment
+                  class
+                  date
+                  difficultyRating
+                  helpfulRating
+                  clarityRating
+                  grade
+                  ratingTags
+                }
+              }
+            }
+          }
+        }
+      }
+    """
+    payload = json.dumps({
+        "query": query,
+        "variables": {"id": rmp_id, "count": max(1, min(limit, 20))},
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        RMP_GRAPHQL_URL,
+        data=payload,
+        headers=RMP_HEADERS,
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=8) as response:
+        data = json.loads(response.read().decode("utf-8"))
+
+    if data.get("errors"):
+        raise ValueError(data["errors"][0].get("message", "RMP GraphQL request failed."))
+
+    edges = data.get("data", {}).get("node", {}).get("ratings", {}).get("edges", [])
+    reviews = [_normalize_rmp_review(edge.get("node") or {}) for edge in edges]
+    return [review for review in reviews if review.get("comment")]
+
+
+@app.get("/rmp/reviews")
+@limiter.limit("30/minute")
+async def rmp_reviews(
+    request: Request,
+    rmp_id: str = Query(..., min_length=3, max_length=80),
+    limit: int = Query(12, ge=1, le=20),
+):
+    """Fetch live public RateMyProfessors review excerpts for a known RMP teacher id."""
+    try:
+        reviews = await asyncio.to_thread(_fetch_rmp_reviews_sync, rmp_id, limit)
+        return {"reviews": reviews}
+    except urllib.error.HTTPError as exc:
+        logger.warning("RMP review fetch failed for %s: HTTP %s", rmp_id, exc.code)
+        raise HTTPException(status_code=502, detail="RateMyProfessors reviews are temporarily unavailable.")
+    except Exception as exc:
+        logger.warning("RMP review fetch failed for %s: %s", rmp_id, exc)
+        raise HTTPException(status_code=502, detail="RateMyProfessors reviews are temporarily unavailable.")
 
 
 @app.post("/retrieval/debug")
@@ -448,6 +544,194 @@ def chat(request: Request, body: ChatRequest):
         metadata=metadata,
         schedule_actions=metadata.pop("schedule_actions", []),
     )
+
+
+def _sse(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, default=str)}\n\n"
+
+
+def _stream_status_for_route(route: str) -> str:
+    if route == "section_lookup":
+        return "Checking available sections"
+    if route == "schedule_builder":
+        return "Reviewing schedule options"
+    if route == "major_requirements":
+        return "Checking major requirements"
+    if route == "course_profile":
+        return "Checking course data"
+    if route == "professor_profile":
+        return "Checking instructor data"
+    if route == "natural_filter":
+        return "Filtering academic data"
+    if route == "out_of_scope":
+        return "Preparing your answer"
+    return "Looking through Darvis data"
+
+
+def _answer_chunks(text: str, target_size: int = 26):
+    words = text.split(" ")
+    chunk = ""
+    for word in words:
+        candidate = word if not chunk else f"{chunk} {word}"
+        if len(candidate) >= target_size:
+            yield candidate + " "
+            chunk = ""
+        else:
+            chunk = candidate
+    if chunk:
+        yield chunk
+
+
+@app.post("/chat/stream")
+@limiter.limit("10/minute")
+def chat_stream(request: Request, body: ChatRequest):
+    def events():
+        df = STATE.get("df")
+        vector_store = STATE.get("vector_store")
+        llm = STATE.get("llm")
+        if df is None or vector_store is None or llm is None:
+            yield _sse("error", {"message": "Backend is not fully initialized."})
+            return
+
+        try:
+            yield _sse("status", {"message": "Thinking"})
+            question = normalize_question(body.question.strip())
+            warnings = default_warnings() + privacy_warnings(body.question)
+
+            yield _sse("status", {"message": "Understanding your question"})
+            intent_extractor = STATE.get("intent")
+            intent = intent_extractor.extract(question) if intent_extractor else None
+
+            if intent is not None:
+                er = STATE.get("entity_resolver")
+                if er is not None:
+                    if intent.professor_name:
+                        intent.professor_name = er.resolve_professor(intent.professor_name)
+                    if intent.subject and intent.course_no:
+                        intent.subject, intent.course_no = er.resolve_course_code(
+                            intent.subject, intent.course_no
+                        )
+                    if not intent.professor_name and intent.route == "professor_profile":
+                        resolved_prof, _ = er.resolve_question_entities(question)
+                        if resolved_prof:
+                            intent.professor_name = resolved_prof
+
+                route = intent.route
+                _q = question.lower()
+                _section_signals = [
+                    "who is teaching", "who's teaching", "who teaches",
+                    "teaching this semester", "teaching this fall", "teaching this upcoming",
+                    "teaching next semester", "teaching fall 2026",
+                    "of the professors teaching", "of professors teaching",
+                    "which professors are teaching", "what professors are teaching",
+                    "what time does", "what times are", "what times is",
+                    "available this semester", "available this fall", "available fall 2026",
+                    "sections available", "class times for",
+                ]
+                if any(sig in _q for sig in _section_signals):
+                    route = "section_lookup"
+                logger.info(
+                    "stream intent route=%s conf=%.2f subj=%s course=%s prof=%s sort=%s",
+                    route, intent.confidence,
+                    intent.subject, intent.course_no,
+                    intent.professor_name, intent.sort_goal,
+                )
+            else:
+                from app.features.router import route_question
+                route = route_question(question)
+
+            yield _sse("route", {"route": route})
+            yield _sse("status", {"message": _stream_status_for_route(route)})
+
+            if route == "major_requirements":
+                answer, tables, charts, metadata = handle_major_requirements(
+                    question, STATE.get("requirements_df"), llm, vector_store=vector_store,
+                    intent=intent,
+                )
+            elif route == "section_lookup":
+                from app.features.section_lookup import handle_section_lookup
+                answer, tables, charts, metadata = handle_section_lookup(
+                    question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
+                    sections_df=STATE.get("sections_df"),
+                )
+            elif route == "schedule_builder":
+                answer, tables, charts, metadata = handle_schedule_builder(
+                    question, user_profile=body.user_profile, intent=intent, df=df,
+                    history=[m.model_dump() for m in body.history],
+                )
+            elif route == "out_of_scope":
+                answer, tables, charts, metadata = out_of_scope_response(), [], [], {}
+            elif route == "course_profile":
+                result = handle_course_profile(
+                    question, df, llm, vector_store,
+                    body.min_students, body.top_n, body.use_recency,
+                    rmp_df=STATE.get("rmp_df"),
+                    intent=intent,
+                    history=[m.model_dump() for m in body.history],
+                    user_profile=body.user_profile,
+                    sections_df=STATE.get("sections_df"),
+                )
+                if result is None:
+                    yield _sse("status", {"message": "Looking through Darvis data"})
+                    answer, tables, charts, metadata = handle_general_chat(
+                        question, df, llm, vector_store,
+                        history=[m.model_dump() for m in body.history],
+                        user_profile=body.user_profile,
+                    )
+                else:
+                    answer, tables, charts, metadata = result
+            elif route == "professor_profile":
+                answer, tables, charts, metadata = handle_professor_profile(
+                    question, df, llm, vector_store,
+                    body.min_students, body.top_n, body.use_recency,
+                    rmp_df=STATE.get("rmp_df"),
+                    intent=intent,
+                    history=[m.model_dump() for m in body.history],
+                    user_profile=body.user_profile,
+                    sections_df=STATE.get("sections_df"),
+                )
+            elif route == "natural_filter":
+                answer, tables, charts, metadata = handle_natural_filter(
+                    question, df, llm, vector_store,
+                    body.top_n, body.use_recency,
+                    intent=intent,
+                    history=[m.model_dump() for m in body.history],
+                    user_profile=body.user_profile,
+                )
+            else:
+                answer, tables, charts, metadata = handle_general_chat(
+                    question, df, llm, vector_store,
+                    intent=intent,
+                    history=[m.model_dump() for m in body.history],
+                    user_profile=body.user_profile,
+                )
+
+            metadata.update({
+                "use_recency": body.use_recency,
+                "min_students": body.min_students,
+                "top_n": body.top_n,
+            })
+            answer = sanitize_answer(answer) or answer
+            schedule_actions = metadata.pop("schedule_actions", [])
+            response = ChatResponse(
+                answer=answer,
+                route=route,
+                warnings=warnings,
+                tables=tables,
+                charts=charts,
+                metadata=metadata,
+                schedule_actions=schedule_actions,
+            )
+
+            yield _sse("status", {"message": "Preparing your answer"})
+            for chunk in _answer_chunks(response.answer):
+                yield _sse("answer_chunk", {"text": chunk})
+            yield _sse("final", response.model_dump())
+        except Exception as exc:
+            logger.error("Streaming chat error for question %r: %s\n%s", body.question, exc, traceback.format_exc())
+            yield _sse("error", {"message": "Something went wrong while preparing the response. Try again."})
+
+    return StreamingResponse(events(), media_type="text/event-stream")
 
 
 @app.post("/feedback", status_code=204)
