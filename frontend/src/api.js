@@ -5,6 +5,8 @@ import { db } from "./supabase.js";
 import { DARVIS_CONFIG } from "./config.js";
 
 const CHAT_API_BASE = (DARVIS_CONFIG.chatApiUrl || "").replace(/\/chat\/?$/, "");
+const CURRENT_SECTIONS_TERM = "202609";
+let currentSectionCountsPromise = null;
 
 export const API = {
 
@@ -30,7 +32,7 @@ export const API = {
         .eq('subject', sec.subject)
         .eq('course_number', sec.course_number)
         .maybeSingle();
-      return row ? [formatCourse(row)] : [];
+      return row ? enrichCurrentSectionCounts([formatCourse(row)]) : [];
     }
 
     const BATCH = 1000;
@@ -89,7 +91,7 @@ export const API = {
       offset += BATCH;
     }
 
-    return allData.map(formatCourse);
+    return enrichCurrentSectionCounts(allData.map(formatCourse));
   },
 
   // Returns all instructors from the instructors table.
@@ -415,6 +417,25 @@ export const API = {
     return Array.isArray(payload?.reviews) ? payload.reviews : [];
   },
 
+  async getLiveCourseDescription(subject, number) {
+    if (!subject || !number || !CHAT_API_BASE) return null;
+    const params = new URLSearchParams({
+      subject: String(subject).toUpperCase(),
+      number: String(number),
+    });
+    const response = await fetch(`${CHAT_API_BASE}/catalog/course-description?${params.toString()}`, {
+      method: "GET",
+    });
+    if (!response.ok) throw new Error("Unable to fetch catalog description.");
+    const payload = await response.json();
+    return {
+      description: payload?.description || "",
+      source: payload?.source || "Virginia Tech Catalog",
+      sourceUrl: payload?.source_url || "",
+      cached: Boolean(payload?.cached),
+    };
+  },
+
   async getEchoReviews({ targetType, professorName, subject, number, limit = 20 } = {}) {
     let query = db
       .from('echo_reviews')
@@ -474,6 +495,7 @@ function formatCourse(row) {
     description:   row.description || '',
     pathways:      row.pathways  || [],
     totalSections: row.total_sections || 0,
+    fallSections:  row.fall_sections  || 0,
     // Grade distribution in the shape GradeGrid expects
     gradeDistribution: {
       'A':   row.a_pct        || 0,
@@ -493,6 +515,42 @@ function formatCourse(row) {
     profIds:  [],
     sections: [],
   };
+}
+
+async function getCurrentSectionCounts() {
+  if (!currentSectionCountsPromise) {
+    currentSectionCountsPromise = (async () => {
+      const PAGE = 1000;
+      let from = 0;
+      const counts = new Map();
+      while (true) {
+        const { data, error } = await db
+          .from('sections')
+          .select('subject, course_number')
+          .eq('term', CURRENT_SECTIONS_TERM)
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        const rows = data || [];
+        rows.forEach(row => {
+          const key = `${row.subject}::${row.course_number}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        });
+        if (rows.length < PAGE) break;
+        from += PAGE;
+      }
+      return counts;
+    })();
+  }
+  return currentSectionCountsPromise;
+}
+
+async function enrichCurrentSectionCounts(courses) {
+  if (!courses.length) return courses;
+  const counts = await getCurrentSectionCounts();
+  return courses.map(course => ({
+    ...course,
+    fallSections: counts.get(`${course.subject}::${course.number}`) || 0,
+  }));
 }
 
 function chooseLandingCourses(rows) {

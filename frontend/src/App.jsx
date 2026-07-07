@@ -292,6 +292,9 @@ export default function App() {
           onClose={() => setSelectedCourse(null)}
           onProfClick={openProf}
           initialTab={selectedCourseTab}
+          currentUser={user}
+          isSignedIn={!!isSignedIn}
+          onRequireSignIn={() => { setPendingPage(page); setShowAuthModal(true); }}
         />
       )}
 

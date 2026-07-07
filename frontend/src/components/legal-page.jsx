@@ -53,6 +53,7 @@ const PRIVACY_SECTIONS = [
     body: [
       "Darvis may use artificial intelligence to explain course-planning information, summarize available evidence, compare options, and help students understand historical course or professor-related information.",
       "When AI features are used, Darvis aims to send only the information reasonably needed to generate a useful response. This may include the user's prompt, limited conversation context, retrieved course data, schedule context, profile or preference context if enabled, and technical metadata needed for security and reliability.",
+      "AI-assisted recommendations may process historical grade distributions, course metadata, section listings, selected filters, and later Echo aggregates if enabled, in order to rank or explain course-planning options.",
       "Darvis may send prompts, retrieved context, and limited metadata to third-party AI infrastructure providers or model providers solely to generate, evaluate, secure, or improve the Darvis response pipeline. Darvis does not authorize third-party AI providers to use Darvis user prompts or student personal information to train their general-purpose models unless Darvis clearly discloses that change and obtains consent where required.",
       "Users should avoid submitting student IDs, transcripts, GPA, medical or disability information, financial information, immigration status, passwords, private credentials, or other sensitive personal information unless a feature expressly asks for that information and explains how it will be used.",
       "AI-generated responses may be incorrect, incomplete, outdated, or based on limited available data. AI responses are planning support only and should be verified using official university systems, academic advisors, registrar tools, degree audits, course catalogs, department resources, and other official sources.",
@@ -229,7 +230,9 @@ const TERMS_SECTIONS = [
     body: [
       "Darvis may use artificial intelligence to explain course-planning information, summarize available evidence, and help users compare options.",
       "AI-generated responses may contain mistakes, omissions, outdated information, unsupported assumptions, or incorrect interpretations. Structured facts are retrieved or computed from available data sources where possible, but no AI system is perfect.",
+      "AI-assisted course or professor recommendations may be based on limited historical grade data, selected filters, and later user-submitted Echo data if that feature is enabled. These recommendations do not measure every factor that may matter, including teaching style, workload, fit, availability, accessibility, schedule conflicts, prerequisites, advising requirements, or changes in future course delivery.",
       "AI responses are planning support only. They are not academic instructions, professional advising, official university guidance, legal advice, financial advice, medical advice, or guarantees.",
+      "Users should verify recommendations with official university systems, academic advisors, course catalogs, syllabi, current section listings, instructor information, and their own research before making enrollment decisions.",
       "Users should not submit sensitive personal information, official student records, passwords, API keys, health information, financial information, or private credentials into AI features unless Darvis expressly asks for that information for a specific feature and explains the related privacy controls.",
     ],
   },

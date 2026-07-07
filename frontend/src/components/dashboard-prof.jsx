@@ -344,7 +344,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
     setEchoLoading(true);
     API.getEchoReviews({ targetType: "professor", professorName: prof.name, limit: 12 })
       .then(reviews => { if (!cancelled) setEchoReviews(reviews); })
-      .catch(() => { if (!cancelled) setEchoError("Echo reviews are unavailable right now."); })
+      .catch(() => { if (!cancelled) setEchoError("Echo is unavailable right now."); })
       .finally(() => { if (!cancelled) setEchoLoading(false); });
 
     return () => { cancelled = true; };
@@ -664,7 +664,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
           <div style={{ marginTop: !showLoading && courses.length === 0 ? (isMobile ? 24 : 34) : 0, marginBottom: rmpRating != null ? 30 : 0 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
-                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px" }}>Echo reviews</div>
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px" }}>Echo</div>
                 <div style={{ color: p.textSub, fontSize: 12, marginTop: 4 }}>Darvis-native student reviews for this instructor.</div>
               </div>
               <button
@@ -687,7 +687,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
                   cursor: "pointer",
                 }}
               >
-                {showEchoForm ? "Close" : "Add Echo review"}
+                {showEchoForm ? "Close" : "Add Echo"}
               </button>
             </div>
 
@@ -727,12 +727,12 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
                 </>
               ) : (
                 <div style={{ color: p.textSub, fontSize: 13, lineHeight: 1.6 }}>
-                  {echoError || "No Echo reviews yet. Be the first to leave a Darvis-native review for this instructor."}
+                  {echoError || "No Echo yet. Be the first to leave Darvis-native feedback for this instructor."}
                 </div>
               )}
             </div>
             <div style={{ color: p.textMute, fontSize: 12, lineHeight: 1.55, marginTop: 10, padding: "0 2px" }}>
-              Echo reviews are user-submitted and subjective. Do not include private information, harassment, or unsupported claims about a person.
+              Echo is user-submitted and subjective. Do not include private information, harassment, or unsupported claims about a person.
             </div>
           </div>
 
@@ -982,7 +982,7 @@ function EchoReviewForm({ courses, darkMode, isMobile, onCancel, onSubmit }) {
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <div style={{ color: p.text, fontWeight: 900, fontSize: 15 }}>Add an Echo review</div>
+          <div style={{ color: p.text, fontWeight: 900, fontSize: 15 }}>Add Echo</div>
           <div style={{ color: p.textSub, fontSize: 12, marginTop: 4 }}>Help students understand teaching style, workload, and course experience.</div>
         </div>
         <button type="button" onClick={onCancel} style={{ background: "transparent", border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, color: p.textSub, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}>Cancel</button>
@@ -1076,7 +1076,7 @@ function EchoReviewForm({ courses, darkMode, isMobile, onCancel, onSubmit }) {
           letterSpacing: "0.8px",
           textTransform: "uppercase",
           cursor: canSubmit && !saving ? "pointer" : "not-allowed",
-        }}>{saving ? "Saving" : "Publish Echo review"}</button>
+        }}>{saving ? "Saving" : "Publish Echo"}</button>
       </div>
     </div>
   );
