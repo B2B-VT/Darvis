@@ -172,9 +172,7 @@ Row counts verified live 2026-07-01:
 ## Known issues and pending work
 
 **High priority:**
-- Prerequisites pipeline broken: `import_prerequisites.js` writes `courses.prerequisites`, but that column does not exist in the live DB (nor a `prerequisites` table). Add the column (or table) before running `npm run import-prerequisites`.
-- `courses.description` empty for all 6,589 courses — `scrape-catalog` + `import-descriptions` never run against live DB.
-- `courses.pathways` empty for all courses — VT Pathways data never populated. Static JSON lookup file needed.
+- `courses.pathways` empty for all courses — VT Pathways data never populated. Static JSON lookup file needed. (Note: catalog.vt.edu course blocks do include a `Pathway Concept Area(s)` line — same scrape could source this, just needs mapping to VT's numbered pathway codes.)
 - `courses.avg_gpa` still null for 1,121 of 6,589 courses (no grade rows for those courses).
 
 **Medium priority:**
