@@ -312,6 +312,50 @@ def test_missing_description_honest_answer(indexes):
     assert "descriptions" in ans
 
 
+def test_populated_prereqs_answer():
+    # Once catalog.vt.edu data is scraped and imported, the same missing_data_field
+    # plan should answer from the real value instead of claiming it's absent.
+    courses_df = pd.DataFrame([
+        {"subject": "CS", "course_number": "3114", "title": "Data Structures & Algorithms",
+         "credits": 3, "avg_gpa": 2.9, "description": "Studies of data structures...",
+         "pathways": None, "prerequisites": "CS 2114 and CS 2506, each with a grade of C- or better"},
+    ])
+    idx = DataIndexes(courses_df=courses_df)
+    plan = QueryPlan(route="course_profile", subject="CS", course_no="3114",
+                     missing_data_field="prerequisites")
+    ans = missing_data_answer(plan, idx)
+    assert ans == "Prerequisites for CS 3114: CS 2114 and CS 2506, each with a grade of C- or better"
+
+
+def test_populated_description_answer():
+    courses_df = pd.DataFrame([
+        {"subject": "CS", "course_number": "3114", "title": "Data Structures & Algorithms",
+         "credits": 3, "avg_gpa": 2.9, "description": "Studies of data structures...",
+         "pathways": None, "prerequisites": None},
+    ])
+    idx = DataIndexes(courses_df=courses_df)
+    plan = QueryPlan(subject="CS", course_no="3114", missing_data_field="description")
+    ans = missing_data_answer(plan, idx)
+    assert ans == "CS 3114 — Studies of data structures..."
+
+
+def test_populated_field_no_value_for_course_stays_silent():
+    # Field is populated DB-wide (some course has prereqs), but this specific
+    # course has none scraped — must not guess "no prerequisites exist".
+    courses_df = pd.DataFrame([
+        {"subject": "CS", "course_number": "3114", "title": "Data Structures & Algorithms",
+         "credits": 3, "avg_gpa": 2.9, "description": None, "pathways": None,
+         "prerequisites": "CS 2114"},
+        {"subject": "CS", "course_number": "1114", "title": "Intro to Software Design",
+         "credits": 3, "avg_gpa": 3.1, "description": None, "pathways": None,
+         "prerequisites": None},
+    ])
+    idx = DataIndexes(courses_df=courses_df)
+    plan = QueryPlan(route="course_profile", subject="CS", course_no="1114",
+                     missing_data_field="prerequisites")
+    assert missing_data_answer(plan, idx) is None
+
+
 def test_nonexistent_course_honest_answer(indexes):
     plan = QueryPlan(route="course_profile", subject="CS", course_no="9999")
     gate = check_plan(plan, indexes=indexes)

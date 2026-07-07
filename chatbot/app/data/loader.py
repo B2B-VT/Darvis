@@ -211,7 +211,7 @@ def load_courses_from_supabase() -> pd.DataFrame:
     """
     Fetches all rows from the `courses` table (3,500+ courses).
     Returns a DataFrame with subject, course_number, title, credits,
-    avg_gpa, and pathways.
+    avg_gpa, pathways, description, and prerequisites.
     """
     client = _supabase_client()
     BATCH = 1000
@@ -223,7 +223,7 @@ def load_courses_from_supabase() -> pd.DataFrame:
         try:
             result = (
                 client.table("courses")
-                .select("subject, course_number, title, credits, avg_gpa, pathways, total_sections")
+                .select("subject, course_number, title, credits, avg_gpa, pathways, total_sections, description, prerequisites")
                 .order("subject")
                 .order("course_number")
                 .range(offset, offset + BATCH - 1)

@@ -1343,6 +1343,12 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
             ) : (
               <p style={{ margin: 0, fontSize: 14, color: p.textMute, fontStyle: "italic", fontFamily: SANS }}>{descriptionError || "Catalog description unavailable."}</p>
             )}
+            {(detail?.prerequisites || course.prerequisites) && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 8 }}>Prerequisites</div>
+                <p style={{ margin: 0, fontSize: 14, color: p.textSub, lineHeight: 1.6, fontFamily: SANS }}>{detail?.prerequisites || course.prerequisites}</p>
+              </div>
+            )}
           </div>
         )}
 

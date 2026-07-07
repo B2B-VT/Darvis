@@ -48,19 +48,22 @@ async function extractPrereqs(page, subject) {
       // VT catalog uses "Pre:" as the label, sometimes "Prerequisites:"
       let prereqText = '';
 
-      const attrEls = block.querySelectorAll('.courseblockattr, [class*="attr"], p');
+      // New catalog template (2026-2027) labels this "Prerequisite(s): " in a
+      // .detail-prereq span; keep the older .courseblockattr/[class*="attr"]
+      // selectors as fallbacks in case a subject still renders the old template.
+      const attrEls = block.querySelectorAll('.detail-prereq, .courseblockattr, [class*="attr"], p');
       for (const el of attrEls) {
         const text = (el.innerText || el.textContent || '').trim();
-        // Match "Pre:", "Prerequisites:", "Prerequisite:" at start of element
-        if (/^pre(requisites?)?:/i.test(text)) {
-          prereqText = text.replace(/^pre(requisites?)?:\s*/i, '').replace(/\s+/g, ' ').trim();
+        // Match "Pre:", "Prerequisite:", "Prerequisites:", "Prerequisite(s):" at start
+        if (/^pre(requisite\(s\)|requisites?)?:/i.test(text)) {
+          prereqText = text.replace(/^pre(requisite\(s\)|requisites?)?:\s*/i, '').replace(/\s+/g, ' ').trim();
           break;
         }
         // Also check child label elements (e.g. <span class="label">Pre:</span>)
         const labelEl = el.querySelector('.label, strong, b');
         if (labelEl) {
           const labelText = (labelEl.innerText || labelEl.textContent || '').trim();
-          if (/^pre(requisites?)?:?$/i.test(labelText)) {
+          if (/^pre(requisite\(s\)|requisites?)?:?$/i.test(labelText)) {
             const fullText = text.replace(labelText, '').replace(/^\s*:?\s*/, '').replace(/\s+/g, ' ').trim();
             if (fullText) { prereqText = fullText; break; }
           }
@@ -79,9 +82,10 @@ async function extractPrereqs(page, subject) {
 // ── Scrape one subject via Puppeteer ──────────────────────────────────────────
 
 async function scrapeSubject(page, subject) {
+  // Catalog redesign (2026-2027 edition) dropped the undergraduate/graduate
+  // split — every subject now lives under one unified path.
   const urls = [
-    `https://catalog.vt.edu/undergraduate/course-descriptions/${subject.toLowerCase()}/`,
-    `https://catalog.vt.edu/graduate/course-descriptions/${subject.toLowerCase()}/`,
+    `https://catalog.vt.edu/course-descriptions/${subject.toLowerCase()}/`,
   ];
 
   const combined = [];
@@ -129,12 +133,25 @@ async function main() {
     } catch { existing = []; }
   }
 
-  // Get all subjects from DB
-  const { data: subjectRows, error } = await db
-    .from('courses')
-    .select('subject')
-    .order('subject');
-  if (error) { console.error('Supabase error:', error.message); process.exit(1); }
+  // Get all subjects from DB (paginated — table has 6,500+ rows, well past
+  // Supabase's default 1000-row cap on a single query)
+  let subjectRows = [];
+  {
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data, error } = await db
+        .from('courses')
+        .select('subject')
+        .order('subject')
+        .range(from, from + PAGE - 1);
+      if (error) { console.error('Supabase error:', error.message); process.exit(1); }
+      if (!data || data.length === 0) break;
+      subjectRows = subjectRows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+  }
 
   const subjects = [...new Set((subjectRows || []).map(r => r.subject))];
   const pending  = subjects.filter(s => !doneSubjects.has(s));

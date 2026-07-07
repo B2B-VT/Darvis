@@ -154,6 +154,9 @@ class DataIndexes:
         self.known_course_codes: set[tuple[str, str]] = set()
         # catalog fields confirmed empty in the live DB — used for honest "no data" answers
         self.empty_course_fields: set[str] = set()
+        # (SUBJ, NUM) → catalog description / prerequisite text, once populated
+        self.course_descriptions: dict[tuple[str, str], str] = {}
+        self.course_prerequisites: dict[tuple[str, str], str] = {}
 
         if grades_df is not None and not grades_df.empty:
             self._build_grade_indexes(grades_df)
@@ -276,6 +279,10 @@ class DataIndexes:
                 val = rec.get(f)
                 if val is not None and str(val).strip() not in ("", "[]", "{}", "None", "nan"):
                     field_nonnull[f] += 1
+                    if f == "description":
+                        self.course_descriptions[key] = str(val).strip()
+                    elif f == "prerequisites":
+                        self.course_prerequisites[key] = str(val).strip()
         # Record catalog fields that are empty across the entire table so answer
         # generation can say "Darvis doesn't have this data" instead of guessing.
         for f, n in field_nonnull.items():

@@ -57,7 +57,7 @@ algorithms or data structures and algorithms = CS 3114; intro data structures = 
 SORT GOAL — pick the most fitting:
 "highest_gpa" (easiest, best grades, easy A, chill), "lowest_gpa" (hardest, brutal, avoid), "highest_f_rate", "lowest_f_rate", "highest_a_rate", "most_withdraws", "lowest_withdraws", "largest_sample", "times_taught"
 
-MISSING DATA: Darvis has NO course prerequisites, NO course descriptions, and NO Pathways data. If the question asks for one of those, set missing_data_field to "prerequisites", "description", or "pathways" (route can stay course_profile).
+CATALOG FIELDS: for questions about a course's prerequisites or official catalog description, set missing_data_field to "prerequisites" or "description" (route can stay course_profile) — a deterministic lookup answers these precisely from catalog data. Darvis has NO VT Pathways data — for Pathways questions set missing_data_field to "pathways".
 
 IMPORTANT RULES:
 - professor_name must be a PERSON'S name. NEVER put adjectives (hardest, easiest, best, chill) there — those belong in sort_goal.

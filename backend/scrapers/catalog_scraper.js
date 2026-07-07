@@ -121,9 +121,10 @@ async function scrapeViaApi(subject) {
 // ── Strategy B: Puppeteer with proper networkidle wait ───────────────────────
 
 async function scrapeViaPuppeteer(page, subject) {
+  // Catalog redesign (2026-2027 edition) dropped the undergraduate/graduate
+  // split — every subject now lives under one unified path.
   const urls = [
-    `https://catalog.vt.edu/undergraduate/course-descriptions/${subject.toLowerCase()}/`,
-    `https://catalog.vt.edu/graduate/course-descriptions/${subject.toLowerCase()}/`,
+    `https://catalog.vt.edu/course-descriptions/${subject.toLowerCase()}/`,
   ];
 
   for (const url of urls) {
@@ -239,13 +240,25 @@ async function scrapeViaPuppeteer(page, subject) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  // 1. Get all distinct subjects from Supabase
-  const { data: subjectRows, error } = await db
-    .from('courses')
-    .select('subject')
-    .order('subject');
-
-  if (error) { console.error('Supabase error:', error.message); process.exit(1); }
+  // 1. Get all distinct subjects from Supabase (paginated — table has 6,500+
+  //    rows, well past Supabase's default 1000-row cap on a single query)
+  let subjectRows = [];
+  {
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data, error } = await db
+        .from('courses')
+        .select('subject')
+        .order('subject')
+        .range(from, from + PAGE - 1);
+      if (error) { console.error('Supabase error:', error.message); process.exit(1); }
+      if (!data || data.length === 0) break;
+      subjectRows = subjectRows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+  }
 
   const subjects = [...new Set((subjectRows || []).map(r => r.subject))];
   console.log(`Found ${subjects.length} subjects in DB: ${subjects.join(', ')}\n`);

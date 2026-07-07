@@ -494,6 +494,7 @@ function formatCourse(row) {
     credits:       row.credits   ?? null,
     avgGpa:        row.avg_gpa   || 0,
     description:   row.description || '',
+    prerequisites: row.prerequisites || '',
     pathways:      row.pathways  || [],
     totalSections: row.total_sections || 0,
     fallSections:  row.fall_sections  || 0,

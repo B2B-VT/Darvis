@@ -25,9 +25,8 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger("darvis.verifier")
 
-# What each known-empty field should say. Grounded in verified DB state:
-# courses.description, courses.pathways, and prerequisites are empty for all
-# 6,589 courses (see CLAUDE.md "Known issues").
+# What to say when a catalog field is still genuinely empty DB-wide (currently
+# just Pathways — description/prerequisites are scraped from catalog.vt.edu).
 _MISSING_FIELD_ANSWERS = {
     "prerequisites": (
         "Darvis doesn't currently have prerequisite data for {course}. "
@@ -57,25 +56,42 @@ class SufficiencyResult:
 
 def missing_data_answer(plan, indexes=None) -> str | None:
     """
-    Honest deterministic answer when the plan flags a known-empty catalog field.
-    Returns None when the question isn't about a missing field, or when the
-    field turns out to be populated (future imports flip this off automatically
-    via indexes.empty_course_fields).
+    Deterministic catalog-field answer for prerequisites/description/pathways
+    questions. Two cases:
+      - Field still empty DB-wide (indexes.empty_course_fields) → the honest
+        "Darvis doesn't have this" message.
+      - Field populated (post-scrape) → look up the specific course's value in
+        indexes.course_descriptions / course_prerequisites and answer directly,
+        instead of falling through to a handler that ignores the field.
+    Returns None when the question isn't about one of these fields, or when a
+    field is populated DB-wide but this specific course has no scraped value
+    (stays silent rather than guessing "none exist").
     """
     fld = getattr(plan, "missing_data_field", None)
     if not fld or fld not in _MISSING_FIELD_ANSWERS:
         return None
-    # If the field has since been populated in the DB, don't claim it's missing.
-    if indexes is not None and fld not in getattr(indexes, "empty_course_fields", set()):
+
+    subject = getattr(plan, "subject", None)
+    course_no = getattr(plan, "course_no", None)
+
+    still_empty = indexes is None or fld in getattr(indexes, "empty_course_fields", set())
+    if still_empty:
+        if subject and course_no:
+            course = f"{subject} {course_no}"
+        elif course_no:
+            course = str(course_no)
+        else:
+            course = "that course"
+        return _MISSING_FIELD_ANSWERS[fld].format(course=course)
+
+    if fld not in ("description", "prerequisites") or not (subject and course_no):
         return None
-    course = ""
-    if getattr(plan, "subject", None) and getattr(plan, "course_no", None):
-        course = f"{plan.subject} {plan.course_no}"
-    elif getattr(plan, "course_no", None):
-        course = str(plan.course_no)
-    else:
-        course = "that course"
-    return _MISSING_FIELD_ANSWERS[fld].format(course=course)
+    key = (subject.upper(), course_no.strip())
+    lookup = indexes.course_descriptions if fld == "description" else indexes.course_prerequisites
+    val = lookup.get(key)
+    if not val:
+        return None
+    return f"{subject} {course_no} — {val}" if fld == "description" else f"Prerequisites for {subject} {course_no}: {val}"
 
 
 def check_plan(plan, indexes=None, resolver=None) -> SufficiencyResult:

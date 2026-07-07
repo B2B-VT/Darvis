@@ -39,8 +39,9 @@ VALID_SORT_GOALS = {
     "largest_sample", "times_taught",
 }
 
-# Catalog fields the DB is known to lack (verified empty) — the planner flags
-# questions about them so the answer layer can be honest instead of guessing.
+# Catalog fields routed through the deterministic catalog-lookup short-circuit
+# in verifier.missing_data_answer(): prerequisites/description resolve to real
+# scraped data once populated; pathways is still genuinely empty DB-wide.
 MISSING_DATA_FIELDS = {"prerequisites", "description", "pathways"}
 
 _DAY_CODES = {"M", "T", "W", "R", "F", "S", "U"}
