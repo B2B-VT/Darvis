@@ -106,19 +106,47 @@ function completionFor(text, entityPool) {
 // Scoped to names only (not course numbers) — a 1-digit course-number typo
 // like "3115" vs "3114" is a different real course, not a spelling mistake,
 // so auto-"fixing" it could quietly point the question at the wrong course.
+// Ordinary English words are never "corrected" into a name, even if they
+// happen to be a short edit distance from one (e.g. "want" is 1 edit from
+// the real surname "Wang") — this list is the guard against that.
+const COMMON_WORDS = new Set([
+  "the","and","for","are","was","were","have","has","had","not","but","you","your",
+  "with","from","this","that","what","when","where","which","who","how","why","does",
+  "did","get","got","make","made","take","took","know","think","see","look","find",
+  "use","used","work","call","try","ask","tell","feel","become","leave","put","mean",
+  "keep","let","begin","seem","help","talk","turn","start","might","show","hear","play",
+  "run","move","live","believe","bring","happen","write","sit","stand","lose","add",
+  "change","follow","stop","create","speak","read","allow","spend","grow","open","walk",
+  "win","offer","remember","love","consider","appear","buy","wait","serve","send","expect",
+  "build","stay","fall","cut","reach","kill","remain","suggest","raise","pass","sell",
+  "require","report","decide","pull","want","need","will","would","could","should","can",
+  "about","after","again","also","any","because","before","between","both","cant","come",
+  "could","each","even","every","first","give","good","great","hard","here","into","just",
+  "kind","last","like","little","long","many","more","most","much","must","new","next",
+  "now","off","once","only","other","our","out","over","own","part","people","really",
+  "right","same","say","school","some","something","still","such","take","than","their",
+  "them","then","there","these","they","thing","those","time","too","two","under","until",
+  "very","way","well","went","were","without","year","years","class","classes","course",
+  "courses","professor","professors","instructor","instructors","grade","grades","credit",
+  "credits","hard","easy","best","worst","good","bad","teach","teaches","teaching","taught",
+]);
+
 function correctWord(word, entityPool) {
   const w = word.trim();
-  if (w.length < 3 || /\d/.test(w)) return null;
+  if (w.length < 4 || /\d/.test(w)) return null;
   const lower = w.toLowerCase();
-  let best = null, bestD = 3;
+  if (COMMON_WORDS.has(lower)) return null;
+  const maxD = w.length <= 5 ? 1 : 2;
+  let best = null, bestD = maxD + 1;
   for (const inst of entityPool.instructors) {
     const name = typeof inst === "string" ? inst : inst?.name;
     if (!name) continue;
     const last = name.split(" ").slice(-1)[0];
     if (Math.abs(last.length - w.length) > 2) continue;
     if (last.toLowerCase() === lower) return null; // already correct
+    if (COMMON_WORDS.has(last.toLowerCase())) continue; // surname doubles as a real word (e.g. "Baker")
     const d = levenshtein(lower, last.toLowerCase());
-    if (d > 0 && d <= 2 && d < bestD) { best = last; bestD = d; }
+    if (d > 0 && d <= maxD && d < bestD) { best = last; bestD = d; }
   }
   return best;
 }
