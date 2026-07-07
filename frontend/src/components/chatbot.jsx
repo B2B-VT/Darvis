@@ -79,6 +79,50 @@ function trailingToken(text) {
   return last;
 }
 
+// Best inline completion for the token currently being typed — "cs 31" ->
+// "CS 3114", "hamou" -> "Hamouda". Prefix matches only; typo correction is
+// handled separately by correctWord() on word boundaries.
+function completionFor(text, entityPool) {
+  const token = trailingToken(text).trim();
+  if (token.length < 2) return null;
+  const lower = token.toLowerCase();
+  if (/\s/.test(token)) {
+    for (const c of entityPool.courses) {
+      const code = `${c.subject} ${c.number}`;
+      if (code.length > token.length && code.toLowerCase().startsWith(lower)) return code;
+    }
+    return null;
+  }
+  for (const inst of entityPool.instructors) {
+    const name = typeof inst === "string" ? inst : inst?.name;
+    if (!name) continue;
+    const last = name.split(" ").slice(-1)[0];
+    if (last.length > token.length && last.toLowerCase().startsWith(lower)) return last;
+  }
+  return null;
+}
+
+// Silently corrects a just-completed word against known professor last names.
+// Scoped to names only (not course numbers) — a 1-digit course-number typo
+// like "3115" vs "3114" is a different real course, not a spelling mistake,
+// so auto-"fixing" it could quietly point the question at the wrong course.
+function correctWord(word, entityPool) {
+  const w = word.trim();
+  if (w.length < 3 || /\d/.test(w)) return null;
+  const lower = w.toLowerCase();
+  let best = null, bestD = 3;
+  for (const inst of entityPool.instructors) {
+    const name = typeof inst === "string" ? inst : inst?.name;
+    if (!name) continue;
+    const last = name.split(" ").slice(-1)[0];
+    if (Math.abs(last.length - w.length) > 2) continue;
+    if (last.toLowerCase() === lower) return null; // already correct
+    const d = levenshtein(lower, last.toLowerCase());
+    if (d > 0 && d <= 2 && d < bestD) { best = last; bestD = d; }
+  }
+  return best;
+}
+
 function renderInlineMarkdown(text, keyPrefix = "md") {
   const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
@@ -1168,8 +1212,6 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [attachments,       setAttachments]      = useState([]);
   const [thinkingStatus,    setThinkingStatus]   = useState("Thinking");
   const [entityPool,        setEntityPool]       = useState({ courses: [], instructors: [] });
-  const [showEntitySuggest, setShowEntitySuggest] = useState(false);
-  const [activeSuggestion,  setActiveSuggestion]  = useState(0);
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
@@ -1574,80 +1616,34 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     }
   }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
 
-  const entitySuggestions = useMemo(() => {
-    const token = trailingToken(input).trim();
-    if (token.length < 2) return [];
-    const lower = token.toLowerCase();
-    const results = [];
-    const seen = new Set();
+  const completion = useMemo(() => completionFor(input, entityPool), [input, entityPool]);
+  const ghostSuffix = completion ? completion.slice(trailingToken(input).length) : "";
 
-    for (const c of entityPool.courses) {
-      const code = `${c.subject} ${c.number}`.toLowerCase();
-      if (code.startsWith(lower) && !seen.has(code)) {
-        results.push({ type: "course", value: `${c.subject} ${c.number}`, sub: c.title });
-        seen.add(code);
-        if (results.length >= 5) break;
+  const handleInputChange = e => {
+    const next = e.target.value;
+    const prev = input;
+    // Word-boundary autocorrect: user just typed a single space/newline right
+    // after a word — silently fix it if it's a near-miss for a known name.
+    if (next.length === prev.length + 1 && /\s$/.test(next) && !/\s$/.test(prev)) {
+      const boundary = next.slice(-1);
+      const stem = next.slice(0, -1);
+      const words = stem.split(" ");
+      const corrected = correctWord(words[words.length - 1], entityPool);
+      if (corrected) {
+        words[words.length - 1] = corrected;
+        setInput(words.join(" ") + boundary);
+        return;
       }
     }
-    if (results.length < 6) {
-      for (const inst of entityPool.instructors) {
-        const name = typeof inst === "string" ? inst : inst?.name;
-        if (!name) continue;
-        const last = name.split(" ").slice(-1)[0].toLowerCase();
-        if ((last.startsWith(lower) || name.toLowerCase().includes(lower)) && !seen.has(name)) {
-          results.push({ type: "professor", value: name, sub: "Professor" });
-          seen.add(name);
-          if (results.length >= 6) break;
-        }
-      }
-    }
-
-    // Spell-correct fallback — only when nothing matched directly.
-    if (results.length === 0 && lower.length >= 3) {
-      const flat = lower.replace(/\s+/g, "");
-      const candidates = [];
-      for (const c of entityPool.courses) {
-        const code = `${c.subject}${c.number}`.toLowerCase();
-        if (Math.abs(code.length - flat.length) > 2) continue;
-        const d = levenshtein(flat, code);
-        if (d <= 2) candidates.push({ d, item: { type: "course", value: `${c.subject} ${c.number}`, sub: c.title } });
-      }
-      for (const inst of entityPool.instructors) {
-        const name = typeof inst === "string" ? inst : inst?.name;
-        if (!name) continue;
-        const last = name.split(" ").slice(-1)[0].toLowerCase();
-        if (Math.abs(last.length - lower.length) > 2) continue;
-        const d = levenshtein(lower, last);
-        if (d <= 2) candidates.push({ d, item: { type: "professor", value: name, sub: "Professor" } });
-      }
-      candidates.sort((a, b) => a.d - b.d);
-      for (const cnd of candidates.slice(0, 6)) results.push(cnd.item);
-    }
-
-    return results.slice(0, 6);
-  }, [input, entityPool]);
-
-  useEffect(() => { setActiveSuggestion(0); }, [entitySuggestions]);
-
-  const applySuggestion = item => {
-    const words = input.split(/\s+/).filter(Boolean);
-    const tokenWords = trailingToken(input).split(/\s+/).length;
-    const before = words.slice(0, Math.max(0, words.length - tokenWords)).join(" ");
-    setInput((before ? before + " " : "") + item.value + " ");
-    setShowEntitySuggest(false);
-    inputRef.current?.focus();
+    setInput(next);
   };
 
   const handleKey = e => {
-    if (showEntitySuggest && entitySuggestions.length > 0) {
-      if (e.key === "ArrowDown") { e.preventDefault(); setActiveSuggestion(i => (i + 1) % entitySuggestions.length); return; }
-      if (e.key === "ArrowUp") { e.preventDefault(); setActiveSuggestion(i => (i - 1 + entitySuggestions.length) % entitySuggestions.length); return; }
-      if (e.key === "Escape") { e.preventDefault(); setShowEntitySuggest(false); return; }
-      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
-        e.preventDefault();
-        applySuggestion(entitySuggestions[activeSuggestion]);
-        return;
-      }
+    if (e.key === "Tab" && completion) {
+      e.preventDefault();
+      const token = trailingToken(input);
+      setInput(input.slice(0, input.length - token.length) + completion + " ");
+      return;
     }
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
@@ -1703,39 +1699,20 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     </div>
   );
 
-  const renderComposer = ({ hero = false } = {}) => (
-    <div style={{ position: "relative" }}>
-      {showEntitySuggest && entitySuggestions.length > 0 && (
-        <div style={{
-          position: "absolute", bottom: "100%", left: 0, right: 0, marginBottom: 8,
-          background: dm ? "rgba(28,26,24,0.98)" : "rgba(255,255,255,0.98)",
-          border: `1px solid ${p.line}`, borderRadius: RADIUS.md,
-          boxShadow: dm ? "0 -8px 30px rgba(0,0,0,0.35)" : "0 -8px 30px rgba(26,18,15,0.14)",
-          overflow: "hidden", zIndex: 50,
-        }}>
-          {entitySuggestions.map((s, i) => (
-            <button key={`${s.type}-${s.value}`}
-              onMouseDown={e => e.preventDefault()}
-              onClick={() => applySuggestion(s)}
-              onMouseEnter={() => setActiveSuggestion(i)}
-              style={{
-                display: "flex", alignItems: "center", gap: 10, width: "100%",
-                padding: "9px 14px",
-                background: i === activeSuggestion ? (dm ? "rgba(255,255,255,0.07)" : "rgba(26,18,15,0.05)") : "transparent",
-                border: "none", borderTop: i > 0 ? `1px solid ${p.line}` : "none",
-                cursor: "pointer", textAlign: "left", fontFamily: SANS,
-              }}
-            >
-              <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: ACCENT, textTransform: "uppercase", flexShrink: 0, minWidth: 64 }}>
-                {s.type === "course" ? s.value : "Prof"}
-              </span>
-              <span style={{ fontSize: 13, color: p.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {s.type === "course" ? s.sub : s.value}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+  const renderComposer = ({ hero = false } = {}) => {
+    const composerTextStyle = {
+      padding: hero ? (isMobile ? "10px 2px" : "12px 2px") : "9px 6px",
+      fontSize: hero ? (isMobile ? 15 : 16) : 15,
+      fontWeight: 500,
+      fontFamily: SANS,
+      lineHeight: 1.45,
+      minHeight: hero ? (isMobile ? 40 : 42) : 38,
+      maxHeight: 140,
+      boxSizing: "border-box",
+      borderRadius: RADIUS.sm,
+    };
+    return (
+    <>
       {renderAttachmentPreviews(hero)}
       <div style={{
         display: "flex",
@@ -1794,34 +1771,38 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           )}
         </button>
 
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={e => { setInput(e.target.value); setShowEntitySuggest(true); }}
-          onFocus={() => setShowEntitySuggest(true)}
-          onBlur={() => setTimeout(() => setShowEntitySuggest(false), 150)}
-          onKeyDown={handleKey}
-          placeholder="Ask Cyrus anything"
-          rows={1}
-          style={{
-            flex: 1,
-            padding: hero ? (isMobile ? "10px 2px" : "12px 2px") : "9px 6px",
-            background: "transparent",
-            border: "none",
-            borderRadius: RADIUS.sm,
-            resize: "none",
-            color: p.text,
-            fontSize: hero ? (isMobile ? 15 : 16) : 15,
-            fontWeight: 500,
-            fontFamily: SANS,
-            outline: "none",
-            lineHeight: 1.45,
+        <div style={{ position: "relative", flex: 1 }}>
+          {/* Ghost-text layer: same box/font as the textarea. The typed text
+              here is invisible but keeps layout (so wrapping/height matches);
+              only the completion suffix after it is actually visible. */}
+          <div aria-hidden="true" style={{
+            ...composerTextStyle,
+            visibility: "hidden",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "break-word",
             overflowY: "hidden",
-            minHeight: hero ? (isMobile ? 40 : 42) : 38,
-            maxHeight: 140,
-          }}
-          onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
-        />
+          }}>
+            <span>{input}</span>
+            <span style={{ visibility: "visible", color: dm ? "rgba(255,255,255,0.34)" : "rgba(26,18,15,0.36)" }}>{ghostSuffix}</span>
+          </div>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKey}
+            placeholder="Ask Cyrus anything"
+            style={{
+              ...composerTextStyle,
+              position: "absolute", inset: 0,
+              background: "transparent",
+              border: "none",
+              resize: "none",
+              color: p.text,
+              outline: "none",
+              overflowY: "auto",
+            }}
+          />
+        </div>
 
         <button
           onClick={() => send()}
@@ -1846,8 +1827,9 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           </svg>
         </button>
       </div>
-    </div>
-  );
+    </>
+    );
+  };
 
   return (
     <div style={{
