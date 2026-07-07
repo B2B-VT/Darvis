@@ -73,6 +73,8 @@ class DocumentChunker:
             avg_gpa = r.get("avg_gpa")
             sections = r.get("total_sections")
             pathways = r.get("pathways")
+            description = r.get("description")
+            prerequisites = r.get("prerequisites")
 
             parts = [f"Course {subj} {num}: {title}."]
             if credits:
@@ -83,6 +85,10 @@ class DocumentChunker:
                 parts.append(f"Fall 2026 sections available: {int(sections)}.")
             if isinstance(pathways, list) and pathways:
                 parts.append(f"VT Pathways: {', '.join(pathways)}.")
+            if isinstance(description, str) and description.strip():
+                parts.append(f"Description: {description.strip()}")
+            if isinstance(prerequisites, str) and prerequisites.strip():
+                parts.append(f"Prerequisites: {prerequisites.strip()}")
 
             # Include grade distribution percentages if available
             for grade, col in [("A", "a_pct"), ("F", "f_pct")]:

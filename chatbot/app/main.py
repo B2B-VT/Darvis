@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import json
+import math
 import time
 import traceback
 import urllib.error
@@ -372,16 +373,18 @@ def courses_search(
     return search_courses(df, query, limit)
 
 
-@app.post("/chat", response_model=ChatResponse)
-@limiter.limit("10/minute")
-def chat(request: Request, body: ChatRequest):
+def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+    """
+    Shared 4-stage pipeline (plan -> resolve -> sufficiency gate -> handler)
+    used by both /chat and /chat/stream so the two endpoints can't drift —
+    /chat/stream used to duplicate a stale pre-planner copy of this logic.
+    """
     df = STATE.get("df")
     vector_store = STATE.get("vector_store")
     llm = STATE.get("llm")
     if df is None or vector_store is None or llm is None:
         raise HTTPException(status_code=503, detail="Backend is not fully initialized.")
 
-    question = normalize_question(body.question.strip())
     warnings = default_warnings() + privacy_warnings(body.question)
     timings: dict[str, int] = {}
 
@@ -539,15 +542,39 @@ def chat(request: Request, body: ChatRequest):
         answer=answer,
         route=route,
         warnings=warnings,
-        tables=tables,
-        charts=charts,
+        tables=_json_safe(tables),
+        charts=_json_safe(charts),
         metadata=metadata,
         schedule_actions=metadata.pop("schedule_actions", []),
     )
 
 
+@app.post("/chat", response_model=ChatResponse)
+@limiter.limit("10/minute")
+def chat(request: Request, body: ChatRequest):
+    question = normalize_question(body.question.strip())
+    return _run_chat_pipeline(body, question)
+
+
+def _json_safe(obj):
+    """
+    Recursively replace non-finite floats (NaN/Infinity — routine in pandas
+    GPA aggregates) with None. Plain json.dumps emits bare NaN/Infinity
+    tokens, which isn't valid JSON and silently breaks a strict JSON.parse
+    on the client — the streaming endpoint was swallowing that parse error
+    and dropping the whole final payload, including the answer text.
+    """
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
 def _sse(event: str, data: dict) -> str:
-    return f"event: {event}\ndata: {json.dumps(data, default=str)}\n\n"
+    return f"event: {event}\ndata: {json.dumps(_json_safe(data), default=str)}\n\n"
 
 
 def _stream_status_for_route(route: str) -> str:
@@ -586,147 +613,21 @@ def _answer_chunks(text: str, target_size: int = 26):
 @limiter.limit("10/minute")
 def chat_stream(request: Request, body: ChatRequest):
     def events():
-        df = STATE.get("df")
-        vector_store = STATE.get("vector_store")
-        llm = STATE.get("llm")
-        if df is None or vector_store is None or llm is None:
-            yield _sse("error", {"message": "Backend is not fully initialized."})
-            return
-
         try:
             yield _sse("status", {"message": "Thinking"})
             question = normalize_question(body.question.strip())
-            warnings = default_warnings() + privacy_warnings(body.question)
-
             yield _sse("status", {"message": "Understanding your question"})
-            intent_extractor = STATE.get("intent")
-            intent = intent_extractor.extract(question) if intent_extractor else None
 
-            if intent is not None:
-                er = STATE.get("entity_resolver")
-                if er is not None:
-                    if intent.professor_name:
-                        intent.professor_name = er.resolve_professor(intent.professor_name)
-                    if intent.subject and intent.course_no:
-                        intent.subject, intent.course_no = er.resolve_course_code(
-                            intent.subject, intent.course_no
-                        )
-                    if not intent.professor_name and intent.route == "professor_profile":
-                        resolved_prof, _ = er.resolve_question_entities(question)
-                        if resolved_prof:
-                            intent.professor_name = resolved_prof
+            response = _run_chat_pipeline(body, question)
 
-                route = intent.route
-                _q = question.lower()
-                _section_signals = [
-                    "who is teaching", "who's teaching", "who teaches",
-                    "teaching this semester", "teaching this fall", "teaching this upcoming",
-                    "teaching next semester", "teaching fall 2026",
-                    "of the professors teaching", "of professors teaching",
-                    "which professors are teaching", "what professors are teaching",
-                    "what time does", "what times are", "what times is",
-                    "available this semester", "available this fall", "available fall 2026",
-                    "sections available", "class times for",
-                ]
-                if any(sig in _q for sig in _section_signals):
-                    route = "section_lookup"
-                logger.info(
-                    "stream intent route=%s conf=%.2f subj=%s course=%s prof=%s sort=%s",
-                    route, intent.confidence,
-                    intent.subject, intent.course_no,
-                    intent.professor_name, intent.sort_goal,
-                )
-            else:
-                from app.features.router import route_question
-                route = route_question(question)
-
-            yield _sse("route", {"route": route})
-            yield _sse("status", {"message": _stream_status_for_route(route)})
-
-            if route == "major_requirements":
-                answer, tables, charts, metadata = handle_major_requirements(
-                    question, STATE.get("requirements_df"), llm, vector_store=vector_store,
-                    intent=intent,
-                )
-            elif route == "section_lookup":
-                from app.features.section_lookup import handle_section_lookup
-                answer, tables, charts, metadata = handle_section_lookup(
-                    question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
-                    sections_df=STATE.get("sections_df"),
-                )
-            elif route == "schedule_builder":
-                answer, tables, charts, metadata = handle_schedule_builder(
-                    question, user_profile=body.user_profile, intent=intent, df=df,
-                    history=[m.model_dump() for m in body.history],
-                )
-            elif route == "out_of_scope":
-                answer, tables, charts, metadata = out_of_scope_response(), [], [], {}
-            elif route == "course_profile":
-                result = handle_course_profile(
-                    question, df, llm, vector_store,
-                    body.min_students, body.top_n, body.use_recency,
-                    rmp_df=STATE.get("rmp_df"),
-                    intent=intent,
-                    history=[m.model_dump() for m in body.history],
-                    user_profile=body.user_profile,
-                    sections_df=STATE.get("sections_df"),
-                )
-                if result is None:
-                    yield _sse("status", {"message": "Looking through Darvis data"})
-                    answer, tables, charts, metadata = handle_general_chat(
-                        question, df, llm, vector_store,
-                        history=[m.model_dump() for m in body.history],
-                        user_profile=body.user_profile,
-                    )
-                else:
-                    answer, tables, charts, metadata = result
-            elif route == "professor_profile":
-                answer, tables, charts, metadata = handle_professor_profile(
-                    question, df, llm, vector_store,
-                    body.min_students, body.top_n, body.use_recency,
-                    rmp_df=STATE.get("rmp_df"),
-                    intent=intent,
-                    history=[m.model_dump() for m in body.history],
-                    user_profile=body.user_profile,
-                    sections_df=STATE.get("sections_df"),
-                )
-            elif route == "natural_filter":
-                answer, tables, charts, metadata = handle_natural_filter(
-                    question, df, llm, vector_store,
-                    body.top_n, body.use_recency,
-                    intent=intent,
-                    history=[m.model_dump() for m in body.history],
-                    user_profile=body.user_profile,
-                )
-            else:
-                answer, tables, charts, metadata = handle_general_chat(
-                    question, df, llm, vector_store,
-                    intent=intent,
-                    history=[m.model_dump() for m in body.history],
-                    user_profile=body.user_profile,
-                )
-
-            metadata.update({
-                "use_recency": body.use_recency,
-                "min_students": body.min_students,
-                "top_n": body.top_n,
-            })
-            answer = sanitize_answer(answer) or answer
-            schedule_actions = metadata.pop("schedule_actions", [])
-            response = ChatResponse(
-                answer=answer,
-                route=route,
-                warnings=warnings,
-                tables=tables,
-                charts=charts,
-                metadata=metadata,
-                schedule_actions=schedule_actions,
-            )
-
+            yield _sse("route", {"route": response.route})
+            yield _sse("status", {"message": _stream_status_for_route(response.route)})
             yield _sse("status", {"message": "Preparing your answer"})
             for chunk in _answer_chunks(response.answer):
                 yield _sse("answer_chunk", {"text": chunk})
             yield _sse("final", response.model_dump())
+        except HTTPException as exc:
+            yield _sse("error", {"message": str(exc.detail)})
         except Exception as exc:
             logger.error("Streaming chat error for question %r: %s\n%s", body.question, exc, traceback.format_exc())
             yield _sse("error", {"message": "Something went wrong while preparing the response. Try again."})
