@@ -136,6 +136,47 @@ const COMMON_WORDS = new Set([
 // (e.g. "want" is 1 edit from the real surname "Wang").
 const NAME_CONTEXT_HINTS = ["professor", "prof", "dr", "instructor", "teach", "taught", "by"];
 
+// Exact-match corrections — commonly misspelled English words and informal
+// chat abbreviations. Unlike the fuzzy name correction below, these are safe
+// to apply unconditionally: they're known typos/shorthand, not proximity
+// guesses, so there's no "want" -> "Wang" class of false positive.
+const MISSPELLING_MAP = {
+  recieve: "receive", recieved: "received", recieving: "receiving",
+  definately: "definitely", definitly: "definitely", seperate: "separate",
+  seperately: "separately", occured: "occurred", occuring: "occurring",
+  occassion: "occasion", untill: "until", wich: "which", thier: "their",
+  necesary: "necessary", neccessary: "necessary", arguement: "argument",
+  acheive: "achieve", begining: "beginning", beleive: "believe",
+  calender: "calendar", comming: "coming", commited: "committed",
+  committment: "commitment", enviroment: "environment", existance: "existence",
+  goverment: "government", happend: "happened", immediatly: "immediately",
+  independant: "independent", posession: "possession", priviledge: "privilege",
+  recomend: "recommend", recommeded: "recommended", reccommend: "recommend",
+  succesful: "successful", successfull: "successful", tommorow: "tomorrow",
+  teh: "the", adn: "and", hte: "the", taht: "that", waht: "what",
+  wnat: "want", wnated: "wanted", becuase: "because", cours: "course",
+  proffesor: "professor", proffessor: "professor", professer: "professor",
+  intructor: "instructor", schedual: "schedule", shedule: "schedule",
+  prerequisit: "prerequisite", requirment: "requirement", requirments: "requirements",
+  // informal abbreviations
+  u: "you", ur: "your", r: "are", pls: "please", plz: "please",
+  thx: "thanks", thanx: "thanks", info: "information", req: "requirement",
+  reqs: "requirements", prereq: "prerequisite", prereqs: "prerequisites",
+  recs: "recommendations", sched: "schedule", avg: "average",
+  approx: "approximately", bc: "because", b4: "before", def: "definitely",
+  prof: "professor", profs: "professors", diff: "difficulty",
+};
+
+function correctKnownWord(word) {
+  const lower = word.toLowerCase();
+  const fixed = MISSPELLING_MAP[lower];
+  if (!fixed) return null;
+  if (word[0] && word[0] === word[0].toUpperCase() && /[a-z]/i.test(word[0])) {
+    return fixed.charAt(0).toUpperCase() + fixed.slice(1);
+  }
+  return fixed;
+}
+
 function hasNameContext(precedingText) {
   const words = precedingText.toLowerCase().split(/\s+/).filter(Boolean).slice(-4);
   return words.some(w => NAME_CONTEXT_HINTS.some(hint => w.includes(hint)));
@@ -1666,9 +1707,20 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const boundary = next.slice(-1);
       const stem = next.slice(0, -1);
       const words = stem.split(" ");
+      const currentWord = words[words.length - 1];
+
+      // 1. Exact known misspelling/abbreviation — safe unconditionally.
+      const known = correctKnownWord(currentWord);
+      if (known) {
+        words[words.length - 1] = known;
+        setInput(words.join(" ") + boundary);
+        return;
+      }
+
+      // 2. Fuzzy professor-name correction — only in a plausible name context.
       const precedingText = words.slice(0, -1).join(" ");
       if (hasNameContext(precedingText)) {
-        const corrected = correctWord(words[words.length - 1], entityPool);
+        const corrected = correctWord(currentWord, entityPool);
         if (corrected) {
           words[words.length - 1] = corrected;
           setInput(words.join(" ") + boundary);
@@ -1840,7 +1892,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               resize: "none",
               color: p.text,
               outline: "none",
-              overflowY: "auto",
+              overflowY: "hidden",
             }}
           />
         </div>
