@@ -203,6 +203,8 @@ export const MOCK = {
     { code: "6a", label: "Critique and Practice in the Arts",                  color: "#9f1239", bg: "#ffe4e6" },
     { code: "6d", label: "Critique and Practice in Design",                    color: "#be185d", bg: "#fce7f3" },
     { code: "7",  label: "Critical Analysis of Identity & Equity in the U.S.", color: "#64748b", bg: "#f1f5f9", suspended: true },
+    { code: "10", label: "Ethical Reasoning",                                  color: "#0f766e", bg: "#ccfbf1" },
+    { code: "11", label: "Intercultural & Global Awareness",                   color: "#9a3412", bg: "#ffedd5" },
   ],
 };
 

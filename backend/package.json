@@ -12,6 +12,8 @@
     "scrape-grades": "node scrapers/udc_playwright_scraper.js",
     "scrape-prereqs": "node scrapers/prereq_scraper.js",
     "import-prerequisites": "node scripts/import_prerequisites.js",
+    "scrape-pathways": "node scrapers/pathways_scraper.js",
+    "import-pathways": "node scripts/import_pathways.js",
     "scrape-timetable": "node scrapers/banner_timetable_scraper.js",
     "auth-banner": "node scrapers/banner_auth_helper.js",
     "scrape-timetable-auth": "node scrapers/banner_puppeteer_scraper.js",

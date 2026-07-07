@@ -1119,7 +1119,39 @@ function buildCourseGradeMetrics(sections, course) {
 }
 
 // ── Course Detail Modal ───────────────────────────────────────────
-export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick, initialTab = "description", currentUser, isSignedIn, onRequireSignIn }) {
+// Splits prerequisite text into plain text + clickable "SUBJ NNNN" course
+// references, mirroring how catalog.vt.edu links course codes inline.
+function renderPrerequisiteText(text, onCourseClick, accentColor) {
+  if (!text) return null;
+  const regex = /\b([A-Z]{2,6})\s?(\d{4})\b/g;
+  const parts = [];
+  let lastIndex = 0;
+  let m;
+  let key = 0;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    const subject = m[1], number = m[2];
+    const label = `${subject} ${number}`;
+    if (onCourseClick) {
+      parts.push(
+        <button key={`prereq-${key++}`}
+          onClick={() => onCourseClick({
+            subject, number, title: label, id: `${subject}-${number}`,
+            credits: 0, avgGpa: 0, gradeDistribution: {}, description: "", prerequisites: "", pathways: [],
+          })}
+          style={{ background: "none", border: "none", padding: 0, margin: 0, font: "inherit", color: accentColor, fontWeight: 600, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+        >{label}</button>
+      );
+    } else {
+      parts.push(label);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+}
+
+export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onClose, onProfClick, onCourseClick, initialTab = "description", currentUser, isSignedIn, onRequireSignIn }) {
   const dm = darkMode;
   const p = palette(dm);
   const [detail, setDetail] = useState(null);
@@ -1346,7 +1378,9 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
             {(detail?.prerequisites || course.prerequisites) && (
               <div style={{ marginTop: 20 }}>
                 <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "1.4px", marginBottom: 8 }}>Prerequisites</div>
-                <p style={{ margin: 0, fontSize: 14, color: p.textSub, lineHeight: 1.6, fontFamily: SANS }}>{detail?.prerequisites || course.prerequisites}</p>
+                <p style={{ margin: 0, fontSize: 14, color: p.textSub, lineHeight: 1.6, fontFamily: SANS }}>
+                  {renderPrerequisiteText(detail?.prerequisites || course.prerequisites, onCourseClick, ACCENT)}
+                </p>
               </div>
             )}
           </div>
@@ -1932,6 +1966,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [creditsFilter, setCreditsFilter] = useState([]);
   const [gpaOnly, setGpaOnly]           = useState(false);
   const [fallOnly, setFallOnly]         = useState(false);
+  const [pathwaysFilter, setPathwaysFilter] = useState([]);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   const [courses, setCourses] = useState([]);
@@ -1993,6 +2028,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
     }
     if (gpaOnly) list = list.filter(c => c.avgGpa > 0);
     if (fallOnly) list = list.filter(c => (c.fallSections || 0) > 0);
+    if (pathwaysFilter.length > 0) list = list.filter(c => (c.pathways || []).some(pw => pathwaysFilter.includes(pw)));
     list.sort((a, b) => {
       const alpha = `${a.subject}${a.number}`.localeCompare(`${b.subject}${b.number}`);
       if (sortMode === "gpa_desc") {
@@ -2012,12 +2048,12 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
       return alpha;
     });
     return list;
-  }, [courses, sortMode, creditsFilter, gpaOnly, fallOnly]);
+  }, [courses, sortMode, creditsFilter, gpaOnly, fallOnly, pathwaysFilter]);
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageCourses = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const goToPage = pg => { setPage(pg); topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
-  const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0) + (fallOnly ? 1 : 0);
+  const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0) + (fallOnly ? 1 : 0) + pathwaysFilter.length;
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: SANS }}>
@@ -2079,7 +2115,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
             <div style={{ flex: 1 }} />
             <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: p.textFaint, flexShrink: 0 }}>{filtered.length} results</span>
             {activeFilters > 0 && (
-              <button onClick={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); setFallOnly(false); setPage(1); }}
+              <button onClick={() => { setSelSubjects([]); setCreditsFilter([]); setGpaOnly(false); setFallOnly(false); setPathwaysFilter([]); setPage(1); }}
                 style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: MONO, fontWeight: 600, fontSize: 11, color: p.textFaint, flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.color = ACCENT}
                 onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
@@ -2108,6 +2144,21 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
               style={{ fontFamily: MONO, fontSize: 11, fontWeight: fallOnly ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", border: `1px solid ${fallOnly ? "rgba(134,31,65,0.40)" : p.line}`, background: fallOnly ? "rgba(134,31,65,0.12)" : "transparent", color: fallOnly ? ACCENT : p.textSub, transition: "all 0.14s" }}>
               Offered Fall 2026
             </button>
+          </div>
+
+          {/* Row 3: pathways pills */}
+          <div style={{ display: "flex", flexWrap: "nowrap", gap: 6, alignItems: "center", overflowX: "auto", WebkitOverflowScrolling: "touch", marginTop: 8, paddingBottom: isMobile ? 4 : 0 }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textFaint, textTransform: "uppercase", letterSpacing: "1px", marginRight: 4, flexShrink: 0 }}>Pathways</span>
+            {MOCK.pathwaysOptions.map(pw => {
+              const on = pathwaysFilter.includes(pw.code);
+              return (
+                <button key={pw.code} title={pw.label}
+                  onClick={() => { setPathwaysFilter(f => on ? f.filter(x => x !== pw.code) : [...f, pw.code]); setPage(1); }}
+                  style={{ fontFamily: MONO, fontSize: 11, fontWeight: on ? 600 : 400, borderRadius: RADIUS.pill, cursor: "pointer", padding: "4px 12px", whiteSpace: "nowrap", flexShrink: 0, border: `1px solid ${on ? "rgba(134,31,65,0.40)" : p.line}`, background: on ? "rgba(134,31,65,0.12)" : "transparent", color: on ? ACCENT : p.textSub, transition: "all 0.14s" }}>
+                  {pw.code.toUpperCase()}{pw.suspended ? " ✦" : ""}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

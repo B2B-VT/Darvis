@@ -291,6 +291,7 @@ export default function App() {
           onAdd={addSection} onRemove={removeSection}
           onClose={() => setSelectedCourse(null)}
           onProfClick={openProf}
+          onCourseClick={openCourse}
           initialTab={selectedCourseTab}
           currentUser={user}
           isSignedIn={!!isSignedIn}

@@ -114,13 +114,15 @@ backend/
 │   ├── banner_auth_helper.js        Interactive CAS/Duo login — saves browser profile cookies
 │   ├── rmp_scraper.js               Scrapes all VT professors from RMP GraphQL API → data/raw/
 │   ├── catalog_scraper.js           Scrapes course descriptions from catalog.vt.edu → data/raw/
-│   └── prereq_scraper.js            Scrapes course prerequisites from catalog → data/raw/
+│   ├── prereq_scraper.js            Scrapes course prerequisites from catalog → data/raw/
+│   └── pathways_scraper.js          Scrapes VT Pathways concept-area codes from catalog → data/raw/
 ├── scripts/
 │   ├── import_grades.js        Reads vt_udc_grades_*.csv from data/raw/, upserts grades + courses
 │   ├── import_all_grades.js    Bulk variant — imports all grade CSVs in one pass
 │   ├── import_timetable.js     Reads vt_timetable_*.csv, upserts to sections table
 │   ├── import_descriptions.js  Reads course_descriptions.json, fills courses.description
-│   ├── import_prerequisites.js Reads course_prerequisites.json, updates courses.prerequisites — BROKEN: column missing in live DB
+│   ├── import_prerequisites.js Reads course_prerequisites.json, updates courses.prerequisites
+│   ├── import_pathways.js      Reads course_pathways.json, updates courses.pathways
 │   ├── import_rmp.js           Matches RMP by last name, upserts to legacy professors table
 │   ├── rebuild_instructors.js  Rebuilds instructors table from all subjects + fresh RMP data
 │   ├── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
@@ -135,10 +137,12 @@ cd backend
 npm run import-grades               # after dropping vt_udc_grades_*.csv in data/raw/
 npm run import-timetable            # after dropping vt_timetable_*.csv in data/raw/
 npm run scrape-grades               # Playwright headless scrape (udc_playwright_scraper.js)
-npm run scrape-prereqs              # scrape prerequisites
-npm run import-prerequisites        # import scraped prereqs into DB (broken — see Known issues)
+npm run scrape-prereqs              # scrape prerequisites from catalog.vt.edu
+npm run import-prerequisites        # import scraped prereqs into DB
 npm run scrape-catalog              # scrape course descriptions from catalog.vt.edu
 npm run import-descriptions         # fill courses.description from scraped JSON
+npm run scrape-pathways             # scrape VT Pathways concept-area codes from catalog.vt.edu
+npm run import-pathways             # fill courses.pathways from scraped JSON
 npm run scrape-timetable            # Banner timetable scrape (unauthenticated)
 npm run auth-banner                 # interactive CAS/Duo login — saves Banner browser profile
 npm run scrape-timetable-auth       # authenticated Puppeteer scrape — instructor + seats
@@ -158,7 +162,7 @@ Row counts verified live 2026-07-01:
 | Table | Rows | Notes |
 |-------|------|-------|
 | `grades` | 59,790 | All 152 subjects, 2020–2026 — full UDC import complete |
-| `courses` | 6,589 | 5,468 have `avg_gpa`; `description` and `pathways` empty for all; no `prerequisites` column |
+| `courses` | 6,589 | 5,468 have `avg_gpa`; 5,051 have `description`, 1,153 have `prerequisites`, 751 have `pathways` (all scraped from catalog.vt.edu) |
 | `sections` | 10,663 | Fall 2026 only (term `202609`); auto-updated every 4h by CI Banner scrape |
 | `instructors` | 3,834 | 1,982 have RMP ratings; `rmp_tags` empty for all (RMP API limitation) |
 | `professors` | 65 | Legacy. Written by `import_rmp.js`, not read by app code — frontend `api.js` and chatbot both read `instructors` |
@@ -172,7 +176,6 @@ Row counts verified live 2026-07-01:
 ## Known issues and pending work
 
 **High priority:**
-- `courses.pathways` empty for all courses — VT Pathways data never populated. Static JSON lookup file needed. (Note: catalog.vt.edu course blocks do include a `Pathway Concept Area(s)` line — same scrape could source this, just needs mapping to VT's numbered pathway codes.)
 - `courses.avg_gpa` still null for 1,121 of 6,589 courses (no grade rows for those courses).
 
 **Medium priority:**
