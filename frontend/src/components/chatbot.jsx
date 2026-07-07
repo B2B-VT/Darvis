@@ -131,6 +131,16 @@ const COMMON_WORDS = new Set([
   "credits","hard","easy","best","worst","good","bad","teach","teaches","teaching","taught",
 ]);
 
+// Only attempt a professor-name correction when the text actually suggests a
+// name is being typed — a raw edit-distance match alone isn't enough signal
+// (e.g. "want" is 1 edit from the real surname "Wang").
+const NAME_CONTEXT_HINTS = ["professor", "prof", "dr", "instructor", "teach", "taught", "by"];
+
+function hasNameContext(precedingText) {
+  const words = precedingText.toLowerCase().split(/\s+/).filter(Boolean).slice(-4);
+  return words.some(w => NAME_CONTEXT_HINTS.some(hint => w.includes(hint)));
+}
+
 function correctWord(word, entityPool) {
   const w = word.trim();
   if (w.length < 4 || /\d/.test(w)) return null;
@@ -1656,11 +1666,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const boundary = next.slice(-1);
       const stem = next.slice(0, -1);
       const words = stem.split(" ");
-      const corrected = correctWord(words[words.length - 1], entityPool);
-      if (corrected) {
-        words[words.length - 1] = corrected;
-        setInput(words.join(" ") + boundary);
-        return;
+      const precedingText = words.slice(0, -1).join(" ");
+      if (hasNameContext(precedingText)) {
+        const corrected = correctWord(words[words.length - 1], entityPool);
+        if (corrected) {
+          words[words.length - 1] = corrected;
+          setInput(words.join(" ") + boundary);
+          return;
+        }
       }
     }
     setInput(next);
