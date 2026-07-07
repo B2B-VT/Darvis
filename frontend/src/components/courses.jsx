@@ -2028,7 +2028,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
     }
     if (gpaOnly) list = list.filter(c => c.avgGpa > 0);
     if (fallOnly) list = list.filter(c => (c.fallSections || 0) > 0);
-    if (pathwaysFilter.length > 0) list = list.filter(c => (c.pathways || []).some(pw => pathwaysFilter.includes(pw)));
+    if (pathwaysFilter.length > 0) list = list.filter(c => pathwaysFilter.every(pw => (c.pathways || []).includes(pw)));
     list.sort((a, b) => {
       const alpha = `${a.subject}${a.number}`.localeCompare(`${b.subject}${b.number}`);
       if (sortMode === "gpa_desc") {
