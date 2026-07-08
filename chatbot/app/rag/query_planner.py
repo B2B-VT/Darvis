@@ -190,6 +190,16 @@ class QueryPlanner:
                 logger.warning("[planner] LLM planning failed: %s", exc)
 
         if plan is None or plan.confidence < 0.5:
+            if plan is not None:
+                logger.warning(
+                    "[planner] low-confidence plan (%.2f) for %r — falling back to clarification",
+                    plan.confidence, question,
+                )
+            else:
+                logger.warning(
+                    "[planner] LLM planning returned no usable plan for %r — falling back to clarification",
+                    question,
+                )
             plan = self._fallback_plan()
 
         self._cache[cache_key] = plan.model_copy(deep=True)
@@ -206,15 +216,16 @@ class QueryPlanner:
         try:
             raw = future.result(timeout=self._timeout_s)
         except concurrent.futures.TimeoutError:
-            logger.debug("[planner] LLM timed out after %.1fs", self._timeout_s)
+            logger.warning("[planner] LLM timed out after %.1fs", self._timeout_s)
             return None
         except Exception as exc:
-            logger.debug("[planner] LLM call failed: %s", exc)
+            logger.warning("[planner] LLM call raised %s: %s", type(exc).__name__, exc)
             return None
         finally:
             executor.shutdown(wait=False)
 
         if not raw:
+            logger.warning("[planner] LLM returned empty/None response (answer_raw gave no text)")
             return None
 
         raw = raw.strip()
@@ -222,7 +233,7 @@ class QueryPlanner:
         raw = re.sub(r"\s*```$", "", raw)
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         if not m:
-            logger.debug("[planner] no JSON in LLM output: %r", raw[:100])
+            logger.warning("[planner] no JSON in LLM output: %r", raw[:200])
             return None
         blob = m.group(0)
 
@@ -234,13 +245,13 @@ class QueryPlanner:
                 data = json.loads(_repair_json(blob))
                 logger.debug("[planner] JSON repaired successfully")
             except json.JSONDecodeError as e:
-                logger.debug("[planner] JSON unrecoverable: %s | %r", e, blob[:120])
+                logger.warning("[planner] JSON unrecoverable: %s | %r", e, blob[:200])
                 return None
 
         try:
             plan = QueryPlan.model_validate(data)
         except ValidationError as e:
-            logger.debug("[planner] plan validation failed: %s", e)
+            logger.warning("[planner] plan validation failed: %s", e)
             return None
 
         # Bare course number → default CS (mirrors old behavior)
