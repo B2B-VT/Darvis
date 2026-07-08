@@ -12,7 +12,7 @@ from collections import defaultdict
 from supabase import create_client
 from app.config import get_settings
 
-MAX_COURSES = 5
+MAX_COURSES = 8
 
 # Maps major keywords → preferred VT subject codes (ordered by relevance)
 _MAJOR_SUBJECTS: dict[str, list[str]] = {
@@ -384,9 +384,27 @@ def handle_schedule_builder(
     # Build a priority rank: lower index = higher priority
     subject_rank = {subj: idx for idx, subj in enumerate(preferred_subjects)}
 
-    # ── Fetch required courses for the user's major from catalog data ──────────
+    # ── Required courses for the user's major ───────────────────────────────────
+    # Prefer the precomputed startup index (O(1)); live Supabase query only when
+    # indexes isn't available (e.g. tests, or backend not fully initialized).
     required_course_codes: set[str] = set()
-    if major:
+    if major and indexes is not None and getattr(indexes, "required_by_major", None) is not None:
+        major_lower = major.lower().strip()
+        codes = indexes.required_by_major.get(major_lower)
+        if codes is None:
+            # Fuzzy match against indexed major names — same scoring as the old live query
+            best_name, best_score = None, 0
+            for name in indexes.required_by_major:
+                if name == major_lower:
+                    best_name = name
+                    break
+                words_in_common = len(set(name.split()) & set(major_lower.split()))
+                if words_in_common > best_score:
+                    best_score = words_in_common
+                    best_name = name
+            codes = indexes.required_by_major.get(best_name, set()) if best_name else set()
+        required_course_codes = {re.sub(r"\s+", "", code).lower() for code in codes}
+    elif major:
         try:
             # Find the matching major row (fuzzy match on major_name)
             major_lower = major.lower().strip()
@@ -441,7 +459,7 @@ def handle_schedule_builder(
             while True:
                 pq = client.table("sections").select(
                     "crn, subject, course_number, instructor, days, start_time, "
-                    "end_time, location, seats, enrolled, credits"
+                    "end_time, location, seats, enrolled, open_seats, credits"
                 ).eq("term", get_settings().current_term)
                 if question_subject_filter:
                     pq = pq.eq("subject", question_subject_filter)
@@ -550,9 +568,7 @@ def handle_schedule_builder(
             if sec["subject"].upper() != question_subject_filter:
                 continue
 
-        seats    = sec.get("seats")    or 0
-        enrolled = sec.get("enrolled") or 0
-        if seats > 0 and enrolled >= seats:
+        if (sec.get("open_seats") or 0) <= 0:
             continue
 
         # Exclude sections that meet on excluded days
@@ -637,10 +653,15 @@ def handle_schedule_builder(
         gpa = _inst_gpa(s)
         gpa_rank = -(gpa) if (wants_easy and gpa) else (gpa if wants_hard else 0.0)
 
+        # Tier 3b: RMP rating — tiebreaker after GPA when the student wants easy.
+        # Normalize: RMP is 1-5, GPA is 0-4. Blend as tiebreaker after GPA.
+        rmp = inst_rmp.get(_last(s.get("instructor") or ""))
+        rmp_score = -(rmp or 0.0) if (wants_easy and rmp) else 0.0
+
         # Tier 4: open seats
         seats_open = (s.get("seats") or 0) - (s.get("enrolled") or 0)
 
-        return (-is_required, major_rank, -interest_match, gpa_rank, -seats_open)
+        return (-is_required, major_rank, -interest_match, gpa_rank, rmp_score, -seats_open)
 
     candidates.sort(key=_relevance_score)
 
@@ -765,6 +786,26 @@ def handle_schedule_builder(
 
     # Notify user about constraints that couldn't be fully verified
     caveats: list[str] = []
+
+    # Prerequisite warnings — informational only, never blocks course selection.
+    # Skip silently if courses_taken wasn't populated (we have nothing to check against).
+    if courses_taken and indexes is not None and getattr(indexes, "course_prerequisites", None):
+        for s in schedule:
+            course_code = f"{s['subject'].upper()} {s['course_number']}"
+            prereq_text = indexes.course_prerequisites.get(
+                (s["subject"].upper(), str(s["course_number"]).strip())
+            )
+            if not prereq_text:
+                continue
+            for p_subj, p_num in re.findall(r"\b([A-Za-z]{2,5})\s*-?\s*(\d{4})\b", prereq_text):
+                p_code = f"{p_subj.upper()} {p_num}"
+                p_key = re.sub(r"\s+", "", p_code).lower()
+                if p_key not in courses_taken:
+                    caveats.append(
+                        f"{course_code} lists {p_code} as a prerequisite — "
+                        "confirm you've completed it before registering."
+                    )
+
     if min_rmp is not None:
         no_rmp = [
             s for s in schedule

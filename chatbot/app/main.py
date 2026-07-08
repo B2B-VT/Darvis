@@ -112,12 +112,15 @@ async def lifespan(app: FastAPI):
     # Pass rmp_df (the full instructors table) so it knows every canonical name and
     # can reject hallucinated names the LLM fabricates; sections_df adds Fall-term
     # instructors who have no grade history yet.
-    entity_resolver = EntityResolver(df, courses_df, instructors_df=rmp_df, sections_df=sections_df)
+    entity_resolver = EntityResolver(
+        df, courses_df, instructors_df=rmp_df, sections_df=sections_df,
+        supabase_client=_supabase,
+    )
 
     # Precomputed lookup indexes — O(1) instructor GPA / course stats / sections
     # at request time instead of full-DataFrame scans.
     print("Building precomputed indexes...")
-    indexes = DataIndexes(df, courses_df, sections_df, rmp_df)
+    indexes = DataIndexes(df, courses_df, sections_df, rmp_df, supabase_client=_supabase)
 
     STATE["df"] = df
     STATE["rmp_df"] = rmp_df

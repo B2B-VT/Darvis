@@ -68,14 +68,14 @@ def _build_sections_table(sections_df: "pd.DataFrame | None", subject: str, cour
     records = []
     for _, r in rows.iterrows():
         seats = r.get("seats")
-        enrolled = r.get("enrolled")
-        capacity = (int(seats) + int(enrolled)) if pd.notna(seats) and pd.notna(enrolled) else None
+        open_seats = r.get("open_seats")
+        capacity = int(seats) if pd.notna(seats) else None
         records.append({
             "Instructor": r.get("instructor") or "TBA",
             "Days": _fmt_days(r.get("days")),
             "Time": _fmt_time(r.get("start_time")),
             "Location": r.get("location") or "TBA",
-            "Open Seats": int(seats) if pd.notna(seats) else "—",
+            "Open Seats": int(open_seats) if pd.notna(open_seats) else "—",
             "Capacity": capacity if capacity is not None else "—",
             "CRN": r.get("crn") or "—",
         })

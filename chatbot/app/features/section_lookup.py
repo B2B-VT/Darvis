@@ -76,7 +76,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
         try:
             client = create_client(settings.supabase_url, settings.supabase_key)
             q = (client.table("sections")
-                 .select("crn,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled")
+                 .select("crn,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled,open_seats")
                  .eq("term", CURRENT_TERM)
                  .eq("subject", subject))
             if course_no:
@@ -130,12 +130,12 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
                 "Start":      _fmt_time(s.get("start_time")),
                 "End":        _fmt_time(s.get("end_time")),
                 "Location":   s.get("location") or "TBA",
-                "Seats":      s.get("seats") if s.get("seats") is not None else "?",
+                "Open Seats": s.get("open_seats") if s.get("open_seats") is not None else "?",
                 "Enrolled":   s.get("enrolled") or 0,
             })
     section_rows.sort(key=lambda r: (r["Instructor"], r["Start"]))
 
-    _sec_cols = ["Instructor", "Days", "Start", "End", "Location", "Seats", "Enrolled"]
+    _sec_cols = ["Instructor", "Days", "Start", "End", "Location", "Open Seats", "Enrolled"]
     tbl = table_spec(
         f"{course_label} — {TERM_LABEL} Sections",
         pd.DataFrame(section_rows)[_sec_cols],
@@ -144,10 +144,10 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
 
     table_text = (
         f"{course_label} sections in {TERM_LABEL}:\n"
-        "Instructor | Days | Start | End | Location | Seats | Enrolled\n"
+        "Instructor | Days | Start | End | Location | Open Seats | Enrolled\n"
         + "\n".join(
             f"{r['Instructor']} | {r['Days']} | {r['Start']} | {r['End']} | "
-            f"{r['Location']} | {r['Seats']} | {r['Enrolled']}"
+            f"{r['Location']} | {r['Open Seats']} | {r['Enrolled']}"
             for r in section_rows
         )
     )
@@ -162,7 +162,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     elif is_seats:
         framing = (
             f"The student wants to know about seat availability for {course_label} in {TERM_LABEL}. "
-            f"For each section report seats open (Seats minus Enrolled) and flag any that are full. Be specific with numbers."
+            f"For each section report the number of open seats and flag any with 0 open seats as full. Be specific with numbers."
         )
     elif is_location:
         framing = f"The student wants to know where {course_label} is held in {TERM_LABEL}. List the building/room for each section."

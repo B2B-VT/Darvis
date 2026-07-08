@@ -132,6 +132,7 @@ class DataIndexes:
         courses_df: pd.DataFrame | None = None,
         sections_df: pd.DataFrame | None = None,
         instructors_df: pd.DataFrame | None = None,
+        supabase_client=None,
     ):
         # instructor last-name (lowercase) → overall InstructorAgg
         self.instructor_by_last: dict[str, InstructorAgg] = {}
@@ -157,6 +158,8 @@ class DataIndexes:
         # (SUBJ, NUM) → catalog description / prerequisite text, once populated
         self.course_descriptions: dict[tuple[str, str], str] = {}
         self.course_prerequisites: dict[tuple[str, str], str] = {}
+        # major_name_lower → set of required course_code strings (e.g. "CS 3114")
+        self.required_by_major: dict[str, set[str]] = {}
 
         if grades_df is not None and not grades_df.empty:
             self._build_grade_indexes(grades_df)
@@ -166,6 +169,8 @@ class DataIndexes:
             self._build_section_indexes(sections_df)
         if instructors_df is not None and not instructors_df.empty:
             self._build_rmp_index(instructors_df)
+        if supabase_client is not None:
+            self._build_major_index(supabase_client)
 
         logger.info(
             "[indexes] built: %d courses, %d course-instructor pairs, %d instructors, "
@@ -321,6 +326,46 @@ class DataIndexes:
                     "difficulty": float(diff) if diff is not None and diff == diff else None,
                     "count": int(cnt) if cnt is not None and cnt == cnt else 0,
                 }
+
+    def _build_major_index(self, supabase_client) -> None:
+        """Query majors + major_requirements once at startup and build
+        required_by_major, so schedule_builder can do an O(1) lookup instead
+        of a live Supabase query on every request."""
+        try:
+            majors = supabase_client.table("majors").select("id, major_name").execute().data or []
+            major_name_by_id = {m["id"]: str(m.get("major_name") or "").strip().lower() for m in majors}
+            if not major_name_by_id:
+                return
+
+            BATCH = 1000
+            offset = 0
+            req_rows: list[dict] = []
+            while True:
+                page = (
+                    supabase_client.table("major_requirements")
+                    .select("major_id, course_code")
+                    .eq("requirement_type", "required")
+                    .order("id")
+                    .range(offset, offset + BATCH - 1)
+                    .execute()
+                    .data or []
+                )
+                req_rows.extend(page)
+                if len(page) < BATCH:
+                    break
+                offset += BATCH
+
+            for row in req_rows:
+                major_name = major_name_by_id.get(row.get("major_id"))
+                raw_code = row.get("course_code")
+                if not major_name or not raw_code:
+                    continue
+                code = re.sub(r"\s+", " ", str(raw_code).strip().upper())
+                self.required_by_major.setdefault(major_name, set()).add(code)
+
+            logger.info("[indexes] built required_by_major: %d majors", len(self.required_by_major))
+        except Exception as exc:
+            logger.warning("[indexes] failed to build major index: %s", exc)
 
     # ── lookups ───────────────────────────────────────────────────────────────
 

@@ -72,9 +72,9 @@ def handle_natural_filter(
         if answer:
             return answer, [], [], {}
         return (
-            "Darvis doesn't have grade data for that combination yet — "
-            "only CS courses are in the dataset right now. "
-            "Try asking about a CS course or professor, or broaden your question."
+            "Darvis doesn't have grade data for that combination yet. Try broadening "
+            "your filter — for example, remove a GPA or enrollment minimum — or ask "
+            "about a specific course or professor."
         ), [], [], {}
 
     cols = [c for c in FILTER_COLS if c in result.columns]

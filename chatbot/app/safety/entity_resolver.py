@@ -107,7 +107,9 @@ class EntityResolver:
         courses_df: "pd.DataFrame | None",
         instructors_df: "pd.DataFrame | None" = None,
         sections_df: "pd.DataFrame | None" = None,
+        supabase_client=None,
     ) -> None:
+        self._supabase = supabase_client
         self._professor_names: list[str] = []
         self._by_norm_name: dict[str, str] = {}          # normalized full name → canonical
         self._by_last: dict[str, list[str]] = {}         # last name → [canonical names]
@@ -217,10 +219,39 @@ class EntityResolver:
                     logger.info("[entity_resolver] Professor %r → %r (fuzzy %.2f)", raw, owners[0], score)
                 return ResolvedEntity(value=owners[0], confidence=score, candidates=owners)
 
+        # 4. DB fallback — pg_trgm similarity search via idx_instructors_name_trgm.
+        # Catches typos too far off for the in-memory last-name fuzzy match
+        # (tier 3) to clear _PROF_CUTOFF.
+        best_python_score = hits[0][1] if hits else 0.0
+        if best_python_score < 0.6:
+            db_hit = self._resolve_via_db_trgm(raw)
+            if db_hit and db_hit.confidence > best_python_score:
+                return db_hit
+
         return ResolvedEntity(
             value=raw, confidence=0.0,
             warning=f"No instructor matching '{raw}' found in the database.",
         )
+
+    def _resolve_via_db_trgm(self, raw: str) -> "ResolvedEntity | None":
+        """DB-side fallback using the search_instructors_trgm RPC (pg_trgm
+        similarity() over idx_instructors_name_trgm). Returns None on any
+        failure or when nothing clears the 0.3 similarity floor."""
+        if self._supabase is None:
+            return None
+        try:
+            rows = self._supabase.rpc("search_instructors_trgm", {"query": raw}).execute().data or []
+        except Exception as exc:
+            logger.debug("[entity_resolver] DB trgm fallback failed for %r: %s", raw, exc)
+            return None
+        if not rows:
+            return None
+        top = rows[0]
+        name, sim = top.get("name"), top.get("sim")
+        if not name or sim is None or sim <= 0.3:
+            return None
+        logger.info("[entity_resolver] Professor %r → %r (db trgm %.2f)", raw, name, sim)
+        return ResolvedEntity(value=name, confidence=float(sim))
 
     def resolve_professor(self, name: str) -> str:
         """Back-compat string API: returns the corrected name or the original."""
