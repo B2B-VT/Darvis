@@ -48,6 +48,8 @@ ROUTE DISAMBIGUATION (these matter — read carefully):
 - "of the professors teaching CS 3114, who is best?" → section_lookup
 - "make me a schedule with CS 1114" → schedule_builder
 
+SECONDARY ROUTES: most questions have exactly one intent — leave secondary_routes as an empty list []. Only populate it when the question clearly asks for two distinct kinds of information in the SAME question, e.g. "who teaches CS 3114 and what's their average GPA?" (section_lookup + course_profile) or "compare Hamouda and Farghally for CS 3114 and tell me which sections are open" (professor_profile + section_lookup). Use the same route values as ROUTES above. List at most one secondary route — pick the single most important second intent.
+
 CAPABILITIES (list all that apply):
 course_lookup, course_comparison, instructor_lookup, instructor_comparison, grade_distribution, section_lookup, schedule_build, major_requirement_lookup, natural_language_filter, general_question, unsupported_or_missing_data
 
@@ -74,6 +76,7 @@ IMPORTANT RULES:
 Return this JSON shape (omit fields that don't apply):
 {
   "route": "...",
+  "secondary_routes": [],
   "capabilities": ["..."],
   "confidence": 0.0-1.0,
   "subject": "CS",

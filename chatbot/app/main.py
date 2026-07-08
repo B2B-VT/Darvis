@@ -373,6 +373,91 @@ def courses_search(
     return search_courses(df, query, limit)
 
 
+# Route pairs allowed to fan out to a secondary handler. Unordered — either
+# route may be primary. Anything outside this set is ignored even if the
+# planner populates secondary_routes.
+_SECONDARY_ROUTE_PAIRS = {
+    frozenset({"course_profile", "section_lookup"}),
+    frozenset({"professor_profile", "section_lookup"}),
+    frozenset({"course_profile", "professor_profile"}),
+}
+
+
+def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, llm, vector_store):
+    """Run one route's handler and return (answer, tables, charts, metadata).
+    Shared by the primary dispatch and the secondary-route fan-out in
+    _run_chat_pipeline so the two can't drift."""
+    if route == "major_requirements":
+        return handle_major_requirements(
+            question, STATE.get("requirements_df"), llm, vector_store=vector_store,
+            intent=intent,
+            history=[m.model_dump() for m in body.history],
+        )
+    elif route == "section_lookup":
+        from app.features.section_lookup import handle_section_lookup
+        course_no = getattr(intent, "course_no", None) if intent else None
+        if not course_no and body.history:
+            # No specific course — likely a follow-up about a prior schedule
+            # (e.g. "what building are those classes in?"). Route to general_chat
+            # which intercepts schedule follow-ups using sections_df directly.
+            return handle_general_chat(
+                question, df, llm, vector_store, intent=intent,
+                history=[m.model_dump() for m in body.history],
+                user_profile=body.user_profile,
+                rmp_df=STATE.get("rmp_df"),
+                sections_df=STATE.get("sections_df"),
+            )
+        else:
+            return handle_section_lookup(
+                question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
+                sections_df=STATE.get("sections_df"),
+            )
+    elif route == "schedule_builder":
+        return handle_schedule_builder(
+            question, user_profile=body.user_profile, intent=intent, df=df,
+            history=[m.model_dump() for m in body.history],
+            sections_df=STATE.get("sections_df"),
+            rmp_df=STATE.get("rmp_df"),
+            indexes=STATE.get("indexes"),
+        )
+    elif route == "out_of_scope":
+        return out_of_scope_response(), [], [], {}
+    elif route == "course_profile":
+        result = handle_course_profile(
+            question, df, llm, vector_store,
+            body.min_students, body.top_n, body.use_recency,
+            rmp_df=STATE.get("rmp_df"),
+            intent=intent,
+            history=[m.model_dump() for m in body.history],
+            user_profile=body.user_profile,
+            sections_df=STATE.get("sections_df"),
+            indexes=STATE.get("indexes"),
+        )
+        if result is None:
+            return handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
+        return result
+    elif route == "professor_profile":
+        return handle_professor_profile(
+            question, df, llm, vector_store,
+            body.min_students, body.top_n, body.use_recency,
+            rmp_df=STATE.get("rmp_df"),
+            intent=intent,
+            history=[m.model_dump() for m in body.history],
+            user_profile=body.user_profile,
+            sections_df=STATE.get("sections_df"),
+        )
+    elif route == "natural_filter":
+        return handle_natural_filter(
+            question, df, llm, vector_store,
+            body.top_n, body.use_recency,
+            intent=intent,
+            history=[m.model_dump() for m in body.history],
+            user_profile=body.user_profile,
+        )
+    else:
+        return handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
+
+
 def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
     """
     Shared 4-stage pipeline (plan -> resolve -> sufficiency gate -> handler)
@@ -450,76 +535,27 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
     # ── Stage 4: handler ───────────────────────────────────────────────────────
     t0 = time.time()
     try:
-        if route == "major_requirements":
-            answer, tables, charts, metadata = handle_major_requirements(
-                question, STATE.get("requirements_df"), llm, vector_store=vector_store,
-                intent=intent,
-                history=[m.model_dump() for m in body.history],
-            )
-        elif route == "section_lookup":
-            from app.features.section_lookup import handle_section_lookup
-            course_no = getattr(intent, "course_no", None) if intent else None
-            if not course_no and body.history:
-                # No specific course — likely a follow-up about a prior schedule
-                # (e.g. "what building are those classes in?"). Route to general_chat
-                # which intercepts schedule follow-ups using sections_df directly.
-                answer, tables, charts, metadata = handle_general_chat(
-                    question, df, llm, vector_store, intent=intent,
-                    history=[m.model_dump() for m in body.history],
-                    user_profile=body.user_profile,
-                    rmp_df=STATE.get("rmp_df"),
-                    sections_df=STATE.get("sections_df"),
-                )
-            else:
-                answer, tables, charts, metadata = handle_section_lookup(
-                    question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
-                    sections_df=STATE.get("sections_df"),
-                )
-        elif route == "schedule_builder":
-            answer, tables, charts, metadata = handle_schedule_builder(
-                question, user_profile=body.user_profile, intent=intent, df=df,
-                history=[m.model_dump() for m in body.history],
-                sections_df=STATE.get("sections_df"),
-                rmp_df=STATE.get("rmp_df"),
-                indexes=STATE.get("indexes"),
-            )
-        elif route == "out_of_scope":
-            answer, tables, charts, metadata = out_of_scope_response(), [], [], {}
-        elif route == "course_profile":
-            result = handle_course_profile(
-                question, df, llm, vector_store,
-                body.min_students, body.top_n, body.use_recency,
-                rmp_df=STATE.get("rmp_df"),
-                intent=intent,
-                history=[m.model_dump() for m in body.history],
-                user_profile=body.user_profile,
-                sections_df=STATE.get("sections_df"),
-                indexes=STATE.get("indexes"),
-            )
-            if result is None:
-                answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
-            else:
-                answer, tables, charts, metadata = result
-        elif route == "professor_profile":
-            answer, tables, charts, metadata = handle_professor_profile(
-                question, df, llm, vector_store,
-                body.min_students, body.top_n, body.use_recency,
-                rmp_df=STATE.get("rmp_df"),
-                intent=intent,
-                history=[m.model_dump() for m in body.history],
-                user_profile=body.user_profile,
-                sections_df=STATE.get("sections_df"),
-            )
-        elif route == "natural_filter":
-            answer, tables, charts, metadata = handle_natural_filter(
-                question, df, llm, vector_store,
-                body.top_n, body.use_recency,
-                intent=intent,
-                history=[m.model_dump() for m in body.history],
-                user_profile=body.user_profile,
-            )
-        else:
-            answer, tables, charts, metadata = handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
+        answer, tables, charts, metadata = _dispatch_route(route, question, body, intent, df, llm, vector_store)
+
+        # ── Secondary route fan-out ──────────────────────────────────────────
+        # A question can span two intents ("who teaches CS 3114 and what's their
+        # GPA?"). Only fan out for a fixed set of route pairings, capped at one
+        # secondary route, and never let a secondary failure break the primary
+        # answer that already succeeded.
+        if intent is not None and intent.secondary_routes:
+            secondary_route = intent.secondary_routes[0]
+            if secondary_route != route and frozenset({route, secondary_route}) in _SECONDARY_ROUTE_PAIRS:
+                try:
+                    sec_answer, sec_tables, sec_charts, sec_metadata = _dispatch_route(
+                        secondary_route, question, body, intent, df, llm, vector_store
+                    )
+                    answer = f"{answer}\n\n{sec_answer}"
+                    tables = list(tables) + list(sec_tables)
+                    charts = list(charts) + list(sec_charts)
+                    metadata = {**sec_metadata, **metadata}  # primary wins on key conflicts
+                    logger.info("secondary route fan-out: %s + %s", route, secondary_route)
+                except Exception as exc:
+                    logger.warning("secondary route %s failed, keeping primary-only answer: %s", secondary_route, exc)
     except Exception as exc:
         # Log the full traceback server-side; return a generic message to the client
         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())

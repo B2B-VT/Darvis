@@ -94,6 +94,11 @@ class QueryPlan(BaseModel):
     """Structured plan for one user question. Field names match the old ChatIntent."""
 
     route: str = "general_rag"
+    # Secondary intent(s) for questions that clearly span more than one route
+    # (e.g. "who teaches CS 3114 and what's their GPA?" = section_lookup +
+    # course_profile). main.py caps fan-out at one secondary route and only
+    # for a fixed set of route pairings.
+    secondary_routes: list[str] = Field(default_factory=list)
     capabilities: list[str] = Field(default_factory=list)
     confidence: float = 1.0
 
@@ -136,6 +141,13 @@ class QueryPlan(BaseModel):
     @classmethod
     def _route(cls, v):
         return v if v in VALID_ROUTES else "general_rag"
+
+    @field_validator("secondary_routes", mode="before")
+    @classmethod
+    def _secondary_routes(cls, v):
+        if not isinstance(v, list):
+            return []
+        return [r for r in v if r in VALID_ROUTES]
 
     @field_validator("capabilities", mode="before")
     @classmethod
