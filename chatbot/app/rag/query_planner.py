@@ -105,6 +105,28 @@ Return this JSON shape (omit fields that don't apply):
 Question: """
 
 
+def _msg_role_content(msg) -> tuple[str | None, str | None]:
+    role = msg.get("role") if isinstance(msg, dict) else getattr(msg, "role", None)
+    content = msg.get("content") if isinstance(msg, dict) else getattr(msg, "content", None)
+    return role, content
+
+
+def _format_question_with_history(question: str, history: list | None) -> str:
+    """Prepend the last 4 turns of conversation history as grounding context, so
+    follow-ups like "who teaches it?" resolve against the prior turn."""
+    if not history:
+        return question
+    lines = ["Prior conversation:"]
+    for msg in history[-4:]:
+        role, content = _msg_role_content(msg)
+        if not content:
+            continue
+        label = "User" if role == "user" else "Assistant"
+        lines.append(f"{label}: {content}")
+    lines.append(f"Current question: {question}")
+    return "\n".join(lines)
+
+
 def _repair_json(raw: str) -> str:
     """
     One-shot deterministic repair for near-valid LLM JSON: trailing commas,
@@ -133,8 +155,14 @@ class QueryPlanner:
         self._cache: OrderedDict[str, QueryPlan] = OrderedDict()
         logger.info("[planner] QueryPlanner ready (timeout=%.1fs, cache=%d)", self._timeout_s, _CACHE_MAX)
 
-    def plan(self, question: str) -> QueryPlan:
+    def plan(self, question: str, history: list | None = None) -> QueryPlan:
         cache_key = re.sub(r"\s+", " ", question.strip().lower())
+        if history:
+            # Fold the same grounding window into the cache key so a repeated
+            # question with different prior context (e.g. "who teaches it?"
+            # after two different courses) doesn't serve a stale cached plan.
+            fingerprint = "|".join(f"{r}:{c}" for r, c in (_msg_role_content(m) for m in history[-4:]))
+            cache_key = f"{cache_key}::{fingerprint}"
         cached = self._cache.get(cache_key)
         if cached is not None:
             self._cache.move_to_end(cache_key)
@@ -144,7 +172,7 @@ class QueryPlanner:
         plan = None
         if self._llm is not None:
             try:
-                plan = self._llm_plan(question)
+                plan = self._llm_plan(question, history=history)
             except Exception as exc:
                 logger.warning("[planner] LLM planning failed: %s", exc)
 
@@ -158,8 +186,8 @@ class QueryPlanner:
 
     # ── LLM path ──────────────────────────────────────────────────────────────
 
-    def _llm_plan(self, question: str) -> QueryPlan | None:
-        prompt = _PLAN_PROMPT + question
+    def _llm_plan(self, question: str, history: list | None = None) -> QueryPlan | None:
+        prompt = _PLAN_PROMPT + _format_question_with_history(question, history)
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         future = executor.submit(self._llm.answer_raw, prompt, 400)
         try:

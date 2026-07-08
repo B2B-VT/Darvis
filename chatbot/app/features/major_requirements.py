@@ -156,6 +156,7 @@ def handle_major_requirements(
     llm,
     vector_store=None,
     intent=None,
+    history: list | None = None,
 ) -> tuple[str, list, list, dict]:
     """
     Returns (answer, tables, charts, metadata).
@@ -230,7 +231,7 @@ def handle_major_requirements(
         context = vector_store.query(question, n_results=8)
         if context:
             prompt = build_rag_only_prompt(question, context, intent=intent)
-            answer = llm.answer(prompt)
+            answer = llm.answer(prompt, history=history)
             if answer:
                 return answer, [], [], {"route": "major_requirements", "matched_major": None}
 

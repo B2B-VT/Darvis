@@ -13,6 +13,9 @@ const CHAT_API = DARVIS_CONFIG.chatApiUrl;
 const CHAT_STREAM_API = CHAT_API.endsWith("/chat")
   ? CHAT_API.replace(/\/chat$/, "/chat/stream")
   : `${CHAT_API.replace(/\/$/, "")}/stream`;
+const FEEDBACK_API = CHAT_API.endsWith("/chat")
+  ? CHAT_API.replace(/\/chat$/, "/feedback")
+  : `${CHAT_API.replace(/\/$/, "")}/feedback`;
 
 const SUGGESTED = [
   { label: "Build a schedule", prompt: "Build me a schedule where I don’t wake up before 11." },
@@ -474,7 +477,7 @@ function TableWidget({ table, darkMode }) {
 }
 
 // ── Bot message ───────────────────────────────────────────────────
-function BotMessage({ msg, darkMode, question, onRetry }) {
+function BotMessage({ msg, darkMode, question, onRetry, onFeedback }) {
   const dm = darkMode;
   const p = palette(dm);
   const [chartsOpen, setChartsOpen] = useState(false);
@@ -522,7 +525,6 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
     return <svg {...common}><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>;
   };
 
-  const handleFeedback = () => {};
   const handleShare = () => {
     const text = msg.answer || "";
     if (navigator.share) navigator.share({ text }).catch(() => {});
@@ -598,22 +600,22 @@ function BotMessage({ msg, darkMode, question, onRetry }) {
             <ActionIcon type="copy" />
           </button>
           <button
-            onClick={handleFeedback}
+            onClick={() => onFeedback?.("up")}
             aria-label="Good response"
             title="Good response"
-            style={iconBtn}
+            style={{ ...iconBtn, color: msg.feedback === "up" ? ACCENT : iconBtn.color }}
             onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "up" ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
             <ActionIcon type="good" />
           </button>
           <button
-            onClick={handleFeedback}
+            onClick={() => onFeedback?.("down")}
             aria-label="Bad response"
             title="Bad response"
-            style={iconBtn}
+            style={{ ...iconBtn, color: msg.feedback === "down" ? ACCENT : iconBtn.color }}
             onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = iconBtn.color; e.currentTarget.style.background = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "down" ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
             <ActionIcon type="bad" />
           </button>
@@ -717,7 +719,7 @@ function applyScheduleActions(data, addSection, setPage) {
 }
 
 function buildBotMessage(data) {
-  return { role: "bot", ...data };
+  return { role: "bot", feedback: null, ...data };
 }
 
 // ── Session storage helpers ───────────────────────────────────────
@@ -1476,8 +1478,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
 
     try {
       const history = messages
-        .filter(m => !m.isError && (m.role === "user" || m.role === "bot"))
-        .slice(-10)
+        .filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot"))
+        .slice(-8)
         .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" }))
         .filter(m => m.content);
 
@@ -1572,6 +1574,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const errMsg = {
         role: "bot",
         isError: true,
+        feedback: null,
         answer: "Something went wrong while preparing the response. Try again.",
         tables: [], charts: [], warnings: [],
       };
@@ -1607,7 +1610,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         min_students: minStudents,
         top_n: topN,
         user_profile: userProfile || null,
-        history: messages.slice(0, botMsgIdx).filter(m => !m.isError && (m.role === "user" || m.role === "bot")).slice(-10).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
+        history: messages.slice(0, botMsgIdx).filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot")).slice(-8).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
       };
       let streamStarted = false;
       let streamedAnswer = "";
@@ -1694,6 +1697,30 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
+
+  const sendFeedback = (index, rating) => {
+    const target = messages[index];
+    if (!target) return;
+    const payload = {
+      question: messages[index - 1]?.content || "",
+      answer: target.answer || "",
+      route: target.route || "",
+      rating: rating === "up" ? 1 : -1,
+    };
+    fetch(FEEDBACK_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(res => {
+      if (!res.ok) return;
+      setMessages(prev => prev.map((m, i) => i === index ? { ...m, feedback: rating } : m));
+      if (currentSessionId) {
+        setSessions(prev => prev.map(s => s.id === currentSessionId
+          ? { ...s, messages: s.messages.map((m, i) => i === index ? { ...m, feedback: rating } : m) }
+          : s));
+      }
+    }).catch(() => {});
+  };
 
   const completion = useMemo(() => completionFor(input, entityPool), [input, entityPool]);
   const ghostSuffix = completion ? completion.slice(trailingToken(input).length) : "";
@@ -2123,6 +2150,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     darkMode={dm}
                     question={messages[i - 1]?.content}
                     onRetry={(q) => retry(q, i)}
+                    onFeedback={(rating) => sendFeedback(i, rating)}
                   />
                 )
               ))}

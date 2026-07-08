@@ -395,7 +395,7 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
     # old hardcoded section-signal override is gone.
     t0 = time.time()
     planner = STATE.get("planner")
-    intent = planner.plan(question) if planner else None
+    intent = planner.plan(question, history=body.history) if planner else None
     timings["plan_ms"] = int((time.time() - t0) * 1000)
 
     # ── Stage 2: resolve entities ──────────────────────────────────────────────
@@ -454,6 +454,7 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
             answer, tables, charts, metadata = handle_major_requirements(
                 question, STATE.get("requirements_df"), llm, vector_store=vector_store,
                 intent=intent,
+                history=[m.model_dump() for m in body.history],
             )
         elif route == "section_lookup":
             from app.features.section_lookup import handle_section_lookup
