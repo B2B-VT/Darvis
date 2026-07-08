@@ -53,6 +53,8 @@ npm run dev        # http://localhost:5173
 | `auth-gate.jsx` | Wraps all auth-required pages |
 | `auth-modal.jsx` | Sign-in prompt modal |
 | `faqs.jsx` | FAQ page |
+| `legal-page.jsx` | Legal/policy page |
+| `skeletons.jsx` | Loading-state skeleton components |
 | `icons.jsx` | Shared SVG icon components |
 | `app-shell.jsx` | Outer shell — nav, sidebar, page switcher |
 
