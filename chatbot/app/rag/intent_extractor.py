@@ -314,47 +314,13 @@ class IntentExtractor:
             target_credits=int(data["target_credits"]) if data.get("target_credits") is not None else None,
         )
 
-    # ── Keyword fallback ──────────────────────────────────────────────────────
+    # ── Fallback ──────────────────────────────────────────────────────────────
 
     def _keyword_fallback(self, question: str) -> ChatIntent:
         """
-        Reproduces the old keyword system as a ChatIntent.
-        Used when the LLM is unavailable or returns low-confidence output.
+        LLM intent extraction failed, timed out, or returned low-confidence
+        output. Keyword routing has been removed in favor of the LLM query
+        planner (see app/rag/query_planner.py) — return a low-confidence
+        general_rag intent instead of silently routing through hardcoded logic.
         """
-        from app.features.router import route_question, extract_professor_name_from_profile_question
-        from app.data.analytics import detect_natural_params, extract_course_parts, detect_subject_filter, detect_course_level
-        from app.features.schedule_builder import parse_time_constraints, parse_requested_courses, parse_subject_filter
-        from app.features.major_requirements import _extract_major_query
-
-        route = route_question(question)
-        params = detect_natural_params(question)
-        subject, course_no = extract_course_parts(question)
-        if subject is None and course_no is None:
-            subject = detect_subject_filter(question)
-        level_low, level_high = detect_course_level(question)
-
-        return ChatIntent(
-            route=route,
-            confidence=0.7,
-            subject=subject,
-            course_no=course_no,
-            wants_rmp=any(kw in question.lower() for kw in ["rmp", "rate my professor"]),
-            professor_name=(
-                extract_professor_name_from_profile_question(question)
-                if route == "professor_profile" else None
-            ),
-            sort_goal=params.get("sort_goal", "highest_gpa"),
-            min_students=params.get("min_students", 30),
-            min_gpa=params.get("min_gpa"),
-            min_terms=params.get("min_terms"),
-            level_low=level_low,
-            level_high=level_high,
-            major_query=(
-                _extract_major_query(question)
-                if route == "major_requirements" else None
-            ),
-            time_start=parse_time_constraints(question)[0] if route == "schedule_builder" else None,
-            time_end=parse_time_constraints(question)[1] if route == "schedule_builder" else None,
-            subject_filter=parse_subject_filter(question) if route == "schedule_builder" else None,
-            requested_courses=parse_requested_courses(question) if route == "schedule_builder" else [],
-        )
+        return ChatIntent(route="general_rag", confidence=0.0)

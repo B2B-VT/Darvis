@@ -6,8 +6,10 @@ LLM query planner — the single routing/parameter-extraction layer for /chat.
 Replaces both the old IntentExtractor and the hardcoded section-signal override
 that lived in main.py. The LLM reads the question (handling typos, slang, and
 abbreviations natively) and returns structured JSON; the JSON is validated
-strictly through the Pydantic QueryPlan model, repaired once if malformed, and
-falls back to a deterministic keyword classifier when the LLM is unavailable.
+strictly through the Pydantic QueryPlan model, repaired once if malformed. The
+LLM is the only routing logic — when it fails or returns low-confidence
+output, the planner returns a graceful clarification instead of falling back
+to hardcoded keyword routing.
 
 Plans for repeated questions are served from a bounded in-memory cache keyed on
 the normalized question, so back-to-back identical queries skip the LLM
@@ -48,7 +50,13 @@ ROUTE DISAMBIGUATION (these matter — read carefully):
 - "of the professors teaching CS 3114, who is best?" → section_lookup
 - "make me a schedule with CS 1114" → schedule_builder
 
-SECONDARY ROUTES: most questions have exactly one intent — leave secondary_routes as an empty list []. Only populate it when the question clearly asks for two distinct kinds of information in the SAME question, e.g. "who teaches CS 3114 and what's their average GPA?" (section_lookup + course_profile) or "compare Hamouda and Farghally for CS 3114 and tell me which sections are open" (professor_profile + section_lookup). Use the same route values as ROUTES above. List at most one secondary route — pick the single most important second intent.
+SECONDARY ROUTES: list any additional routes needed to fully answer the question. Only set this when the question genuinely spans two domains. Do not set it for single-domain questions — most questions have exactly one intent, so leave secondary_routes as an empty list [] by default. Use the same route values as ROUTES above. List at most one secondary route — pick the single most important second intent.
+
+Examples:
+"which CS professors teach the easiest 3000-level courses?" → primary: natural_filter, secondary: [professor_profile]
+"who's teaching CS 3114 and what's their average GPA?" → primary: section_lookup, secondary: [professor_profile]
+"are there open seats in the easiest CS electives?" → primary: natural_filter, secondary: [section_lookup]
+"what's left for my CS major and how hard are those courses?" → primary: major_requirements, secondary: [course_profile]
 
 CAPABILITIES (list all that apply):
 course_lookup, course_comparison, instructor_lookup, instructor_comparison, grade_distribution, section_lookup, schedule_build, major_requirement_lookup, natural_language_filter, general_question, unsupported_or_missing_data
@@ -72,6 +80,7 @@ IMPORTANT RULES:
 - target_credits: "19 credits" → 19.
 - requested_courses: explicit course codes as [["CS","1114"],["MATH","1225"]]. "cs1114 and math1225" → [["CS","1114"],["MATH","1225"]].
 - needs_clarification: true ONLY if the question is impossible to act on without more info (e.g. bare "which professor?" with no course anywhere in it). Prefer false — assume sensibly and note assumptions.
+- wants_professors: true when the user wants professor-level results ("which professors have the best GPA?"), null or false for course-level results.
 
 Return this JSON shape (omit fields that don't apply):
 {
@@ -147,14 +156,15 @@ def _repair_json(raw: str) -> str:
 class QueryPlanner:
     """
     plan(question) → QueryPlan.
-    LLM extraction with strict validation → deterministic repair → keyword fallback.
+    LLM extraction with strict validation → deterministic JSON repair → graceful
+    clarification if the LLM is unavailable or low-confidence.
     """
 
     def __init__(self, llm_client, settings=None):
         from app.config import get_settings
         cfg = settings or get_settings()
         self._llm = llm_client
-        self._timeout_s: float = getattr(cfg, "rag_intent_timeout_s", 5.0)
+        self._timeout_s: float = getattr(cfg, "rag_intent_timeout_s", 15.0)
         self._cache: OrderedDict[str, QueryPlan] = OrderedDict()
         logger.info("[planner] QueryPlanner ready (timeout=%.1fs, cache=%d)", self._timeout_s, _CACHE_MAX)
 
@@ -180,7 +190,7 @@ class QueryPlanner:
                 logger.warning("[planner] LLM planning failed: %s", exc)
 
         if plan is None or plan.confidence < 0.5:
-            plan = self.keyword_fallback(question)
+            plan = self._fallback_plan()
 
         self._cache[cache_key] = plan.model_copy(deep=True)
         if len(self._cache) > _CACHE_MAX:
@@ -238,70 +248,18 @@ class QueryPlanner:
             plan.subject = "CS"
         return plan
 
-    # ── Deterministic fallback ────────────────────────────────────────────────
+    # ── Fallback ─────────────────────────────────────────────────────────────
 
-    def keyword_fallback(self, question: str) -> QueryPlan:
+    def _fallback_plan(self) -> QueryPlan:
         """
-        Deterministic lightweight classifier — used when the LLM is down, times
-        out, or returns garbage. Reuses the battle-tested keyword extractors.
+        LLM planning is the only routing logic — when it fails, times out, or
+        returns low-confidence output, do not silently route through hardcoded
+        keyword logic. Ask the student to retry instead.
         """
-        from app.features.router import route_question, extract_professor_name_from_profile_question
-        from app.data.analytics import (
-            detect_natural_params, extract_course_parts,
-            detect_subject_filter, detect_course_level,
-        )
-        from app.features.schedule_builder import (
-            parse_time_constraints, parse_requested_courses,
-            parse_subject_filter, parse_excluded_days, parse_min_gpa, parse_min_rmp,
-        )
-        from app.features.major_requirements import _extract_major_query
-
-        route = route_question(question)
-        params = detect_natural_params(question)
-        subject, course_no = extract_course_parts(question)
-        if subject is None and course_no is None:
-            subject = detect_subject_filter(question)
-        level_low, level_high = detect_course_level(question)
-
-        is_sched = route == "schedule_builder"
-        t_start, t_end = parse_time_constraints(question) if is_sched else (None, None)
-
-        q = question.lower()
-        missing_field = None
-        if course_no or subject:
-            if re.search(r"\bprereq", q):
-                missing_field = "prerequisites"
-            elif re.search(r"\bdescription\b", q):
-                missing_field = "description"
-            elif "pathway" in q:
-                missing_field = "pathways"
-
         return QueryPlan(
-            route=route,
-            confidence=0.7,
-            subject=subject,
-            course_no=course_no,
-            wants_rmp=any(kw in q for kw in ["rmp", "rate my professor"]),
-            professor_name=(
-                extract_professor_name_from_profile_question(question)
-                if route == "professor_profile" else None
+            route="general_rag",
+            needs_clarification=True,
+            clarifying_question=(
+                "I'm having trouble right now. Try your question again in a moment."
             ),
-            sort_goal=params.get("sort_goal", "highest_gpa"),
-            min_students=params.get("min_students", 30),
-            min_gpa=params.get("min_gpa") or (parse_min_gpa(question) if is_sched else None),
-            min_terms=params.get("min_terms"),
-            level_low=level_low,
-            level_high=level_high,
-            major_query=(
-                _extract_major_query(question)
-                if route == "major_requirements" else None
-            ),
-            time_start=t_start if is_sched else None,
-            time_end=t_end if is_sched else None,
-            subject_filter=parse_subject_filter(question) if is_sched else None,
-            requested_courses=parse_requested_courses(question) if is_sched else [],
-            excluded_days=sorted(parse_excluded_days(question)) if is_sched else [],
-            min_rmp=parse_min_rmp(question) if is_sched else None,
-            target_credits=None,
-            missing_data_field=missing_field,
         )

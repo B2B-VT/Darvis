@@ -114,6 +114,33 @@ def _fmt_time_12h(t: str) -> str:
         return t
 
 
+_DAY_ABBR = {"M": "M", "T": "Tu", "W": "W", "R": "Th", "F": "F", "S": "Sa", "U": "Su"}
+
+
+def _fmt_days_compact(days: list) -> str:
+    """["M","W","F"] -> "MWF"; ["T","R"] -> "TuTh"; ["M","W"] -> "MW"."""
+    if not days:
+        return "TBA"
+    return "".join(_DAY_ABBR.get(d, d) for d in days)
+
+
+def _fmt_time_range_12h(start: str, end: str) -> str:
+    """'14:30','15:45' -> '2:30–3:45 PM' — one trailing AM/PM unless start/end cross it."""
+    s, e = _fmt_time_12h(start), _fmt_time_12h(end)
+    if not s or not e:
+        return f"{s or '?'}–{e or '?'}"
+    s_num, _, s_period = s.rpartition(" ")
+    e_num, _, e_period = e.rpartition(" ")
+    if s_period == e_period:
+        return f"{s_num}–{e_num} {e_period}"
+    return f"{s}–{e}"
+
+
+def _last_name_only(name: str) -> str:
+    parts = (name or "").strip().split()
+    return parts[-1] if parts else (name or "")
+
+
 def _to_24h(hour: str, minute: str | None, ampm: str) -> str:
     h = int(hour)
     m = int(minute) if minute else 0
@@ -481,6 +508,7 @@ def handle_schedule_builder(
     # ── Sort goal ─────────────────────────────────────────────────────────────
     sort_goal = getattr(intent, "sort_goal", "highest_gpa") if intent else "highest_gpa"
     q_low = question.lower()
+    wants_grad = any(w in q_low for w in ["grad", "graduate", "master", "phd", "5000-level"])
     wants_easy = sort_goal == "highest_gpa" or any(
         w in q_low for w in ["easiest", "easy", "best grades", "highest gpa"]
     )
@@ -544,6 +572,13 @@ def handle_schedule_builder(
     for sec in all_sections:
         if _is_virtual(sec):
             continue
+
+        if not wants_grad:
+            try:
+                if int(sec.get("course_number") or 0) >= 5000:
+                    continue
+            except (TypeError, ValueError):
+                pass
 
         st = sec.get("start_time") or ""
         et = sec.get("end_time")   or ""
@@ -759,8 +794,8 @@ def handle_schedule_builder(
     total_credits = sum(s["credits"] for s in schedule_actions)
     course_list   = ", ".join(
         f"{s['subject']} {s['courseNumber']} "
-        f"({_fmt_time_12h(s['startTime'])}–{_fmt_time_12h(s['endTime'])}"
-        f"{', ' + s['instructor'] if s['instructor'] != 'Staff' else ''})"
+        f"({_fmt_days_compact(s['days'])}, {_fmt_time_range_12h(s['startTime'], s['endTime'])}"
+        f"{', ' + _last_name_only(s['instructor']) if s['instructor'] != 'Staff' else ''})"
         for s in schedule_actions
     )
 

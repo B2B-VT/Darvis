@@ -49,7 +49,7 @@ def _last(name: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
-def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sections_df=None):
+def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sections_df=None, indexes=None):
     """Returns (answer, tables, charts, metadata)."""
     from app.utils.charts import table_spec
 
@@ -61,6 +61,8 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     course_label = f"{subject} {course_no}".strip() if course_no else subject
 
     if not course_no:
+        if prof_filter and indexes is not None and getattr(indexes, "sections_by_instructor", None):
+            return _professor_sections(prof_filter, indexes, table_spec)
         return (
             "I need a specific course to look up the schedule — which course are you asking about?",
             [], [], {}
@@ -197,6 +199,41 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
             answer = f"{course_label} is offered {', '.join(times)} in {TERM_LABEL}."
 
     return answer, [tbl], [], {"section_count": len(rows)}
+
+
+def _professor_sections(prof_filter: str, indexes, table_spec):
+    """Return a professor's full Fall 2026 section list when no course was
+    specified — e.g. "what is Hamouda teaching this semester?"."""
+    last = _last(prof_filter)
+    prof_sections = indexes.sections_by_instructor.get(last, [])
+    if not prof_sections:
+        return (
+            f"I couldn't find any {TERM_LABEL} sections taught by {prof_filter}.",
+            [], [], {}
+        )
+
+    rows = []
+    for s in prof_sections:
+        rows.append({
+            "Course":     f"{s.get('subject', '')} {s.get('course_number', '')}".strip(),
+            "Days":       _fmt_days(s.get("days") or []),
+            "Start":      _fmt_time(s.get("start_time")),
+            "End":        _fmt_time(s.get("end_time")),
+            "Location":   s.get("location") or "TBA",
+            "Open Seats": s.get("open_seats") if s.get("open_seats") is not None else "?",
+        })
+    rows.sort(key=lambda r: (r["Course"], r["Start"]))
+
+    _cols = ["Course", "Days", "Start", "End", "Location", "Open Seats"]
+    tbl = table_spec(
+        f"{prof_filter} — {TERM_LABEL} Sections",
+        pd.DataFrame(rows)[_cols],
+        _cols,
+    )
+
+    courses = sorted({r["Course"] for r in rows})
+    answer = f"{prof_filter} is teaching {', '.join(courses)} in {TERM_LABEL}."
+    return answer, [tbl], [], {"section_count": len(prof_sections)}
 
 
 def _combined(question, course_label, subject, course_no, instructor_map, df, rmp_df, llm):

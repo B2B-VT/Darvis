@@ -2,7 +2,7 @@ import re
 
 GRADE_DATA_LIMITATION = "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience."
 
-SYSTEM_GUARDRAIL = """You are Darvis, a knowledgeable friend helping Virginia Tech students with course and professor decisions.
+SYSTEM_GUARDRAIL = """You are Cyrus, Darvis's AI academic assistant, a knowledgeable friend helping Virginia Tech students with course and professor decisions.
 
 TONE: Talk like a smart friend who knows the data — direct, warm, no fluff. Not a report. Not a summary. A real answer.
 
@@ -108,15 +108,11 @@ def is_out_of_scope(question: str) -> bool:
 
 def out_of_scope_response() -> str:
     return (
-        "I can only work with historical grade distributions — GPA, A/A- rates, F rates, "
-        "withdrawals, enrollment counts, and how those numbers trend over time. I can't speak "
-        "to teaching style, workload, exam difficulty, curves, or attendance policies.\n\n"
-        "Here are questions I can answer:\n"
-        "- Which instructor for this course has the strongest historical grade outcomes?\n"
-        "- How has the A rate in this course changed over recent semesters?\n"
-        "- Which sections of this course have the highest F or withdrawal rates?\n\n"
-        "For student experiences and opinions beyond the numbers, check the Forums page. "
-        "For more on how this tool works, see the FAQs page."
+        "Cyrus works with VT grade data — GPA averages, grade distributions, "
+        "and enrollment trends from 2020 to 2026, plus current Fall 2026 section "
+        "times and instructor RMP ratings. Try asking which professor has the best "
+        "outcomes for CS 3114, how the A rate in MATH 2224 has changed, or to "
+        "build a schedule with no Friday classes."
     )
 
 

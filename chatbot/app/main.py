@@ -214,6 +214,12 @@ async def log_requests(request: Request, call_next):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+@app.get("/ping")
+async def ping():
+    """No auth, no processing — Render healthcheck target to keep the instance warm."""
+    return {"status": "ok", "ts": int(time.time())}
+
+
 @app.get("/health")
 def health():
     df = STATE.get("df")
@@ -383,6 +389,18 @@ _SECONDARY_ROUTE_PAIRS = {
     frozenset({"course_profile", "section_lookup"}),
     frozenset({"professor_profile", "section_lookup"}),
     frozenset({"course_profile", "professor_profile"}),
+    # "which CS electives have open seats this semester?" — natural_filter ranks
+    # by GPA/grades, section_lookup adds current-term open-seat data.
+    frozenset({"natural_filter", "section_lookup"}),
+    # "who teaches the easiest CS 3000-level courses?" — natural_filter ranks
+    # courses, professor_profile adds instructor RMP/grade detail.
+    frozenset({"natural_filter", "professor_profile"}),
+    # "what CS major requirements have the lowest GPA?" — major_requirements
+    # supplies the course list, course_profile adds grade outcomes.
+    frozenset({"major_requirements", "course_profile"}),
+    # "build me an easy schedule this semester" — schedule_builder picks
+    # sections, course_profile adds GPA/difficulty data on each one.
+    frozenset({"schedule_builder", "course_profile"}),
 }
 
 
@@ -399,10 +417,11 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
     elif route == "section_lookup":
         from app.features.section_lookup import handle_section_lookup
         course_no = getattr(intent, "course_no", None) if intent else None
-        if not course_no and body.history:
-            # No specific course — likely a follow-up about a prior schedule
-            # (e.g. "what building are those classes in?"). Route to general_chat
-            # which intercepts schedule follow-ups using sections_df directly.
+        professor_name = getattr(intent, "professor_name", None) if intent else None
+        if not course_no and not professor_name and body.history:
+            # No specific course or professor — likely a follow-up about a prior
+            # schedule (e.g. "what building are those classes in?"). Route to
+            # general_chat which intercepts schedule follow-ups using sections_df directly.
             return handle_general_chat(
                 question, df, llm, vector_store, intent=intent,
                 history=[m.model_dump() for m in body.history],
@@ -414,6 +433,7 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
             return handle_section_lookup(
                 question, df, llm, rmp_df=STATE.get("rmp_df"), intent=intent,
                 sections_df=STATE.get("sections_df"),
+                indexes=STATE.get("indexes"),
             )
     elif route == "schedule_builder":
         return handle_schedule_builder(

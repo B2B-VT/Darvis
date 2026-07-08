@@ -91,10 +91,11 @@ def test_timeout_does_not_block():
     assert isinstance(intent, ChatIntent)
 
 
-# ── Keyword fallback ──────────────────────────────────────────────────────────
+# ── Fallback (keyword routing removed) ──────────────────────────────────────────
 
-def test_keyword_fallback_confidence():
+def test_keyword_fallback_returns_low_confidence_general_rag():
     ext = _make_extractor(None)
     ext._enabled = False
     intent = ext.extract("CS 3114 best professor grades")
-    assert intent.confidence == 0.7
+    assert intent.route == "general_rag"
+    assert intent.confidence == 0.0

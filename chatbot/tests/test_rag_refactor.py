@@ -165,19 +165,35 @@ def test_repair_json_fixes_common_llm_mistakes():
     assert json.loads(_repair_json(broken))["route"] == "course_profile"
 
 
-# ── Deterministic planner fallback ────────────────────────────────────────────
+# ── Multi-route (secondary_routes) planning ─────────────────────────────────────
 
-def test_fallback_schedule_route(planner):
+class _FakeLLMMultiRoute:
+    """Duck-types the LLM client's answer_raw() — returns a fixed plan JSON
+    with a secondary route, as if the LLM detected a two-domain question."""
+
+    def answer_raw(self, prompt, max_tokens=400):
+        return (
+            '{"route": "natural_filter", "secondary_routes": ["professor_profile"], '
+            '"confidence": 0.9, "sort_goal": "highest_gpa"}'
+        )
+
+
+def test_plan_multi_route_secondary():
+    planner = QueryPlanner(_FakeLLMMultiRoute())
+    plan = planner.plan("which CS professors teach the easiest 3000-level courses?")
+    assert plan.route == "natural_filter"
+    assert plan.secondary_routes == ["professor_profile"]
+
+
+# ── LLM-unavailable fallback (keyword routing removed) ─────────────────────────
+# The planner no longer falls back to hardcoded keyword routing when the LLM is
+# down or low-confidence — it returns a graceful clarification instead.
+
+def test_fallback_returns_graceful_clarification(planner):
     plan = planner.plan("build me a schedule with cs 1114 and math 1225 with no friday classes")
-    assert plan.route == "schedule_builder"
-    assert ("CS", "1114") in plan.requested_courses
-    assert ("MATH", "1225") in plan.requested_courses
-    assert "F" in plan.excluded_days
-
-
-def test_fallback_prereq_flags_missing_data(planner):
-    plan = planner.plan("what are the prereqs for CS 3114?")
-    assert plan.missing_data_field == "prerequisites"
+    assert plan.route == "general_rag"
+    assert plan.needs_clarification is True
+    assert plan.clarifying_question
 
 
 def test_planner_cache_returns_copies(planner):

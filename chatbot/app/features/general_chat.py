@@ -108,8 +108,8 @@ def _try_schedule_rmp_answer(question: str, history: list | None, rmp_df=None) -
 def _parse_schedule_from_history(history: list | None) -> list[dict]:
     """
     Extract course info from the last schedule-builder assistant message in history.
-    Returns a list of {"subject": "CS", "course_number": "3604", "instructor": "Daniel Dunlap"}.
-    The schedule message format is: "CS 3604 (2:30 PM–3:45 PM, Daniel Dunlap), CS 4094 (3:30 PM–4:45 PM), ..."
+    Returns a list of {"subject": "CS", "course_number": "3604", "instructor": "Dunlap"}.
+    The schedule message format is: "CS 3604 (MWF, 2:30–3:45 PM, Dunlap), CS 4094 (TuTh, 3:30–4:45 PM), ..."
     """
     if not history:
         return []
@@ -119,12 +119,15 @@ def _parse_schedule_from_history(history: list | None) -> list[dict]:
         content = msg.get("content", "")
         if "Schedule tab" not in content:
             continue
-        # Match "CS 3604 (2:30 PM–3:45 PM[, Instructor Name])"
+        # Match "CS 3604 (MWF, 2:30–3:45 PM[, Instructor])"
         matches = re.findall(r"\b([A-Z]{2,5})\s+(\d{4})\s*\(([^)]+)\)", content)
         courses = []
         for subj, num, info in matches:
-            parts = info.split(",", 1)
-            instructor = parts[1].strip() if len(parts) > 1 else None
+            # New format is "days, time range[, instructor]" — instructor is
+            # the optional third comma-separated segment (Staff-taught
+            # sections omit it entirely).
+            parts = [p.strip() for p in info.split(",")]
+            instructor = parts[2] if len(parts) > 2 else None
             courses.append({"subject": subj, "course_number": num, "instructor": instructor})
         return courses
     return []
@@ -199,7 +202,11 @@ def _try_schedule_section_details_answer(
                 if pd.notna(seats) and seats is not None:
                     seats_i    = int(seats)
                     enrolled_i = int(enrolled) if pd.notna(enrolled) else 0
-                    open_seats = seats_i - enrolled_i
+                    open_seats_raw = row.get("open_seats")
+                    if pd.notna(open_seats_raw) and open_seats_raw is not None:
+                        open_seats = int(open_seats_raw)
+                    else:
+                        open_seats = max(seats_i - enrolled_i, 0)
                     status     = "FULL" if open_seats <= 0 else f"{open_seats} open"
                     parts.append(f"{enrolled_i}/{seats_i} seats ({status})")
                 else:
