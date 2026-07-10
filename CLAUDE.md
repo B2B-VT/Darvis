@@ -32,7 +32,7 @@ npm run dev        # http://localhost:5173
 **Key files:**
 - `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env`
 - `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state
-- `frontend/src/api.js` — all Supabase calls from the frontend
+- `frontend/src/api.js` — centralizes most Supabase calls from the frontend (`dashboard-prof.jsx`, `forums.jsx`, `instructors.jsx`, `profile-modal.jsx` query the `db` client from `supabase.js` directly instead)
 - `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
 - `frontend/src/supabase.js` — Supabase client singleton
 - `frontend/src/theme.jsx` — dark/light theme tokens
@@ -62,7 +62,7 @@ npm run dev        # http://localhost:5173
 
 ## Chat-bot
 
-FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Extracts intent from each question with an LLM (Gemma `IntentExtractor`, falling back to a keyword router), resolves professor/course names with a fuzzy `EntityResolver`, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`.
+FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Plans each question with an LLM-only `QueryPlanner` (`app/rag/query_planner.py`) — no keyword-router fallback; low confidence or LLM failure returns a clarification request instead of guessing — resolves professor/course names with a fuzzy `EntityResolver`, runs a sufficiency gate before dispatch, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`.
 
 **Run locally:**
 ```bash
@@ -174,6 +174,7 @@ Row counts verified live 2026-07-01:
 | `grade_embeddings` | 0 | Dead/unused — left over from earlier architecture |
 | `forum_posts` | 1 | Effectively empty — no users yet |
 | `forum_replies` | 0 | Empty |
+| `echo_reviews` | not in 2026-07-01 snapshot | Added `chatbot/migrations/003_echo_reviews.sql` (commit `7940a06`, 2026-07-05) — live table, read/written by `frontend/src/api.js` and served by chatbot `GET /rmp/reviews` |
 
 ## Known issues and pending work
 

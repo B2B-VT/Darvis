@@ -1,6 +1,6 @@
 # Darvis chatbot — Claude Code context
 
-FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, extracts structured intent from each question with an LLM (`IntentExtractor`, with a keyword router as fallback), runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer.
+FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, plans each question with an LLM-only `QueryPlanner` (no keyword-router fallback — low confidence or LLM failure returns a clarification request instead), runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer.
 
 ## Run locally
 
@@ -59,7 +59,9 @@ app/
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
 │   ├── gemma_client.py     Anthropic Claude Haiku client (legacy filename) — 30s timeout, returns None on failure
-│   ├── intent_extractor.py LLM intent extraction (primary router) + keyword fallback
+│   ├── query_planner.py    QueryPlanner — sole LLM-only planning/routing stage; replaces the old IntentExtractor + hardcoded section-signal override. No keyword fallback: low confidence/timeout/malformed JSON returns a clarification-request plan
+│   ├── intent_extractor.py Dead code — superseded by query_planner.py, no longer imported by main.py
+│   ├── verifier.py         check_plan() — sufficiency gate; short-circuits with an honest "we don't have that" answer for known data gaps before handler dispatch
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
 │   ├── retriever.py        Hybrid retrieval against Redis (redisvl vector KNN + RediSearch FT, fused via RRF)
 │   ├── redis_schema.py     Shared redisvl index schema (retriever.py + scripts/sync_redis_index.py)
@@ -97,10 +99,10 @@ app/
 ```
 POST /chat
   → normalize_question (guardrails.py)             # whitespace/quote cleanup (LLM handles typos)
-  → IntentExtractor.extract (intent_extractor.py)  # LLM → structured intent (route + params); keyword router on fallback
+  → QueryPlanner.plan (query_planner.py)           # LLM-only → structured QueryPlan (route + params); no keyword fallback — low confidence/failure returns a clarification-request plan
   → EntityResolver (entity_resolver.py)            # fuzzy-correct professor/course names
-  → section-signal override (main.py)              # "who is teaching...", "what times..." force route=section_lookup over the LLM route
-  → handler (features/*.py)                        # analytics + LLM or template answer
+  → check_plan (verifier.py)                       # sufficiency gate — short-circuits known data gaps before dispatch
+  → handler (features/*.py)                        # analytics + LLM or template answer; optional secondary-route fan-out
   → ChatResponse                                   # answer, tables, charts, warnings, schedule_actions
 
 POST /feedback
@@ -111,7 +113,7 @@ POST /feedback
 
 ## Routes
 
-Route strings come from `IntentExtractor` (LLM); the keyword router is the fallback.
+Route strings come from `QueryPlanner` (LLM-only, `query_planner.py`) — no keyword-router fallback. `plan.secondary_routes` can fan out to a second handler for allowed route pairs (e.g. `course_profile` + `section_lookup`); a secondary-route failure never breaks the primary answer.
 
 | Route | Triggered when | Handler |
 |-------|---------------|---------|
@@ -120,7 +122,7 @@ Route strings come from `IntentExtractor` (LLM); the keyword router is the fallb
 | `natural_filter` | Ranking/filter language ("highest GPA", "worst F rate") | `natural_filter.py` |
 | `major_requirements` | Graduation/degree requirement phrases | `major_requirements.py` |
 | `schedule_builder` | "Build me a schedule" phrases | `schedule_builder.py` |
-| `section_lookup` | Timetable phrasing ("who is teaching CS 3114", class times/days/seats/location); also forced by a hard keyword override in main.py that takes precedence over the LLM route | `section_lookup.py` |
+| `section_lookup` | Timetable phrasing ("who is teaching CS 3114", class times/days/seats/location) | `section_lookup.py` |
 | `out_of_scope` | OUT_OF_SCOPE_TERMS match (currently empty list — disabled) | Canned response |
 | `general_rag` | Everything else | `general_chat.py` |
 
@@ -156,6 +158,7 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 | `sections` | `load_sections_from_supabase()` at startup (term from `CURRENT_TERM` in config.py, default 202609) | Section lookups, course/professor profiles, schedule building. 10,663 rows, auto-refreshed every 4h by GitHub Actions; `schedule_builder.py` still queries `majors`/`major_requirements` live |
 | `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search. Retrieval queries Redis at runtime, not this table directly. Current 4,576 vectors are STALE (see Known issues #1) |
 | `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers |
+| `echo_reviews` | Added by `migrations/003_echo_reviews.sql` (2026-07-05) | Read/written by `frontend/src/api.js`; served by chatbot `GET /rmp/reviews` |
 
 ## Known issues
 
