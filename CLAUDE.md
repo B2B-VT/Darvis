@@ -80,17 +80,17 @@ cd chatbot && python -m pytest tests/
 
 **Deploy:** git push to main → Render auto-deploys (root directory set to `chatbot/` in Render config).
 
-**LLM:** Anthropic Claude Haiku (migrated from Gemma in commit `200b142` — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py`). Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` in `chatbot/.env`. Current model string: `claude-haiku-4-5-20251001`. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
+**LLM:** Groq, `openai/gpt-oss-120b`, reached via the OpenAI-compatible SDK pointed at `https://api.groq.com/openai/v1` (migrated from Anthropic Claude Haiku on 2026-07-17 after running out of Anthropic credits — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py`, originally from an earlier Gemma migration in commit `200b142`). Set `GROQ_API_KEY` and `GROQ_MODEL` in `chatbot/.env`. Current model string: `openai/gpt-oss-120b`. Free tier: 1,000 requests/day, 8,000 tokens/min — watch `console.groq.com/docs/deprecations` for retirement notices. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
 
 **Required env vars (`chatbot/.env`):**
 ```
-ANTHROPIC_API_KEY=...
-ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+GROQ_API_KEY=...
+GROQ_MODEL=openai/gpt-oss-120b
 SUPABASE_URL=...
 SUPABASE_KEY=...                    # service role key
 REDIS_URL=...                       # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true           # Claude Haiku judges borderline retrieval quality
+RAG_ENABLE_LLM_JUDGE=true           # Groq judges borderline retrieval quality
 ALLOWED_ORIGINS=https://darvis.tech,...
 SHOW_DOCS=true                      # local only — enables /docs (Swagger UI)
 ```

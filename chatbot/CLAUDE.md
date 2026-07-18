@@ -22,13 +22,13 @@ Render free tier sleeps after inactivity — first request takes ~30 seconds. Up
 ## Env vars (chatbot/.env)
 
 ```
-ANTHROPIC_API_KEY=...
-ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+GROQ_API_KEY=...
+GROQ_MODEL=openai/gpt-oss-120b
 SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=...           # service role key
 REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true  # Claude Haiku judges borderline retrieval quality before using it
+RAG_ENABLE_LLM_JUDGE=true  # Groq judges borderline retrieval quality before using it
 CURRENT_TERM=202609        # optional — current term code (also CURRENT_TERM_LABEL="Fall 2026")
 ALLOWED_ORIGINS=https://darvis.tech,http://localhost:3000
 SHOW_DOCS=true             # local only — enables /docs
@@ -58,7 +58,7 @@ app/
 │   ├── section_lookup.py   Handler for Fall 2026 timetable questions ("who is teaching CS 1114?", times/days/seats/location) — uses startup-loaded sections_df, falls back to live Supabase query
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
-│   ├── gemma_client.py     Anthropic Claude Haiku client (legacy filename) — 30s timeout, returns None on failure
+│   ├── gemma_client.py     Groq client via OpenAI-compatible SDK (legacy filename) — 30s timeout, returns None on failure
 │   ├── query_planner.py    QueryPlanner — sole LLM-only planning/routing stage; replaces the old IntentExtractor + hardcoded section-signal override. No keyword fallback: low confidence/timeout/malformed JSON returns a clarification-request plan
 │   ├── intent_extractor.py Dead code — superseded by query_planner.py, no longer imported by main.py
 │   ├── verifier.py         check_plan() — sufficiency gate; short-circuits with an honest "we don't have that" answer for known data gaps before handler dispatch
@@ -71,7 +71,7 @@ app/
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
 │   ├── agents/planner.py   Plans retrieval steps
-│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Claude Haiku) on borderline final attempts
+│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Groq) on borderline final attempts
 │   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          SYSTEM_PROMPT reference + build_answer_prompt
 │   └── vector_store.py     Pandas keyword fallback + Redis-backed (redisvl) semantic search
@@ -126,13 +126,14 @@ Route strings come from `QueryPlanner` (LLM-only, `query_planner.py`) — no key
 | `out_of_scope` | OUT_OF_SCOPE_TERMS match (currently empty list — disabled) | Canned response |
 | `general_rag` | Everything else | `general_chat.py` |
 
-## LLM (Claude Haiku via Anthropic)
+## LLM (Groq)
 
-- Model: `claude-haiku-4-5-20251001` (`ANTHROPIC_MODEL`)
+- Model: `openai/gpt-oss-120b` (`GROQ_MODEL`) — free tier, strict-JSON-capable, OpenAI-compatible endpoint at `https://api.groq.com/openai/v1`
 - Temperature: 0.2 (0.1 for raw/intent calls), max output tokens: 800
-- 30-second timeout set on the Anthropic client
+- 30-second timeout set on the OpenAI client pointed at Groq
 - Returns `None` on any failure — caller falls back to `templated_answers.py`
-- Note: the client class is still named `GemmaAnswerClient` (rag/gemma_client.py) — legacy name from before the migration (commit 200b142)
+- Note: the client class is still named `GemmaAnswerClient` (rag/gemma_client.py) — legacy name, now on its second provider migration (Anthropic → Groq, 2026-07-17)
+- Free-tier limit: 1,000 requests/day, 8,000 tokens/min on `gpt-oss-120b` — watch `console.groq.com/docs/deprecations` for model retirement notices
 - Tone defined in `SYSTEM_GUARDRAIL`: advisor-style, lead with insight, support with numbers
 - Never open with "Based on historical grade data..." — this is explicitly blocked in the system prompt
 
