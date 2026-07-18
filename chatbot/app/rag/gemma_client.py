@@ -1,5 +1,5 @@
 import logging
-import anthropic
+import openai
 from app.config import get_settings
 from app.rag.prompts import SYSTEM_PROMPT
 from app.safety.guardrails import sanitize_answer
@@ -8,17 +8,18 @@ logger = logging.getLogger("darvis.llm")
 
 
 class GemmaAnswerClient:
-    """LLM client backed by Anthropic (Claude Haiku by default)."""
+    """LLM client backed by Groq (openai/gpt-oss-120b by default)."""
 
     def __init__(self):
         settings = get_settings()
-        if not settings.anthropic_api_key:
-            raise ValueError("ANTHROPIC_API_KEY is missing. Add it to your .env file.")
-        self._client = anthropic.Anthropic(
-            api_key=settings.anthropic_api_key,
+        if not settings.groq_api_key:
+            raise ValueError("GROQ_API_KEY is missing. Add it to your .env file.")
+        self._client = openai.OpenAI(
+            base_url="https://api.groq.com/openai/v1",
+            api_key=settings.groq_api_key,
             timeout=30.0,
         )
-        self._model = settings.anthropic_model
+        self._model = settings.groq_model
         self._system = SYSTEM_PROMPT
 
     def _generate(
@@ -30,25 +31,24 @@ class GemmaAnswerClient:
     ) -> str | None:
         try:
             messages = []
+            if use_system:
+                messages.append({"role": "system", "content": self._system})
             for msg in (history or []):
                 role = msg.get("role") if isinstance(msg, dict) else getattr(msg, "role", None)
                 content = msg.get("content") if isinstance(msg, dict) else getattr(msg, "content", None)
                 if role in ("user", "assistant") and content:
                     messages.append({"role": role, "content": str(content)[:1000]})
             messages.append({"role": "user", "content": prompt})
-            kwargs: dict = {
-                "model": self._model,
-                "max_tokens": max_tokens,
-                "messages": messages,
-                "temperature": 0.2 if use_system else 0.1,
-            }
-            if use_system:
-                kwargs["system"] = self._system
-            response = self._client.messages.create(**kwargs)
-            if not response.content:
+            response = self._client.chat.completions.create(
+                model=self._model,
+                max_tokens=max_tokens,
+                messages=messages,
+                temperature=0.2 if use_system else 0.1,
+            )
+            if not response.choices:
                 return None
-            return response.content[0].text
-        except anthropic.APITimeoutError as exc:
+            return response.choices[0].message.content
+        except openai.APITimeoutError as exc:
             logger.error("[LLMClient] timeout: %s", exc)
             return None
         except Exception as exc:

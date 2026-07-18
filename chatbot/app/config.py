@@ -4,9 +4,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # ── LLM (Anthropic) ────────────────────────────────────────────────────────
-    anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
-    anthropic_model: str = Field(default="claude-haiku-4-5-20251001", alias="ANTHROPIC_MODEL")
+    # ── LLM (Groq) ─────────────────────────────────────────────────────────────
+    groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
+    groq_model: str = Field(default="openai/gpt-oss-120b", alias="GROQ_MODEL")
 
     # ── Supabase (service role key — bypasses RLS) ──────────────────────────────
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
