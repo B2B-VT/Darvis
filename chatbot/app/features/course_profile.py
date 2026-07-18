@@ -183,7 +183,7 @@ def handle_course_profile(
     # description is cheap (already in memory) and lets "what is X about"
     # questions get answered instead of just grade/instructor comparisons.
     prompt = build_answer_prompt(question, "course_profile", table_text, description, intent=intent)
-    answer = llm.answer(prompt, max_tokens=350, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+    answer = llm.answer(prompt, max_tokens=700, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
 
     charts = [
         bar_chart(f"Average GPA by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Avg GPA", ascending=True), "Avg GPA", "Instructor", "Recency-weighted when requested."),
