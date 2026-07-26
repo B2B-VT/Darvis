@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"systemMessage\":\"Darvis: run /rename Darvis%s and /color green\"}\\n' \"$(date +%F)\""
+          }
+        ]
+      }
+    ]
+  }
+}
