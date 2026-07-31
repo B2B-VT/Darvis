@@ -38,6 +38,7 @@ ROUTES (pick exactly one):
 - "course_profile": asking about a specific course's professors/grades (CS 3114, algorithms, etc.)
 - "professor_profile": asking about a specific professor by name, or their RMP/rating
 - "natural_filter": ranking/filtering/comparing courses or professors without a specific one
+- "natural_filter": recommending courses for a topic/subject area ("good data analytics courses", "courses about cybersecurity") — prioritize topic relevance and course descriptions, not easiest professor ranking
 - "major_requirements": graduation requirements, what courses are needed for a degree/major
 - "schedule_builder": building/creating/making a class schedule
 - "section_lookup": CURRENT-SEMESTER timetable facts — who is teaching a course this semester/fall, what times/days a course meets, where it is held, seat availability ("is CS 3114 full?", "open seats", "what building"), which sections are offered
@@ -67,7 +68,7 @@ algorithms or data structures and algorithms = CS 3114; intro data structures = 
 SORT GOAL — pick the most fitting:
 "highest_gpa" (easiest, best grades, easy A, chill), "lowest_gpa" (hardest, brutal, avoid), "highest_f_rate", "lowest_f_rate", "highest_a_rate", "most_withdraws", "lowest_withdraws", "largest_sample", "times_taught"
 
-CATALOG FIELDS: for questions about a course's prerequisites or official catalog description, set missing_data_field to "prerequisites" or "description" (route can stay course_profile) — a deterministic lookup answers these precisely from catalog data. Darvis has NO VT Pathways data — for Pathways questions set missing_data_field to "pathways".
+MISSING / UNSUPPORTED FIELDS: for questions about a course's prerequisites or official catalog description, set missing_data_field to "prerequisites" or "description" (route can stay course_profile) — a deterministic lookup answers these precisely from catalog data. Darvis has NO VT Pathways data — for Pathways questions set missing_data_field to "pathways". Darvis has NO homework-load/workload data — for homework, workload, amount of work, or least/most homework questions set missing_data_field to "workload" and do not invent professor names.
 
 IMPORTANT RULES:
 - professor_name must be a PERSON'S name. NEVER put adjectives (hardest, easiest, best, chill) there — those belong in sort_goal.
@@ -325,6 +326,37 @@ class QueryPlanner:
                 ),
             )
 
+        if _asks_missing_workload_data(q):
+            return QueryPlan(
+                route="general_rag",
+                confidence=0.82,
+                capabilities=["unsupported_or_missing_data"],
+                subject=subject,
+                course_no=course_no,
+                missing_data_field="workload",
+            )
+
+        if _looks_like_topic_course_recommendation(q):
+            return QueryPlan(
+                route="natural_filter",
+                confidence=0.72,
+                capabilities=["course_lookup", "natural_language_filter"],
+                wants_professors=False,
+                sort_goal="largest_sample",
+                display_n=3,
+            )
+
+        if len(codes) >= 2 and any(w in q for w in ("compare", "comparison", "vs", "versus", "difference", "differences")):
+            return QueryPlan(
+                route="course_profile",
+                confidence=0.82,
+                capabilities=["course_lookup", "course_comparison", "grade_distribution"],
+                subject=subject,
+                course_no=course_no,
+                requested_courses=requested_courses,
+                sort_goal=self._sort_goal(question),
+            )
+
         schedule_words = ("schedule", "build", "create", "make", "plan my classes", "classes")
         if any(w in q for w in schedule_words) and (
             codes or any(w in q for w in ("no ", "avoid", "after", "before", "morning", "credits"))
@@ -370,6 +402,7 @@ class QueryPlanner:
                 capabilities=["course_lookup", "grade_distribution"],
                 subject=subject,
                 course_no=course_no,
+                requested_courses=requested_courses,
                 wants_rmp=any(w in q for w in ("rmp", "rate my professor", "rating", "rated")),
                 sort_goal=self._sort_goal(question),
             )
@@ -476,3 +509,27 @@ def _needs_ambiguous_clarification(q: str) -> bool:
         "is this schedule good",
     }
     return q.rstrip("?.!") in ambiguous
+
+
+def _asks_missing_workload_data(q: str) -> bool:
+    return any(
+        phrase in q
+        for phrase in (
+            "homework",
+            "workload",
+            "least work",
+            "most work",
+            "amount of work",
+            "how much work",
+        )
+    )
+
+
+def _looks_like_topic_course_recommendation(q: str) -> bool:
+    if not any(word in q for word in ("course", "courses", "class", "classes")):
+        return False
+    if re.search(r"\b[A-Za-z]{2,5}\s*-?\s*\d{4}\b", q):
+        return False
+    if any(term in q for term in ("highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest")):
+        return False
+    return any(term in q for term in ("good", "recommend", "suggest", "about", "related to", "for"))

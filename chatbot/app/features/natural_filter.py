@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from app.data.analytics import natural_filter, detect_natural_params
 from app.rag.prompts import build_answer_prompt
 from app.utils.charts import table_spec, bar_chart
@@ -7,6 +8,109 @@ from app.features.templated_answers import filter_answer
 from app.features.router import smart_display_n
 
 FILTER_COLS = ["Course", "Course Title", "Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "Total Withdraws", "Latest Year", "Confidence Label"]
+TOPIC_COURSE_COLS = ["Course", "Course Title", "Description", "Avg GPA", "Avg A Range (%)", "Total Students"]
+
+_TOPIC_STOPWORDS = {
+    "what", "which", "who", "are", "is", "some", "good", "best", "top",
+    "courses", "course", "classes", "class", "for", "about", "related",
+    "to", "in", "on", "with", "the", "a", "an", "recommend", "recommendations",
+    "suggest", "suggestions", "give", "me", "find", "show", "take",
+}
+
+
+def _is_topic_course_recommendation(question: str, intent=None) -> bool:
+    q = question.lower()
+    asks_courses = any(word in q for word in ("course", "courses", "class", "classes"))
+    broad_topic = not re.search(r"\b[A-Za-z]{2,5}\s*-?\s*\d{4}\b", question)
+    ranking_only = any(term in q for term in ("highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest"))
+    professor_ask = any(term in q for term in ("professor", "instructor", "who teaches"))
+    return asks_courses and broad_topic and len(_topic_terms(question)) >= 2 and not ranking_only and not professor_ask
+
+
+def _topic_terms(question: str) -> list[str]:
+    q = re.sub(r"[^a-zA-Z0-9\s]", " ", question.lower())
+    terms = [w for w in q.split() if len(w) > 2 and w not in _TOPIC_STOPWORDS]
+    # Keep phrase order while de-duping.
+    out: list[str] = []
+    for term in terms:
+        if term not in out:
+            out.append(term)
+    return out
+
+
+def _course_stat_lookup(indexes, key: tuple[str, str], attr: str):
+    stats = getattr(indexes, "course_stats", {}).get(key) if indexes is not None else None
+    return getattr(stats, attr, None) if stats is not None else None
+
+
+def _topic_course_recommendations(question: str, indexes, limit: int = 3) -> pd.DataFrame:
+    if indexes is None:
+        return pd.DataFrame()
+    terms = _topic_terms(question)
+    if not terms:
+        return pd.DataFrame()
+
+    phrase = " ".join(terms)
+    rows = []
+    titles = getattr(indexes, "course_titles", {})
+    descriptions = getattr(indexes, "course_descriptions", {})
+    for key, title in titles.items():
+        description = descriptions.get(key, "")
+        hay_title = str(title or "").lower()
+        hay_desc = str(description or "").lower()
+        haystack = f"{hay_title} {hay_desc}"
+        matched = [term for term in terms if term in haystack]
+        if not matched:
+            continue
+        score = len(matched)
+        if phrase and phrase in haystack:
+            score += 4
+        if phrase and phrase in hay_title:
+            score += 3
+        if all(term in haystack for term in terms):
+            score += 2
+        rows.append({
+            "Course": f"{key[0]} {key[1]}",
+            "Course Title": title,
+            "Description": description or "Darvis doesn't have a catalog description for this course yet.",
+            "Avg GPA": _course_stat_lookup(indexes, key, "weighted_gpa"),
+            "Avg A Range (%)": _course_stat_lookup(indexes, key, "a_rate"),
+            "Total Students": _course_stat_lookup(indexes, key, "total_students"),
+            "_score": score,
+        })
+
+    if not rows:
+        return pd.DataFrame()
+    out = pd.DataFrame(rows)
+    out = out.sort_values(
+        ["_score", "Total Students", "Avg GPA"],
+        ascending=[False, False, False],
+        na_position="last",
+    )
+    return out.head(limit).drop(columns=["_score"])
+
+
+def _fmt_course_metric(value, suffix: str = "") -> str:
+    if value is None or pd.isna(value):
+        return "not enough grade data"
+    if suffix:
+        return f"{float(value):.1f}{suffix}"
+    return f"{float(value):.2f}"
+
+
+def _topic_course_answer(question: str, recs: pd.DataFrame) -> str:
+    terms = " ".join(_topic_terms(question)) or "that topic"
+    intro = f"Here are good {terms} course matches in Darvis:"
+    parts = [intro]
+    for _, row in recs.iterrows():
+        gpa = _fmt_course_metric(row.get("Avg GPA"))
+        a_rate = _fmt_course_metric(row.get("Avg A Range (%)"), "%")
+        metrics = f" Historical outcomes: {gpa} avg GPA, {a_rate} A/A- rate." if gpa != "not enough grade data" else ""
+        parts.append(
+            f"{row['Course']} ({row['Course Title']}): {row['Description']}{metrics}"
+        )
+    parts.append("These are topic matches first; grade outcomes are supporting context, not the reason they were selected.")
+    return " ".join(parts)
 
 
 def handle_natural_filter(
@@ -19,8 +123,20 @@ def handle_natural_filter(
     intent=None,
     history: list | None = None,
     user_profile: dict | None = None,
+    indexes=None,
 ):
     settings = get_settings()
+
+    if _is_topic_course_recommendation(question, intent=intent):
+        recs = _topic_course_recommendations(question, indexes, limit=3)
+        if not recs.empty:
+            display = recs[TOPIC_COURSE_COLS]
+            return (
+                _topic_course_answer(question, display),
+                [table_spec("Course Recommendations", display, TOPIC_COURSE_COLS, len(display))],
+                [],
+                {"route": "natural_filter", "recommendation_mode": "topic_courses"},
+            )
 
     # Pull pre-extracted parameters from intent when available.
     # This replaces detect_natural_params() for routing decisions.
