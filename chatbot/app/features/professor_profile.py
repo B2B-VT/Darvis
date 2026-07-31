@@ -156,7 +156,7 @@ def handle_professor_profile(
     # Skip vector retrieval — the per-course table + RMP snippet is complete
     # for a professor question; retrieval added latency without new facts.
     prompt     = build_answer_prompt(question, "professor_profile", table_text + rmp_text, "", intent=intent)
-    answer     = llm.answer(prompt, max_tokens=700, history=history) or professor_answer(question, result, name, rmp=rmp)
+    answer     = llm.answer(prompt, max_tokens=350, history=history) or professor_answer(question, result, name, rmp=rmp)
 
     charts = [
         bar_chart(

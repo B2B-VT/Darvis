@@ -44,7 +44,6 @@ class GemmaAnswerClient:
                 max_tokens=max_tokens,
                 messages=messages,
                 temperature=0.2 if use_system else 0.1,
-                reasoning_effort="low",
             )
             if not response.choices:
                 return None
@@ -56,7 +55,7 @@ class GemmaAnswerClient:
             logger.error("[LLMClient] error (%s): %s", type(exc).__name__, exc)
             return None
 
-    def answer(self, prompt: str, max_tokens: int = 1200, history: list | None = None) -> str | None:
+    def answer(self, prompt: str, max_tokens: int = 800, history: list | None = None) -> str | None:
         raw = self._generate(prompt, max_tokens, use_system=True, history=history)
         if not raw:
             return None
@@ -79,7 +78,7 @@ class GemmaAnswerClient:
             "directly answers the question? Reply with exactly one word: "
             "YES or NO."
         )
-        raw = self._generate(prompt, max_tokens=80, use_system=False)
+        raw = self._generate(prompt, max_tokens=10, use_system=False)
         if raw is None:
             return None
         verdict = raw.strip().upper()

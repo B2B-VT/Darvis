@@ -212,7 +212,7 @@ class QueryPlanner:
     def _llm_plan(self, question: str, history: list | None = None) -> QueryPlan | None:
         prompt = _PLAN_PROMPT + _format_question_with_history(question, history)
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = executor.submit(self._llm.answer_raw, prompt, 1200)
+        future = executor.submit(self._llm.answer_raw, prompt, 400)
         try:
             raw = future.result(timeout=self._timeout_s)
         except concurrent.futures.TimeoutError:
