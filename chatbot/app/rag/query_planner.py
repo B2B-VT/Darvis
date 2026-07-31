@@ -313,6 +313,18 @@ class QueryPlanner:
                 capabilities=["general_question"],
             )
 
+        if _needs_ambiguous_clarification(q):
+            return QueryPlan(
+                route="general_rag",
+                confidence=0.7,
+                capabilities=["general_question"],
+                needs_clarification=True,
+                clarifying_question=(
+                    "Which course, professor, schedule, or requirement should we compare? "
+                    "We can rank options by historical grade outcomes, time fit, or major relevance once you give the context."
+                ),
+            )
+
         schedule_words = ("schedule", "build", "create", "make", "plan my classes", "classes")
         if any(w in q for w in schedule_words) and (
             codes or any(w in q for w in ("no ", "avoid", "after", "before", "morning", "credits"))
@@ -417,7 +429,7 @@ def _extract_subject_hint(question: str) -> str | None:
     if not m:
         return None
     code = m.group(1).upper()
-    if code in {"LEVEL", "COURSE", "CLASS", "ELECTIVE", "PROF", "PROFS"}:
+    if code in {"LEVEL", "COURSE", "CLASS", "ELECTIVE", "PROF", "PROFS", "BEST", "WORST"}:
         return None
     return code
 
@@ -447,3 +459,20 @@ def _is_greeting_or_help(question: str) -> bool:
     if q in {"how are you", "what can you do", "help", "help me"}:
         return True
     return bool(re.match(r"^(hi|hello|hey|yo|sup)\s+(cyrus|darvis)\b", q))
+
+
+def _needs_ambiguous_clarification(q: str) -> bool:
+    q = re.sub(r"\s+", " ", q).strip()
+    ambiguous = {
+        "what is the best professor",
+        "who is the best professor",
+        "what's the best professor",
+        "whats the best professor",
+        "what is the best class",
+        "what's the best class",
+        "whats the best class",
+        "which professor should i take",
+        "compare these two",
+        "is this schedule good",
+    }
+    return q.rstrip("?.!") in ambiguous

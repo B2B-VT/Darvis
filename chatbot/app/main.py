@@ -2,6 +2,7 @@ import logging
 import asyncio
 import json
 import math
+import re
 import time
 import traceback
 import urllib.error
@@ -39,6 +40,7 @@ from app.features.schedule_builder import handle_schedule_builder
 from app.features.major_requirements import handle_major_requirements
 from app.safety.guardrails import default_warnings, out_of_scope_response, normalize_question, sanitize_answer
 from app.safety.privacy import privacy_warnings
+from app.safety.refusals import classify_safety, refusal_answer
 from app.safety.entity_resolver import EntityResolver
 
 # ── Logging ────────────────────────────────────────────────────────────────────
@@ -484,6 +486,48 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
         return handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
 
 
+def _ambiguous_professor_shorthand(question: str, intent) -> bool:
+    if intent is None or getattr(intent, "professor_name", None):
+        return False
+    q = question.lower()
+    match = re.search(r"\bprof(?:essor)?\s+([a-z]{2,5})\b", q)
+    if not match:
+        return False
+    if match.group(1) in {"has", "have", "with", "for", "who", "what", "that", "this", "best", "worst"}:
+        return False
+    return getattr(intent, "route", None) in {"professor_profile", "section_lookup", "course_profile", "general_rag"}
+
+
+def _missing_user_major_context(question: str, intent, body: ChatRequest) -> bool:
+    if intent is None or getattr(intent, "route", None) != "major_requirements":
+        return False
+    q = question.lower()
+    if "my major" not in q and "required courses" not in q:
+        return False
+    profile_major = getattr(body.user_profile, "major", None) if body.user_profile else None
+    if profile_major:
+        return False
+    major_query = (getattr(intent, "major_query", None) or "").strip().lower()
+    return not major_query or major_query in {"my", "my major", "required", "required courses", "courses"}
+
+
+def _clarification_response(answer: str, route: str, warnings: list[str], timings: dict[str, int], reason: str) -> ChatResponse:
+    return ChatResponse(
+        answer=answer,
+        route=route,
+        warnings=warnings,
+        tables=[],
+        charts=[],
+        metadata={
+            "needs_clarification": True,
+            "clarification_reason": reason,
+            "fallback_used": False,
+            "timings_ms": timings,
+        },
+        schedule_actions=[],
+    )
+
+
 def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
     """
     Shared 4-stage pipeline (plan -> resolve -> sufficiency gate -> handler)
@@ -498,6 +542,24 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
 
     warnings = default_warnings() + privacy_warnings(body.question)
     timings: dict[str, int] = {}
+
+    safety = classify_safety(question)
+    if safety.blocked:
+        return ChatResponse(
+            answer=refusal_answer(safety),
+            route="refusal",
+            warnings=warnings,
+            tables=[],
+            charts=[],
+            metadata={
+                "safety_decision": safety.decision,
+                "refusal_reason": safety.reason,
+                "normalized_query": question,
+                "fallback_used": False,
+                "timings_ms": timings,
+            },
+            schedule_actions=[],
+        )
 
     # ── Stage 1: plan ──────────────────────────────────────────────────────────
     # QueryPlanner handles typos/slang via the LLM, validates through Pydantic,
@@ -540,6 +602,24 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
         from app.features.router import route_question
         route = route_question(question)
     timings["resolve_ms"] = int((time.time() - t0) * 1000)
+
+    if _ambiguous_professor_shorthand(question, intent):
+        return _clarification_response(
+            "Which professor did you mean? Please provide the full name or department, and we can compare the available course, schedule, or grade data.",
+            route,
+            warnings,
+            timings,
+            "ambiguous_professor_shorthand",
+        )
+
+    if _missing_user_major_context(question, intent, body):
+        return _clarification_response(
+            "Which major should we check? We need your major or a specific requirement list before we can identify required courses that fit your constraints.",
+            route,
+            warnings,
+            timings,
+            "missing_major_context",
+        )
 
     # ── Stage 3: sufficiency gate ──────────────────────────────────────────────
     # Honest short-circuit for data the DB is known to lack (prereqs, descriptions,

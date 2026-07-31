@@ -192,11 +192,11 @@ def test_plan_multi_route_secondary():
 # prompts can still route deterministically; ambiguous prompts fall through to
 # general_rag so the normal answer path can respond.
 
-def test_fallback_routes_ambiguous_prompt_to_general_rag(planner):
+def test_fallback_asks_clarification_for_ambiguous_prompt(planner):
     plan = planner.plan("which professor should I take")
     assert plan.route == "general_rag"
-    assert plan.needs_clarification is False
-    assert plan.clarifying_question is None
+    assert plan.needs_clarification is True
+    assert plan.clarifying_question
 
 
 def test_fallback_routes_greeting_without_llm(planner):
