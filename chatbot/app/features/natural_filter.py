@@ -8,7 +8,8 @@ from app.features.templated_answers import filter_answer
 from app.features.router import smart_display_n
 
 FILTER_COLS = ["Course", "Course Title", "Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "Total Withdraws", "Latest Year", "Confidence Label"]
-TOPIC_COURSE_COLS = ["Course", "Course Title", "Description", "Avg GPA", "Avg A Range (%)", "Total Students"]
+TOPIC_COURSE_DESCRIPTION_COLS = ["Course", "Course Title", "Description", "Avg GPA", "Avg A Range (%)", "Total Students"]
+TOPIC_COURSE_TABLE_COLS = ["Course", "Course Title", "Avg GPA", "Avg A Range (%)", "Total Students"]
 
 _TOPIC_STOPWORDS = {
     "what", "which", "who", "are", "is", "some", "good", "best", "top",
@@ -90,26 +91,15 @@ def _topic_course_recommendations(question: str, indexes, limit: int = 3) -> pd.
     return out.head(limit).drop(columns=["_score"])
 
 
-def _fmt_course_metric(value, suffix: str = "") -> str:
-    if value is None or pd.isna(value):
-        return "not enough grade data"
-    if suffix:
-        return f"{float(value):.1f}{suffix}"
-    return f"{float(value):.2f}"
-
-
 def _topic_course_answer(question: str, recs: pd.DataFrame) -> str:
     terms = " ".join(_topic_terms(question)) or "that topic"
     intro = f"Here are good {terms} course matches in Darvis:"
     parts = [intro]
     for _, row in recs.iterrows():
-        gpa = _fmt_course_metric(row.get("Avg GPA"))
-        a_rate = _fmt_course_metric(row.get("Avg A Range (%)"), "%")
-        metrics = f" Historical outcomes: {gpa} avg GPA, {a_rate} A/A- rate." if gpa != "not enough grade data" else ""
         parts.append(
-            f"{row['Course']} ({row['Course Title']}): {row['Description']}{metrics}"
+            f"{row['Course']} ({row['Course Title']}): {row['Description']}"
         )
-    parts.append("These are topic matches first; grade outcomes are supporting context, not the reason they were selected.")
+    parts.append("These are topic matches first; grade outcomes are supporting context in the table, not the reason they were selected.")
     return " ".join(parts)
 
 
@@ -130,10 +120,11 @@ def handle_natural_filter(
     if _is_topic_course_recommendation(question, intent=intent):
         recs = _topic_course_recommendations(question, indexes, limit=3)
         if not recs.empty:
-            display = recs[TOPIC_COURSE_COLS]
+            description_display = recs[TOPIC_COURSE_DESCRIPTION_COLS]
+            table_display = recs[TOPIC_COURSE_TABLE_COLS]
             return (
-                _topic_course_answer(question, display),
-                [table_spec("Course Recommendations", display, TOPIC_COURSE_COLS, len(display))],
+                _topic_course_answer(question, description_display),
+                [table_spec("Course Recommendations", table_display, TOPIC_COURSE_TABLE_COLS, len(table_display))],
                 [],
                 {"route": "natural_filter", "recommendation_mode": "topic_courses"},
             )

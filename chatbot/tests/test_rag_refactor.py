@@ -579,8 +579,16 @@ def test_topic_course_recommendations_use_relevance_and_descriptions(grades_df):
     assert "CS 4604" in answer
     assert "BIT 3444" in answer
     assert "MUS 1004" not in answer
+    assert "Historical outcomes" not in answer
+    assert "avg GPA" not in answer
+    assert "Introduces methods for extracting insight from data using analytics workflows." in answer
+    assert "Covers data modeling, querying, and systems that support analytics applications." in answer
+    assert "Uses business data tools for reporting, dashboards, and analytics decisions." in answer
     assert "topic matches first" in answer
     assert tables[0]["title"] == "Course Recommendations"
+    assert "Description" not in tables[0]["columns"]
+    assert "Avg GPA" in tables[0]["columns"]
+    assert "Avg A Range (%)" in tables[0]["columns"]
     assert charts == []
     assert metadata["recommendation_mode"] == "topic_courses"
 
@@ -731,11 +739,16 @@ def test_course_comparison_uses_both_courses_without_missing_data_hallucination(
     assert "CS 1114" in answer
     assert "CS 2114" in answer
     assert "does not have enough grade-outcome data" not in answer
-    assert "Mohammed Hamouda" in answer
-    assert "Andrey Esakia" in answer
-    assert tables[0]["title"] == "Course Comparison"
+    assert "Introductory programming and software design." in answer
+    assert "Data structures and software design techniques." in answer
+    assert "Mohammed Hamouda" not in answer
+    assert "Andrey Esakia" not in answer
+    assert tables[0]["title"] == "Professor Comparison"
     assert len(tables[0]["rows"]) == 2
     assert {row["Course"] for row in tables[0]["rows"]} == {"CS 1114", "CS 2114"}
+    assert "Description" not in tables[0]["columns"]
+    assert "Course Title" not in tables[0]["columns"]
+    assert {row["Best Instructor"] for row in tables[0]["rows"]} == {"Mohammed Hamouda", "Andrey Esakia"}
     assert charts == []
     assert metadata["comparison_courses"] == [("CS", "1114"), ("CS", "2114")]
 
