@@ -160,7 +160,7 @@ class QueryRewriter:
         """
         prompt = _REWRITE_PROMPT.format(question=question)
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = executor.submit(self._llm.answer_raw, prompt, 50)
+        future = executor.submit(self._llm.answer_raw, prompt, 200)
         try:
             result = future.result(timeout=timeout_s)
             executor.shutdown(wait=False)

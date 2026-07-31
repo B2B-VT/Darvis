@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
 pandas
-anthropic
 fastembed
 python-dotenv
 pydantic
