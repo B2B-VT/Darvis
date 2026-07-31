@@ -233,7 +233,8 @@ def _handle_course_comparison(
     indexes,
 ):
     records: list[dict] = []
-    answer_bits: list[str] = []
+    description_bits: list[str] = []
+    missing_data_bits: list[str] = []
 
     for subj, num in courses:
         label = f"{subj} {num}"
@@ -245,51 +246,58 @@ def _handle_course_comparison(
             title = indexes.course_titles.get(key, "") or ""
             description = indexes.course_descriptions.get(key, "") or ""
         section_count, open_section_count = _section_counts(sections_df, subj, num)
+        if description:
+            description_bits.append(f"{label}: {description}")
+        elif title:
+            description_bits.append(f"{label} ({title}): Darvis doesn't have the full catalog description for this course yet.")
+        else:
+            description_bits.append(f"{label}: Darvis doesn't have the full catalog description for this course yet.")
 
         record = {
             "Course": label,
-            "Course Title": title or "Unknown",
-            "Description": description or "No catalog description available in Darvis.",
             "Best Instructor": "No grade data",
             "Avg GPA": None,
             "Avg A Range (%)": None,
+            "Avg F Rate (%)": None,
             "Total Students": None,
             "Fall 2026 Sections": section_count,
             "Open Sections": open_section_count,
         }
 
         if result.empty:
-            answer_bits.append(f"{label} does not have enough grade-outcome data in Darvis with the current filters.")
+            missing_data_bits.append(f"{label} does not have enough grade-outcome data in Darvis with the current filters.")
         else:
             top = result.iloc[0]
             instructor = _clean_text(top.get("Instructor"), "the strongest listed instructor")
             avg_gpa = float(top.get("Avg GPA"))
             avg_a = float(top.get("Avg A Range (%)"))
+            avg_f = float(top.get("Avg F Rate (%)"))
             total_students = int(top.get("Total Students", 0))
             record.update({
                 "Best Instructor": instructor,
                 "Avg GPA": round(avg_gpa, 3),
                 "Avg A Range (%)": round(avg_a, 2),
+                "Avg F Rate (%)": round(avg_f, 2),
                 "Total Students": total_students,
             })
-            answer_bits.append(
-                f"{label}: {instructor} leads by historical grade outcomes "
-                f"({avg_gpa:.2f} average GPA, {avg_a:.1f}% A/A- rate, {total_students:,} students)."
-            )
         records.append(record)
 
     comparison_df = pd.DataFrame(records)
     labels = ", ".join(f"{subj} {num}" for subj, num in courses)
-    answer = (
-        f"Here is a focused comparison for {labels}. "
-        + " ".join(answer_bits)
-        + " Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience."
-    )
-    cols = [
-        "Course", "Course Title", "Description", "Best Instructor", "Avg GPA",
-        "Avg A Range (%)", "Total Students", "Fall 2026 Sections", "Open Sections",
+    answer_parts = [
+        f"Here is a focused comparison for {labels}.",
+        " ".join(description_bits),
     ]
-    tables = [table_spec("Course Comparison", comparison_df, cols, len(records))]
+    if missing_data_bits:
+        answer_parts.append(" ".join(missing_data_bits))
+    answer_parts.append("The professor outcome comparison is in the table below.")
+    answer_parts.append("Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.")
+    answer = " ".join(part for part in answer_parts if part)
+    cols = [
+        "Course", "Best Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)",
+        "Total Students", "Fall 2026 Sections", "Open Sections",
+    ]
+    tables = [table_spec("Professor Comparison", comparison_df, cols, len(records))]
     metadata = {"comparison_courses": courses, "route": "course_profile"}
     return answer, tables, [], metadata
 
