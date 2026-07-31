@@ -87,6 +87,69 @@ def _build_sections_table(sections_df: "pd.DataFrame | None", subject: str, cour
     return [_ts("Fall 2026 Sections", sec_df, cols, len(records))]
 
 
+def _course_level_aggregate(result: pd.DataFrame, subject: str | None, course_no: str) -> dict:
+    """Collapse a per-instructor course_profile() result into one course-level row,
+    weighted by student count so a comparison reflects the whole course, not just
+    whichever instructor happens to sort first."""
+    label = f"{subject or ''} {course_no}".strip()
+    if result.empty:
+        return {
+            "Course": label, "Avg GPA": "No data", "Avg A Range (%)": "No data",
+            "Avg F Rate (%)": "No data", "Total Students": 0, "Instructors": 0,
+        }
+    total_students = result["Total Students"].sum()
+
+    def _wavg(col):
+        return round((result[col] * result["Total Students"]).sum() / total_students, 3) if total_students else 0
+
+    return {
+        "Course": label,
+        "Avg GPA": _wavg("Avg GPA"),
+        "Avg A Range (%)": _wavg("Avg A Range (%)"),
+        "Avg F Rate (%)": _wavg("Avg F Rate (%)"),
+        "Total Students": int(total_students),
+        "Instructors": len(result),
+    }
+
+
+def _handle_course_comparison(
+    question: str,
+    df: pd.DataFrame,
+    llm,
+    courses: list[tuple[str, str]],
+    min_students: int,
+    use_recency: bool,
+    intent=None,
+    history: list | None = None,
+):
+    """Two-or-more-course comparison ("compare CS 2114 and CS 1114 grades") — the
+    single-course path below only reads intent.subject/course_no (singular), so a
+    multi-course question silently profiled just one course while the LLM, given
+    only that one course's data, correctly said it couldn't compare — producing a
+    contradictory answer next to a single-course table. This gives the LLM (and the
+    table) data for every requested course instead of just the first one."""
+    settings = get_settings()
+    agg_rows, per_course = [], []
+    for subj, cno in courses:
+        result = course_profile(df, subj, cno, min_students, use_recency)
+        agg_rows.append(_course_level_aggregate(result, subj, cno))
+        per_course.append((subj, cno, result))
+
+    comp_df = pd.DataFrame(agg_rows)
+    cols = ["Course", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Instructors"]
+    table_text = comp_df[cols].to_string(index=False)
+
+    prompt = build_answer_prompt(question, "course_profile", table_text, "", intent=intent)
+    answer = llm.answer(prompt, max_tokens=700, history=history) or ("Course comparison:\n" + table_text)
+
+    tables = [table_spec("Course Comparison", comp_df, cols, settings.max_rows_to_llm)]
+    for subj, cno, result in per_course:
+        if not result.empty:
+            tables.append(table_spec(f"{subj} {cno} — Professor Summary", result, COURSE_COLS, settings.max_rows_to_llm))
+
+    return answer, tables, [], {"comparison_courses": [f"{s} {c}" for s, c in courses]}
+
+
 def handle_course_profile(
     question: str,
     df: pd.DataFrame,
@@ -103,6 +166,19 @@ def handle_course_profile(
     indexes=None,
 ):
     settings = get_settings()
+
+    # Multi-course comparison ("compare CS 2114 and CS 1114 grades") — must be
+    # checked before the single-course extraction below, which only reads
+    # intent.subject/course_no and would silently drop every course but one.
+    if intent is not None and intent.requested_courses:
+        distinct = list(dict.fromkeys(
+            (s.upper(), c) for s, c in intent.requested_courses if s and c
+        ))
+        if len(distinct) >= 2:
+            return _handle_course_comparison(
+                question, df, llm, distinct, min_students, use_recency,
+                intent=intent, history=history,
+            )
 
     # Use LLM-extracted course parts if available; fall back to regex
     if intent is not None and intent.course_no:
