@@ -38,6 +38,7 @@ ROUTES (pick exactly one):
 - "course_profile": asking about a specific course's professors/grades (CS 3114, algorithms, etc.)
 - "professor_profile": asking about a specific professor by name, or their RMP/rating
 - "natural_filter": ranking/filtering/comparing courses or professors without a specific one
+- "natural_filter": recommending courses for a topic/subject area ("good data analytics courses", "courses about cybersecurity") — prioritize topic relevance and course descriptions, not easiest professor ranking
 - "major_requirements": graduation requirements, what courses are needed for a degree/major
 - "schedule_builder": building/creating/making a class schedule
 - "section_lookup": CURRENT-SEMESTER timetable facts — who is teaching a course this semester/fall, what times/days a course meets, where it is held, seat availability ("is CS 3114 full?", "open seats", "what building"), which sections are offered
@@ -335,6 +336,27 @@ class QueryPlanner:
                 missing_data_field="workload",
             )
 
+        if _looks_like_topic_course_recommendation(q):
+            return QueryPlan(
+                route="natural_filter",
+                confidence=0.72,
+                capabilities=["course_lookup", "natural_language_filter"],
+                wants_professors=False,
+                sort_goal="largest_sample",
+                display_n=3,
+            )
+
+        if len(codes) >= 2 and any(w in q for w in ("compare", "comparison", "vs", "versus", "difference", "differences")):
+            return QueryPlan(
+                route="course_profile",
+                confidence=0.82,
+                capabilities=["course_lookup", "course_comparison", "grade_distribution"],
+                subject=subject,
+                course_no=course_no,
+                requested_courses=requested_courses,
+                sort_goal=self._sort_goal(question),
+            )
+
         schedule_words = ("schedule", "build", "create", "make", "plan my classes", "classes")
         if any(w in q for w in schedule_words) and (
             codes or any(w in q for w in ("no ", "avoid", "after", "before", "morning", "credits"))
@@ -380,6 +402,7 @@ class QueryPlanner:
                 capabilities=["course_lookup", "grade_distribution"],
                 subject=subject,
                 course_no=course_no,
+                requested_courses=requested_courses,
                 wants_rmp=any(w in q for w in ("rmp", "rate my professor", "rating", "rated")),
                 sort_goal=self._sort_goal(question),
             )
@@ -500,3 +523,13 @@ def _asks_missing_workload_data(q: str) -> bool:
             "how much work",
         )
     )
+
+
+def _looks_like_topic_course_recommendation(q: str) -> bool:
+    if not any(word in q for word in ("course", "courses", "class", "classes")):
+        return False
+    if re.search(r"\b[A-Za-z]{2,5}\s*-?\s*\d{4}\b", q):
+        return False
+    if any(term in q for term in ("highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest")):
+        return False
+    return any(term in q for term in ("good", "recommend", "suggest", "about", "related to", "for"))

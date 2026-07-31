@@ -481,6 +481,7 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
             intent=intent,
             history=[m.model_dump() for m in body.history],
             user_profile=body.user_profile,
+            indexes=STATE.get("indexes"),
         )
     else:
         return handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
