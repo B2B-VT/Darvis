@@ -109,8 +109,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     # Group sections by instructor
     instructor_map: dict[str, list] = {}
     for r in rows:
-        raw_inst = r.get("instructor")
-        inst = raw_inst if isinstance(raw_inst, str) and raw_inst.strip() else "Staff"
+        inst = r.get("instructor") or "Staff"
         instructor_map.setdefault(inst, []).append(r)
 
     # ── Combined query: who's teaching + grades/RMP ───────────────────────────

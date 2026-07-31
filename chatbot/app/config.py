@@ -67,14 +67,14 @@ class Settings(BaseSettings):
     # Per-request timeout for LLM query rewriting. Caps how long we wait for Gemma
     # to expand a query before falling back to rule-based expansion. Keeps total
     # request latency bounded even on slow model days.
-    rag_rewrite_timeout_s: float = Field(default=8.0, alias="RAG_REWRITE_TIMEOUT_S")
+    rag_rewrite_timeout_s: float = Field(default=3.0, alias="RAG_REWRITE_TIMEOUT_S")
 
     # Enable full debug capture (slightly more memory per request)
     rag_debug_mode: bool = Field(default=False, alias="RAG_DEBUG_MODE")
 
     # Per-request timeout for LLM intent extraction (seconds).
     # Intent extraction is on the critical path of every /chat request.
-    rag_intent_timeout_s: float = Field(default=20.0, alias="RAG_INTENT_TIMEOUT_S")
+    rag_intent_timeout_s: float = Field(default=15.0, alias="RAG_INTENT_TIMEOUT_S")
 
     # Disable local cross-encoder reranker to save RAM on Render free tier.
     # When false, falls back to passthrough if Cohere is not configured.

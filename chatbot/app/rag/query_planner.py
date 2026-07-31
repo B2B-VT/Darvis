@@ -189,7 +189,7 @@ class QueryPlanner:
             except Exception as exc:
                 logger.warning("[planner] LLM planning failed: %s", exc)
 
-        if plan is None or (plan.confidence < 0.5 and plan.route != "general_rag"):
+        if plan is None or plan.confidence < 0.5:
             if plan is not None:
                 logger.warning(
                     "[planner] low-confidence plan (%.2f) for %r — falling back to clarification",
