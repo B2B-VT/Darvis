@@ -39,10 +39,10 @@ VALID_SORT_GOALS = {
     "largest_sample", "times_taught",
 }
 
-# Catalog fields routed through the deterministic catalog-lookup short-circuit
-# in verifier.missing_data_answer(): prerequisites/description resolve to real
-# scraped data once populated; pathways is still genuinely empty DB-wide.
-MISSING_DATA_FIELDS = {"prerequisites", "description", "pathways"}
+# Fields routed through the deterministic missing-data short-circuit in
+# verifier.missing_data_answer(). Catalog-backed fields can resolve to real
+# scraped values once populated; workload/homework is not in Darvis' data model.
+MISSING_DATA_FIELDS = {"prerequisites", "description", "pathways", "workload"}
 
 _DAY_CODES = {"M", "T", "W", "R", "F", "S", "U"}
 _DAY_NAME_TO_CODE = {

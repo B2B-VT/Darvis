@@ -16,6 +16,7 @@ from app.rag.query_planner import QueryPlanner, _repair_json
 from app.safety.entity_resolver import EntityResolver
 from app.data.indexes import DataIndexes
 from app.rag.verifier import check_plan, missing_data_answer
+from app.features.course_profile import handle_course_profile
 from app.features.natural_filter import handle_natural_filter
 from app.features.section_lookup import handle_section_lookup
 from app.features.schedule_builder import (
@@ -156,6 +157,7 @@ def test_plan_times_coerced():
 
 def test_plan_missing_data_field_validated():
     assert QueryPlan.model_validate({"missing_data_field": "prerequisites"}).missing_data_field == "prerequisites"
+    assert QueryPlan.model_validate({"missing_data_field": "workload"}).missing_data_field == "workload"
     assert QueryPlan.model_validate({"missing_data_field": "professor_salary"}).missing_data_field is None
 
 
@@ -203,6 +205,13 @@ def test_fallback_routes_greeting_without_llm(planner):
     plan = planner.plan("hi")
     assert plan.route == "general_rag"
     assert plan.needs_clarification is False
+
+
+def test_fallback_marks_homework_as_missing_workload_data(planner):
+    plan = planner.plan("Which professor gives the least homework?")
+    assert plan.route == "general_rag"
+    assert plan.missing_data_field == "workload"
+    assert plan.professor_name is None
 
 
 def test_fallback_routes_named_greeting_without_llm(planner):
@@ -373,6 +382,31 @@ def test_missing_description_honest_answer(indexes):
     assert "descriptions" in ans
 
 
+def test_missing_workload_honest_answer(indexes):
+    plan = QueryPlan(route="general_rag", missing_data_field="workload")
+    ans = missing_data_answer(plan, indexes)
+    assert "homework-load or workload data" in ans
+    assert "historical grade outcomes" in ans
+
+
+def test_main_detects_workload_question():
+    from app.main import _asks_workload_question
+
+    assert _asks_workload_question("Which professor gives the least homework?")
+    assert _asks_workload_question("Who has the lightest workload for CS 2114?")
+    assert not _asks_workload_question("Which professor has the highest A rate?")
+
+
+def test_homework_is_not_fuzzy_resolved_to_homer():
+    instructors = pd.DataFrame([{"name": "Matt Homer"}])
+    resolver = EntityResolver(None, None, instructors_df=instructors)
+    resolved = resolver.resolve_professor_ex("homework")
+    assert resolved.value == "homework"
+    assert resolved.confidence == 0.0
+    prof, _ = resolver.resolve_question_entities("Which professor gives the least homework?")
+    assert prof is None
+
+
 def test_populated_prereqs_answer():
     # Once catalog.vt.edu data is scraped and imported, the same missing_data_field
     # plan should answer from the real value instead of claiming it's absent.
@@ -505,6 +539,31 @@ def test_section_lookup_combined_answer_is_deterministic(grades_df, sections_df,
     assert tables
     assert charts == []
     assert metadata["section_count"] == 1
+
+
+class _HallucinatingCourseLLM:
+    def answer(self, *args, **kwargs):
+        return "Darvis doesn't have grade-outcome data for any professor teaching CS 1114."
+
+
+def test_course_profile_uses_structured_rows_over_llm_hallucination(grades_df, sections_df, indexes):
+    answer, tables, charts, metadata = handle_course_profile(
+        "tell me about CS 1114",
+        grades_df,
+        _HallucinatingCourseLLM(),
+        vector_store=None,
+        min_students=1,
+        top_n=5,
+        use_recency=False,
+        sections_df=sections_df,
+        indexes=indexes,
+    )
+
+    assert "doesn't have grade-outcome data" not in answer
+    assert "CS 1114" in answer
+    assert "Mohammed Hamouda" in answer
+    assert tables[0]["title"] == "Professor Summary"
+    assert metadata == {"subject": "CS", "course_no": "1114"}
 
 
 def test_clarification_only_without_entities(indexes):

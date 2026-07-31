@@ -67,7 +67,7 @@ algorithms or data structures and algorithms = CS 3114; intro data structures = 
 SORT GOAL — pick the most fitting:
 "highest_gpa" (easiest, best grades, easy A, chill), "lowest_gpa" (hardest, brutal, avoid), "highest_f_rate", "lowest_f_rate", "highest_a_rate", "most_withdraws", "lowest_withdraws", "largest_sample", "times_taught"
 
-CATALOG FIELDS: for questions about a course's prerequisites or official catalog description, set missing_data_field to "prerequisites" or "description" (route can stay course_profile) — a deterministic lookup answers these precisely from catalog data. Darvis has NO VT Pathways data — for Pathways questions set missing_data_field to "pathways".
+MISSING / UNSUPPORTED FIELDS: for questions about a course's prerequisites or official catalog description, set missing_data_field to "prerequisites" or "description" (route can stay course_profile) — a deterministic lookup answers these precisely from catalog data. Darvis has NO VT Pathways data — for Pathways questions set missing_data_field to "pathways". Darvis has NO homework-load/workload data — for homework, workload, amount of work, or least/most homework questions set missing_data_field to "workload" and do not invent professor names.
 
 IMPORTANT RULES:
 - professor_name must be a PERSON'S name. NEVER put adjectives (hardest, easiest, best, chill) there — those belong in sort_goal.
@@ -325,6 +325,16 @@ class QueryPlanner:
                 ),
             )
 
+        if _asks_missing_workload_data(q):
+            return QueryPlan(
+                route="general_rag",
+                confidence=0.82,
+                capabilities=["unsupported_or_missing_data"],
+                subject=subject,
+                course_no=course_no,
+                missing_data_field="workload",
+            )
+
         schedule_words = ("schedule", "build", "create", "make", "plan my classes", "classes")
         if any(w in q for w in schedule_words) and (
             codes or any(w in q for w in ("no ", "avoid", "after", "before", "morning", "credits"))
@@ -476,3 +486,17 @@ def _needs_ambiguous_clarification(q: str) -> bool:
         "is this schedule good",
     }
     return q.rstrip("?.!") in ambiguous
+
+
+def _asks_missing_workload_data(q: str) -> bool:
+    return any(
+        phrase in q
+        for phrase in (
+            "homework",
+            "workload",
+            "least work",
+            "most work",
+            "amount of work",
+            "how much work",
+        )
+    )

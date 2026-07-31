@@ -511,6 +511,21 @@ def _missing_user_major_context(question: str, intent, body: ChatRequest) -> boo
     return not major_query or major_query in {"my", "my major", "required", "required courses", "courses"}
 
 
+def _asks_workload_question(question: str) -> bool:
+    q = question.lower()
+    return any(
+        phrase in q
+        for phrase in (
+            "homework",
+            "workload",
+            "least work",
+            "most work",
+            "amount of work",
+            "how much work",
+        )
+    )
+
+
 def _clarification_response(answer: str, route: str, warnings: list[str], timings: dict[str, int], reason: str) -> ChatResponse:
     return ChatResponse(
         answer=answer,
@@ -570,6 +585,12 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
     planner = STATE.get("planner")
     intent = planner.plan(question, history=body.history) if planner else None
     timings["plan_ms"] = int((time.time() - t0) * 1000)
+
+    if intent is not None and _asks_workload_question(question):
+        intent.missing_data_field = "workload"
+        intent.professor_name = None
+        if not (intent.subject and intent.course_no):
+            intent.route = "general_rag"
 
     # ── Stage 2: resolve entities ──────────────────────────────────────────────
     t0 = time.time()

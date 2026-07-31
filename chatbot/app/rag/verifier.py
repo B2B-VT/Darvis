@@ -43,6 +43,10 @@ _MISSING_FIELD_ANSWERS = {
         "Check the VT Pathways site or the official catalog for Pathways designations — "
         "I can help with grade outcomes and scheduling for it instead."
     ),
+    "workload": (
+        "Darvis doesn't currently have homework-load or workload data{course_clause}. "
+        "I can compare historical grade outcomes, professor ratings when available, and Fall 2026 sections instead."
+    ),
 }
 
 
@@ -75,6 +79,12 @@ def missing_data_answer(plan, indexes=None) -> str | None:
     course_no = getattr(plan, "course_no", None)
 
     still_empty = indexes is None or fld in getattr(indexes, "empty_course_fields", set())
+    if fld == "workload":
+        course_clause = ""
+        if subject and course_no:
+            course_clause = f" for {subject} {course_no}"
+        return _MISSING_FIELD_ANSWERS[fld].format(course_clause=course_clause)
+
     if still_empty:
         if subject and course_no:
             course = f"{subject} {course_no}"

@@ -17,6 +17,11 @@ def _is_rmp_question(question: str) -> bool:
     return any(kw in q for kw in _RMP_KEYWORDS)
 
 
+def _is_about_course_question(question: str) -> bool:
+    q = question.lower()
+    return any(phrase in q for phrase in ("tell me about", "what is", "what's", "describe", "about "))
+
+
 def _enrich_with_rmp(result: pd.DataFrame, rmp_df: pd.DataFrame | None) -> pd.DataFrame:
     """Join RMP ratings onto the instructor result rows by last-name lookup."""
     if rmp_df is None or rmp_df.empty:
@@ -186,8 +191,14 @@ def handle_course_profile(
     # optional LLM-judge call without changing the answer. The scraped catalog
     # description is cheap (already in memory) and lets "what is X about"
     # questions get answered instead of just grade/instructor comparisons.
-    prompt = build_answer_prompt(question, "course_profile", table_text, description, intent=intent)
-    answer = llm.answer(prompt, max_tokens=700, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+    # Keep the natural-language summary deterministic when structured rows exist.
+    # The LLM occasionally contradicted the table ("no grade data") even while the
+    # response included a populated Professor Summary. The table is the source of
+    # truth, so data-present course summaries should be rendered from it directly.
+    answer = course_answer(question, result_display, subject, course_no, sort_ascending=sort_ascending)
+    if description and _is_about_course_question(question):
+        course_label = f"{subject} {course_no}".strip() if subject else course_no
+        answer = f"{course_label}: {description} {answer}"
 
     charts = [
         bar_chart(f"Average GPA by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Avg GPA", ascending=True), "Avg GPA", "Instructor", "Recency-weighted when requested."),

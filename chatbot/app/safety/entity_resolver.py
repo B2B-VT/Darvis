@@ -40,6 +40,11 @@ except ImportError:                      # difflib fallback — no hard dependen
 _PROF_CUTOFF = 0.75    # minimum confidence for professor fuzzy matches
 _TITLE_CUTOFF = 0.80   # minimum confidence for course-title matches
 
+_NON_PERSON_TOKENS = {
+    "homework", "workload", "work", "load", "least", "most", "gives",
+    "give", "given", "assigns", "assignment", "assignments",
+}
+
 # Stable domain aliases only — official subject names, not slang.
 SUBJECT_ALIASES = {
     "computer science": "CS", "comp sci": "CS", "compsci": "CS",
@@ -178,6 +183,8 @@ class EntityResolver:
 
         raw = name.strip()
         nname = _norm(raw)
+        if nname in _NON_PERSON_TOKENS:
+            return ResolvedEntity(value=raw, confidence=0.0)
 
         # 1. Exact normalized full-name match
         exact = self._by_norm_name.get(nname)
@@ -342,6 +349,8 @@ class EntityResolver:
         "better", "worse", "brutal", "difficult", "top", "great",
         "terrible", "awful", "strongest", "weakest", "teaching", "teaches",
         "semester", "fall", "spring", "should", "schedule", "classes",
+        "homework", "workload", "work", "least", "most", "gives", "give",
+        "assigns", "assignment", "assignments",
     }
 
     def resolve_question_entities(self, question: str) -> tuple[str | None, str | None]:
