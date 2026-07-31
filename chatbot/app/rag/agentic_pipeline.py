@@ -68,7 +68,9 @@ class AgenticRAGPipeline:
         )
 
         # Build entity filter from the planner's extracted course code.
-        # Applied on attempts 0 and 1; dropped on attempt 2 (go-broad retry).
+        # Keep it through every attempt for exact course-code queries: broadening
+        # the final retry can return related-but-wrong courses, which is worse
+        # than returning no RAG context.
         _entity_filter: dict | None = None
         if plan.mentioned_course:
             parts = plan.mentioned_course.split()
@@ -79,14 +81,13 @@ class AgenticRAGPipeline:
         best_quality = -1.0
 
         for attempt in range(_MAX_ATTEMPTS):
-            entity_filter = _entity_filter if attempt < _MAX_ATTEMPTS - 1 else None
             context, results = self._base.retrieve_full(
                 plan.primary_query,
                 n_results=n_results,
                 source_filter=plan.source_filter,
                 alpha=plan.alpha,
                 route=route,
-                entity_filter=entity_filter,
+                entity_filter=_entity_filter,
             )
 
             top_rerank = max(

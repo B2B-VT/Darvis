@@ -340,6 +340,9 @@ def retrieval_debug(request: Request, body: ChatRequest):
       - reranked selection with rerank scores
       - per-stage timing breakdown
     """
+    if not settings.rag_debug_mode:
+        raise HTTPException(status_code=404, detail="Not found.")
+
     vector_store = STATE.get("vector_store")
     if vector_store is None:
         raise HTTPException(status_code=503, detail="Backend not initialized.")

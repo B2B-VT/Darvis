@@ -67,10 +67,6 @@ def handle_natural_filter(
             answer = llm.answer(prompt, history=history)
             if answer:
                 return answer, [], [], {}
-        # No grade data and no RAG context — let Gemma answer from its own knowledge
-        answer = llm.answer(f"Student's question: {question}", history=history)
-        if answer:
-            return answer, [], [], {}
         return (
             "Darvis doesn't have grade data for that combination yet. Try broadening "
             "your filter — for example, remove a GPA or enrollment minimum — or ask "

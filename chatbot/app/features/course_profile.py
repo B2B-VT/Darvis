@@ -141,9 +141,13 @@ def handle_course_profile(
         result = result_all.head(top_n)
 
     if result.empty:
-        retrieved = vector_store.query(question, n_results=6) or description
-        prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
-        answer = llm.answer(prompt, history=history) or course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
+        if description:
+            answer = (
+                f"{subject} {course_no} — {description} "
+                "Darvis doesn't have enough grade data for that course with the current filters."
+            )
+        else:
+            answer = course_answer(question, result, subject, course_no, sort_ascending=sort_ascending)
         sec_tables = _build_sections_table(sections_df, subject, course_no)
         return answer, sec_tables, [], {"subject": subject, "course_no": course_no}
 

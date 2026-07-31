@@ -7,6 +7,7 @@ import pytest
 
 from app.rag.agents.planner import QueryPlannerAgent, QueryPlan
 from app.rag.agents.critic import RetrievalCriticAgent
+from app.rag.agentic_pipeline import AgenticRAGPipeline
 from app.rag.retriever import RetrievalResult
 
 
@@ -161,3 +162,43 @@ class TestCriticLLMJudge:
         c = RetrievalCriticAgent(llm_client=llm)
         c.evaluate("q", [], self.plan, 2, 2)
         assert llm.calls == 0
+
+
+# ── Agentic pipeline entity filters ──────────────────────────────────────────
+
+class _NoResultBasePipeline:
+    def __init__(self):
+        self.calls = []
+
+    def retrieve_full(self, question, n_results=10, source_filter=None, route="unknown", alpha=None, entity_filter=None):
+        self.calls.append({
+            "question": question,
+            "source_filter": source_filter,
+            "alpha": alpha,
+            "entity_filter": entity_filter,
+        })
+        return "", []
+
+    @property
+    def last_debug_info(self):
+        return None
+
+    @property
+    def retriever(self):
+        return None
+
+    def status(self):
+        return {}
+
+
+def test_agentic_pipeline_keeps_exact_course_filter_on_all_attempts():
+    base = _NoResultBasePipeline()
+    pipeline = AgenticRAGPipeline(base)
+
+    assert pipeline.retrieve("CS 3114 grade distribution", n_results=5) == ""
+
+    assert len(base.calls) == 3
+    assert all(
+        call["entity_filter"] == {"subject": "CS", "course_number": "3114"}
+        for call in base.calls
+    )
