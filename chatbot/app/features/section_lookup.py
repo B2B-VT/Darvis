@@ -45,6 +45,18 @@ def _fmt_time(t: str) -> str:
         return t
 
 
+def _clean_text(value, default: str = "") -> str:
+    if value is None:
+        return default
+    try:
+        if pd.isna(value):
+            return default
+    except Exception:
+        pass
+    text = str(value).strip()
+    return text if text and text.lower() not in {"nan", "none"} else default
+
+
 def _last(name: str) -> str:
     """Extract last name from 'Last, First', 'First Last', or bare 'Last'."""
     n = (name or "").strip()
@@ -107,15 +119,15 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     if prof_filter:
         pf = prof_filter.lower()
         filtered = [r for r in rows
-                    if pf in (r.get("instructor") or "").lower()
-                    or pf in _last(r.get("instructor") or "")]
+                    if pf in _clean_text(r.get("instructor"), "Staff").lower()
+                    or pf in _last(_clean_text(r.get("instructor"), "Staff"))]
         if filtered:
             rows = filtered
 
     # Group sections by instructor
     instructor_map: dict[str, list] = {}
     for r in rows:
-        inst = r.get("instructor") or "Staff"
+        inst = _clean_text(r.get("instructor"), "Staff")
         instructor_map.setdefault(inst, []).append(r)
 
     # ── Combined query: who's teaching + grades/RMP ───────────────────────────
@@ -137,11 +149,11 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
                 "Days":       _fmt_days(s.get("days") or []),
                 "Start":      _fmt_time(s.get("start_time")),
                 "End":        _fmt_time(s.get("end_time")),
-                "Location":   s.get("location") or "TBA",
+                "Location":   _clean_text(s.get("location"), "TBA"),
                 "Open Seats": s.get("open_seats") if s.get("open_seats") is not None else "?",
                 "Enrolled":   s.get("enrolled") or 0,
             })
-    section_rows.sort(key=lambda r: (r["Instructor"], r["Start"]))
+    section_rows.sort(key=lambda r: (str(r["Instructor"]), str(r["Start"])))
 
     _sec_cols = ["Instructor", "Days", "Start", "End", "Location", "Open Seats", "Enrolled"]
     tbl = table_spec(
@@ -179,7 +191,12 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     else:
         framing = f"The student wants to know what times {course_label} is offered in {term_label}."
 
-    instructors = sorted({r["Instructor"] for r in section_rows if r["Instructor"] != "Staff"})
+    instructors = sorted({
+        str(r["Instructor"]).strip()
+        for r in section_rows
+        if str(r.get("Instructor", "")).strip()
+        and str(r.get("Instructor", "")).strip().lower() not in {"staff", "nan", "none"}
+    })
     if is_seats:
         full = [r for r in section_rows if r["Open Seats"] == 0]
         open_rows = [r for r in section_rows if isinstance(r["Open Seats"], int) and r["Open Seats"] > 0]

@@ -172,6 +172,13 @@ def handle_major_requirements(
         query = intent.major_query
     else:
         query = _extract_major_query(question)
+
+    if not query or _is_missing_major_context(question, query):
+        return (
+            "Which major should we check? We need the major or a specific requirement list before we can identify required courses that fit your constraints.",
+            [], [], {"route": "major_requirements", "matched_major": None, "needs_clarification": True}
+        )
+
     subset = _find_major(requirements_df, query)
 
     # ── Path 1: Found structured requirements ────────────────────────────────
@@ -241,3 +248,13 @@ def handle_major_requirements(
         [], [],
         {"route": "major_requirements", "matched_major": None},
     )
+
+
+def _is_missing_major_context(question: str, query: str) -> bool:
+    q = question.lower()
+    cleaned = (query or "").strip().lower()
+    if cleaned in {"", "required", "requirement", "requirements", "can", "still", "work", "until", "courses", "classes"}:
+        return True
+    asks_required = any(phrase in q for phrase in ("required courses", "requirements", "for my major", "my major"))
+    has_explicit_major = bool(re.search(r"\b(?:for|in|major in|degree in)\s+(?:the\s+)?[a-z]{2,}(?:\s+[a-z]{2,})?", q))
+    return asks_required and not has_explicit_major and cleaned in q
