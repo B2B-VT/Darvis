@@ -146,9 +146,7 @@ def handle_professor_profile(
     prof_sections = _build_prof_sections_table(sections_df, name)
 
     if result.empty:
-        retrieved = vector_store.query(question, n_results=6)
-        prompt = build_rag_only_prompt(question, retrieved, intent=intent) if retrieved else f"Student's question: {question}"
-        answer = llm.answer(prompt, history=history) or professor_answer(question, result, name, rmp=rmp)
+        answer = professor_answer(question, result, name, rmp=rmp)
         return answer, prof_sections, [], {"professor_query": name, "rmp": rmp}
 
     table_text = result[PROF_COLS].to_string(index=False)

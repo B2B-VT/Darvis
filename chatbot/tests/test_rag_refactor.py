@@ -16,6 +16,8 @@ from app.rag.query_planner import QueryPlanner, _repair_json
 from app.safety.entity_resolver import EntityResolver
 from app.data.indexes import DataIndexes
 from app.rag.verifier import check_plan, missing_data_answer
+from app.features.natural_filter import handle_natural_filter
+from app.features.section_lookup import handle_section_lookup
 from app.features.schedule_builder import (
     parse_time_constraints, parse_excluded_days, parse_min_gpa,
     parse_min_rmp, parse_requested_courses, _conflicts,
@@ -185,15 +187,58 @@ def test_plan_multi_route_secondary():
     assert plan.secondary_routes == ["professor_profile"]
 
 
-# ── LLM-unavailable fallback (keyword routing removed) ─────────────────────────
-# The planner no longer falls back to hardcoded keyword routing when the LLM is
-# down or low-confidence — it returns a graceful clarification instead.
+# ── LLM-unavailable fallback ──────────────────────────────────────────────────
+# Planner failures should not make the whole chat surface look down. Explicit
+# prompts can still route deterministically; ambiguous prompts fall through to
+# general_rag so the normal answer path can respond.
 
-def test_fallback_returns_graceful_clarification(planner):
-    plan = planner.plan("build me a schedule with cs 1114 and math 1225 with no friday classes")
+def test_fallback_routes_ambiguous_prompt_to_general_rag(planner):
+    plan = planner.plan("which professor should I take")
     assert plan.route == "general_rag"
-    assert plan.needs_clarification is True
-    assert plan.clarifying_question
+    assert plan.needs_clarification is False
+    assert plan.clarifying_question is None
+
+
+def test_fallback_routes_greeting_without_llm(planner):
+    plan = planner.plan("hi")
+    assert plan.route == "general_rag"
+    assert plan.needs_clarification is False
+
+
+def test_fallback_routes_named_greeting_without_llm(planner):
+    plan = planner.plan("hello cyrus")
+    assert plan.route == "general_rag"
+    assert plan.needs_clarification is False
+
+
+def test_fallback_routes_explicit_schedule_without_llm(planner):
+    plan = planner.plan("build me a schedule with cs 1114 and math 1225 with no 8ams")
+    assert plan.route == "schedule_builder"
+    assert plan.time_start == "09:00"
+    assert ("CS", "1114") in plan.requested_courses
+    assert ("MATH", "1225") in plan.requested_courses
+
+
+def test_fallback_routes_explicit_course_without_llm(planner):
+    plan = planner.plan("who is the best professor for CS 3114")
+    assert plan.route == "course_profile"
+    assert plan.subject == "CS"
+    assert plan.course_no == "3114"
+
+
+def test_fallback_routes_explicit_section_lookup_without_llm(planner):
+    plan = planner.plan("who teaches CS 3114 this fall")
+    assert plan.route == "section_lookup"
+    assert plan.subject == "CS"
+    assert plan.course_no == "3114"
+
+
+def test_fallback_routes_natural_filter_without_llm(planner):
+    plan = planner.plan("which CS 3000-level electives have the highest average GPA")
+    assert plan.route == "natural_filter"
+    assert plan.subject == "CS"
+    assert plan.level_low == 3000
+    assert plan.level_high == 3999
 
 
 def test_planner_cache_returns_copies(planner):
@@ -385,6 +430,83 @@ def test_valid_course_passes_gate(indexes):
     assert gate.sufficient is True
 
 
+class _EmptyVectorStore:
+    def query(self, question, n_results=6):
+        return ""
+
+
+class _RecordingLLM:
+    def __init__(self):
+        self.calls = 0
+
+    def answer(self, prompt, history=None):
+        self.calls += 1
+        return "unsupported model answer"
+
+
+def test_natural_filter_empty_result_does_not_call_llm(grades_df):
+    plan = QueryPlan(route="natural_filter", subject="ECE", sort_goal="highest_gpa")
+    llm = _RecordingLLM()
+
+    answer, tables, charts, metadata = handle_natural_filter(
+        "Which ECE electives have the highest GPA?",
+        grades_df,
+        llm,
+        _EmptyVectorStore(),
+        top_n=5,
+        use_recency=True,
+        intent=plan,
+    )
+
+    assert "doesn't have grade data" in answer
+    assert tables == []
+    assert charts == []
+    assert metadata == {}
+    assert llm.calls == 0
+
+
+class _FailIfCalledLLM:
+    def generate(self, prompt):
+        raise AssertionError("section lookup should not call the LLM")
+
+    def answer(self, prompt, history=None):
+        raise AssertionError("section lookup should not call the LLM")
+
+
+def test_section_lookup_simple_answer_is_deterministic(grades_df, sections_df):
+    plan = QueryPlan(route="section_lookup", subject="CS", course_no="1114")
+    answer, tables, charts, metadata = handle_section_lookup(
+        "who teaches CS 1114 this fall",
+        grades_df,
+        _FailIfCalledLLM(),
+        intent=plan,
+        sections_df=sections_df,
+    )
+
+    assert "CS 1114 is taught by Mohammed Hamouda" in answer
+    assert tables
+    assert charts == []
+    assert metadata["section_count"] == 1
+
+
+def test_section_lookup_combined_answer_is_deterministic(grades_df, sections_df, instructors_df):
+    plan = QueryPlan(route="section_lookup", subject="CS", course_no="1114")
+    answer, tables, charts, metadata = handle_section_lookup(
+        "of the professors teaching CS 1114 this fall, who is best?",
+        grades_df,
+        _FailIfCalledLLM(),
+        rmp_df=instructors_df,
+        intent=plan,
+        sections_df=sections_df,
+    )
+
+    assert "Mohammed Hamouda" in answer
+    assert "GPA" in answer
+    assert tables
+    assert charts == []
+    assert metadata["section_count"] == 1
+
+
 def test_clarification_only_without_entities(indexes):
     plan = QueryPlan(needs_clarification=True, clarifying_question="Which course do you mean?")
     gate = check_plan(plan, indexes=indexes)
@@ -444,3 +566,20 @@ def test_conflict_detection():
     assert _conflicts(a, b) is True     # overlapping M
     assert _conflicts(a, c) is False    # different days
     assert _conflicts(a, d) is False    # back-to-back is not a conflict
+
+
+def test_retrieval_debug_disabled_by_default():
+    from fastapi.testclient import TestClient
+    from app import main
+
+    old_debug = main.settings.rag_debug_mode
+    main.settings.rag_debug_mode = False
+    try:
+        response = TestClient(main.app).post(
+            "/retrieval/debug",
+            json={"question": "CS 3114 grade distribution"},
+        )
+    finally:
+        main.settings.rag_debug_mode = old_debug
+
+    assert response.status_code == 404

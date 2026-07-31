@@ -1604,13 +1604,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     const timeoutId = setTimeout(() => controller.abort(), 50000);
 
     try {
+      const historyEnd = messages[botMsgIdx - 1]?.role === "user" && messages[botMsgIdx - 1]?.content === question
+        ? botMsgIdx - 1
+        : botMsgIdx;
       const payload = {
         question,
         use_recency: useRecency,
         min_students: minStudents,
         top_n: topN,
         user_profile: userProfile || null,
-        history: messages.slice(0, botMsgIdx).filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot")).slice(-8).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
+        history: messages.slice(0, historyEnd).filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot")).slice(-8).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
       };
       let streamStarted = false;
       let streamedAnswer = "";

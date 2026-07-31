@@ -7,9 +7,9 @@ Replaces both the old IntentExtractor and the hardcoded section-signal override
 that lived in main.py. The LLM reads the question (handling typos, slang, and
 abbreviations natively) and returns structured JSON; the JSON is validated
 strictly through the Pydantic QueryPlan model, repaired once if malformed. The
-LLM is the only routing logic — when it fails or returns low-confidence
-output, the planner returns a graceful clarification instead of falling back
-to hardcoded keyword routing.
+LLM planning is preferred, but network/model failures must not become a
+chat-wide outage. When the planner cannot classify safely, the request falls
+back to general_rag so the normal answer path can still respond.
 
 Plans for repeated questions are served from a bounded in-memory cache keyed on
 the normalized question, so back-to-back identical queries skip the LLM
@@ -192,15 +192,15 @@ class QueryPlanner:
         if plan is None or plan.confidence < 0.5:
             if plan is not None:
                 logger.warning(
-                    "[planner] low-confidence plan (%.2f) for %r — falling back to clarification",
+                    "[planner] low-confidence plan (%.2f) for %r — trying deterministic fallback",
                     plan.confidence, question,
                 )
             else:
                 logger.warning(
-                    "[planner] LLM planning returned no usable plan for %r — falling back to clarification",
+                    "[planner] LLM planning returned no usable plan for %r — trying deterministic fallback",
                     question,
                 )
-            plan = self._fallback_plan()
+            plan = self._deterministic_fallback_plan(question) or self._fallback_plan()
 
         self._cache[cache_key] = plan.model_copy(deep=True)
         if len(self._cache) > _CACHE_MAX:
@@ -261,16 +261,189 @@ class QueryPlanner:
 
     # ── Fallback ─────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _course_codes(question: str) -> list[tuple[str, str]]:
+        return [
+            (m.group(1).upper(), m.group(2))
+            for m in re.finditer(r"\b([A-Za-z]{2,5})\s*-?\s*(\d{4})\b(?![-\s]?level)", question)
+        ]
+
+    @staticmethod
+    def _sort_goal(question: str) -> str:
+        q = question.lower()
+        if any(w in q for w in ("hardest", "hard", "brutal", "tough", "avoid", "worst")):
+            return "lowest_gpa"
+        if any(w in q for w in ("fail", "f rate", "f-rate")):
+            return "highest_f_rate" if any(w in q for w in ("highest", "most", "worst")) else "lowest_f_rate"
+        if any(w in q for w in ("a rate", "easy a", "highest a")):
+            return "highest_a_rate"
+        return "highest_gpa"
+
+    @staticmethod
+    def _time_bounds(question: str) -> tuple[str | None, str | None]:
+        q = question.lower()
+        start, end = None, None
+        if re.search(r"\b(?:no|avoid|without|skip)\s+(?:any\s+)?8\s*ams?\b", q):
+            start = "09:00"
+        if re.search(r"\b(?:only\s+morning|morning\s+classes\s+only|mornings\s+only)\b", q):
+            end = "12:00"
+        m = re.search(r"\bafter\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b", q)
+        if m:
+            start = _coerce_simple_ampm(m)
+        m = re.search(r"\bbefore\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b", q)
+        if m:
+            end = _coerce_simple_ampm(m)
+        return start, end
+
+    def _deterministic_fallback_plan(self, question: str) -> QueryPlan | None:
+        """
+        Conservative fallback for explicit, low-ambiguity requests when the LLM
+        planner is unavailable. This intentionally covers only patterns where a
+        deterministic route is safer than asking the user to retry.
+        """
+        q = question.lower()
+        codes = self._course_codes(question)
+        requested_courses = codes
+        subject, course_no = codes[0] if codes else (None, None)
+
+        if _is_greeting_or_help(question):
+            return QueryPlan(
+                route="general_rag",
+                confidence=0.7,
+                capabilities=["general_question"],
+            )
+
+        schedule_words = ("schedule", "build", "create", "make", "plan my classes", "classes")
+        if any(w in q for w in schedule_words) and (
+            codes or any(w in q for w in ("no ", "avoid", "after", "before", "morning", "credits"))
+        ):
+            time_start, time_end = self._time_bounds(question)
+            return QueryPlan(
+                route="schedule_builder",
+                confidence=0.72,
+                capabilities=["schedule_build"],
+                requested_courses=requested_courses,
+                time_start=time_start,
+                time_end=time_end,
+                sort_goal=self._sort_goal(question),
+            )
+
+        if any(w in q for w in ("requirement", "requirements", "graduate", "graduation", "degree", "major")):
+            return QueryPlan(
+                route="major_requirements",
+                confidence=0.7,
+                capabilities=["major_requirement_lookup"],
+                major_query=_extract_major_hint(question),
+            )
+
+        if subject and course_no:
+            section_words = (
+                "who teaches", "who is teaching", "teaching", "taught by",
+                "time", "when", "where", "building", "location", "seat",
+                "seats", "open", "full", "semester", "fall", "spring",
+            )
+            if any(w in q for w in section_words):
+                return QueryPlan(
+                    route="section_lookup",
+                    confidence=0.78,
+                    capabilities=["section_lookup"],
+                    subject=subject,
+                    course_no=course_no,
+                    sort_goal=self._sort_goal(question),
+                    open_seats_only=any(w in q for w in ("open", "available", "seat", "seats")),
+                )
+            return QueryPlan(
+                route="course_profile",
+                confidence=0.78,
+                capabilities=["course_lookup", "grade_distribution"],
+                subject=subject,
+                course_no=course_no,
+                wants_rmp=any(w in q for w in ("rmp", "rate my professor", "rating", "rated")),
+                sort_goal=self._sort_goal(question),
+            )
+
+        if any(w in q for w in ("highest", "lowest", "easiest", "hardest", "best", "worst", "elective", "gpa")):
+            subject_filter = _extract_subject_hint(question)
+            level_low, level_high = _extract_level_hint(question)
+            return QueryPlan(
+                route="natural_filter",
+                confidence=0.68,
+                capabilities=["natural_language_filter"],
+                subject=subject_filter,
+                level_low=level_low,
+                level_high=level_high,
+                sort_goal=self._sort_goal(question),
+            )
+
+        return None
+
     def _fallback_plan(self) -> QueryPlan:
         """
-        LLM planning is the only routing logic — when it fails, times out, or
-        returns low-confidence output, do not silently route through hardcoded
-        keyword logic. Ask the student to retry instead.
+        Last-resort planner fallback.
+
+        This must not surface as a transient error. A failed planner call only
+        means route extraction was unavailable, not that chat itself is down.
+        Let the general handler answer broad/ordinary prompts and reserve
+        clarification for explicit planner output that identifies missing
+        entities.
         """
         return QueryPlan(
             route="general_rag",
-            needs_clarification=True,
-            clarifying_question=(
-                "I'm having trouble right now. Try your question again in a moment."
-            ),
+            confidence=0.45,
+            capabilities=["general_question"],
+            needs_clarification=False,
+            clarifying_question=None,
         )
+
+
+def _coerce_simple_ampm(match) -> str | None:
+    h = int(match.group(1))
+    minute = int(match.group(2) or 0)
+    ampm = match.group(3)
+    if ampm == "pm" and h != 12:
+        h += 12
+    elif ampm == "am" and h == 12:
+        h = 0
+    if 0 <= h <= 23:
+        return f"{h:02d}:{minute:02d}"
+    return None
+
+
+def _extract_subject_hint(question: str) -> str | None:
+    m = re.search(r"\b([A-Za-z]{2,5})\s+[1-5]000[-\s]?level\b", question, re.I)
+    if m:
+        return m.group(1).upper()
+    m = re.search(r"\b([A-Za-z]{2,5})\s+(?:course|courses|class|classes|elective|electives|professor|professors)\b", question)
+    if not m:
+        return None
+    code = m.group(1).upper()
+    if code in {"LEVEL", "COURSE", "CLASS", "ELECTIVE", "PROF", "PROFS"}:
+        return None
+    return code
+
+
+def _extract_level_hint(question: str) -> tuple[int | None, int | None]:
+    m = re.search(r"\b([1-5])000[-\s]?level\b", question.lower())
+    if not m:
+        return None, None
+    level = int(m.group(1))
+    return level * 1000, level * 1000 + 999
+
+
+def _extract_major_hint(question: str) -> str | None:
+    m = re.search(r"\b(?:requirements?|degree|major|graduate|graduation)\s+(?:for|in|with)?\s*(?:the\s+)?(.+?)(?:\?|$)", question, re.I)
+    if not m:
+        return None
+    raw = re.sub(r"\b(major|degree|requirements?|courses?|classes?)\b", " ", m.group(1), flags=re.I)
+    raw = re.sub(r"\s+", " ", raw).strip(" ?.,!")
+    return raw or None
+
+
+def _is_greeting_or_help(question: str) -> bool:
+    q = re.sub(r"[^\w\s]", " ", question.lower())
+    q = re.sub(r"\s+", " ", q).strip()
+    if q in {"hi", "hello", "hey", "yo", "sup", "thanks", "thank you"}:
+        return True
+    if q in {"how are you", "what can you do", "help", "help me"}:
+        return True
+    return bool(re.match(r"^(hi|hello|hey|yo|sup)\s+(cyrus|darvis)\b", q))

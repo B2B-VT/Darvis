@@ -16,10 +16,15 @@ from app.config import get_settings
 
 logger = logging.getLogger("darvis.section_lookup")
 
-CURRENT_TERM = "202609"
-TERM_LABEL   = "Fall 2026"
-
 _DAY_MAP = {"M": "Mon", "T": "Tue", "W": "Wed", "R": "Thu", "F": "Fri"}
+
+
+def _current_term() -> str:
+    return get_settings().current_term
+
+
+def _term_label() -> str:
+    return get_settings().current_term_label
 
 
 def _fmt_days(days: list) -> str:
@@ -54,6 +59,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     from app.utils.charts import table_spec
 
     settings    = get_settings()
+    term_label  = settings.current_term_label
     subject     = (getattr(intent, "subject", None) or "CS").upper()
     course_no   = getattr(intent, "course_no", None)
     prof_filter = getattr(intent, "professor_name", None)
@@ -79,7 +85,7 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
             client = create_client(settings.supabase_url, settings.supabase_key)
             q = (client.table("sections")
                  .select("crn,subject,course_number,instructor,days,start_time,end_time,location,seats,enrolled,open_seats")
-                 .eq("term", CURRENT_TERM)
+                 .eq("term", settings.current_term)
                  .eq("subject", subject))
             if course_no:
                 q = q.eq("course_number", str(course_no))
@@ -87,13 +93,13 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
         except Exception as e:
             logger.error("section_lookup DB error: %s", e)
             return (
-                f"Couldn't retrieve {TERM_LABEL} sections right now — try the Schedule page to browse directly.",
+                f"Couldn't retrieve {term_label} sections right now — try the Schedule page to browse directly.",
                 [], [], {}
             )
 
     if not rows:
         return (
-            f"No {TERM_LABEL} sections found for {course_label}.",
+            f"No {term_label} sections found for {course_label}.",
             [], [], {}
         )
 
@@ -139,13 +145,13 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
 
     _sec_cols = ["Instructor", "Days", "Start", "End", "Location", "Open Seats", "Enrolled"]
     tbl = table_spec(
-        f"{course_label} — {TERM_LABEL} Sections",
+        f"{course_label} — {term_label} Sections",
         pd.DataFrame(section_rows)[_sec_cols],
         _sec_cols,
     )
 
     table_text = (
-        f"{course_label} sections in {TERM_LABEL}:\n"
+        f"{course_label} sections in {term_label}:\n"
         "Instructor | Days | Start | End | Location | Open Seats | Enrolled\n"
         + "\n".join(
             f"{r['Instructor']} | {r['Days']} | {r['Start']} | {r['End']} | "
@@ -160,43 +166,42 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     is_location = any(w in q_low for w in ["where", "building", "location", "held", "meets"])
 
     if prof_filter:
-        framing = f"The student wants to know when {prof_filter} teaches {course_label} in {TERM_LABEL}."
+        framing = f"The student wants to know when {prof_filter} teaches {course_label} in {term_label}."
     elif is_seats:
         framing = (
-            f"The student wants to know about seat availability for {course_label} in {TERM_LABEL}. "
+            f"The student wants to know about seat availability for {course_label} in {term_label}. "
             f"For each section report the number of open seats and flag any with 0 open seats as full. Be specific with numbers."
         )
     elif is_location:
-        framing = f"The student wants to know where {course_label} is held in {TERM_LABEL}. List the building/room for each section."
+        framing = f"The student wants to know where {course_label} is held in {term_label}. List the building/room for each section."
     elif is_who:
-        framing = f"The student wants to know who is teaching {course_label} in {TERM_LABEL}. Name the instructors and their scheduled times."
+        framing = f"The student wants to know who is teaching {course_label} in {term_label}. Name the instructors and their scheduled times."
     else:
-        framing = f"The student wants to know what times {course_label} is offered in {TERM_LABEL}."
+        framing = f"The student wants to know what times {course_label} is offered in {term_label}."
 
-    prompt = (
-        f"Section data:\n{table_text}\n\n"
-        f"Student context: {framing} Answer directly in 2-3 sentences. No markdown.\n\n"
-        f"Student's question: {question}"
-    )
-
-    answer = None
-    if llm:
-        try:
-            answer = llm.generate(prompt)
-        except Exception:
-            pass
-
-    if not answer:
-        instructors = sorted({r["Instructor"] for r in section_rows if r["Instructor"] != "Staff"})
-        if is_who or not is_time:
-            answer = (
-                f"{course_label} is taught by {', '.join(instructors)} in {TERM_LABEL}."
-                if instructors else
-                f"{course_label} has {len(section_rows)} section(s) in {TERM_LABEL} — check the Schedule page."
-            )
+    instructors = sorted({r["Instructor"] for r in section_rows if r["Instructor"] != "Staff"})
+    if is_seats:
+        full = [r for r in section_rows if r["Open Seats"] == 0]
+        open_rows = [r for r in section_rows if isinstance(r["Open Seats"], int) and r["Open Seats"] > 0]
+        if open_rows:
+            sample = "; ".join(f"{r['Instructor']} {r['Days']} {r['Start']} has {r['Open Seats']} open" for r in open_rows[:4])
+            answer = f"{course_label} has open seats in {term_label}: {sample}."
+        elif full:
+            answer = f"All listed {course_label} sections in {term_label} are full."
         else:
-            times = [f"{r['Days']} {r['Start']}–{r['End']}" for r in section_rows[:4]]
-            answer = f"{course_label} is offered {', '.join(times)} in {TERM_LABEL}."
+            answer = f"{course_label} has {len(section_rows)} section(s) in {term_label}, but open-seat counts are unavailable."
+    elif is_location:
+        locs = "; ".join(f"{r['Instructor']} {r['Days']} {r['Start']} in {r['Location']}" for r in section_rows[:5])
+        answer = f"{course_label} meets in {term_label} at these locations: {locs}."
+    elif is_who or not is_time:
+        answer = (
+            f"{course_label} is taught by {', '.join(instructors)} in {term_label}."
+            if instructors else
+            f"{course_label} has {len(section_rows)} section(s) in {term_label} — check the Schedule page."
+        )
+    else:
+        times = [f"{r['Days']} {r['Start']}–{r['End']}" for r in section_rows[:4]]
+        answer = f"{course_label} is offered {', '.join(times)} in {term_label}."
 
     return answer, [tbl], [], {"section_count": len(rows)}
 
@@ -208,7 +213,7 @@ def _professor_sections(prof_filter: str, indexes, table_spec):
     prof_sections = indexes.sections_by_instructor.get(last, [])
     if not prof_sections:
         return (
-            f"I couldn't find any {TERM_LABEL} sections taught by {prof_filter}.",
+            f"I couldn't find any {_term_label()} sections taught by {prof_filter}.",
             [], [], {}
         )
 
@@ -226,19 +231,20 @@ def _professor_sections(prof_filter: str, indexes, table_spec):
 
     _cols = ["Course", "Days", "Start", "End", "Location", "Open Seats"]
     tbl = table_spec(
-        f"{prof_filter} — {TERM_LABEL} Sections",
+        f"{prof_filter} — {_term_label()} Sections",
         pd.DataFrame(rows)[_cols],
         _cols,
     )
 
     courses = sorted({r["Course"] for r in rows})
-    answer = f"{prof_filter} is teaching {', '.join(courses)} in {TERM_LABEL}."
+    answer = f"{prof_filter} is teaching {', '.join(courses)} in {_term_label()}."
     return answer, [tbl], [], {"section_count": len(prof_sections)}
 
 
 def _combined(question, course_label, subject, course_no, instructor_map, df, rmp_df, llm):
     """Cross-reference section instructors with grades DF + RMP."""
     from app.utils.charts import table_spec
+    term_label = _term_label()
 
     # Filter grades DF to this specific course
     mask = pd.Series([True] * len(df), index=df.index)
@@ -305,50 +311,21 @@ def _combined(question, course_label, subject, course_no, instructor_map, df, rm
         "RMP":        r["RMP"] if r["RMP"] is not None else "No data",
     } for r in rows_out])
     tbl = table_spec(
-        f"{course_label} — {TERM_LABEL} Instructors: Grades & RMP",
+        f"{course_label} — {term_label} Instructors: Grades & RMP",
         _comb_df,
         _comb_cols,
     )
 
-    table_text = (
-        f"{course_label} instructors teaching in {TERM_LABEL} with grade & RMP data:\n"
-        "Instructor | Times | Avg GPA | A Rate | Students | RMP\n"
-        + "\n".join(
-            f"{r['Instructor']} | {r['Times']} | "
-            f"{r['GPA'] or 'no data'} | {r['A_str'].lower()} | "
-            f"{r['Students'] or 'no data'} | {r['RMP'] or 'no data'}"
-            for r in rows_out
+    best = next((r for r in rows_out if r["GPA"] is not None), None)
+    if best:
+        rmp_part = f" and RMP {float(best['RMP']):.1f}/5" if best["RMP"] is not None and pd.notna(best["RMP"]) else ""
+        answer = (
+            f"Of the professors teaching {course_label} in {term_label}, "
+            f"{best['Instructor']} has the strongest grade data with a {best['GPA']} GPA"
+            f"{rmp_part}; scheduled times include {best['Times']}."
         )
-    )
-
-    framing = (
-        f"The student wants to know which professor teaching {course_label} in {TERM_LABEL} "
-        f"has the best combination of grade outcomes and RMP score. "
-        f"Lead with the top pick and their key stats. Be direct — 2-3 sentences, no markdown."
-    )
-
-    prompt = (
-        f"Section + grade + RMP data:\n{table_text}\n\n"
-        f"Student context: {framing}\n\n"
-        f"Student's question: {question}"
-    )
-
-    answer = None
-    if llm:
-        try:
-            answer = llm.generate(prompt)
-        except Exception:
-            pass
-
-    if not answer:
-        best = next((r for r in rows_out if r["GPA"] is not None), None)
-        if best:
-            answer = (
-                f"Of the professors teaching {course_label} in {TERM_LABEL}, "
-                f"{best['Instructor']} has the strongest grade data with a {best['GPA']} GPA."
-            )
-        else:
-            names = [r["Instructor"] for r in rows_out]
-            answer = f"{course_label} in {TERM_LABEL} is taught by {', '.join(names)}. Grade comparison is in the table above."
+    else:
+        names = [r["Instructor"] for r in rows_out]
+        answer = f"{course_label} in {term_label} is taught by {', '.join(names)}. Darvis has no matching grade data for those instructors."
 
     return answer, [tbl], [], {"section_count": sum(len(s) for s in instructor_map.values())}
