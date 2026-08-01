@@ -15,15 +15,47 @@ _TOPIC_STOPWORDS = {
     "courses", "course", "classes", "class", "for", "about", "related",
     "to", "in", "on", "with", "the", "a", "an", "recommend", "recommendations",
     "suggest", "suggestions", "give", "me", "find", "show", "take",
+    # Day/time/connector words — verified live these leaked into the
+    # displayed sentence and corrupted relevance scoring on schedule/time
+    # questions ("good that fit between and monday wednesday course
+    # matches"), because they were treated as topic search terms.
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "before", "after", "between", "fit", "not", "too", "early", "and", "or",
+    "need", "has", "have", "decent", "outcomes", "this", "that", "brand",
+    "new", "morning", "evening", "mornin", "am", "pm",
 }
+
+
+def _has_time_or_day_constraint(question: str) -> bool:
+    q = question.lower()
+    return bool(re.search(
+        r"\b(before|after|between|morning|evening|mornin|monday|tuesday|wednesday|thursday|friday|"
+        r"\d{1,2}\s*(am|pm))\b",
+        q,
+    ))
 
 
 def _is_topic_course_recommendation(question: str, intent=None) -> bool:
     q = question.lower()
     asks_courses = any(word in q for word in ("course", "courses", "class", "classes"))
     broad_topic = not re.search(r"\b[A-Za-z]{2,5}\s*-?\s*\d{4}\b", question)
-    ranking_only = any(term in q for term in ("highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest"))
+    # "cooked"/"chill"/"brutal" etc. are difficulty-slang, not a topic search —
+    # verified live that "what class is least cooked" (slang for easiest/
+    # lowest-risk) fell into this topic-matching path instead of the GPA-sort
+    # path, and returned the LOWEST-GPA courses in the dataset — the opposite
+    # of what the slang means — because this path has no risk/difficulty
+    # awareness at all, only keyword-vs-description matching.
+    ranking_only = any(term in q for term in (
+        "highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest",
+        "cooked", "chill", "brutal", "easy a", "curve",
+    ))
     professor_ask = any(term in q for term in ("professor", "instructor", "who teaches"))
+    # A schedule/time-window question ("classes that fit between 1-4pm on
+    # Monday and Wednesday") isn't a topic recommendation even though it
+    # mentions "classes" — it needs section_lookup/schedule_builder's actual
+    # time data, which this handler doesn't have.
+    if _has_time_or_day_constraint(question):
+        return False
     return asks_courses and broad_topic and len(_topic_terms(question)) >= 2 and not ranking_only and not professor_ask
 
 
@@ -113,6 +145,36 @@ def _topic_course_answer(question: str, recs: pd.DataFrame) -> str:
     return " ".join(parts)
 
 
+def _time_constrained_instructors(sections_df, question: str) -> set[str] | None:
+    """
+    Returns the set of lowercase instructor last names teaching at least one
+    section within the question's stated time window, or None if the
+    question has no time constraint. handle_natural_filter previously had no
+    access to sections_df at all — verified live that time-constrained
+    questions ("which professors teach after 3 PM?", "not before 11") fell
+    through to a false "Darvis doesn't have that data" claim even though
+    sections.start_time is fully populated (10,663 Fall 2026 rows).
+    """
+    from app.features.schedule_builder import parse_time_constraints
+
+    q = question.lower()
+    if not re.search(r"\b(before|after|between|morning|evening|\d{1,2}\s*(am|pm))\b", q):
+        return None
+    if sections_df is None or sections_df.empty:
+        return set()
+    start_limit, end_limit = parse_time_constraints(question)
+    if (start_limit, end_limit) == ("07:00", "22:00"):
+        return None  # no actual time constraint detected despite the keyword hit
+    sdf = sections_df
+    sdf = sdf[sdf["start_time"].notna() & sdf["end_time"].notna()]
+    sdf = sdf[(sdf["start_time"] >= start_limit) & (sdf["end_time"] <= end_limit)]
+    return {
+        str(n).strip().split()[-1].lower()
+        for n in sdf["instructor"].dropna()
+        if str(n).strip() and str(n).strip().upper() not in ("STAFF", "TBA")
+    }
+
+
 def handle_natural_filter(
     question: str,
     df: pd.DataFrame,
@@ -124,6 +186,7 @@ def handle_natural_filter(
     history: list | None = None,
     user_profile: dict | None = None,
     indexes=None,
+    sections_df=None,
 ):
     settings = get_settings()
 
@@ -176,7 +239,22 @@ def handle_natural_filter(
         wants_professors=wants_professors,
     )
 
+    qualifying_instructors = _time_constrained_instructors(sections_df, question)
+    if qualifying_instructors is not None and "Instructor" in result.columns:
+        if not qualifying_instructors:
+            return (
+                "I couldn't check Fall 2026 section times right now — try the Schedule page directly."
+            ), [], [], {}
+        result = result[
+            result["Instructor"].astype(str).str.strip().str.split().str[-1].str.lower().isin(qualifying_instructors)
+        ]
+
     if result.empty:
+        if qualifying_instructors is not None:
+            return (
+                "None of the instructors matching your other criteria have a Fall 2026 section "
+                "in that time window. Try relaxing the time constraint or checking the Schedule page."
+            ), [], [], {}
         retrieved = vector_store.query(question, n_results=6)
         if retrieved:
             prompt = build_answer_prompt(question, "natural_filter", "", retrieved)

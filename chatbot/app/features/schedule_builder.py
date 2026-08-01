@@ -100,6 +100,15 @@ def _pad_time(t: str) -> str:
     return t
 
 
+def _time_to_minutes(t: str | None) -> int:
+    """'HH:MM' -> minutes since midnight. Missing/unparseable defaults to noon."""
+    try:
+        h, m = (int(x) for x in (t or "12:00")[:5].split(":"))
+        return h * 60 + m
+    except (ValueError, TypeError):
+        return 12 * 60
+
+
 def _fmt_time_12h(t: str) -> str:
     """Convert 'HH:MM' or 'H:MM' to '12-hour AM/PM' for display."""
     if not t:
@@ -206,6 +215,41 @@ def parse_time_constraints(question: str) -> tuple[str, str]:
     return start, end
 
 
+_STATED_SECTION_RE = re.compile(
+    r"\b([A-Za-z]{2,5})\s*(\d{4})\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([MTWRFSUmtwrfsu]{1,5})\b"
+)
+_DEFAULT_CLASS_MINUTES = 50  # VT's standard MWF class length; used when the
+                             # question states a start time but no end time.
+
+
+def parse_stated_sections(question: str) -> list[dict]:
+    """
+    "CS 1114 at 9:30 MWF and MATH 1225 at 9:00 MWF" states EXACT sections to
+    validate for conflicts — a fundamentally different request than "build me
+    a schedule". Verified live: without this check, handle_schedule_builder
+    silently ignored the user's stated times/days entirely and substituted
+    its own different section picks, never answering the conflict question
+    that was actually asked. AM/PM defaults to AM when omitted (typical for
+    daytime class-time phrasing with no marker); end time is estimated using
+    the standard 50-minute class length since the question gives no duration.
+    """
+    results = []
+    for m in _STATED_SECTION_RE.finditer(question):
+        subj, num, hour, minute, ampm, days = m.groups()
+        start = _to_24h(hour, minute, ampm or "am")
+        h, mi = (int(x) for x in start.split(":"))
+        total = h * 60 + mi + _DEFAULT_CLASS_MINUTES
+        end = f"{(total // 60) % 24:02d}:{total % 60:02d}"
+        results.append({
+            "subject": subj.upper(),
+            "course_number": num,
+            "start_time": start,
+            "end_time": end,
+            "days": [d.upper() for d in days],
+        })
+    return results
+
+
 # ── Course parsing ─────────────────────────────────────────────────────────────
 
 def parse_requested_courses(question: str) -> list[tuple[str, str]]:
@@ -273,13 +317,86 @@ def parse_subject_filter(question: str) -> str | None:
     return None
 
 
+_CATEGORY_SUBJECTS = {
+    "coding": ["CS"], "programming": ["CS"], "computer science": ["CS"],
+    "math": ["MATH", "STAT"], "mathematics": ["MATH", "STAT"],
+    "writing": ["ENGL", "COMM"], "english": ["ENGL"],
+    "science": ["BIOL", "CHEM", "PHYS", "GEOS"],
+}
+
+
+def parse_category_requirements(question: str) -> dict[str, list[str]]:
+    """
+    "one coding class, one math class, one writing class" names topic
+    categories, not exact courses — distinct from parse_requested_courses
+    (exact codes) and parse_subject_filter (restrict-to-one-subject). Returns
+    {category_name: [subject_codes]} for every category word mentioned.
+    """
+    q = question.lower()
+    return {name: subjects for name, subjects in _CATEGORY_SUBJECTS.items() if re.search(rf"\b{re.escape(name)}\b", q)}
+
+
 _DAY_NAMES = {
     "monday": "M", "tuesday": "T", "wednesday": "W",
     "thursday": "R", "friday": "F", "saturday": "S", "sunday": "U",
 }
 
 
+_DAY_ABBREVIATIONS = {
+    "mon": "M", "monday": "M",
+    "tue": "T", "tues": "T", "tuesday": "T",
+    "wed": "W", "weds": "W", "wednesday": "W",
+    "thu": "R", "thur": "R", "thurs": "R", "thursday": "R",
+    "fri": "F", "friday": "F",
+    "sat": "S", "saturday": "S",
+    "sun": "U", "sunday": "U",
+}
+_ALL_DAY_CODES = {"M", "T", "W", "R", "F", "S", "U"}
+
+
+def _parse_only_days(question: str) -> set[str] | None:
+    """
+    "I want X, Y, Z on Tue/Thu only" (or "only on Tue/Thu", "MWF only") names
+    an INCLUSIVE day set — every other day is implicitly excluded. Handles
+    abbreviated ("tue", "thu") and compact multi-letter ("mwf", "tth") forms.
+    Returns the set of day codes to exclude (complement of the named days),
+    or None if no "only" constraint is present.
+    """
+    q = question.lower()
+    day_word = r"(?:" + "|".join(sorted(_DAY_ABBREVIATIONS, key=len, reverse=True)) + r")"
+    # Separator between day names: punctuation ("/", ",", "&", optionally
+    # followed by "and") OR bare "and" ("Monday and Wednesday" has no comma).
+    day_sep = r"(?:\s*[/,&]\s*(?:and\s+)?|\s+and\s+)"
+    day_list_pattern = rf"{day_word}(?:{day_sep}{day_word})*"
+
+    m = re.search(rf"\bon\s+({day_list_pattern})\s+only\b", q)
+    if not m:
+        m = re.search(rf"\bonly\s+on\s+({day_list_pattern})\b", q)
+    if not m:
+        m = re.search(rf"\b({day_list_pattern})\s+only\b", q)
+    if m:
+        named = set()
+        for tok in re.findall(day_word, m.group(1)):
+            named.add(_DAY_ABBREVIATIONS[tok])
+        if named:
+            return _ALL_DAY_CODES - named
+
+    # Compact form: "MWF only", "TTh only" — a single token of concatenated
+    # single-letter day codes (M/T/W/R/F/S/U; "Th" normalizes to R).
+    compact = re.search(r"\b([mtwrfsu]{2,7})\s+only\b", q.replace("th", "r"))
+    if compact:
+        named = {c.upper() for c in compact.group(1) if c.upper() in _ALL_DAY_CODES}
+        if named:
+            return _ALL_DAY_CODES - named
+
+    return None
+
+
 def parse_excluded_days(question: str) -> set[str]:
+    only_days = _parse_only_days(question)
+    if only_days is not None:
+        return only_days
+
     q = question.lower()
     excluded: set[str] = set()
     for name, code in _DAY_NAMES.items():
@@ -369,6 +486,30 @@ def handle_schedule_builder(
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
 
+    # "Can I take X at 9:30 MWF and Y at 9:00 MWF?" asks whether two SPECIFIC,
+    # user-stated sections conflict — not a request to build a fresh schedule.
+    # Handle this separately before any of the normal building logic below.
+    stated = parse_stated_sections(question)
+    if len(stated) >= 2:
+        conflicts = [
+            (a, b) for i, a in enumerate(stated) for b in stated[i + 1:] if _conflicts(a, b)
+        ]
+        labels = ", ".join(f"{s['subject']} {s['course_number']} ({','.join(s['days'])} {s['start_time']})" for s in stated)
+        if conflicts:
+            pair = conflicts[0]
+            answer = (
+                f"No — {pair[0]['subject']} {pair[0]['course_number']} and {pair[1]['subject']} {pair[1]['course_number']} "
+                f"overlap on {'/'.join(sorted(set(pair[0]['days']) & set(pair[1]['days'])))}, based on the times you gave "
+                f"({labels}) and a standard {_DEFAULT_CLASS_MINUTES}-minute class length. "
+                "Double-check the exact section times on the Schedule page — I'm estimating end times since you only gave start times."
+            )
+        else:
+            answer = (
+                f"Yes — based on the times you gave ({labels}) and a standard {_DEFAULT_CLASS_MINUTES}-minute class length, "
+                "these don't overlap. Double-check the exact section end times on the Schedule page since I'm estimating them."
+            )
+        return answer, [], [], {"stated_section_check": True}
+
     # Use LLM-extracted values when available, fall back to regex
     if intent is not None and (intent.time_start or intent.time_end):
         start_limit = intent.time_start or "07:00"
@@ -376,10 +517,16 @@ def handle_schedule_builder(
     else:
         start_limit, end_limit = parse_time_constraints(question)
 
-    if intent is not None and intent.requested_courses:
-        requested_courses = intent.requested_courses
-    else:
-        requested_courses = parse_requested_courses(question)
+    # Union the LLM's extraction with the regex fallback rather than an
+    # either/or choice — verified live that for concatenated/typo'd phrasing
+    # ("chem1035 n engl1106"), the LLM extracted only ONE of the two course
+    # codes even though the regex fallback correctly finds both; trusting
+    # intent.requested_courses alone silently dropped the second course from
+    # the entire request with no explanation.
+    llm_courses = list(intent.requested_courses) if intent is not None and intent.requested_courses else []
+    regex_courses = parse_requested_courses(question)
+    seen_pairs = {(s.upper(), n) for s, n in llm_courses}
+    requested_courses = llm_courses + [c for c in regex_courses if (c[0].upper(), c[1]) not in seen_pairs]
 
     # Subject restriction: use LLM-extracted subject_filter, then regex, then None
     if intent is not None and intent.subject_filter:
@@ -510,7 +657,7 @@ def handle_schedule_builder(
     q_low = question.lower()
     wants_grad = any(w in q_low for w in ["grad", "graduate", "master", "phd", "5000-level"])
     wants_easy = sort_goal == "highest_gpa" or any(
-        w in q_low for w in ["easiest", "easy", "best grades", "highest gpa"]
+        w in q_low for w in ["easiest", "easy", "best grades", "highest gpa", "chill", "relaxed", "laid back"]
     )
     wants_hard = sort_goal == "lowest_gpa" or any(
         w in q_low for w in ["hardest", "tough", "brutal", "lowest gpa"]
@@ -693,12 +840,42 @@ def handle_schedule_builder(
         rmp = inst_rmp.get(_last(s.get("instructor") or ""))
         rmp_score = -(rmp or 0.0) if (wants_easy and rmp) else 0.0
 
+        # Tier 3c: prefer later start times for "easiest"/"chillest" framing —
+        # verified live that "easiest"/"chillest" schedule requests still
+        # included 9-9:30 AM classes despite that framing implying fewer
+        # early classes. Mild tiebreaker after GPA/RMP, not an override.
+        # Always a plain int (0 when not wants_easy) so tuple comparison
+        # never mixes types.
+        early_penalty = -_time_to_minutes(s.get("start_time")) if wants_easy else 0
+
         # Tier 4: open seats
         seats_open = (s.get("seats") or 0) - (s.get("enrolled") or 0)
 
-        return (-is_required, major_rank, -interest_match, gpa_rank, rmp_score, -seats_open)
+        return (-is_required, major_rank, -interest_match, gpa_rank, rmp_score, early_penalty, -seats_open)
 
     candidates.sort(key=_relevance_score)
+
+    # "One coding class, one math class, one writing class" names categories,
+    # not specific courses — the greedy picker below otherwise has no notion
+    # of category balance and (verified live) can return an all-CS schedule
+    # for a request that explicitly asked for variety. Bubble the single best
+    # candidate from each named category to the front so the greedy loop
+    # considers them before falling back to pure relevance/GPA ordering.
+    named_categories = parse_category_requirements(question)
+    if len(named_categories) >= 2:
+        boosted: list[dict] = []
+        used_subjects: set[str] = set()
+        for subjects in named_categories.values():
+            pick = next(
+                (c for c in candidates if c["subject"].upper() in subjects
+                 and c["subject"].upper() not in used_subjects),
+                None,
+            )
+            if pick is not None:
+                boosted.append(pick)
+                used_subjects.add(pick["subject"].upper())
+        remaining = [c for c in candidates if c not in boosted]
+        candidates = boosted + remaining
 
     # ── Resolve target credits ─────────────────────────────────────────────────
     target_credits = getattr(intent, "target_credits", None)
@@ -771,6 +948,26 @@ def handle_schedule_builder(
             "I found courses in that time range but couldn't build a conflict-free schedule. "
             "Try the Browse Courses page to add sections manually."
         ), [], [], {}
+
+    # A requested course can silently vanish from the final schedule two ways:
+    # no section survived the day/time/GPA filter (never entered `candidates`),
+    # or every surviving section conflicted with something already picked by
+    # the greedy loop. Either way, silently returning fewer courses than asked
+    # for — with no explanation — misleads the student into thinking the
+    # request was fully satisfied. Report exactly what happened to each one.
+    dropped_requested: list[str] = []
+    if requested_courses:
+        scheduled_pairs = {(s["subject"].upper(), str(s["course_number"]).strip()) for s in schedule}
+        candidate_pairs = {(c["subject"].upper(), str(c["course_number"]).strip()) for c in candidates}
+        for subj, num in requested_courses:
+            pair = (subj.upper(), str(num).strip())
+            if pair in scheduled_pairs:
+                continue
+            label = f"{subj.upper()} {num}"
+            if pair not in candidate_pairs:
+                dropped_requested.append(f"{label} (no section fit the stated constraints)")
+            else:
+                dropped_requested.append(f"{label} (its sections conflicted with the rest of the schedule)")
 
     # ── Build schedule_actions (shape the frontend's addSection expects) ───────
     schedule_actions = [
@@ -894,6 +1091,11 @@ def handle_schedule_builder(
                 f"Warning: I couldn't find alternatives that avoid all excluded days — "
                 f"{', '.join(violations)} still meet on those days."
             )
+
+    if dropped_requested:
+        caveats.append(
+            "Couldn't include: " + "; ".join(dropped_requested) + "."
+        )
 
     if caveats:
         answer += " Note: " + " ".join(caveats)

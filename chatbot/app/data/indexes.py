@@ -144,6 +144,8 @@ class DataIndexes:
         self.course_instructor_stats: dict[tuple[str, str], list[InstructorAgg]] = {}
         # (SUBJ, NUM) → course title
         self.course_titles: dict[tuple[str, str], str] = {}
+        # (SUBJ, NUM) → credit hours, once populated
+        self.course_credits: dict[tuple[str, str], float] = {}
         # (SUBJ, NUM) → list of section record dicts (current term)
         self.sections_by_course: dict[tuple[str, str], list[dict]] = defaultdict(list)
         # instructor last name → list of section record dicts
@@ -278,6 +280,12 @@ class DataIndexes:
             title = str(rec.get("title") or "").strip()
             if title and key not in self.course_titles:
                 self.course_titles[key] = title
+            credits = rec.get("credits")
+            if credits is not None and str(credits).strip() not in ("", "nan", "None"):
+                try:
+                    self.course_credits[key] = float(credits)
+                except (TypeError, ValueError):
+                    pass
             for f in list(field_nonnull):
                 if f not in cols:
                     continue
