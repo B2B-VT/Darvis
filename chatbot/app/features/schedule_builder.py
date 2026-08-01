@@ -161,20 +161,35 @@ def _to_24h(hour: str, minute: str | None, ampm: str) -> str:
     return f"{h:02d}:{m:02d}"
 
 
+_TIME_WORD_TO_24H = {"noon": "12:00", "midnight": "00:00", "12": "12:00"}
+
+
+def _time_token_to_24h(hour, minute, ampm, word) -> str:
+    if word:
+        return _TIME_WORD_TO_24H[word]
+    return _to_24h(hour, minute, ampm)
+
+
 def parse_time_constraints(question: str) -> tuple[str, str]:
     """
     Returns (earliest_start, latest_end) as "HH:MM" strings.
     Defaults to "07:00" / "22:00" if nothing is found.
     """
     q = question.lower()
-    time_pat = r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)"
+    # Matches a numeric am/pm time ("10am", "5:30pm") OR a word-based time
+    # token ("noon", "midnight", bare "12"). Both feed into the SAME
+    # negation-aware before/after logic below — verified live that handling
+    # word tokens as separate, negation-blind special cases produced the
+    # literal opposite of "no classes before noon" (treated identically to
+    # unnegated "classes before noon").
+    time_pat = r"(?:(\d{1,2})(?::(\d{2}))?\s*(am|pm)|(noon|midnight|12))"
 
-    # "10am to 5pm" / "10am-5pm" / "between 10am and 5pm"
+    # "10am to 5pm" / "10am-5pm" / "between 10am and 5pm" / "noon to 5pm"
     range_pat = time_pat + r"\s*(?:to|-|–|and)\s*" + time_pat
     m = re.search(range_pat, q)
     if m:
-        start = _to_24h(m.group(1), m.group(2), m.group(3))
-        end   = _to_24h(m.group(4), m.group(5), m.group(6))
+        start = _time_token_to_24h(*m.groups()[0:4])
+        end   = _time_token_to_24h(*m.groups()[4:8])
         return start, end
 
     # Negation changes what "before"/"after" constrain:
@@ -191,19 +206,13 @@ def parse_time_constraints(question: str) -> tuple[str, str]:
 
     start, end = "07:00", "22:00"
     if neg_after:
-        end = _to_24h(*neg_after.groups())
+        end = _time_token_to_24h(*neg_after.groups())
     elif after:
-        start = _to_24h(*after.groups())
+        start = _time_token_to_24h(*after.groups())
     if neg_before:
-        start = _to_24h(*neg_before.groups())
+        start = _time_token_to_24h(*neg_before.groups())
     elif before and not neg_after:
-        end = _to_24h(*before.groups())
-
-    # "after noon" / "after 12" without am/pm
-    if re.search(r"\bafter\s+noon\b", q) or re.search(r"\bafter\s+12\b", q):
-        start = max(start, "12:00")
-    if re.search(r"\bbefore\s+noon\b", q):
-        end = min(end, "12:00")
+        end = _time_token_to_24h(*before.groups())
 
     # "no 8ams" / "avoid 8ams" — earliest start 09:00
     if re.search(r"\b(?:no|avoid|without|skip)\s+(?:any\s+)?8\s*ams?\b", q):
