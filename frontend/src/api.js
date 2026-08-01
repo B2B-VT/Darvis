@@ -409,6 +409,20 @@ export const API = {
       .delete().eq('user_id', userId).eq('session_id', sessionId);
   },
 
+  async getCyrusFeedback({ token, limit = 100 } = {}) {
+    const params = new URLSearchParams({ limit: String(limit) });
+    const response = await fetch(`${CHAT_API_BASE}/feedback/recent?${params.toString()}`, {
+      method: "GET",
+      headers: { "X-Darvis-Dev-Token": token || "" },
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.detail || "Unable to load Cyrus feedback.");
+    }
+    const payload = await response.json();
+    return Array.isArray(payload?.feedback) ? payload.feedback : [];
+  },
+
   async getRmpReviews(rmpId, limit = 12) {
     if (!rmpId || !CHAT_API_BASE) return [];
     const url = `${CHAT_API_BASE}/rmp/reviews?rmp_id=${encodeURIComponent(rmpId)}&limit=${encodeURIComponent(limit)}`;

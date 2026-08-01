@@ -515,11 +515,13 @@ function BotMessage({ msg, darkMode, question, onRetry, onFeedback }) {
     transition: "all 0.15s",
   };
 
-  const ActionIcon = ({ type }) => {
+  const ActionIcon = ({ type, active = false }) => {
     const common = { width: 19, height: 19, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round", strokeLinejoin: "round" };
+    const filled = { ...common, fill: "currentColor" };
     if (type === "copy") return <svg {...common}><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>;
-    if (type === "good") return <svg {...common}><path d="M7 10v11"/><path d="M15 5.5 14 10h5.4a1.8 1.8 0 0 1 1.75 2.2l-1.6 6.5A2.9 2.9 0 0 1 16.75 21H5.8A1.8 1.8 0 0 1 4 19.2V11.8A1.8 1.8 0 0 1 5.8 10H8l3.45-5.15A1.9 1.9 0 0 1 15 5.5Z"/></svg>;
-    if (type === "bad") return <svg {...common}><path d="M17 14V3"/><path d="M9 18.5 10 14H4.6a1.8 1.8 0 0 1-1.75-2.2l1.6-6.5A2.9 2.9 0 0 1 7.25 3H18.2A1.8 1.8 0 0 1 20 4.8v7.4a1.8 1.8 0 0 1-1.8 1.8H16l-3.45 5.15A1.9 1.9 0 0 1 9 18.5Z"/></svg>;
+    if (type === "check") return <svg {...common}><path d="m20 6-11 11-5-5"/></svg>;
+    if (type === "good") return <svg {...(active ? filled : common)}><path d="M7 10v11"/><path d="M15 5.5 14 10h5.4a1.8 1.8 0 0 1 1.75 2.2l-1.6 6.5A2.9 2.9 0 0 1 16.75 21H5.8A1.8 1.8 0 0 1 4 19.2V11.8A1.8 1.8 0 0 1 5.8 10H8l3.45-5.15A1.9 1.9 0 0 1 15 5.5Z"/></svg>;
+    if (type === "bad") return <svg {...(active ? filled : common)}><path d="M17 14V3"/><path d="M9 18.5 10 14H4.6a1.8 1.8 0 0 1-1.75-2.2l1.6-6.5A2.9 2.9 0 0 1 7.25 3H18.2A1.8 1.8 0 0 1 20 4.8v7.4a1.8 1.8 0 0 1-1.8 1.8H16l-3.45 5.15A1.9 1.9 0 0 1 9 18.5Z"/></svg>;
     if (type === "share") return <svg {...common}><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>;
     if (type === "retry") return <svg {...common}><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>;
     return <svg {...common}><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>;
@@ -597,27 +599,27 @@ function BotMessage({ msg, darkMode, question, onRetry, onFeedback }) {
             onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
             onMouseLeave={e => { e.currentTarget.style.color = copied ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
-            <ActionIcon type="copy" />
+            <ActionIcon type={copied ? "check" : "copy"} />
           </button>
           <button
             onClick={() => onFeedback?.("up")}
             aria-label="Good response"
             title="Good response"
-            style={{ ...iconBtn, color: msg.feedback === "up" ? ACCENT : iconBtn.color }}
+            style={{ ...iconBtn, color: msg.feedback === "up" ? (dm ? "#fff" : ACCENT) : iconBtn.color }}
             onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "up" ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "up" ? (dm ? "#fff" : ACCENT) : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
-            <ActionIcon type="good" />
+            <ActionIcon type="good" active={msg.feedback === "up"} />
           </button>
           <button
             onClick={() => onFeedback?.("down")}
             aria-label="Bad response"
             title="Bad response"
-            style={{ ...iconBtn, color: msg.feedback === "down" ? ACCENT : iconBtn.color }}
+            style={{ ...iconBtn, color: msg.feedback === "down" ? (dm ? "#fff" : ACCENT) : iconBtn.color }}
             onMouseEnter={e => { e.currentTarget.style.color = p.textSub; e.currentTarget.style.background = dm ? "rgba(255,255,255,0.06)" : "rgba(26,18,15,0.06)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "down" ? ACCENT : iconBtn.color; e.currentTarget.style.background = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = msg.feedback === "down" ? (dm ? "#fff" : ACCENT) : iconBtn.color; e.currentTarget.style.background = "none"; }}
           >
-            <ActionIcon type="bad" />
+            <ActionIcon type="bad" active={msg.feedback === "down"} />
           </button>
           <button
             onClick={handleShare}
@@ -1293,10 +1295,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [attachments,       setAttachments]      = useState([]);
   const [thinkingStatus,    setThinkingStatus]   = useState("Thinking");
   const [entityPool,        setEntityPool]       = useState({ courses: [], instructors: [] });
+  const [editingIndex,      setEditingIndex]     = useState(null);
+  const [editDraft,         setEditDraft]        = useState("");
+  const [pendingFeedback,   setPendingFeedback]  = useState(null);
+  const [feedbackReason,    setFeedbackReason]   = useState("");
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
   const convSaveTimers = useRef({});
+  const activeControllerRef = useRef(null);
+  const stopRequestedRef    = useRef(false);
   const dm = darkMode;
   const p = palette(dm);
   const chatSurface = dm
@@ -1473,10 +1481,15 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       ));
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 50000);
-
-    try {
+	    const controller = new AbortController();
+	    activeControllerRef.current = controller;
+	    stopRequestedRef.current = false;
+	    const timeoutId = setTimeout(() => controller.abort(), 50000);
+	    let streamStarted = false;
+	    let streamedAnswer = "";
+	    let finalData = null;
+	
+	    try {
       const history = messages
         .filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot"))
         .slice(-8)
@@ -1484,11 +1497,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         .filter(m => m.content);
 
       const payload = { question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history };
-      let streamStarted = false;
-      let streamedAnswer = "";
-      let finalData = null;
-
-      try {
+	      try {
         const streamRes = await fetch(CHAT_STREAM_API, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
@@ -1566,9 +1575,20 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setSessions(prev => prev.map(s =>
         s.id === sessionId ? { ...s, messages: final } : s
       ));
-    } catch (err) {
-      clearTimeout(timeoutId);
-      const isTimeout = err.name === "AbortError";
+	    } catch (err) {
+	      clearTimeout(timeoutId);
+	      if (stopRequestedRef.current) {
+	        if (streamStarted && streamedAnswer) {
+	          const stoppedMsg = { role: "bot", answer: streamedAnswer.trim(), tables: [], charts: [], warnings: [], metadata: { stopped: true } };
+	          const final = [...withUser, stoppedMsg];
+	          setMessages(final);
+	          setSessions(prev => prev.map(s =>
+	            s.id === sessionId ? { ...s, messages: final } : s
+	          ));
+	        }
+	        return;
+	      }
+	      const isTimeout = err.name === "AbortError";
       const isNetwork = isTimeout || err.message === "Failed to fetch";
       setServerDown(isNetwork);
       const errMsg = {
@@ -1583,8 +1603,10 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       setSessions(prev => prev.map(s =>
         s.id === sessionId ? { ...s, messages: final } : s
       ));
-    } finally {
-      setLoading(false);
+	    } finally {
+	      activeControllerRef.current = null;
+	      stopRequestedRef.current = false;
+	      setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [input, attachments, loading, useRecency, minStudents, topN, messages, currentSessionId, addSection, setPage, userProfile]);
@@ -1599,11 +1621,16 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     );
     setMessages(withPlaceholder);
 
-    const sessionId = currentSessionId;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 50000);
-
-    try {
+	    const sessionId = currentSessionId;
+	    const controller = new AbortController();
+	    activeControllerRef.current = controller;
+	    stopRequestedRef.current = false;
+	    const timeoutId = setTimeout(() => controller.abort(), 50000);
+	    let streamStarted = false;
+	    let streamedAnswer = "";
+	    let finalData = null;
+	
+	    try {
       const historyEnd = messages[botMsgIdx - 1]?.role === "user" && messages[botMsgIdx - 1]?.content === question
         ? botMsgIdx - 1
         : botMsgIdx;
@@ -1615,11 +1642,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         user_profile: userProfile || null,
         history: messages.slice(0, historyEnd).filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot")).slice(-8).map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" })).filter(m => m.content),
       };
-      let streamStarted = false;
-      let streamedAnswer = "";
-      let finalData = null;
-
-      try {
+	      try {
         const streamRes = await fetch(CHAT_STREAM_API, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
@@ -1682,9 +1705,18 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const final = messages.map((m, i) => i === botMsgIdx ? botMsg : m);
       setMessages(final);
       if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
-    } catch (err) {
-      clearTimeout(timeoutId);
-      const isTimeout = err.name === "AbortError";
+	    } catch (err) {
+	      clearTimeout(timeoutId);
+	      if (stopRequestedRef.current) {
+	        if (streamStarted && streamedAnswer) {
+	          const stoppedMsg = { role: "bot", answer: streamedAnswer.trim(), tables: [], charts: [], warnings: [], metadata: { stopped: true } };
+	          const final = messages.map((m, i) => i === botMsgIdx ? stoppedMsg : m);
+	          setMessages(final);
+	          if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+	        }
+	        return;
+	      }
+	      const isTimeout = err.name === "AbortError";
       const isNetwork = isTimeout || err.message === "Failed to fetch";
       setServerDown(isNetwork);
       const errMsg = {
@@ -1695,13 +1727,160 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       const final = messages.map((m, i) => i === botMsgIdx ? errMsg : m);
       setMessages(final);
       if (sessionId) setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+	    } finally {
+	      activeControllerRef.current = null;
+	      stopRequestedRef.current = false;
+	      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+	  }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
+
+  const stopCyrus = useCallback(() => {
+    if (!activeControllerRef.current) return;
+    stopRequestedRef.current = true;
+    activeControllerRef.current.abort();
+  }, []);
+
+  const submitEditedQuery = useCallback(async () => {
+    if (loading || editingIndex == null) return;
+    const question = normalizeInput(editDraft);
+    if (!question) return;
+
+    const prior = messages.slice(0, editingIndex);
+    const userMsg = { role: "user", content: question };
+    const withUser = [...prior, userMsg];
+    let sessionId = currentSessionId || newSessionId();
+    const updateTitle = editingIndex === 0;
+
+    setEditingIndex(null);
+    setEditDraft("");
+    setMessages(withUser);
+    setLoading(true);
+    setServerDown(false);
+    if (!currentSessionId) setCurrentSessionId(sessionId);
+    setSessions(prev => {
+      const title = question.length > 55 ? question.slice(0, 52) + "…" : question;
+      const exists = prev.some(s => s.id === sessionId);
+      if (!exists) return [{ id: sessionId, title, messages: withUser, createdAt: Date.now(), projectId: null }, ...prev];
+      return prev.map(s => s.id === sessionId ? { ...s, title: updateTitle ? title : s.title, messages: withUser } : s);
+    });
+
+    const controller = new AbortController();
+    activeControllerRef.current = controller;
+    stopRequestedRef.current = false;
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
+    let streamStarted = false;
+    let streamedAnswer = "";
+    let finalData = null;
+
+    try {
+      const history = prior
+        .filter(m => !m.isError && !m._streaming && (m.role === "user" || m.role === "bot"))
+        .slice(-8)
+        .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content || m.answer || "" }))
+        .filter(m => m.content);
+      const payload = { question, use_recency: useRecency, min_students: minStudents, top_n: topN, user_profile: userProfile || null, history };
+
+      try {
+        const streamRes = await fetch(CHAT_STREAM_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const contentType = streamRes.headers.get("content-type") || "";
+        if (!streamRes.ok || !streamRes.body || !contentType.includes("text/event-stream")) {
+          throw new Error(`Streaming unavailable: HTTP ${streamRes.status}`);
+        }
+        const reader = streamRes.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+          const parsed = parseSseEvents(buffer);
+          buffer = parsed.rest;
+          for (const item of parsed.events) {
+            if (item.event === "status" && item.data?.message) {
+              setThinkingStatus(item.data.message);
+            } else if (item.event === "answer_chunk") {
+              streamStarted = true;
+              streamedAnswer += item.data?.text || "";
+              const streamingMsg = { role: "bot", answer: streamedAnswer, tables: [], charts: [], warnings: [], _streaming: true };
+              const partial = [...withUser, streamingMsg];
+              setMessages(partial);
+              setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: partial } : s));
+            } else if (item.event === "final") {
+              finalData = item.data;
+            } else if (item.event === "error") {
+              throw new Error(item.data?.message || "Streaming error");
+            }
+          }
+        }
+        if (!finalData && streamStarted) {
+          finalData = { answer: streamedAnswer, route: "stream", tables: [], charts: [], warnings: [], metadata: {}, schedule_actions: [] };
+        }
+      } catch (streamErr) {
+        if (streamStarted) throw streamErr;
+        const res = await fetch(CHAT_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.detail || `HTTP ${res.status}`);
+        }
+        finalData = await res.json();
+      }
+
+      clearTimeout(timeoutId);
+      applyScheduleActions(finalData, addSection, setPage);
+      const final = [...withUser, buildBotMessage(finalData)];
+      setMessages(final);
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (stopRequestedRef.current) {
+        if (streamStarted && streamedAnswer) {
+          const final = [...withUser, { role: "bot", answer: streamedAnswer.trim(), tables: [], charts: [], warnings: [], metadata: { stopped: true } }];
+          setMessages(final);
+          setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
+        }
+        return;
+      }
+      setServerDown(err.name === "AbortError" || err.message === "Failed to fetch");
+      const final = [...withUser, {
+        role: "bot",
+        isError: true,
+        feedback: null,
+        answer: "Something went wrong while preparing the response. Try again.",
+        tables: [], charts: [], warnings: [],
+      }];
+      setMessages(final);
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
     } finally {
+      activeControllerRef.current = null;
+      stopRequestedRef.current = false;
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
+  }, [loading, editingIndex, editDraft, messages, currentSessionId, useRecency, minStudents, topN, userProfile, addSection, setPage]);
 
-  const sendFeedback = (index, rating) => {
+  const beginFeedback = (index, rating) => {
+    setMessages(prev => prev.map((m, i) => i === index ? { ...m, feedback: rating } : m));
+    if (currentSessionId) {
+      setSessions(prev => prev.map(s => s.id === currentSessionId
+        ? { ...s, messages: s.messages.map((m, i) => i === index ? { ...m, feedback: rating } : m) }
+        : s));
+    }
+    setPendingFeedback({ index, rating });
+    setFeedbackReason("");
+  };
+
+  const sendFeedback = (index, rating, reason = "") => {
     const target = messages[index];
     if (!target) return;
     const payload = {
@@ -1709,6 +1888,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       answer: target.answer || "",
       route: target.route || "",
       rating: rating === "up" ? 1 : -1,
+      reason: reason.trim() || null,
     };
     fetch(FEEDBACK_API, {
       method: "POST",
@@ -1723,6 +1903,14 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           : s));
       }
     }).catch(() => {});
+  };
+
+  const closeFeedbackModal = (saveReason = false) => {
+    if (pendingFeedback) {
+      sendFeedback(pendingFeedback.index, pendingFeedback.rating, saveReason ? feedbackReason : "");
+    }
+    setPendingFeedback(null);
+    setFeedbackReason("");
   };
 
   const completion = useMemo(() => completionFor(input, entityPool), [input, entityPool]);
@@ -1928,26 +2116,32 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
         </div>
 
         <button
-          onClick={() => send()}
-          disabled={!canSend}
-          aria-label="Send message"
+          onClick={loading ? stopCyrus : () => send()}
+          disabled={!loading && !canSend}
+          aria-label={loading ? "Stop Cyrus" : "Send message"}
           style={{
             width: hero ? (isMobile ? 42 : 46) : 38,
             height: hero ? (isMobile ? 42 : 46) : 38,
             borderRadius: "50%",
             flexShrink: 0,
-            background: canSend ? "#19c37d" : (dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"),
-            color: canSend ? "white" : p.textMute,
+            background: loading ? (dm ? "rgba(255,255,255,0.92)" : "#1a1210") : canSend ? "#19c37d" : (dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"),
+            color: loading ? (dm ? "#111" : "#fff") : canSend ? "white" : p.textMute,
             border: "none",
-            cursor: canSend ? "pointer" : "default",
+            cursor: (loading || canSend) ? "pointer" : "default",
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: `all 0.15s ${EASE}`,
-            boxShadow: canSend ? "0 8px 20px rgba(25,195,125,0.22)" : "none",
+            boxShadow: canSend && !loading ? "0 8px 20px rgba(25,195,125,0.22)" : "none",
           }}
         >
-          <svg width={hero ? 21 : 18} height={hero ? 21 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 2L11 13" /><path d="M22 2L15 22 11 13 2 9l20-7z" />
-          </svg>
+          {loading ? (
+            <svg width={hero ? 18 : 15} height={hero ? 18 : 15} viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+            </svg>
+          ) : (
+            <svg width={hero ? 21 : 18} height={hero ? 21 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 2L11 13" /><path d="M22 2L15 22 11 13 2 9l20-7z" />
+            </svg>
+          )}
         </button>
       </div>
     </>
@@ -2136,14 +2330,105 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                           ))}
                         </div>
                       )}
-                      <div style={{
-                        background: dm ? "#2f2f2f" : "rgba(26,18,15,0.08)",
-                        color: p.text,
-                        borderRadius: "18px",
-                        padding: "10px 14px", fontSize: 15, lineHeight: 1.55,
-                        fontWeight: 500, whiteSpace: "pre-wrap",
-                        boxShadow: "none",
-                      }}>{msg.content}</div>
+                      {editingIndex === i ? (
+                        <div style={{ width: "min(520px, 88vw)", display: "grid", gap: 8 }}>
+                          <textarea
+                            value={editDraft}
+                            onChange={e => setEditDraft(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                submitEditedQuery();
+                              }
+                              if (e.key === "Escape") {
+                                setEditingIndex(null);
+                                setEditDraft("");
+                              }
+                            }}
+                            autoFocus
+                            style={{
+                              width: "100%",
+                              minHeight: 86,
+                              resize: "vertical",
+                              boxSizing: "border-box",
+                              background: dm ? "#2f2f2f" : "rgba(26,18,15,0.08)",
+                              color: p.text,
+                              border: `1px solid ${dm ? "rgba(255,255,255,0.18)" : "rgba(26,18,15,0.16)"}`,
+                              borderRadius: "18px",
+                              padding: "10px 14px",
+                              fontSize: 15,
+                              lineHeight: 1.55,
+                              fontWeight: 500,
+                              fontFamily: SANS,
+                              outline: "none",
+                            }}
+                          />
+                          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                            <button
+                              onClick={() => { setEditingIndex(null); setEditDraft(""); }}
+                              style={{
+                                background: "transparent",
+                                border: `1px solid ${p.line}`,
+                                color: p.textSub,
+                                borderRadius: RADIUS.sm,
+                                padding: "7px 12px",
+                                fontFamily: SANS,
+                                fontWeight: 760,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={submitEditedQuery}
+                              disabled={!editDraft.trim()}
+                              style={{
+                                background: editDraft.trim() ? ACCENT : (dm ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.10)"),
+                                border: "none",
+                                color: editDraft.trim() ? "white" : p.textMute,
+                                borderRadius: RADIUS.sm,
+                                padding: "7px 12px",
+                                fontFamily: SANS,
+                                fontWeight: 800,
+                                cursor: editDraft.trim() ? "pointer" : "default",
+                              }}
+                            >
+                              Send
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{
+                            background: dm ? "#2f2f2f" : "rgba(26,18,15,0.08)",
+                            color: p.text,
+                            borderRadius: "18px",
+                            padding: "10px 14px", fontSize: 15, lineHeight: 1.55,
+                            fontWeight: 500, whiteSpace: "pre-wrap",
+                            boxShadow: "none",
+                          }}>{msg.content}</div>
+                          {!loading && messages[i + 1]?.role === "bot" && (
+                            <button
+                              onClick={() => { setEditingIndex(i); setEditDraft(msg.content || ""); }}
+                              aria-label="Edit message"
+                              title="Edit message"
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: dm ? "rgba(255,255,255,0.46)" : "rgba(26,18,15,0.46)",
+                                cursor: "pointer",
+                                padding: "2px 6px",
+                                borderRadius: 7,
+                                fontFamily: SANS,
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -2153,7 +2438,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
                     darkMode={dm}
                     question={messages[i - 1]?.content}
                     onRetry={(q) => retry(q, i)}
-                    onFeedback={(rating) => sendFeedback(i, rating)}
+                    onFeedback={(rating) => beginFeedback(i, rating)}
                   />
                 )
               ))}
@@ -2269,6 +2554,85 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           historyLoading={historyLoading}
           onToggleCollapse={() => setSidebarVisible(v => !v)}
         />
+      )}
+
+      {pendingFeedback && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 60,
+          background: "rgba(0,0,0,0.42)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 18,
+        }}>
+          <div style={{
+            width: "min(460px, 100%)",
+            background: dm ? "#181615" : "#fffaf5",
+            border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(26,18,15,0.12)"}`,
+            borderRadius: RADIUS.md,
+            boxShadow: "0 24px 70px rgba(0,0,0,0.32)",
+            padding: 18,
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: p.text, marginBottom: 8 }}>
+              Add a note for the devs
+            </div>
+            <textarea
+              value={feedbackReason}
+              onChange={e => setFeedbackReason(e.target.value.slice(0, 1000))}
+              placeholder="Optional: what was helpful or wrong?"
+              autoFocus
+              style={{
+                width: "100%",
+                minHeight: 92,
+                resize: "vertical",
+                boxSizing: "border-box",
+                background: dm ? "rgba(255,255,255,0.055)" : "rgba(26,18,15,0.045)",
+                border: `1px solid ${p.line}`,
+                color: p.text,
+                borderRadius: RADIUS.sm,
+                outline: "none",
+                padding: 10,
+                fontFamily: SANS,
+                fontSize: 14,
+                lineHeight: 1.5,
+              }}
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+              <button
+                onClick={() => closeFeedbackModal(false)}
+                style={{
+                  background: "transparent",
+                  color: p.textSub,
+                  border: `1px solid ${p.line}`,
+                  borderRadius: RADIUS.sm,
+                  padding: "8px 12px",
+                  fontFamily: SANS,
+                  fontWeight: 760,
+                  cursor: "pointer",
+                }}
+              >
+                Skip
+              </button>
+              <button
+                onClick={() => closeFeedbackModal(true)}
+                style={{
+                  background: ACCENT,
+                  color: "white",
+                  border: "none",
+                  borderRadius: RADIUS.sm,
+                  padding: "8px 14px",
+                  fontFamily: SANS,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Save note
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <style>{`

@@ -16,6 +16,21 @@ _TOPIC_STOPWORDS = {
     "courses", "course", "classes", "class", "for", "about", "related",
     "to", "in", "on", "with", "the", "a", "an", "recommend", "recommendations",
     "suggest", "suggestions", "give", "me", "find", "show", "take",
+    "i", "im", "am", "my", "student", "students", "interested", "interest",
+    "should", "could", "would", "can", "want", "wanna", "need",
+}
+
+_AI_ML_TERMS = {
+    "ai", "ml", "artificial", "intelligence", "machine", "learning",
+    "neural", "deep", "supervised", "unsupervised", "classification",
+    "regression", "data", "mining", "model", "models",
+}
+
+_MAJOR_SUBJECTS = {
+    "computer science": {"CS", "CMDA", "MATH", "STAT", "ECE"},
+    "cs": {"CS", "CMDA", "MATH", "STAT", "ECE"},
+    "business information technology": {"BIT", "CMDA", "STAT", "CS"},
+    "bit": {"BIT", "CMDA", "STAT", "CS"},
 }
 
 
@@ -30,7 +45,7 @@ def _is_topic_course_recommendation(question: str, intent=None) -> bool:
 
 def _topic_terms(question: str) -> list[str]:
     q = re.sub(r"[^a-zA-Z0-9\s]", " ", question.lower())
-    terms = [w for w in q.split() if len(w) > 2 and w not in _TOPIC_STOPWORDS]
+    terms = [w for w in q.split() if (len(w) > 2 or w in {"ai", "ml"}) and w not in _TOPIC_STOPWORDS]
     # Keep phrase order while de-duping.
     out: list[str] = []
     for term in terms:
@@ -39,12 +54,42 @@ def _topic_terms(question: str) -> list[str]:
     return out
 
 
+def _expanded_topic_terms(terms: list[str]) -> set[str]:
+    expanded = set(terms)
+    has_ai = "ai" in expanded or ("artificial" in expanded and "intelligence" in expanded)
+    has_ml = "ml" in expanded or ("machine" in expanded and "learning" in expanded)
+    if has_ai or has_ml:
+        expanded |= _AI_ML_TERMS
+    return expanded
+
+
+def _major_hint(question: str, user_profile: dict | None = None) -> str:
+    q = question.lower()
+    if re.search(r"\b(?:cs|computer science)\s+(?:student|major)\b", q) or re.search(r"\bmajor(?:ing)?\s+in\s+(?:cs|computer science)\b", q):
+        return "computer science"
+    if re.search(r"\b(?:bit|business information technology)\s+(?:student|major)\b", q) or re.search(r"\bmajor(?:ing)?\s+in\s+(?:bit|business information technology)\b", q):
+        return "business information technology"
+    major = str((user_profile or {}).get("major") or "").strip().lower()
+    if "computer science" in major or major == "cs":
+        return "computer science"
+    if "business information technology" in major or major == "bit":
+        return "business information technology"
+    return ""
+
+
+def _preferred_subjects_for_major(major_hint: str) -> set[str]:
+    for key, subjects in _MAJOR_SUBJECTS.items():
+        if key in major_hint:
+            return subjects
+    return set()
+
+
 def _course_stat_lookup(indexes, key: tuple[str, str], attr: str):
     stats = getattr(indexes, "course_stats", {}).get(key) if indexes is not None else None
     return getattr(stats, attr, None) if stats is not None else None
 
 
-def _topic_course_recommendations(question: str, indexes, limit: int = 3) -> pd.DataFrame:
+def _topic_course_recommendations(question: str, indexes, limit: int = 3, user_profile: dict | None = None) -> pd.DataFrame:
     if indexes is None:
         return pd.DataFrame()
     terms = _topic_terms(question)
@@ -52,24 +97,41 @@ def _topic_course_recommendations(question: str, indexes, limit: int = 3) -> pd.
         return pd.DataFrame()
 
     phrase = " ".join(terms)
+    expanded_terms = _expanded_topic_terms(terms)
+    preferred_subjects = _preferred_subjects_for_major(_major_hint(question, user_profile))
     rows = []
     titles = getattr(indexes, "course_titles", {})
     descriptions = getattr(indexes, "course_descriptions", {})
     for key, title in titles.items():
+        if preferred_subjects and key[0] not in preferred_subjects:
+            continue
         description = descriptions.get(key, "")
         hay_title = str(title or "").lower()
         hay_desc = str(description or "").lower()
         haystack = f"{hay_title} {hay_desc}"
-        matched = [term for term in terms if term in haystack]
+        matched = [term for term in expanded_terms if term in haystack]
+        original_matched = [term for term in terms if term in haystack]
         if not matched:
+            continue
+        if len(original_matched) == 0 and not ({"ai", "ml"} & set(terms)):
+            continue
+        if len(matched) < 2 and not phrase:
             continue
         score = len(matched)
         if phrase and phrase in haystack:
             score += 4
         if phrase and phrase in hay_title:
             score += 3
-        if all(term in haystack for term in terms):
+        if all(term in haystack for term in terms if term not in {"ai", "ml"}):
             score += 2
+        if key[0] == "CS":
+            score += 5
+        elif key[0] == "CMDA":
+            score += 2
+        if "machine learning" in haystack or "artificial intelligence" in haystack:
+            score += 5
+        elif any(term in haystack for term in ("neural", "supervised", "unsupervised", "classification")):
+            score += 3
         rows.append({
             "Course": f"{key[0]} {key[1]}",
             "Course Title": title,
@@ -92,15 +154,12 @@ def _topic_course_recommendations(question: str, indexes, limit: int = 3) -> pd.
 
 
 def _topic_course_answer(question: str, recs: pd.DataFrame) -> str:
-    terms = " ".join(_topic_terms(question)) or "that topic"
-    intro = f"Here are good {terms} course matches in Darvis:"
-    parts = [intro]
+    parts = []
     for _, row in recs.iterrows():
         parts.append(
             f"{row['Course']} ({row['Course Title']}): {row['Description']}"
         )
-    parts.append("These are topic matches first; grade outcomes are supporting context in the table, not the reason they were selected.")
-    return " ".join(parts)
+    return "\n\n".join(parts)
 
 
 def handle_natural_filter(
@@ -118,7 +177,7 @@ def handle_natural_filter(
     settings = get_settings()
 
     if _is_topic_course_recommendation(question, intent=intent):
-        recs = _topic_course_recommendations(question, indexes, limit=3)
+        recs = _topic_course_recommendations(question, indexes, limit=3, user_profile=user_profile)
         if not recs.empty:
             description_display = recs[TOPIC_COURSE_DESCRIPTION_COLS]
             table_display = recs[TOPIC_COURSE_TABLE_COLS]
