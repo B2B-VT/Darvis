@@ -510,12 +510,20 @@ def handle_schedule_builder(
             )
         return answer, [], [], {"stated_section_check": True}
 
-    # Use LLM-extracted values when available, fall back to regex
-    if intent is not None and (intent.time_start or intent.time_end):
+    # Prefer the regex parser's explicit window over LLM extraction — verified
+    # live that the LLM inverts "before"/"after" negation semantics under
+    # quota pressure (e.g. "no classes before 10 AM" extracted as
+    # time_end=10:00 instead of time_start=10:00, producing a 7-10 AM window
+    # instead of 10 AM-10 PM). The regex's negation handling is deterministic
+    # and tested; only fall back to LLM values when regex finds nothing explicit.
+    regex_start, regex_end = parse_time_constraints(question)
+    if (regex_start, regex_end) != ("07:00", "22:00"):
+        start_limit, end_limit = regex_start, regex_end
+    elif intent is not None and (intent.time_start or intent.time_end):
         start_limit = intent.time_start or "07:00"
         end_limit   = intent.time_end   or "22:00"
     else:
-        start_limit, end_limit = parse_time_constraints(question)
+        start_limit, end_limit = regex_start, regex_end
 
     # Union the LLM's extraction with the regex fallback rather than an
     # either/or choice — verified live that for concatenated/typo'd phrasing

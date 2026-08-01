@@ -409,7 +409,14 @@ class QueryPlanner:
                 sort_goal=self._sort_goal(question),
             )
 
-        if any(w in q for w in ("highest", "lowest", "easiest", "hardest", "best", "worst", "elective", "gpa")):
+        # "what does GPA mean" / "explain historical GPA" / "define A rate" are
+        # definitional questions, not ranking requests — verified live that the
+        # bare "gpa" keyword match below misrouted them to natural_filter,
+        # returning an unrelated ranking instead of an explanation.
+        is_definitional = bool(re.search(r"\b(mean|meaning|explain|defin\w*)\b", q))
+        if not is_definitional and any(
+            w in q for w in ("highest", "lowest", "easiest", "hardest", "best", "worst", "elective", "gpa")
+        ):
             subject_filter = _extract_subject_hint(question)
             level_low, level_high = _extract_level_hint(question)
             return QueryPlan(
@@ -542,5 +549,11 @@ def _looks_like_topic_course_recommendation(q: str) -> bool:
     # substring checks below would otherwise misfire on "for" inside "before"/
     # "format"/"perform" etc., so this whole function uses \b word boundaries.
     if re.search(r"\b(before|after|between|only|conflict|overlap)\b", q):
+        return False
+    # "does this class count for my major" / "will this count toward my degree"
+    # aren't topic recommendations even though they contain "for" — verified
+    # live that the bare "for" match below misrouted major-requirement
+    # questions to natural_filter instead of major_requirements.
+    if re.search(r"\b(major|degree|requirement|requirements|graduate|graduation)\b", q):
         return False
     return bool(re.search(r"\b(good|recommend|suggest|about|related to|for)\b", q))

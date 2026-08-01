@@ -186,14 +186,31 @@ class EntityResolver:
         if nname in _NON_PERSON_TOKENS:
             return ResolvedEntity(value=raw, confidence=0.0)
 
+        parts = nname.split()
+        last = parts[-1] if parts else nname
+
         # 1. Exact normalized full-name match
         exact = self._by_norm_name.get(nname)
         if exact:
+            # A single-token exact match (a bare last name like "Smith", which
+            # shows up in the data as a raw/incomplete instructor record) can
+            # silently outrank real, distinct instructors who share that
+            # surname ("Michael Smith", "Perez Smith") — verified live this
+            # let a genuinely ambiguous "Professor Smith" query resolve with
+            # full confidence to the bare-surname artifact instead of asking
+            # for clarification. Treat it as ambiguous when siblings exist.
+            if len(parts) == 1:
+                siblings = [o for o in self._by_last.get(last, []) if o != exact]
+                if siblings:
+                    candidates = [exact] + siblings
+                    return ResolvedEntity(
+                        value=exact, confidence=0.6, candidates=candidates, ambiguous=True,
+                        warning=f"Multiple instructors share the last name '{raw}': "
+                                + ", ".join(candidates[:4]),
+                    )
             return ResolvedEntity(value=exact, confidence=1.0)
 
         # 2. Last-name dict lookup (handles "Hamouda" → "Mohammed Hamouda")
-        parts = nname.split()
-        last = parts[-1] if parts else nname
         owners = self._by_last.get(last, [])
         if len(owners) == 1:
             return ResolvedEntity(value=owners[0], confidence=0.95)
