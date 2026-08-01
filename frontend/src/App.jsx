@@ -16,19 +16,17 @@ import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
 import LegalPage from "./components/legal-page.jsx";
-import FeedbackReviewPage from "./components/feedback-review.jsx";
 import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
 import { LoadingShell } from "./components/skeletons.jsx";
 
 injectGlobalStyles();
 
 // Pages that require authentication
-const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors", "feedback"]);
+const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors"]);
 
 const pageToPath = page => {
   if (page === "privacy") return "/privacy";
   if (page === "terms") return "/terms";
-  if (page === "feedback") return "/feedback";
   if (page === "landing") return "/";
   return "/";
 };
@@ -36,7 +34,6 @@ const pageToPath = page => {
 const pathToPage = path => {
   if (path === "/privacy") return "privacy";
   if (path === "/terms") return "terms";
-  if (path === "/feedback") return "feedback";
   return null;
 };
 
@@ -239,9 +236,6 @@ export default function App() {
     }
     if (page === "terms") {
       return <LegalPage type="terms" darkMode={darkMode} setPage={navigateTo} />;
-    }
-    if (page === "feedback") {
-      return <FeedbackReviewPage darkMode={darkMode} />;
     }
     if (page === "instructors") {
       return <InstructorsPage darkMode={darkMode} onProfClick={openProf} />;
