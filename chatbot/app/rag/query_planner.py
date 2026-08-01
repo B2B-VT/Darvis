@@ -40,7 +40,7 @@ ROUTES (pick exactly one):
 - "natural_filter": ranking/filtering/comparing courses or professors without a specific one
 - "natural_filter": recommending courses for a topic/subject area ("good data analytics courses", "courses about cybersecurity") — prioritize topic relevance and course descriptions, not easiest professor ranking
 - "major_requirements": graduation requirements, what courses are needed for a degree/major
-- "schedule_builder": building/creating/making a class schedule
+- "schedule_builder": an explicit request to BUILD/CREATE a real schedule the student can enroll in. NOT general advice about balancing course load, avoiding overload, or how to think about scheduling — those have no specific courses/constraints to build with and belong in general_rag/fallback instead.
 - "section_lookup": CURRENT-SEMESTER timetable facts — who is teaching a course this semester/fall, what times/days a course meets, where it is held, seat availability ("is CS 3114 full?", "open seats", "what building"), which sections are offered
 - "general_rag": general VT questions, campus info, anything else
 
@@ -50,6 +50,8 @@ ROUTE DISAMBIGUATION (these matter — read carefully):
 - "what time does CS 3114 meet?" → section_lookup
 - "of the professors teaching CS 3114, who is best?" → section_lookup
 - "make me a schedule with CS 1114" → schedule_builder
+- "how should I balance a schedule with math, coding, and writing?" → general_rag (advice, no schedule built)
+- "how do I avoid overloading my semester?" → general_rag (advice, not a build request)
 
 SECONDARY ROUTES: list any additional routes needed to fully answer the question. Only set this when the question genuinely spans two domains. Do not set it for single-domain questions — most questions have exactly one intent, so leave secondary_routes as an empty list [] by default. Use the same route values as ROUTES above. List at most one secondary route — pick the single most important second intent.
 
@@ -530,6 +532,15 @@ def _looks_like_topic_course_recommendation(q: str) -> bool:
         return False
     if re.search(r"\b[A-Za-z]{2,5}\s*-?\s*\d{4}\b", q):
         return False
-    if any(term in q for term in ("highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest")):
+    if any(term in q for term in (
+        "highest gpa", "lowest gpa", "a rate", "f rate", "easiest", "hardest",
+        "cooked", "chill", "brutal", "easy a", "curve",
+    )):
         return False
-    return any(term in q for term in ("good", "recommend", "suggest", "about", "related to", "for"))
+    # Schedule/time-constraint questions ("no classes before 10", "avoid 8ams")
+    # aren't topic recommendations even though they mention "classes" — bare
+    # substring checks below would otherwise misfire on "for" inside "before"/
+    # "format"/"perform" etc., so this whole function uses \b word boundaries.
+    if re.search(r"\b(before|after|between|only|conflict|overlap)\b", q):
+        return False
+    return bool(re.search(r"\b(good|recommend|suggest|about|related to|for)\b", q))

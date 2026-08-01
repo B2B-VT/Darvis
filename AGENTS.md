@@ -80,22 +80,22 @@ cd chatbot && python -m pytest tests/
 
 **Deploy:** git push to main → Render auto-deploys (root directory set to `chatbot/` in Render config).
 
-**LLM:** Anthropic Codex Haiku (migrated from Gemma in commit `200b142` — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py`). Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` in `chatbot/.env`. Current model string: `Codex-haiku-4-5-20251001`. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
+**LLM:** Groq (`openai/gpt-oss-120b` by default) via the OpenAI-compatible client — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py` from an earlier Gemma-era backend. History: migrated Anthropic→Groq, briefly reverted by a bad merge, restored in commit `cbdf7db`. Set `GROQ_API_KEY` and `GROQ_MODEL` in `chatbot/.env`. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
 
 **Required env vars (`chatbot/.env`):**
 ```
-ANTHROPIC_API_KEY=...
-ANTHROPIC_MODEL=Codex-haiku-4-5-20251001
+GROQ_API_KEY=...
+GROQ_MODEL=openai/gpt-oss-120b
 SUPABASE_URL=...
 SUPABASE_KEY=...                    # service role key
 REDIS_URL=...                       # Redis Stack / Redis Cloud — semantic + keyword search (redisvl)
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true           # Codex Haiku judges borderline retrieval quality
+RAG_ENABLE_LLM_JUDGE=true           # LLM judges borderline retrieval quality
 ALLOWED_ORIGINS=https://darvis.tech,...
 SHOW_DOCS=true                      # local only — enables /docs (Swagger UI)
 ```
 
-**Architecture:** See `chatbot/AGENTS.md` for the full file map and request flow.
+**Architecture:** See `chatbot/CLAUDE.md` for the full file map and request flow (no separate `chatbot/AGENTS.md` exists).
 
 ## Backend (Node scripts)
 

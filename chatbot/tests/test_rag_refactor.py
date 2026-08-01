@@ -766,7 +766,7 @@ def test_course_overview_starts_with_description_then_professor_and_sections(gra
         indexes=idx,
     )
 
-    assert answer.startswith("CS 1114: Introduces software design")
+    assert answer.startswith("CS 1114 (3 credits): Introduces software design")
     assert "By historical grade outcomes, Mohammed Hamouda" in answer
     assert "Fall 2026 has 1 section" in answer
     assert "open seats" in answer

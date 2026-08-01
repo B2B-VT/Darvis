@@ -116,21 +116,46 @@ async function fetchAll(table, select, filters = []) {
   ]);
   console.log(`  ${gradeRows.length} grade rows loaded.`);
 
+  // Keyed by first-initial+last-name when the grades row has a first
+  // name/initial available, so same-surname instructors (verified live: 14
+  // real "Smith"s, 8 real "Johnson"s) don't get merged into one contaminated
+  // bucket — previously keyed by last name ONLY, meaning avg_gpa, subjects,
+  // and course_count for every instructor sharing a surname were silently
+  // pooled together from completely different people's grade rows. Rows
+  // with no extractable first initial (bare last name in the grades data)
+  // still bucket by last-name-only as a conservative fallback — same as
+  // before for those specific rows, not a behavior change for them.
   const gradeStats = new Map();
   for (const row of gradeRows) {
-    const ln = normName(lastName(row.instructor || ''));
+    const { firstInitial, last } = parseInitialAndLast(row.instructor || '');
+    const ln = normName(last);
     if (!ln) continue;
-    if (!gradeStats.has(ln)) {
-      gradeStats.set(ln, { totalGpaWeight: 0, totalEnroll: 0, subjects: new Set(), courseCount: 0 });
+    const key = firstInitial ? `${firstInitial.toLowerCase()}|${ln}` : ln;
+    if (!gradeStats.has(key)) {
+      gradeStats.set(key, { totalGpaWeight: 0, totalEnroll: 0, subjects: new Set(), courseCount: 0, lastName: ln, firstInitial: firstInitial ? firstInitial.toLowerCase() : null });
     }
-    const s = gradeStats.get(ln);
+    const s = gradeStats.get(key);
     const enroll = row.graded_enrollment ?? 0;
     const gpa    = row.gpa ?? 0;
     if (enroll > 0 && gpa > 0) { s.totalGpaWeight += gpa * enroll; s.totalEnroll += enroll; }
     if (row.subject) s.subjects.add(row.subject.trim());
     s.courseCount++;
   }
-  console.log(`  Aggregated stats for ${gradeStats.size} unique last names.\n`);
+  console.log(`  Aggregated stats for ${gradeStats.size} unique first-initial+last-name buckets.\n`);
+
+  // Look up grade stats for a section instructor: try the precise
+  // (firstInitial+lastName) bucket first, fall back to last-name-only
+  // aggregation across all buckets sharing that surname when no exact
+  // initial match exists (grades data didn't record an initial for them).
+  function lookupGradeStats(firstInitial, ln) {
+    if (firstInitial) {
+      const exact = gradeStats.get(`${firstInitial.toLowerCase()}|${ln}`);
+      if (exact) return exact;
+    }
+    const bare = gradeStats.get(ln);
+    if (bare) return bare;
+    return null;
+  }
 
   // Load section instructors
   console.log('Loading section instructors...');
@@ -148,7 +173,7 @@ async function fetchAll(table, select, filters = []) {
   for (const sectionName of uniqueSectionInstructors) {
     const { firstInitial, last } = parseInitialAndLast(sectionName);
     const ln    = normName(last);
-    const stats = gradeStats.get(ln);
+    const stats = lookupGradeStats(firstInitial, ln);
     const rmp   = matchRmp(ln, rmpIndex, firstInitial);
     sectionLastNames.add(ln);
 
@@ -178,11 +203,14 @@ async function fetchAll(table, select, filters = []) {
     toUpsert.push(record);
   }
 
-  // Grade-only instructors (not in Fall 2026 sections)
+  // Grade-only instructors (not in Fall 2026 sections). The Map key can now
+  // be a composite "initial|lastname" string, so use stats.lastName (the
+  // real surname, stored at aggregation time) rather than the raw key.
   let gradeOnlyCount = 0;
-  for (const [ln, stats] of gradeStats.entries()) {
+  for (const stats of gradeStats.values()) {
+    const ln = stats.lastName;
     if (sectionLastNames.has(ln)) continue;
-    const rmp    = matchRmp(ln, rmpIndex, null);
+    const rmp    = matchRmp(ln, rmpIndex, stats.firstInitial);
     // Use RMP full name when available; otherwise title-case last name
     const displayName = rmp
       ? `${rmp.first_name} ${rmp.last_name}`.trim()

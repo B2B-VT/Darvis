@@ -88,7 +88,7 @@ def course_answer(
         if sort_ascending:
             f_note = f" and a {top_f} F rate" if top_f else ""
             parts = [
-                f"For {course_label}, {top_name} is the hardest professor in the dataset "
+                f"For {course_label}, {top_name} has the toughest grade outcomes on record "
                 f"— {top_gpa} average GPA{f_note} across "
                 f"{top_students:,} students over {top_terms} {term_word}{conf}.",
             ]
@@ -111,7 +111,7 @@ def course_answer(
         if sort_ascending:
             f_note = f" and a {top_f} F rate" if top_f else ""
             parts = [
-                f"{top_name} is the hardest professor for {course_label} "
+                f"{top_name} has the toughest grade outcomes on record for {course_label} "
                 f"— {top_gpa} average GPA{f_note} across "
                 f"{top_students:,} students over {top_terms} {term_word}{conf}.",
             ]

@@ -167,6 +167,19 @@ def handle_major_requirements(
     3. If found, build structured context and return table.
     4. If not found, fall back to the vector store + LLM.
     """
+    # A bare "for my major"/"my degree" question names no real major — check the
+    # RAW question text first, before trusting intent.major_query. The planner
+    # LLM will confidently invent a plausible-sounding major_query (verified: it
+    # produced "Mathematics Education" for "what classes should I take for my
+    # major?", which names no major at all) — trusting that guess over the
+    # student's literal wording is what caused the A8 hallucination. The
+    # student's own words are more authoritative than the LLM's guess here.
+    if _question_names_no_major(question):
+        return (
+            "Which major should we check? We need the major or a specific requirement list before we can identify required courses that fit your constraints.",
+            [], [], {"route": "major_requirements", "matched_major": None, "needs_clarification": True}
+        )
+
     # Use LLM-extracted major name if available; much more reliable than regex
     if intent is not None and intent.major_query:
         query = intent.major_query
@@ -250,10 +263,45 @@ def handle_major_requirements(
     )
 
 
+_SELF_REFERENTIAL_MAJOR_PATTERNS = [
+    r"\bfor my major\b", r"\bfor my degree\b",
+    r"\bmy major\b(?!\s+is\b)", r"\bmy degree\b(?!\s+is\b)",
+    r"\byour major\b", r"\bour major\b",
+]
+
+
+def _question_names_no_major(question: str) -> bool:
+    """
+    True when the question only refers to a major self-referentially ("my
+    major", "for my degree") without ever naming a specific real major
+    anywhere in the text. Checked against the raw question BEFORE trusting
+    intent.major_query, since the planner LLM will confidently invent a
+    plausible-sounding major name even when none was actually stated.
+    """
+    q = question.lower()
+    if not any(re.search(p, q) for p in _SELF_REFERENTIAL_MAJOR_PATTERNS):
+        return False
+    known_terms = set(_ALIASES.keys()) | set(_ALIASES.values())
+    return not any(term in q for term in known_terms)
+
+
+_GENERIC_MAJOR_PHRASES = {
+    "my major", "your major", "our major", "their major", "this major", "that major", "the major", "a major",
+    "my degree", "your degree", "our degree", "their degree", "this degree", "that degree",
+    "my program", "your program", "my field", "my department",
+}
+
+
 def _is_missing_major_context(question: str, query: str) -> bool:
     q = question.lower()
     cleaned = (query or "").strip().lower()
     if cleaned in {"", "required", "requirement", "requirements", "can", "still", "work", "until", "courses", "classes"}:
+        return True
+    # "for my major" / "for my degree" etc. are self-referential, not an actual
+    # major name — without this check, the has_explicit_major regex below treats
+    # "my major" as if it named a specific major, letting an empty/generic query
+    # slip through to Path 2's ungrounded LLM fallback (confidently wrong answers).
+    if cleaned in _GENERIC_MAJOR_PHRASES:
         return True
     asks_required = any(phrase in q for phrase in ("required courses", "requirements", "for my major", "my major"))
     has_explicit_major = bool(re.search(r"\b(?:for|in|major in|degree in)\s+(?:the\s+)?[a-z]{2,}(?:\s+[a-z]{2,})?", q))

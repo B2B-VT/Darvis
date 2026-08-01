@@ -66,6 +66,30 @@ def _last(name: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
+_SEMESTER_YEAR_RE = re.compile(
+    r"\b(spring|summer|fall|winter)\s+(\d{4})\b|\b(\d{4})\s+(spring|summer|fall|winter)\b",
+    re.IGNORECASE,
+)
+
+
+def _mentions_different_term(question: str, term_label: str) -> bool:
+    """
+    "Show me Spring 2035 sections for CS 1114" names a term Darvis doesn't
+    have — verified live that this was silently answered with CURRENT-term
+    data with zero acknowledgement that the requested term differs, directly
+    violating the system's own 'never present one term as another' rule.
+    Only the current term (e.g. "Fall 2026") is ever loaded, so any other
+    explicitly-named semester+year is, by definition, unavailable.
+    """
+    m = _SEMESTER_YEAR_RE.search(question)
+    if not m:
+        return False
+    mentioned = " ".join(g for g in m.groups() if g).strip().lower()
+    parts = mentioned.split()
+    mentioned_norm = f"{parts[0]} {parts[1]}" if parts[0].isalpha() else f"{parts[1]} {parts[0]}"
+    return mentioned_norm != term_label.lower()
+
+
 def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sections_df=None, indexes=None):
     """Returns (answer, tables, charts, metadata)."""
     from app.utils.charts import table_spec
@@ -77,6 +101,13 @@ def handle_section_lookup(question: str, df, llm, rmp_df=None, intent=None, sect
     prof_filter = getattr(intent, "professor_name", None)
 
     course_label = f"{subject} {course_no}".strip() if course_no else subject
+
+    if _mentions_different_term(question, term_label):
+        return (
+            f"Darvis only has {term_label} section data right now — I don't have that other term available. "
+            f"Here's what I can tell you for {term_label} once you confirm, or check the official VT timetable for other terms.",
+            [], [], {"term_mismatch": True}
+        )
 
     if not course_no:
         if prof_filter and indexes is not None and getattr(indexes, "sections_by_instructor", None):

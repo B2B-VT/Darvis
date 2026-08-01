@@ -28,7 +28,7 @@ SUPABASE_URL=https://rpmgcurhxrgtzbdixtay.supabase.co
 SUPABASE_KEY=...           # service role key
 REDIS_URL=...              # Redis Stack / Redis Cloud — semantic + keyword search
 RAG_REDIS_INDEX_NAME=darvis_embeddings
-RAG_ENABLE_LLM_JUDGE=true  # Groq judges borderline retrieval quality before using it
+RAG_ENABLE_LLM_JUDGE=true  # LLM judges borderline retrieval quality before using it
 CURRENT_TERM=202609        # optional — current term code (also CURRENT_TERM_LABEL="Fall 2026")
 ALLOWED_ORIGINS=https://darvis.tech,http://localhost:3000
 SHOW_DOCS=true             # local only — enables /docs
@@ -58,7 +58,7 @@ app/
 │   ├── section_lookup.py   Handler for Fall 2026 timetable questions ("who is teaching CS 1114?", times/days/seats/location) — uses startup-loaded sections_df, falls back to live Supabase query
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
-│   ├── gemma_client.py     Groq client via OpenAI-compatible SDK (legacy filename) — 30s timeout, returns None on failure
+│   ├── gemma_client.py     Groq client, `openai/gpt-oss-120b` by default (legacy filename) — 30s timeout, returns None on failure
 │   ├── query_planner.py    QueryPlanner — sole LLM-only planning/routing stage; replaces the old IntentExtractor + hardcoded section-signal override. No keyword fallback: low confidence/timeout/malformed JSON returns a clarification-request plan
 │   ├── intent_extractor.py Dead code — superseded by query_planner.py, no longer imported by main.py
 │   ├── verifier.py         check_plan() — sufficiency gate; short-circuits with an honest "we don't have that" answer for known data gaps before handler dispatch
@@ -71,7 +71,7 @@ app/
 │   ├── pipeline.py         RAG retrieval pipeline orchestration
 │   ├── agentic_pipeline.py Planner → retrieve → critic agentic flow
 │   ├── agents/planner.py   Plans retrieval steps
-│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback (Groq) on borderline final attempts
+│   ├── agents/critic.py    Scores retrieval quality; LLM-judgement fallback on borderline final attempts
 │   ├── observability.py    Per-stage timing + debug telemetry
 │   ├── prompts.py          SYSTEM_PROMPT reference + build_answer_prompt
 │   └── vector_store.py     Pandas keyword fallback + Redis-backed (redisvl) semantic search
@@ -128,12 +128,11 @@ Route strings come from `QueryPlanner` (LLM-only, `query_planner.py`) — no key
 
 ## LLM (Groq)
 
-- Model: `openai/gpt-oss-120b` (`GROQ_MODEL`) — free tier, strict-JSON-capable, OpenAI-compatible endpoint at `https://api.groq.com/openai/v1`
-- Temperature: 0.2 (0.1 for raw/intent calls), max output tokens: 800
-- 30-second timeout set on the OpenAI client pointed at Groq
+- Model: `openai/gpt-oss-120b` (`GROQ_MODEL`), served via Groq's OpenAI-compatible endpoint (`base_url=https://api.groq.com/openai/v1`)
+- Temperature: 0.2 (0.1 for raw/intent calls), `reasoning_effort="low"`
+- 30-second timeout set on the client
 - Returns `None` on any failure — caller falls back to `templated_answers.py`
-- Note: the client class is still named `GemmaAnswerClient` (rag/gemma_client.py) — legacy name, now on its second provider migration (Anthropic → Groq, 2026-07-17)
-- Free-tier limit: 1,000 requests/day, 8,000 tokens/min on `gpt-oss-120b` — watch `console.groq.com/docs/deprecations` for model retirement notices
+- Note: the client class is still named `GemmaAnswerClient` (rag/gemma_client.py) — legacy name from before an earlier Gemma-era backend. Backend history: Anthropic → Groq migration, briefly reverted by a bad merge (`e0904af`), restored in `cbdf7db`
 - Tone defined in `SYSTEM_GUARDRAIL`: advisor-style, lead with insight, support with numbers
 - Never open with "Based on historical grade data..." — this is explicitly blocked in the system prompt
 
@@ -157,7 +156,7 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 | `courses` | `load_courses_from_supabase()` | Course catalog, vector store context |
 | `major_requirements` | `load_requirements_from_supabase()` | Major requirement answers |
 | `sections` | `load_sections_from_supabase()` at startup (term from `CURRENT_TERM` in config.py, default 202609) | Section lookups, course/professor profiles, schedule building. 10,663 rows, auto-refreshed every 4h by GitHub Actions; `schedule_builder.py` still queries `majors`/`major_requirements` live |
-| `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search. Retrieval queries Redis at runtime, not this table directly. Current 4,576 vectors are STALE (see Known issues #1) |
+| `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search. Retrieval queries Redis at runtime, not this table directly. Redis index verified at 36,210 vectors via `/health` on 2026-07-31 (local + production) — embeddings have been rebuilt since the stale 4,576-row snapshot; see Known issues #1 |
 | `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers |
 | `echo_reviews` | Added by `migrations/003_echo_reviews.sql` (2026-07-05) | Read/written by `frontend/src/api.js`; served by chatbot `GET /rmp/reviews` |
 
@@ -165,7 +164,7 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 
 **Accepted limitations:**
 
-1. **Embeddings are stale** — all 4,576 `embeddings` rows date to 2026-05-23, built from the pre-import dataset (3,564 course chunks, 622 grade, 210 instructor, 180 requirement). The DB now has 6,589 courses, 59,790 grade rows (152 subjects), and 3,834 instructors, so RAG retrieval misses most current data. Rebuild to ~30.8k chunks: `python -m scripts.rebuild_embeddings --wipe`, then `python -m scripts.sync_redis_index`.
+1. **Embeddings were stale, now rebuilt** — a prior snapshot had only 4,576 `embeddings` rows (built 2026-05-23, pre-import dataset). Verified via `/health` on 2026-07-31 (local dev + production `chat-bot-6dpo.onrender.com`): the live Redis index now has 36,210 vectors, well past the ~30.8k rebuild target — someone already ran `rebuild_embeddings --wipe` + `sync_redis_index` since this note was written. If retrieval quality regresses, re-run those two scripts; don't assume staleness without checking `/health`'s `vector_records` first.
 
 2. **`rmp_tags` empty** — RMP's GraphQL API does not return `teacherRatingTags`. Confirmed after running `fetch_rmp_tags.js`. Ratings and difficulty scores are populated and working. Tags are a no-op.
 

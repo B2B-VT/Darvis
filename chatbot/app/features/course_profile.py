@@ -20,6 +20,28 @@ def _is_rmp_question(question: str) -> bool:
     return any(kw in q for kw in _RMP_KEYWORDS)
 
 
+_PREREQ_PATTERNS = (
+    "prerequisite", "prereq", "pre-req",
+    "before taking", "before i take", "before you take",
+)
+
+
+def _is_prerequisite_question(question: str) -> bool:
+    """
+    "Does CS 2114 have prerequisites?" / "Can I take STAT 3005 before STAT
+    3006?" ask specifically about prerequisite/sequence data — verified live
+    that these fell through to the generic grade-stats answer, completely
+    ignoring the question, even when real prerequisite data existed in the DB
+    (CS 2114's prerequisites field: "CS 1114 or CS 2064"). Also matches
+    "can I take X before Y" — "before" alone isn't included since it's too
+    broad (schedule/time questions use it constantly).
+    """
+    q = question.lower()
+    if any(p in q for p in _PREREQ_PATTERNS):
+        return True
+    return bool(re.search(r"\bcan\s+i\s+take\s+.+\bbefore\b", q))
+
+
 def _is_about_course_question(question: str) -> bool:
     q = question.lower()
     return any(phrase in q for phrase in ("tell me about", "what is", "what's", "describe", "about "))
@@ -174,16 +196,18 @@ def _course_overview_answer(
     description: str,
     title: str,
     sections_df: "pd.DataFrame | None",
+    credits: float | None = None,
 ) -> str:
     course_label = f"{subject} {course_no}".strip() if subject else course_no
     pieces: list[str] = []
+    credit_note = f" ({credits:g} credits)" if credits else ""
 
     if description:
-        pieces.append(f"{course_label}: {description}")
+        pieces.append(f"{course_label}{credit_note}: {description}")
     elif title:
-        pieces.append(f"{course_label} is {title}. Darvis doesn't have the full catalog description for this course yet.")
+        pieces.append(f"{course_label}{credit_note} is {title}. Darvis doesn't have the full catalog description for this course yet.")
     else:
-        pieces.append(f"Darvis doesn't have the full catalog description for {course_label} yet.")
+        pieces.append(f"Darvis doesn't have the full catalog description for {course_label}{credit_note} yet.")
 
     top = result.iloc[0]
     pieces.append(
@@ -330,6 +354,23 @@ def handle_course_profile(
         return None
 
     requested_courses = _requested_courses_from_question(question, intent)
+
+    if _is_prerequisite_question(question):
+        courses_to_check = requested_courses if len(requested_courses) >= 2 else [(subject, course_no)]
+        parts = []
+        for subj, num in courses_to_check:
+            key = (subj.upper(), str(num).strip())
+            prereq = indexes.course_prerequisites.get(key) if indexes is not None else None
+            label = f"{subj.upper()} {num}"
+            if prereq:
+                parts.append(f"{label}'s prerequisite: {prereq}.")
+            else:
+                parts.append(
+                    f"Darvis doesn't have prerequisite data on file for {label} — "
+                    "check the official VT course catalog or your academic advisor to confirm."
+                )
+        return " ".join(parts), [], [], {"subject": subject, "course_no": course_no, "route": "course_profile"}
+
     if len(requested_courses) >= 2 and _is_course_comparison_question(question):
         return _handle_course_comparison(
             question,
@@ -355,10 +396,12 @@ def handle_course_profile(
 
     description = ""
     title = ""
+    credits = None
     if indexes is not None and subject and course_no:
         key = (subject.upper(), course_no.strip())
         description = indexes.course_descriptions.get(key, "") or ""
         title = indexes.course_titles.get(key, "") or ""
+        credits = indexes.course_credits.get(key)
 
     if sort_ascending and not result_all.empty and "Avg GPA" in result_all.columns:
         # For "hardest/worst" queries: sort ALL instructors by ascending GPA first so the
@@ -421,7 +464,7 @@ def handle_course_profile(
     # response included a populated Professor Summary. The table is the source of
     # truth, so data-present course summaries should be rendered from it directly.
     if _is_about_course_question(question):
-        answer = _course_overview_answer(result_display, subject, course_no, description, title, sections_df)
+        answer = _course_overview_answer(result_display, subject, course_no, description, title, sections_df, credits=credits)
     else:
         answer = course_answer(question, result_display, subject, course_no, sort_ascending=sort_ascending)
 

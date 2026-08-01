@@ -482,21 +482,76 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
             history=[m.model_dump() for m in body.history],
             user_profile=body.user_profile,
             indexes=STATE.get("indexes"),
+            sections_df=STATE.get("sections_df"),
         )
     else:
         return handle_general_chat(question, df, llm, vector_store, intent=intent, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"), sections_df=STATE.get("sections_df"))
 
 
-def _ambiguous_professor_shorthand(question: str, intent) -> bool:
+def _ambiguous_professor_shorthand(question: str, intent, er=None) -> bool:
+    """
+    True only when a bare "professor/prof <name>" the LLM failed to extract
+    is GENUINELY ambiguous or unresolvable in the database. Previously this
+    assumed any non-stopword word after "professor" meant ambiguity, with no
+    actual database check — verified live that this incorrectly triggered
+    clarification for real, unambiguous single-match instructors (e.g.
+    "Professor Hamouda", the only Hamouda in the database). When `er` can
+    resolve the name to exactly one confident match, fill it into
+    intent.professor_name and let the normal flow proceed instead.
+    """
     if intent is None or getattr(intent, "professor_name", None):
         return False
     q = question.lower()
-    match = re.search(r"\bprof(?:essor)?\s+([a-z]{2,5})\b", q)
+    match = re.search(r"\bprof(?:essor)?\s+([a-z]+)\b", q)
     if not match:
+        # Also catch bare-name mentions with no "professor/prof" qualifier at
+        # all (e.g. "Tell me about Smith.", "Who's better, Smith or Johnson?")
+        # — only when the word resolves against real instructor last names,
+        # to avoid false-triggering on unrelated topics.
+        match = re.search(r"\b(?:tell me about|who'?s better,?)\s+([a-z]+)\b", q)
+        if not match:
+            return False
+    word = match.group(1)
+    if word in _PROF_SHORTHAND_STOPWORDS:
         return False
-    if match.group(1) in {"has", "have", "with", "for", "who", "what", "that", "this", "best", "worst"}:
+    if getattr(intent, "route", None) not in {"professor_profile", "section_lookup", "course_profile", "general_rag"}:
         return False
-    return getattr(intent, "route", None) in {"professor_profile", "section_lookup", "course_profile", "general_rag"}
+    if er is None:
+        return True
+    resolved = er.resolve_professor_ex(word)
+    if resolved.ambiguous:
+        return True
+    if resolved.value and resolved.confidence >= 0.6:
+        intent.professor_name = resolved.value
+        return False
+    return True
+
+
+_PROF_SHORTHAND_STOPWORDS = {
+    "has", "have", "with", "for", "who", "what", "that", "this", "best",
+    "worst", "is", "are", "and", "or", "the", "a", "an", "should", "gives",
+    "give", "teaches", "teach", "smth",
+}
+
+
+def _bare_surname_from_question(question: str) -> str | None:
+    """
+    Returns a bare surname when the question says "professor/prof <one word>"
+    with no first name attached (e.g. "Professor Smith", not "Professor Jane
+    Smith"). Used to independently re-check ambiguity against the *literal*
+    question text, regardless of what the planner LLM extracted into
+    intent.professor_name — verified live that the LLM sometimes embellishes
+    a bare surname into a specific invented full name (e.g. "Smith" ->
+    "Michael Smith"), which then exact-matches with confidence 1.0 and skips
+    the entity resolver's own ambiguity detection entirely.
+    """
+    match = re.search(r"\bprof(?:essor)?\s+([A-Za-z]+)\b(?!\s+[A-Z][a-z]+)", question)
+    if not match:
+        return None
+    word = match.group(1)
+    if word.lower() in _PROF_SHORTHAND_STOPWORDS or len(word) < 2:
+        return None
+    return word
 
 
 def _missing_user_major_context(question: str, intent, body: ChatRequest) -> bool:
@@ -525,6 +580,19 @@ def _asks_workload_question(question: str) -> bool:
             "how much work",
         )
     )
+
+
+def _asks_curve_question(question: str) -> bool:
+    """
+    "Which teacher curves the most?" — grading-curve policy isn't in Darvis'
+    data model at all (no course/professor context to attach a deterministic
+    missing-data answer to, unlike workload). Verified live the prior
+    behavior deflected to "could you specify a department" without ever
+    stating curve data doesn't exist — more specificity wouldn't produce
+    data that isn't tracked. Short-circuits honestly instead.
+    """
+    q = question.lower()
+    return "curve" in q or "curves" in q or "curving" in q
 
 
 def _clarification_response(answer: str, route: str, warnings: list[str], timings: dict[str, int], reason: str) -> ChatResponse:
@@ -593,6 +661,20 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
         if not (intent.subject and intent.course_no):
             intent.route = "general_rag"
 
+    if _asks_curve_question(question):
+        timings["resolve_ms"] = 0
+        return ChatResponse(
+            answer=(
+                "Darvis doesn't track grading-curve policies — that's not something the historical "
+                "grade data can tell you, and I won't guess at it from GPA/F-rate numbers alone."
+            ),
+            route="general_rag",
+            warnings=warnings,
+            tables=[], charts=[],
+            metadata={"missing_data_field": "curve", "timings_ms": timings},
+            schedule_actions=[],
+        )
+
     # ── Stage 2: resolve entities ──────────────────────────────────────────────
     t0 = time.time()
     if intent is not None:
@@ -602,8 +684,50 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
                 resolved = er.resolve_professor_ex(intent.professor_name)
                 if resolved.value and resolved.confidence >= 0.6:
                     intent.professor_name = resolved.value
-                if resolved.warning and resolved.ambiguous:
-                    warnings.append(resolved.warning)
+
+                ambiguity_warning = resolved.warning if resolved.ambiguous else None
+
+                # The planner LLM can embellish a bare surname into a specific
+                # invented full name (e.g. "Smith" -> "Michael Smith"), which
+                # then exact-matches with confidence 1.0 and skips ambiguity
+                # detection entirely. Detect this by checking whether any
+                # first-name token the LLM added is actually present anywhere
+                # in the raw question — if not, it was invented, and the
+                # surname alone should be re-checked for ambiguity.
+                if not ambiguity_warning:
+                    name_tokens = intent.professor_name.lower().split()
+                    if len(name_tokens) > 1:
+                        q_lower = question.lower()
+                        first_name_tokens = name_tokens[:-1]
+                        if not any(tok in q_lower for tok in first_name_tokens):
+                            surname_resolved = er.resolve_professor_ex(name_tokens[-1])
+                            if surname_resolved.ambiguous:
+                                ambiguity_warning = surname_resolved.warning
+
+                # Ambiguous surname (either directly, or via the bare-surname
+                # form embedded in the question, e.g. "Tell me about Smith"
+                # or "Professor Smith") — force clarification rather than
+                # silently proceeding with an arbitrary match. A previous
+                # version only appended resolved.warning to `warnings` (a
+                # footnote) while still answering with owners[0] as if
+                # confirmed — verified live this presented one specific real
+                # person's data as "the" answer with no disambiguation.
+                if not ambiguity_warning:
+                    bare_surname = _bare_surname_from_question(question)
+                    if bare_surname and bare_surname.lower() not in intent.professor_name.lower().split():
+                        bare_resolved = er.resolve_professor_ex(bare_surname)
+                        if bare_resolved.ambiguous:
+                            ambiguity_warning = bare_resolved.warning
+
+                if ambiguity_warning:
+                    timings["resolve_ms"] = int((time.time() - t0) * 1000)
+                    return _clarification_response(
+                        ambiguity_warning,
+                        intent.route,
+                        warnings,
+                        timings,
+                        "ambiguous_professor_surname",
+                    )
             if intent.subject and intent.course_no:
                 intent.subject, intent.course_no = er.resolve_course_code(
                     intent.subject, intent.course_no
@@ -625,7 +749,7 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
         route = route_question(question)
     timings["resolve_ms"] = int((time.time() - t0) * 1000)
 
-    if _ambiguous_professor_shorthand(question, intent):
+    if _ambiguous_professor_shorthand(question, intent, er=STATE.get("entity_resolver")):
         return _clarification_response(
             "Which professor did you mean? Please provide the full name or department, and we can compare the available course, schedule, or grade data.",
             route,
