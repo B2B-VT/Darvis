@@ -53,3 +53,4 @@ class FeedbackRequest(BaseModel):
     answer: str = Field(..., min_length=1, max_length=5000)
     route: str = Field(..., min_length=1, max_length=100)
     rating: Literal[1, -1]  # 1 = thumbs up, -1 = thumbs down
+    reason: str | None = Field(default=None, max_length=1000)

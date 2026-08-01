@@ -9,7 +9,7 @@ import urllib.error
 import urllib.request
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -925,6 +925,44 @@ def chat_stream(request: Request, body: ChatRequest):
     return StreamingResponse(events(), media_type="text/event-stream")
 
 
+@app.get("/feedback/recent")
+@limiter.limit("20/minute")
+def recent_feedback(
+    request: Request,
+    limit: int = Query(default=100, ge=1, le=250),
+    x_darvis_dev_token: str | None = Header(default=None),
+):
+    """Return recent chatbot feedback for internal review."""
+    if not settings.dev_feedback_token or x_darvis_dev_token != settings.dev_feedback_token:
+        raise HTTPException(status_code=403, detail="Feedback review is restricted.")
+    supabase = STATE.get("supabase")
+    if supabase is None:
+        raise HTTPException(status_code=503, detail="Backend is not fully initialized.")
+    try:
+        data = (
+            supabase.table("feedback")
+            .select("id, question, answer, route, rating, reason, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+            .data
+            or []
+        )
+    except Exception:
+        data = (
+            supabase.table("feedback")
+            .select("id, question, answer, route, rating, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+            .data
+            or []
+        )
+        for row in data:
+            row["reason"] = None
+    return {"feedback": data}
+
+
 @app.post("/feedback", status_code=204)
 @limiter.limit("30/minute")
 def feedback(request: Request, body: FeedbackRequest):
@@ -933,12 +971,19 @@ def feedback(request: Request, body: FeedbackRequest):
     if supabase is None:
         raise HTTPException(status_code=503, detail="Backend is not fully initialized.")
     try:
-        supabase.table("feedback").insert({
+        row = {
             "question": body.question,
             "answer": body.answer,
             "route": body.route,
             "rating": body.rating,
-        }).execute()
+        }
+        if body.reason:
+            row["reason"] = body.reason.strip()
+        try:
+            supabase.table("feedback").insert(row).execute()
+        except Exception:
+            row.pop("reason", None)
+            supabase.table("feedback").insert(row).execute()
     except Exception as exc:
         logger.error("Feedback insert failed: %s", exc)
         raise HTTPException(status_code=500, detail="Failed to record feedback.")

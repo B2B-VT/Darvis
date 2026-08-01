@@ -574,7 +574,7 @@ def test_topic_course_recommendations_use_relevance_and_descriptions(grades_df):
         indexes=idx,
     )
 
-    assert answer.startswith("Here are good data analytics course matches")
+    assert answer.startswith("STAT 5525")
     assert "STAT 5525" in answer
     assert "CS 4604" in answer
     assert "BIT 3444" in answer
@@ -584,11 +584,90 @@ def test_topic_course_recommendations_use_relevance_and_descriptions(grades_df):
     assert "Introduces methods for extracting insight from data using analytics workflows." in answer
     assert "Covers data modeling, querying, and systems that support analytics applications." in answer
     assert "Uses business data tools for reporting, dashboards, and analytics decisions." in answer
-    assert "topic matches first" in answer
+    assert "Here are good" not in answer
+    assert "topic matches first" not in answer
     assert tables[0]["title"] == "Course Recommendations"
     assert "Description" not in tables[0]["columns"]
     assert "Avg GPA" in tables[0]["columns"]
     assert "Avg A Range (%)" in tables[0]["columns"]
+    assert charts == []
+    assert metadata["recommendation_mode"] == "topic_courses"
+
+
+def test_topic_course_recommendations_respect_major_and_format_ai_ml(grades_df):
+    courses_df = pd.DataFrame([
+        {
+            "subject": "CS",
+            "course_number": "4824",
+            "title": "Machine Learning",
+            "credits": 3,
+            "avg_gpa": 3.4,
+            "description": "Introduces supervised and unsupervised machine learning methods, model evaluation, and neural networks.",
+            "pathways": None,
+            "prerequisites": None,
+        },
+        {
+            "subject": "CS",
+            "course_number": "4804",
+            "title": "Introduction to Artificial Intelligence",
+            "credits": 3,
+            "avg_gpa": 3.3,
+            "description": "Covers search, planning, knowledge representation, and artificial intelligence methods.",
+            "pathways": None,
+            "prerequisites": None,
+        },
+        {
+            "subject": "CMDA",
+            "course_number": "4654",
+            "title": "Intermediate Data Analytics and Machine Learning",
+            "credits": 3,
+            "avg_gpa": 3.2,
+            "description": "Covers supervised learning, regression, classification, clustering, and model validation.",
+            "pathways": None,
+            "prerequisites": None,
+        },
+        {
+            "subject": "BIT",
+            "course_number": "2406",
+            "title": "Business Statistics Analytics and Modeling",
+            "credits": 3,
+            "avg_gpa": 3.1,
+            "description": "Discussion of descriptive and predictive analytics goals and business models.",
+            "pathways": None,
+            "prerequisites": None,
+        },
+        {
+            "subject": "BCHM",
+            "course_number": "4115",
+            "title": "General Biochemistry",
+            "credits": 3,
+            "avg_gpa": 3.0,
+            "description": "For students interested in a foundation course in metabolism and chemistry.",
+            "pathways": None,
+            "prerequisites": None,
+        },
+    ])
+    idx = DataIndexes(grades_df=grades_df, courses_df=courses_df)
+
+    answer, tables, charts, metadata = handle_natural_filter(
+        "I am a CS student interested in AI and ML, what classes should I take?",
+        grades_df,
+        _FailIfNaturalFilterLLMCalled(),
+        vector_store=None,
+        top_n=5,
+        use_recency=False,
+        indexes=idx,
+        user_profile={"major": "Computer Science"},
+    )
+
+    assert answer.startswith("CS 4824")
+    assert "Here are good" not in answer
+    assert "student interested and should" not in answer
+    assert "\n\nCS 4804" in answer
+    assert "\n\nCMDA 4654" in answer
+    assert "BIT 2406" not in answer
+    assert "BCHM 4115" not in answer
+    assert {row["Course"] for row in tables[0]["rows"]} == {"CS 4824", "CS 4804", "CMDA 4654"}
     assert charts == []
     assert metadata["recommendation_mode"] == "topic_courses"
 

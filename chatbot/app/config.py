@@ -99,6 +99,7 @@ class Settings(BaseSettings):
     )
     max_question_chars: int = Field(default=800, alias="MAX_QUESTION_CHARS")
     max_rows_to_llm: int = Field(default=15, alias="MAX_ROWS_TO_LLM")
+    dev_feedback_token: str = Field(default="", alias="DEV_FEEDBACK_TOKEN")
 
     # Enable /docs only locally
     show_docs: bool = Field(default=False, alias="SHOW_DOCS")
