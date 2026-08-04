@@ -1,0 +1,255 @@
+{
+  "case_id": "course_rec_easiest_cs_elective_001",
+  "query": "What is the easiest CS elective?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4994",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4994",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 6804",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "6804",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4774",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4774",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5914",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5914",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5934",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4994",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4994",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 6804",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "6804",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4774",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4774",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5914",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5914",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5934",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 4994",
+    "COURSE:CS 6804",
+    "COURSE:CS 4774",
+    "COURSE:CS 5914",
+    "COURSE:CS 5934"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4994",
+    "COURSE:CS 6804",
+    "COURSE:CS 4774",
+    "COURSE:CS 5914",
+    "COURSE:CS 5934"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 4994",
+      "COURSE:CS 6804",
+      "COURSE:CS 4774",
+      "COURSE:CS 5914",
+      "COURSE:CS 5934"
+    ],
+    "selected_ids": [
+      "COURSE:CS 4994",
+      "COURSE:CS 6804",
+      "COURSE:CS 4774",
+      "COURSE:CS 5914",
+      "COURSE:CS 5934"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4994",
+            "Course Title": "Undergraduate Research",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 51,
+            "Terms Taught": 7,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 6804",
+            "Course Title": "Adv Topics Intell Sys",
+            "Avg GPA": 3.996,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 122,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4774",
+            "Course Title": "HCI Design Experience",
+            "Avg GPA": 3.971,
+            "Avg A Range (%)": 97.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 32,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5914",
+            "Course Title": "TS:Software Project Management",
+            "Avg GPA": 3.97,
+            "Avg A Range (%)": 97.4,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 39,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2022,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Avg GPA": 3.968,
+            "Avg A Range (%)": 98.67,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 1325,
+            "Terms Taught": 14,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_gpa",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5006,
+        "resolve_ms": 0,
+        "handler_ms": 18779
+      },
+      "confidence": 0.68
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

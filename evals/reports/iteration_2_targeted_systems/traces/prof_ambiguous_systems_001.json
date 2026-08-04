@@ -1,0 +1,136 @@
+{
+  "case_id": "prof_ambiguous_systems_001",
+  "query": "I want a chill prof for systems.",
+  "parsed_intent": {
+    "time_end": null,
+    "needs_clarification": true,
+    "major_query": null,
+    "excluded_days": [],
+    "time_start": null,
+    "requested_courses": [
+      [
+        "CS",
+        "3214"
+      ],
+      [
+        "CS",
+        "3204"
+      ]
+    ],
+    "missing_data_field": null,
+    "min_gpa": null,
+    "open_seats_only": false,
+    "confidence": 1.0,
+    "level_high": null,
+    "clarifying_question": "Which systems course do you mean: CS 3214, CS 3204, or another systems course?",
+    "professor_name": null,
+    "target_credits": null,
+    "secondary_routes": [],
+    "route": "general_rag",
+    "sort_goal": "highest_gpa",
+    "min_terms": null,
+    "level_low": null,
+    "min_rmp": null,
+    "min_students": 30,
+    "subject_filter": null,
+    "display_n": null,
+    "wants_professors": null,
+    "capabilities": [
+      "instructor_lookup",
+      "unsupported_or_missing_data"
+    ],
+    "subject": null,
+    "course_no": null
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 3214",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3214",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 3204",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3204",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "clarification_required"
+  },
+  "evidence_ids": [
+    "COURSE:CS 3214",
+    "COURSE:CS 3204"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "COURSE:CS 3214",
+      "COURSE:CS 3204"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 3214",
+    "COURSE:CS 3204"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 3214",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3214",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 3204",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3204",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Which systems course do you mean: CS 3214, CS 3204, or another systems course?"
+  },
+  "latency_ms": {
+    "plan_ms": 2,
+    "resolve_ms": 1
+  },
+  "errors": []
+}

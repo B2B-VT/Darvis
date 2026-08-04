@@ -90,13 +90,15 @@ def course_answer(
             parts = [
                 f"For {course_label}, {top_name} has the toughest grade outcomes on record "
                 f"— {top_gpa} average GPA{f_note} across "
-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
+                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
+                f"Sample size: {top_students:,} students.",
             ]
         else:
             parts = [
                 f"For {course_label}, {top_name} has the strongest grade outcomes in the dataset "
                 f"— {top_gpa} average GPA and a {top_a} A/A− rate across "
-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
+                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
+                f"Sample size: {top_students:,} students.",
             ]
 
         if len(result) > 2:
@@ -113,13 +115,15 @@ def course_answer(
             parts = [
                 f"{top_name} has the toughest grade outcomes on record for {course_label} "
                 f"— {top_gpa} average GPA{f_note} across "
-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
+                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
+                f"Sample size: {top_students:,} students.",
             ]
         else:
             parts = [
                 f"{top_name} has the top grade outcomes for {course_label} "
                 f"— {top_gpa} average GPA and a {top_a} A/A− rate across "
-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
+                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
+                f"Sample size: {top_students:,} students.",
             ]
         if len(result) > 1:
             others = result.iloc[1:3]

@@ -1,0 +1,535 @@
+{
+  "case_id": "course_rec_biology_001",
+  "query": "What classes are good for biology?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "natural_filter",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "natural_language_filter"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.72,
+    "wants_professors": false,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": 3,
+    "sort_goal": "largest_sample",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [
+      "What classes are good for biology?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course STAT 3615: Biological Statistics. Credits: 3.0. Average GPA: 3.51. Fall 2026 sections available: 101.",
+        "source_type": "course",
+        "source_id": "stat-3615",
+        "vector_score": 0.6766,
+        "keyword_score": 0.0,
+        "combined_score": 0.6766,
+        "rerank_score": 0.6766,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Moore. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "biol-6404-moore",
+        "vector_score": 0.6765,
+        "keyword_score": 0.0,
+        "combined_score": 0.6765,
+        "rerank_score": 0.6765,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 3616: Biological Statistics. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 22.",
+        "source_type": "course",
+        "source_id": "stat-3616",
+        "vector_score": 0.6762,
+        "keyword_score": 0.0,
+        "combined_score": 0.6762,
+        "rerank_score": 0.6762,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIOL 1014 (Introduction to Biology) taught by Carter. Average GPA: 3.29. A/A- rate: 56.6%. F rate: 3.6%. Total students taught: 83. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "biol-1014-carter",
+        "vector_score": 0.675,
+        "keyword_score": 0.0,
+        "combined_score": 0.675,
+        "rerank_score": 0.675,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Uyeda. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "biol-6404-uyeda",
+        "vector_score": 0.6728,
+        "keyword_score": 0.0,
+        "combined_score": 0.6728,
+        "rerank_score": 0.6728,
+        "selected": true
+      },
+      {
+        "content": "Course SYSB 4024: Careers & Prof Systems Biology. Credits: 2.0. Average GPA: 3.74. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "sysb-4024",
+        "vector_score": 0.6713,
+        "keyword_score": 0.0,
+        "combined_score": 0.6713,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course BIOL 6004: TS: Outreach In Biology. Credits: 2.4. Average GPA: 3.96. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "biol-6004",
+        "vector_score": 0.6674,
+        "keyword_score": 0.0,
+        "combined_score": 0.6674,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIOL 2504 (General Zoology) taught by Sheppard. Average GPA: 2.47. A/A- rate: 4.9%. F rate: 7.8%. Total students taught: 102. Total withdrawals: 1. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "biol-2504-sheppard",
+        "vector_score": 0.6659,
+        "keyword_score": 0.0,
+        "combined_score": 0.6659,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STS 3734 (History of Modern Biology) taught by Mark Barrow. Average GPA: 3.22. A/A- rate: 36.4%. F rate: 0.0%. Total students taught: 11. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "sts-3734-mark_barrow",
+        "vector_score": 0.6611,
+        "keyword_score": 0.0,
+        "combined_score": 0.6611,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Sheppard. Average GPA: 2.97. A/A- rate: 21.05%. F rate: 2.48%. Total students taught: 224. Total withdrawals: 3. Sections taught: 12 terms. Gr...",
+        "source_type": "grade",
+        "source_id": "biol-2704-sheppard",
+        "vector_score": 0.6593,
+        "keyword_score": 0.0,
+        "combined_score": 0.6593,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for SYSB 4024 (Careers & Prof Systems Biology) taught by Kraikivski. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 7. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "sysb-4024-kraikivski",
+        "vector_score": 0.6591,
+        "keyword_score": 0.0,
+        "combined_score": 0.6591,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIOL 5984 (SS:Macroevltn & Phylogntcs) taught by Uyeda. Average GPA: 3.98. A/A- rate: 92.3%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "biol-5984-uyeda",
+        "vector_score": 0.6572,
+        "keyword_score": 0.0,
+        "combined_score": 0.6572,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for GRAD 5134 (TS: BioBuild) taught by Annie Pearce. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 15. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "grad-5134-annie_pearce",
+        "vector_score": 0.6566,
+        "keyword_score": 0.0,
+        "combined_score": 0.6566,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIOL 3404 (Introductory Animal Physiology) taught by Moore. Average GPA: 3.11. A/A- rate: 22.1%. F rate: 1.32%. Total students taught: 376. Total withdrawals: 15. Sections taught: 5 ter...",
+        "source_type": "grade",
+        "source_id": "biol-3404-moore",
+        "vector_score": 0.6564,
+        "keyword_score": 0.0,
+        "combined_score": 0.6564,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Uyeda. Average GPA: 3.27. A/A- rate: 27.9%. F rate: 0.46%. Total students taught: 664. Total withdrawals: 3. Sections taught: 5 terms.",
+        "source_type": "grade",
+        "source_id": "biol-2704-uyeda",
+        "vector_score": 0.6559,
+        "keyword_score": 0.0,
+        "combined_score": 0.6559,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:ITDS 1114",
+        "entity_type": "course",
+        "subject": "ITDS",
+        "course_number": "1114",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ENGL 1106",
+        "entity_type": "course",
+        "subject": "ENGL",
+        "course_number": "1106",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CHEM 1035",
+        "entity_type": "course",
+        "subject": "CHEM",
+        "course_number": "1035",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:ITDS 1114",
+    "COURSE:ENGL 1106",
+    "COURSE:CHEM 1035"
+  ],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [
+      "COURSE:ITDS 1114",
+      "COURSE:ENGL 1106",
+      "COURSE:CHEM 1035"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course STAT 3615: Biological Statistics. Credits: 3.0. Average GPA: 3.51. Fall 2026 sections available: 101.",
+      "source_type": "course",
+      "source_id": "stat-3615",
+      "vector_score": 0.6766,
+      "keyword_score": 0.0,
+      "combined_score": 0.6766,
+      "rerank_score": 0.6766,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Moore. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-6404-moore",
+      "vector_score": 0.6765,
+      "keyword_score": 0.0,
+      "combined_score": 0.6765,
+      "rerank_score": 0.6765,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 3616: Biological Statistics. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 22.",
+      "source_type": "course",
+      "source_id": "stat-3616",
+      "vector_score": 0.6762,
+      "keyword_score": 0.0,
+      "combined_score": 0.6762,
+      "rerank_score": 0.6762,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 1014 (Introduction to Biology) taught by Carter. Average GPA: 3.29. A/A- rate: 56.6%. F rate: 3.6%. Total students taught: 83. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-1014-carter",
+      "vector_score": 0.675,
+      "keyword_score": 0.0,
+      "combined_score": 0.675,
+      "rerank_score": 0.675,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Uyeda. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-6404-uyeda",
+      "vector_score": 0.6728,
+      "keyword_score": 0.0,
+      "combined_score": 0.6728,
+      "rerank_score": 0.6728,
+      "selected": true
+    },
+    {
+      "content": "Course SYSB 4024: Careers & Prof Systems Biology. Credits: 2.0. Average GPA: 3.74. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "sysb-4024",
+      "vector_score": 0.6713,
+      "keyword_score": 0.0,
+      "combined_score": 0.6713,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course BIOL 6004: TS: Outreach In Biology. Credits: 2.4. Average GPA: 3.96. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "biol-6004",
+      "vector_score": 0.6674,
+      "keyword_score": 0.0,
+      "combined_score": 0.6674,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 2504 (General Zoology) taught by Sheppard. Average GPA: 2.47. A/A- rate: 4.9%. F rate: 7.8%. Total students taught: 102. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-2504-sheppard",
+      "vector_score": 0.6659,
+      "keyword_score": 0.0,
+      "combined_score": 0.6659,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STS 3734 (History of Modern Biology) taught by Mark Barrow. Average GPA: 3.22. A/A- rate: 36.4%. F rate: 0.0%. Total students taught: 11. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "sts-3734-mark_barrow",
+      "vector_score": 0.6611,
+      "keyword_score": 0.0,
+      "combined_score": 0.6611,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Sheppard. Average GPA: 2.97. A/A- rate: 21.05%. F rate: 2.48%. Total students taught: 224. Total withdrawals: 3. Sections taught: 12 terms. Gr...",
+      "source_type": "grade",
+      "source_id": "biol-2704-sheppard",
+      "vector_score": 0.6593,
+      "keyword_score": 0.0,
+      "combined_score": 0.6593,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for SYSB 4024 (Careers & Prof Systems Biology) taught by Kraikivski. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 7. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "sysb-4024-kraikivski",
+      "vector_score": 0.6591,
+      "keyword_score": 0.0,
+      "combined_score": 0.6591,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 5984 (SS:Macroevltn & Phylogntcs) taught by Uyeda. Average GPA: 3.98. A/A- rate: 92.3%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-5984-uyeda",
+      "vector_score": 0.6572,
+      "keyword_score": 0.0,
+      "combined_score": 0.6572,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for GRAD 5134 (TS: BioBuild) taught by Annie Pearce. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 15. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "grad-5134-annie_pearce",
+      "vector_score": 0.6566,
+      "keyword_score": 0.0,
+      "combined_score": 0.6566,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 3404 (Introductory Animal Physiology) taught by Moore. Average GPA: 3.11. A/A- rate: 22.1%. F rate: 1.32%. Total students taught: 376. Total withdrawals: 15. Sections taught: 5 ter...",
+      "source_type": "grade",
+      "source_id": "biol-3404-moore",
+      "vector_score": 0.6564,
+      "keyword_score": 0.0,
+      "combined_score": 0.6564,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Uyeda. Average GPA: 3.27. A/A- rate: 27.9%. F rate: 0.46%. Total students taught: 664. Total withdrawals: 3. Sections taught: 5 terms.",
+      "source_type": "grade",
+      "source_id": "biol-2704-uyeda",
+      "vector_score": 0.6559,
+      "keyword_score": 0.0,
+      "combined_score": 0.6559,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [
+    "COURSE:ITDS 1114",
+    "COURSE:ENGL 1106",
+    "COURSE:CHEM 1035"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:ITDS 1114",
+      "entity_type": "course",
+      "subject": "ITDS",
+      "course_number": "1114",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ENGL 1106",
+      "entity_type": "course",
+      "subject": "ENGL",
+      "course_number": "1106",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CHEM 1035",
+      "entity_type": "course",
+      "subject": "CHEM",
+      "course_number": "1035",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "sort_goal"
+    ],
+    "table_titles": [
+      "Filter Results"
+    ],
+    "chart_titles": [
+      "Filter Results: Largest Sample Size"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "natural_filter",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "ITDS 1114",
+            "Course Title": "Design Appreciation",
+            "Avg GPA": 3.585,
+            "Avg A Range (%)": 76.31,
+            "Avg F Rate (%)": 2.34,
+            "Total Students": 36698,
+            "Terms Taught": 20,
+            "Total Withdraws": 711,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "ENGL 1106",
+            "Course Title": "First-Year Writing",
+            "Avg GPA": 3.573,
+            "Avg A Range (%)": 75.68,
+            "Avg F Rate (%)": 2.73,
+            "Total Students": 21314,
+            "Terms Taught": 18,
+            "Total Withdraws": 606,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CHEM 1035",
+            "Course Title": "General Chemistry",
+            "Avg GPA": 2.642,
+            "Avg A Range (%)": 23.85,
+            "Avg F Rate (%)": 4.9,
+            "Total Students": 18046,
+            "Terms Taught": 24,
+            "Total Withdraws": 2113,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "largest_sample",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 157,
+        "resolve_ms": 0,
+        "handler_ms": 11981
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "ITDS 1114 comes out on top — 3.58 average GPA and a 76.3% A/A− rate (High confidence). ENGL 1106 is close behind at 3.57 GPA. Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 157,
+    "resolve_ms": 0,
+    "handler_ms": 11981
+  },
+  "errors": []
+}

@@ -1,0 +1,267 @@
+{
+  "case_id": "course_cmp_cs2505_cs2506_001",
+  "query": "How do CS 2505 and CS 2506 differ?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "CS",
+    "route": "course_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "grade_distribution"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.78,
+    "wants_professors": null,
+    "course_no": "2505",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "CS",
+        "2505"
+      ],
+      [
+        "CS",
+        "2506"
+      ]
+    ]
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2505"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2505"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [
+      "How do CS 2505 and CS 2506 differ?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2505",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2505",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 2506",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2506",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_2505:TAUSIF",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "2505",
+        "professor_name": "Tausif",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_2506:ALLYSON_SENGER",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "2506",
+        "professor_name": "Allyson Senger",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 2505",
+    "COURSE:CS 2506",
+    "PROF_COURSE:CS_2505:TAUSIF",
+    "PROF_COURSE:CS_2506:ALLYSON_SENGER"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "COURSE:CS 2505",
+      "COURSE:CS 2506",
+      "PROF_COURSE:CS_2505:TAUSIF",
+      "PROF_COURSE:CS_2506:ALLYSON_SENGER"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 2505",
+    "COURSE:CS 2506",
+    "PROF_COURSE:CS_2505:TAUSIF",
+    "PROF_COURSE:CS_2506:ALLYSON_SENGER"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2505",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2505",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 2506",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2506",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_2505:TAUSIF",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "2505",
+      "professor_name": "Tausif",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_2506:ALLYSON_SENGER",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "2506",
+      "professor_name": "Allyson Senger",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "comparison_courses",
+      "route"
+    ],
+    "table_titles": [
+      "Professor Comparison"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "course_profile",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Comparison",
+        "columns": [
+          "Course",
+          "Best Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Fall 2026 Sections",
+          "Open Sections"
+        ],
+        "rows": [
+          {
+            "Course": "CS 2505",
+            "Best Instructor": "Tausif",
+            "Avg GPA": 3.666,
+            "Avg A Range (%)": 86.33,
+            "Avg F Rate (%)": 2.53,
+            "Total Students": 117,
+            "Fall 2026 Sections": 3,
+            "Open Sections": 3
+          },
+          {
+            "Course": "CS 2506",
+            "Best Instructor": "Allyson Senger",
+            "Avg GPA": 3.219,
+            "Avg A Range (%)": 45.98,
+            "Avg F Rate (%)": 1.75,
+            "Total Students": 995,
+            "Fall 2026 Sections": 2,
+            "Open Sections": 2
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "comparison_courses": [
+        [
+          "CS",
+          "2505"
+        ],
+        [
+          "CS",
+          "2506"
+        ]
+      ],
+      "route": "course_profile",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 214
+      },
+      "confidence": 0.78
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "Here is a focused comparison for CS 2505, CS 2506. CS 2505: An introduction to the design and operation of digital computers. Works up from the logic gate level to combinational and sequential circuits, information representation, computer arithmetic, arithmetic/logic units, control unit design, basic computer organization, relationships between high level programming languages and instruction set architectures. A grade of C or better is required in CS prerequisite. Corequisites: MATH 2534 or MATH 3034. CS 2506: An introduction to the design and operation of digital computers. Instruction formats and construction, addressing modes, instruction execution, memory hierarchy operation and performance, pipelining, input/output, and the relationships between high level programming languages and machine language. A grade of C or better is required in CS pre-requisite 2505 and 2114. The professor outcome comparison is in the table below. Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 214
+  },
+  "errors": []
+}

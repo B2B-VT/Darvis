@@ -1,0 +1,259 @@
+{
+  "case_id": "unsupported_non_vt_001",
+  "query": "What is the best UVA CS professor?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4094",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4094",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_4094:CUI",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "4094",
+        "professor_name": "Cui",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4624",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4624",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "4624",
+        "professor_name": "Sally Hamouda",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5934",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_5934:OLIMPIEW",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": "Olimpiew",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4094",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4094",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_4094:CUI",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "4094",
+      "professor_name": "Cui",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4624",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4624",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "4624",
+      "professor_name": "Sally Hamouda",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5934",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_5934:OLIMPIEW",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": "Olimpiew",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 4094",
+    "PROF_COURSE:CS_4094:CUI",
+    "COURSE:CS 4624",
+    "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+    "COURSE:CS 5934",
+    "PROF_COURSE:CS_5934:OLIMPIEW"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4094",
+    "PROF_COURSE:CS_4094:CUI",
+    "COURSE:CS 4624",
+    "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+    "COURSE:CS 5934",
+    "PROF_COURSE:CS_5934:OLIMPIEW"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 4094",
+      "PROF_COURSE:CS_4094:CUI",
+      "COURSE:CS 4624",
+      "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+      "COURSE:CS 5934",
+      "PROF_COURSE:CS_5934:OLIMPIEW"
+    ],
+    "selected_ids": [
+      "COURSE:CS 4094",
+      "PROF_COURSE:CS_4094:CUI",
+      "COURSE:CS 4624",
+      "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+      "COURSE:CS 5934",
+      "PROF_COURSE:CS_5934:OLIMPIEW"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4094",
+            "Course Title": "Computer Science Capstone",
+            "Instructor": "Cui",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 46,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 4624",
+            "Course Title": "Multimedia/Hypertext",
+            "Instructor": "Sally Hamouda",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 44,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Instructor": "Olimpiew",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 41,
+            "Terms Taught": 2,
+            "Total Withdraws": 0,
+            "Latest Year": 2024,
+            "Confidence Label": "Medium"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_gpa",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 4978,
+        "resolve_ms": 0,
+        "handler_ms": 27714
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

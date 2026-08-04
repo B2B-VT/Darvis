@@ -1,0 +1,316 @@
+{
+  "case_id": "unsupported_guarantee_a_001",
+  "query": "Which class guarantees an A?",
+  "parsed_intent": {
+    "capabilities": [
+      "natural_language_filter",
+      "grade_distribution"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_a_rate",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.97,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "natural_filter",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Course STAT 6105: Measure and Probability. Credits: 3.0. Average GPA: 3.79. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-6105",
+      "vector_score": 0.5879,
+      "keyword_score": 0.0,
+      "combined_score": 0.5879,
+      "rerank_score": 0.5879,
+      "selected": true
+    },
+    {
+      "content": "Course PPE 3884: TS: Fairness. Credits: 3.0. Average GPA: 3.8. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "ppe-3884",
+      "vector_score": 0.5618,
+      "keyword_score": 0.0,
+      "combined_score": 0.5618,
+      "rerank_score": 0.5618,
+      "selected": true
+    },
+    {
+      "content": "Course EDIT 5584: Program and Product Evaluation. Credits: 3.0. Average GPA: 3.85. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "edit-5584",
+      "vector_score": 0.5466,
+      "keyword_score": 0.0,
+      "combined_score": 0.5466,
+      "rerank_score": 0.5466,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 3204: Data Visualization. Credits: 3.0. Average GPA: 3.68. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "stat-3204",
+      "vector_score": 0.5426,
+      "keyword_score": 0.0,
+      "combined_score": 0.5426,
+      "rerank_score": 0.5426,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5454: Reliability Theory. Credits: 3.0. Average GPA: 3.47. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "stat-5454",
+      "vector_score": 0.5383,
+      "keyword_score": 0.0,
+      "combined_score": 0.5383,
+      "rerank_score": 0.5383,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 3504: Nonparametric Statistics. Credits: 3.0. Average GPA: 3.35. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-3504",
+      "vector_score": 0.5371,
+      "keyword_score": 0.0,
+      "combined_score": 0.5371,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 3005: Statistical Methods. Credits: 3.0. Average GPA: 3.49. Fall 2026 sections available: 24.",
+      "source_type": "course",
+      "source_id": "stat-3005",
+      "vector_score": 0.5359,
+      "keyword_score": 0.0,
+      "combined_score": 0.5359,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course GR 1106: Class and NT Greek. Credits: 3.0. Average GPA: 3.78. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "gr-1106",
+      "vector_score": 0.5352,
+      "keyword_score": 0.0,
+      "combined_score": 0.5352,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STS 5124: Policy Decision-Making STEM-H. Credits: 3.0. Average GPA: 3.95. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "sts-5124",
+      "vector_score": 0.535,
+      "keyword_score": 0.0,
+      "combined_score": 0.535,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5114: Statistical Inference. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "stat-5114",
+      "vector_score": 0.5311,
+      "keyword_score": 0.0,
+      "combined_score": 0.5311,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 1014: Data in Our Lives. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "stat-1014",
+      "vector_score": 0.5285,
+      "keyword_score": 0.0,
+      "combined_score": 0.5285,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 3006: Statistical Methods. Credits: 3.0. Average GPA: 3.21. Fall 2026 sections available: 15.",
+      "source_type": "course",
+      "source_id": "stat-3006",
+      "vector_score": 0.5262,
+      "keyword_score": 0.0,
+      "combined_score": 0.5262,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course GR 1105: Class and NT Greek. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "gr-1105",
+      "vector_score": 0.5262,
+      "keyword_score": 0.0,
+      "combined_score": 0.5262,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course GIA 5004: Power and Policy in the U.S.. Credits: 3.0. Average GPA: 3.58. Fall 2026 sections available: 8.",
+      "source_type": "course",
+      "source_id": "gia-5004",
+      "vector_score": 0.5249,
+      "keyword_score": 0.0,
+      "combined_score": 0.5249,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course EDIT 5534: Applied ID Theory. Credits: 3.0. Average GPA: 3.2. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "edit-5534",
+      "vector_score": 0.5241,
+      "keyword_score": 0.0,
+      "combined_score": 0.5241,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "sort_goal"
+    ],
+    "table_titles": [
+      "Filter Results"
+    ],
+    "chart_titles": [
+      "Filter Results: Highest A/A- Rate"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "UAP 5414",
+            "Course Title": "Natural Res Planning Topics",
+            "Avg GPA": 3.94,
+            "Avg A Range (%)": 100.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 112,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2021,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ME 5774",
+            "Course Title": "Machine Learning for Mech Engr",
+            "Avg GPA": 3.98,
+            "Avg A Range (%)": 100.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 31,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "JPN 3954",
+            "Course Title": "Study Abroad",
+            "Avg GPA": 3.995,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 83,
+            "Terms Taught": 2,
+            "Total Withdraws": 0,
+            "Latest Year": 2025,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ECE 5124",
+            "Course Title": "Quantum Eng & Tech",
+            "Avg GPA": 3.991,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 35,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ART 1004",
+            "Course Title": "Drawing for Non-majors",
+            "Avg GPA": 3.991,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 34,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2021,
+            "Confidence Label": "Medium"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_a_rate",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 873,
+        "resolve_ms": 0,
+        "handler_ms": 12874
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "UAP 5414 Natural Res Planning Topics, ME 5774 Machine Learning for Mech Engr, JPN 3954 Study Abroad, ECE 5124 Quantum Eng & Tech, and ART 1004 Drawing for Non‑majors all show a 100 %+ average A range and 0 % F rate, giving the strongest A outcomes.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 873,
+    "resolve_ms": 0,
+    "handler_ms": 12874
+  },
+  "errors": []
+}

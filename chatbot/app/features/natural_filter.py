@@ -18,6 +18,14 @@ _TOPIC_STOPWORDS = {
     "suggest", "suggestions", "give", "me", "find", "show", "take",
     "i", "im", "am", "my", "student", "students", "interested", "interest",
     "should", "could", "would", "can", "want", "wanna", "need",
+    # Day/time/connector words — verified live these leaked into the
+    # displayed sentence and corrupted relevance scoring on schedule/time
+    # questions ("good that fit between and monday wednesday course
+    # matches"), because they were treated as topic search terms.
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "before", "after", "between", "fit", "not", "too", "early", "and", "or",
+    "has", "have", "decent", "outcomes", "this", "that", "brand",
+    "new", "morning", "evening", "mornin", "pm",
 }
 
 _AI_ML_TERMS = {
@@ -31,14 +39,6 @@ _MAJOR_SUBJECTS = {
     "cs": {"CS", "CMDA", "MATH", "STAT", "ECE"},
     "business information technology": {"BIT", "CMDA", "STAT", "CS"},
     "bit": {"BIT", "CMDA", "STAT", "CS"},
-    # Day/time/connector words — verified live these leaked into the
-    # displayed sentence and corrupted relevance scoring on schedule/time
-    # questions ("good that fit between and monday wednesday course
-    # matches"), because they were treated as topic search terms.
-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-    "before", "after", "between", "fit", "not", "too", "early", "and", "or",
-    "need", "has", "have", "decent", "outcomes", "this", "that", "brand",
-    "new", "morning", "evening", "mornin", "am", "pm",
 }
 
 

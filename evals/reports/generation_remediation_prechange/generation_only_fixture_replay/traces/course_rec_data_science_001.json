@@ -1,0 +1,525 @@
+{
+  "case_id": "course_rec_data_science_001",
+  "query": "What data science classes should a statistics minor consider?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "general_rag",
+    "confidence": 0.45,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "What data science classes should a statistics minor consider?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course STAT 5114: Statistical Inference. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 11.",
+        "source_type": "course",
+        "source_id": "stat-5114",
+        "vector_score": 0.6818,
+        "keyword_score": 0.0,
+        "combined_score": 0.6818,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 4004: Methods Statistical Computing. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "stat-4004",
+        "vector_score": 0.6668,
+        "keyword_score": 0.0,
+        "combined_score": 0.6668,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 5526: Statistical Learning. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 8.",
+        "source_type": "course",
+        "source_id": "stat-5526",
+        "vector_score": 0.6544,
+        "keyword_score": 0.0,
+        "combined_score": 0.6544,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 5525: Statistical Learning. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 14.",
+        "source_type": "course",
+        "source_id": "stat-5525",
+        "vector_score": 0.6533,
+        "keyword_score": 0.0,
+        "combined_score": 0.6533,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 4105: Theoretical Statistics. Credits: 3.0. Average GPA: 3.01. Fall 2026 sections available: 13.",
+        "source_type": "course",
+        "source_id": "stat-4105",
+        "vector_score": 0.6518,
+        "keyword_score": 0.0,
+        "combined_score": 0.6518,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course STAT 4106: Theoretical Statistics. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "stat-4106",
+        "vector_score": 0.6484,
+        "keyword_score": 0.0,
+        "combined_score": 0.6484,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5054: Intro to Statistical Computing. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "stat-5054",
+        "vector_score": 0.648,
+        "keyword_score": 0.0,
+        "combined_score": 0.648,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 2094: Basic R for Statistics. Credits: 1.0. Average GPA: 3.85. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "stat-2094",
+        "vector_score": 0.6478,
+        "keyword_score": 0.0,
+        "combined_score": 0.6478,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5034: Inference Fundamentals. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "stat-5034",
+        "vector_score": 0.6469,
+        "keyword_score": 0.0,
+        "combined_score": 0.6469,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 6114: Advanced Inference. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "stat-6114",
+        "vector_score": 0.6418,
+        "keyword_score": 0.0,
+        "combined_score": 0.6418,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 4444: Applied Bayesian Statistics. Credits: 3.0. Average GPA: 3.72. Fall 2026 sections available: 10.",
+        "source_type": "course",
+        "source_id": "stat-4444",
+        "vector_score": 0.6412,
+        "keyword_score": 0.0,
+        "combined_score": 0.6412,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 6554: Advanced Statistical Computing. Credits: 3.0. Average GPA: 3.92. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "stat-6554",
+        "vector_score": 0.6356,
+        "keyword_score": 0.0,
+        "combined_score": 0.6356,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5154: Stat Computing Data Analytics. Credits: 3.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "stat-5154",
+        "vector_score": 0.6355,
+        "keyword_score": 0.0,
+        "combined_score": 0.6355,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 4104: Data and Algorithm Analysis. Credits: 3.0. Average GPA: 3.11. Fall 2026 sections available: 38.",
+        "source_type": "course",
+        "source_id": "cs-4104",
+        "vector_score": 0.6355,
+        "keyword_score": 0.0,
+        "combined_score": 0.6355,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 1004: Experience Learning from Data. Credits: 2.0. Average GPA: 3.61. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "stat-1004",
+        "vector_score": 0.6353,
+        "keyword_score": 0.0,
+        "combined_score": 0.6353,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5444: Bayesian Statistics. Credits: 3.0. Average GPA: 3.91. Fall 2026 sections available: 10.",
+        "source_type": "course",
+        "source_id": "stat-5444",
+        "vector_score": 0.6323,
+        "keyword_score": 0.0,
+        "combined_score": 0.6323,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 3005: Statistical Methods. Credits: 3.0. Average GPA: 3.49. Fall 2026 sections available: 24.",
+        "source_type": "course",
+        "source_id": "stat-3005",
+        "vector_score": 0.6303,
+        "keyword_score": 0.0,
+        "combined_score": 0.6303,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5525: Data Analytics. Credits: 3.0. Average GPA: 3.72. Fall 2026 sections available: 19.",
+        "source_type": "course",
+        "source_id": "cs-5525",
+        "vector_score": 0.6293,
+        "keyword_score": 0.0,
+        "combined_score": 0.6293,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "rrf_passthrough",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "stat-5114",
+      "stat-4004",
+      "stat-5526",
+      "stat-5525",
+      "stat-4105",
+      "stat-4106",
+      "stat-5054",
+      "stat-2094",
+      "stat-5034",
+      "stat-6114",
+      "stat-4444",
+      "stat-6554",
+      "stat-5154",
+      "cs-4104",
+      "stat-1004",
+      "stat-5444",
+      "stat-3005",
+      "cs-5525"
+    ],
+    "input_rrf_order": [
+      "stat-5114",
+      "stat-4004",
+      "stat-5526",
+      "stat-5525",
+      "stat-4105",
+      "stat-4106",
+      "stat-5054",
+      "stat-2094",
+      "stat-5034",
+      "stat-6114",
+      "stat-4444",
+      "stat-6554",
+      "stat-5154",
+      "cs-4104",
+      "stat-1004",
+      "stat-5444",
+      "stat-3005",
+      "cs-5525"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "stat-5114",
+      "stat-4004",
+      "stat-5526",
+      "stat-5525",
+      "stat-4105"
+    ],
+    "selected_ids": [
+      "stat-5114",
+      "stat-4004",
+      "stat-5526",
+      "stat-5525",
+      "stat-4105"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0.1,
+    "ordered_ids": [
+      "stat-5114",
+      "stat-4004",
+      "stat-5526",
+      "stat-5525",
+      "stat-4105"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course STAT 5114: Statistical Inference. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "stat-5114",
+      "vector_score": 0.6818,
+      "keyword_score": 0.0,
+      "combined_score": 0.6818,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 4004: Methods Statistical Computing. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-4004",
+      "vector_score": 0.6668,
+      "keyword_score": 0.0,
+      "combined_score": 0.6668,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5526: Statistical Learning. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 8.",
+      "source_type": "course",
+      "source_id": "stat-5526",
+      "vector_score": 0.6544,
+      "keyword_score": 0.0,
+      "combined_score": 0.6544,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5525: Statistical Learning. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 14.",
+      "source_type": "course",
+      "source_id": "stat-5525",
+      "vector_score": 0.6533,
+      "keyword_score": 0.0,
+      "combined_score": 0.6533,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 4105: Theoretical Statistics. Credits: 3.0. Average GPA: 3.01. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "stat-4105",
+      "vector_score": 0.6518,
+      "keyword_score": 0.0,
+      "combined_score": 0.6518,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 4106: Theoretical Statistics. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-4106",
+      "vector_score": 0.6484,
+      "keyword_score": 0.0,
+      "combined_score": 0.6484,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5054: Intro to Statistical Computing. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "stat-5054",
+      "vector_score": 0.648,
+      "keyword_score": 0.0,
+      "combined_score": 0.648,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 2094: Basic R for Statistics. Credits: 1.0. Average GPA: 3.85. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-2094",
+      "vector_score": 0.6478,
+      "keyword_score": 0.0,
+      "combined_score": 0.6478,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5034: Inference Fundamentals. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-5034",
+      "vector_score": 0.6469,
+      "keyword_score": 0.0,
+      "combined_score": 0.6469,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 6114: Advanced Inference. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "stat-6114",
+      "vector_score": 0.6418,
+      "keyword_score": 0.0,
+      "combined_score": 0.6418,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 4444: Applied Bayesian Statistics. Credits: 3.0. Average GPA: 3.72. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "stat-4444",
+      "vector_score": 0.6412,
+      "keyword_score": 0.0,
+      "combined_score": 0.6412,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 6554: Advanced Statistical Computing. Credits: 3.0. Average GPA: 3.92. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-6554",
+      "vector_score": 0.6356,
+      "keyword_score": 0.0,
+      "combined_score": 0.6356,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5154: Stat Computing Data Analytics. Credits: 3.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "stat-5154",
+      "vector_score": 0.6355,
+      "keyword_score": 0.0,
+      "combined_score": 0.6355,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4104: Data and Algorithm Analysis. Credits: 3.0. Average GPA: 3.11. Fall 2026 sections available: 38.",
+      "source_type": "course",
+      "source_id": "cs-4104",
+      "vector_score": 0.6355,
+      "keyword_score": 0.0,
+      "combined_score": 0.6355,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 1004: Experience Learning from Data. Credits: 2.0. Average GPA: 3.61. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-1004",
+      "vector_score": 0.6353,
+      "keyword_score": 0.0,
+      "combined_score": 0.6353,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5444: Bayesian Statistics. Credits: 3.0. Average GPA: 3.91. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "stat-5444",
+      "vector_score": 0.6323,
+      "keyword_score": 0.0,
+      "combined_score": 0.6323,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 3005: Statistical Methods. Credits: 3.0. Average GPA: 3.49. Fall 2026 sections available: 24.",
+      "source_type": "course",
+      "source_id": "stat-3005",
+      "vector_score": 0.6303,
+      "keyword_score": 0.0,
+      "combined_score": 0.6303,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5525: Data Analytics. Credits: 3.0. Average GPA: 3.72. Fall 2026 sections available: 19.",
+      "source_type": "course",
+      "source_id": "cs-5525",
+      "vector_score": 0.6293,
+      "keyword_score": 0.0,
+      "combined_score": 0.6293,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5009,
+        "resolve_ms": 0,
+        "handler_ms": 927
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "For a data‑science focus, look at STAT 5114 (Statistical Inference, avg GPA 3.87), STAT 5525 (Statistical Learning, avg GPA 3.88) and STAT 4004 (Methods Statistical Computing, avg GPA 3.86). Those three cover inference, modern learning methods, and the programming tools you’ll need.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5009,
+    "resolve_ms": 0,
+    "handler_ms": 927
+  },
+  "errors": []
+}

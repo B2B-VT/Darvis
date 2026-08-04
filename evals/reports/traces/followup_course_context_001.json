@@ -1,0 +1,260 @@
+{
+  "case_id": "followup_course_context_001",
+  "query": "Who teaches it this fall?",
+  "parsed_intent": {
+    "capabilities": [
+      "general_question"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.45,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Fall 2026 section: FL 4974 taught by Staff. Credits: 1.0. Sections: CRN 85963: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-fl-4974-staff",
+      "vector_score": 0.5882,
+      "keyword_score": 0.0,
+      "combined_score": 0.5882,
+      "rerank_score": 0.5882,
+      "selected": true
+    },
+    {
+      "content": "Fall 2026 section: IS 4974H taught by Staff. Credits: 1.0. Sections: CRN 86995: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-is-4974H-staff",
+      "vector_score": 0.5849,
+      "keyword_score": 0.0,
+      "combined_score": 0.5849,
+      "rerank_score": 0.5849,
+      "selected": true
+    },
+    {
+      "content": "Fall 2026 section: FL 4974H taught by Staff. Credits: 1.0. Sections: CRN 85964: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-fl-4974H-staff",
+      "vector_score": 0.581,
+      "keyword_score": 0.0,
+      "combined_score": 0.581,
+      "rerank_score": 0.581,
+      "selected": true
+    },
+    {
+      "content": "Fall 2026 section: HTM 4974 taught by Staff. Credits: 1.0. Sections: CRN 86854: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-htm-4974-staff",
+      "vector_score": 0.5793,
+      "keyword_score": 0.0,
+      "combined_score": 0.5793,
+      "rerank_score": 0.5793,
+      "selected": true
+    },
+    {
+      "content": "Fall 2026 section: IS 4734 taught by Staff. Credits: 3.0. Sections: CRN 92268: MW 16:00-17:15 MCB 202.",
+      "source_type": "section",
+      "source_id": "sec-is-4734-staff",
+      "vector_score": 0.5793,
+      "keyword_score": 0.0,
+      "combined_score": 0.5793,
+      "rerank_score": 0.5793,
+      "selected": true
+    },
+    {
+      "content": "Fall 2026 section: FL 5974 taught by Staff. Credits: 1.0. Sections: CRN 85967: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-fl-5974-staff",
+      "vector_score": 0.5792,
+      "keyword_score": 0.0,
+      "combined_score": 0.5792,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: LAR 4974 taught by Staff. Credits: 1.0. Sections: CRN 87333: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-lar-4974-staff",
+      "vector_score": 0.5763,
+      "keyword_score": 0.0,
+      "combined_score": 0.5763,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: AT 0994 taught by Staff. Credits: 1.0. Sections: CRN 81523: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-at-0994-staff",
+      "vector_score": 0.5756,
+      "keyword_score": 0.0,
+      "combined_score": 0.5756,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: IS 4994H taught by Staff. Credits: 1.0. Sections: CRN 86998: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-is-4994H-staff",
+      "vector_score": 0.5754,
+      "keyword_score": 0.0,
+      "combined_score": 0.5754,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: ME 4974H taught by Staff. Credits: 1.0. Sections: CRN 87837: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-me-4974H-staff",
+      "vector_score": 0.5718,
+      "keyword_score": 0.0,
+      "combined_score": 0.5718,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: FL 4994 taught by Staff. Credits: 1.0. Sections: CRN 85965: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-fl-4994-staff",
+      "vector_score": 0.5711,
+      "keyword_score": 0.0,
+      "combined_score": 0.5711,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: ESM 6974 taught by Staff. Credits: 1.0. Sections: CRN 85706: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-esm-6974-staff",
+      "vector_score": 0.5708,
+      "keyword_score": 0.0,
+      "combined_score": 0.5708,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: IS 3824 taught by Staff. Credits: 3.0. Sections: CRN 92426: TR 17:00-18:15 MAJWM 112.",
+      "source_type": "section",
+      "source_id": "sec-is-3824-staff",
+      "vector_score": 0.5708,
+      "keyword_score": 0.0,
+      "combined_score": 0.5708,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: IS 2084 taught by Staff. Credits: 3.0. Sections: CRN 92641: TR 14:00-15:15 ONLINE.",
+      "source_type": "section",
+      "source_id": "sec-is-2084-staff",
+      "vector_score": 0.5691,
+      "keyword_score": 0.0,
+      "combined_score": 0.5691,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: IS 3616 taught by Erin Hammond. Credits: 3.0. Sections: CRN 86977: MWF 11:15-12:05 PAM 1003 (1 seats open).",
+      "source_type": "section",
+      "source_id": "sec-is-3616-erin_hammond",
+      "vector_score": 0.5659,
+      "keyword_score": 0.0,
+      "combined_score": 0.5659,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: ENGR 4974 taught by Staff. Credits: 1.0. Sections: CRN 85574: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-engr-4974-staff",
+      "vector_score": 0.5658,
+      "keyword_score": 0.0,
+      "combined_score": 0.5658,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: LAR 5974 taught by Staff. Credits: 1.0. Sections: CRN 87355: RR - 00X.",
+      "source_type": "section",
+      "source_id": "sec-lar-5974-staff",
+      "vector_score": 0.5642,
+      "keyword_score": 0.0,
+      "combined_score": 0.5642,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Fall 2026 section: IS 3104 taught by Eric  Casler. Credits: 3.0. Sections: CRN 86961: TR 09:30-10:45 ONLINE (1 seats open).",
+      "source_type": "section",
+      "source_id": "sec-is-3104-eric__casler",
+      "vector_score": 0.5639,
+      "keyword_score": 0.0,
+      "combined_score": 0.5639,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5007,
+        "resolve_ms": 0,
+        "handler_ms": 9715
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "All Fall 2026 CS 3114 sections are taught by staff members.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5007,
+    "resolve_ms": 0,
+    "handler_ms": 9715
+  },
+  "errors": []
+}

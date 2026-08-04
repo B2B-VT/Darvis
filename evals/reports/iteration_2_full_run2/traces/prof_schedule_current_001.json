@@ -1,0 +1,257 @@
+{
+  "case_id": "prof_schedule_current_001",
+  "query": "Who is teaching CS 3114 this fall?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "CS",
+    "route": "section_lookup",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "section_lookup"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.78,
+    "wants_professors": null,
+    "course_no": "3114",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "CS",
+        "3114"
+      ]
+    ]
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "3114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "3114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "section_lookup",
+    "queries": [
+      "Who is teaching CS 3114 this fall?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 3114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 3114:Kirshanthan Sundararajah",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "3114",
+        "professor_name": "Kirshanthan Sundararajah",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 3114:Mohammed Farghally",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "3114",
+        "professor_name": "Mohammed Farghally",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 3114:T Hoang",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "3114",
+        "professor_name": "T Hoang",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 3114",
+    "SECTION:CS 3114:Kirshanthan Sundararajah",
+    "SECTION:CS 3114:Mohammed Farghally",
+    "SECTION:CS 3114:T Hoang"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "COURSE:CS 3114",
+      "SECTION:CS 3114:Kirshanthan Sundararajah",
+      "SECTION:CS 3114:Mohammed Farghally",
+      "SECTION:CS 3114:T Hoang"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 3114",
+    "SECTION:CS 3114:Kirshanthan Sundararajah",
+    "SECTION:CS 3114:Mohammed Farghally",
+    "SECTION:CS 3114:T Hoang"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 3114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 3114:Kirshanthan Sundararajah",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "3114",
+      "professor_name": "Kirshanthan Sundararajah",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 3114:Mohammed Farghally",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "3114",
+      "professor_name": "Mohammed Farghally",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 3114:T Hoang",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "3114",
+      "professor_name": "T Hoang",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "section_lookup",
+    "metadata_keys": [
+      "section_count"
+    ],
+    "table_titles": [
+      "CS 3114 — Fall 2026 Sections"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "section_lookup",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "CS 3114 — Fall 2026 Sections",
+        "columns": [
+          "Instructor",
+          "Days",
+          "Start",
+          "End",
+          "Location",
+          "Open Seats",
+          "Enrolled"
+        ],
+        "rows": [
+          {
+            "Instructor": "Kirshanthan Sundararajah",
+            "Days": "MonWed",
+            "Start": "4:00 PM",
+            "End": "5:15 PM",
+            "Location": "HAHN N 140",
+            "Open Seats": 114,
+            "Enrolled": 61
+          },
+          {
+            "Instructor": "Mohammed Farghally",
+            "Days": "TueThu",
+            "Start": "12:30 PM",
+            "End": "1:45 PM",
+            "Location": "HAN 100",
+            "Open Seats": 3,
+            "Enrolled": 172
+          },
+          {
+            "Instructor": "T Hoang",
+            "Days": "TueThu",
+            "Start": "9:30 AM",
+            "End": "10:45 AM",
+            "Location": "WHIT 300",
+            "Open Seats": 121,
+            "Enrolled": 54
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "section_count": 3,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 11
+      },
+      "confidence": 0.78
+    }
+  },
+  "final_response": {
+    "route": "section_lookup",
+    "answer": "CS 3114 is taught by Kirshanthan Sundararajah, Mohammed Farghally, T Hoang in Fall 2026.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 11
+  },
+  "errors": []
+}

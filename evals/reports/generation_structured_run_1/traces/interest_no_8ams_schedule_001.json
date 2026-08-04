@@ -1,0 +1,188 @@
+{
+  "case_id": "interest_no_8ams_schedule_001",
+  "query": "Build me a CS schedule with no 8ams.",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [],
+  "evidence_ids": [],
+  "retrieved_ids": [],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [],
+    "selected_ids": [],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "schedule_actions": [
+        {
+          "crn": "92226",
+          "subject": "CS",
+          "courseNumber": "4664",
+          "instructor": "P Yanardag Delul",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "12:30",
+          "endTime": "13:45",
+          "location": "DDS 132",
+          "seats": 10,
+          "enrolled": 4,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83576",
+          "subject": "CS",
+          "courseNumber": "3604",
+          "instructor": "Daniel Dunlap",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "14:30",
+          "endTime": "15:45",
+          "location": "DDS 230",
+          "seats": 120,
+          "enrolled": 82,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "91854",
+          "subject": "CS",
+          "courseNumber": "4784",
+          "instructor": "DS McCrickard",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "11:00",
+          "endTime": "12:15",
+          "location": "TORG 1100",
+          "seats": 10,
+          "enrolled": 3,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83628",
+          "subject": "CS",
+          "courseNumber": "4944",
+          "instructor": "Stephen Edwards",
+          "days": [
+            "F"
+          ],
+          "startTime": "14:30",
+          "endTime": "15:20",
+          "location": "MCB 100",
+          "seats": 300,
+          "enrolled": 269,
+          "credits": 1.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83607",
+          "subject": "CS",
+          "courseNumber": "4134",
+          "instructor": "A Mantri",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "16:00",
+          "endTime": "17:15",
+          "location": "DER 3081",
+          "seats": 70,
+          "enrolled": 0,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83530",
+          "subject": "CS",
+          "courseNumber": "2114",
+          "instructor": "Sehrish Nizamani",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "12:20",
+          "endTime": "13:10",
+          "location": "NCB 320",
+          "seats": 30,
+          "enrolled": 29,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "91845",
+          "subject": "CS",
+          "courseNumber": "4274",
+          "instructor": "Shaddi Hasan",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "09:30",
+          "endTime": "10:45",
+          "location": "TORG 1040",
+          "seats": 15,
+          "enrolled": 13,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83522",
+          "subject": "CS",
+          "courseNumber": "2104",
+          "instructor": "Onyeka Emebo",
+          "days": [
+            "M",
+            "W",
+            "F"
+          ],
+          "startTime": "13:25",
+          "endTime": "14:15",
+          "location": "NCB 120",
+          "seats": 75,
+          "enrolled": 59,
+          "credits": 3.0,
+          "term": "202609"
+        }
+      ],
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 112
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

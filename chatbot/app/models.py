@@ -14,6 +14,8 @@ class ChatRequest(BaseModel):
     top_n: int = Field(default=10, ge=1, le=25)
     user_profile: dict | None = None
     history: list[ChatMessage] = Field(default_factory=list)  # prior turns, newest last
+    eval_mode: bool = False
+    eval_case_id: str | None = Field(default=None, max_length=120)
 
 
 class TableSpec(BaseModel):

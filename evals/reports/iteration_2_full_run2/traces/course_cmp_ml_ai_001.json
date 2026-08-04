@@ -1,0 +1,459 @@
+{
+  "case_id": "course_cmp_ml_ai_001",
+  "query": "Compare machine learning and artificial intelligence at VT.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "Compare machine learning and artificial intelligence at VT."
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4804-vu",
+        "vector_score": 0.6299,
+        "keyword_score": 0.0,
+        "combined_score": 0.6299,
+        "rerank_score": 0.6299,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6804-vu",
+        "vector_score": 0.6226,
+        "keyword_score": 0.0,
+        "combined_score": 0.6226,
+        "rerank_score": 0.6226,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Das. Average GPA: 3.33. A/A- rate: 26.3%. F rate: 0.0%. Total students taught: 19. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5804-das",
+        "vector_score": 0.5673,
+        "keyword_score": 0.0,
+        "combined_score": 0.5673,
+        "rerank_score": 0.5673,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5806-reza_jafari",
+        "vector_score": 0.5564,
+        "keyword_score": 0.0,
+        "combined_score": 0.5564,
+        "rerank_score": 0.5564,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5624 (Natural Language Processing) taught by Vu. Average GPA: 3.84. A/A- rate: 77.6%. F rate: 0.0%. Total students taught: 49. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5624-vu",
+        "vector_score": 0.5555,
+        "keyword_score": 0.0,
+        "combined_score": 0.5555,
+        "rerank_score": 0.5555,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Ghavami. Average GPA: 3.51. A/A- rate: 55.7%. F rate: 3.95%. Total students taught: 93. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5804-ghavami",
+        "vector_score": 0.551,
+        "keyword_score": 0.0,
+        "combined_score": 0.551,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5740-atkinson",
+        "vector_score": 0.5468,
+        "keyword_score": 0.0,
+        "combined_score": 0.5468,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Underwood. Average GPA: 3.58. A/A- rate: 74.0%. F rate: 4.0%. Total students taught: 50. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "univ-2984-underwood",
+        "vector_score": 0.5464,
+        "keyword_score": 0.0,
+        "combined_score": 0.5464,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-jones",
+        "vector_score": 0.5448,
+        "keyword_score": 0.0,
+        "combined_score": 0.5448,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 6804 (Adv Topics Intell Sys) taught by An. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 9. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6804-an",
+        "vector_score": 0.5442,
+        "keyword_score": 0.0,
+        "combined_score": 0.5442,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5214: Adv Method Regression. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 19.",
+        "source_type": "course",
+        "source_id": "stat-5214",
+        "vector_score": 0.5431,
+        "keyword_score": 0.0,
+        "combined_score": 0.5431,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4824 (Machine Learning) taught by Cui. Average GPA: 3.8. A/A- rate: 82.9%. F rate: 0.0%. Total students taught: 41. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4824-cui",
+        "vector_score": 0.5423,
+        "keyword_score": 0.0,
+        "combined_score": 0.5423,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Sano-Franchini. Average GPA: 3.49. A/A- rate: 61.5%. F rate: 7.7%. Total students taught: 13. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "univ-2984-sano-franchini",
+        "vector_score": 0.5416,
+        "keyword_score": 0.0,
+        "combined_score": 0.5416,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5754 (Virtual Environments) taught by Bowman. Average GPA: 3.44. A/A- rate: 13.0%. F rate: 0.0%. Total students taught: 41. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5754-bowman",
+        "vector_score": 0.5382,
+        "keyword_score": 0.0,
+        "combined_score": 0.5382,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5806 (Machine Learning) taught by Dawei Zhou. Average GPA: 3.71. A/A- rate: 34.5%. F rate: 0.0%. Total students taught: 29. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5806-dawei_zhou",
+        "vector_score": 0.5375,
+        "keyword_score": 0.0,
+        "combined_score": 0.5375,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 6604 (TS: Data Challenges Mach Learn) taught by Lourentzou. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6604-lourentzou",
+        "vector_score": 0.5372,
+        "keyword_score": 0.0,
+        "combined_score": 0.5372,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5214G: Adv Method Regression. Credits: 3.0. Average GPA: 3.97. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "stat-5214G",
+        "vector_score": 0.5364,
+        "keyword_score": 0.0,
+        "combined_score": 0.5364,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 6804 (Adv Topics Intell Sys) taught by Cui. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 30. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6804-cui",
+        "vector_score": 0.5364,
+        "keyword_score": 0.0,
+        "combined_score": 0.5364,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-vu",
+      "vector_score": 0.6299,
+      "keyword_score": 0.0,
+      "combined_score": 0.6299,
+      "rerank_score": 0.6299,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-vu",
+      "vector_score": 0.6226,
+      "keyword_score": 0.0,
+      "combined_score": 0.6226,
+      "rerank_score": 0.6226,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Das. Average GPA: 3.33. A/A- rate: 26.3%. F rate: 0.0%. Total students taught: 19. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5804-das",
+      "vector_score": 0.5673,
+      "keyword_score": 0.0,
+      "combined_score": 0.5673,
+      "rerank_score": 0.5673,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5806-reza_jafari",
+      "vector_score": 0.5564,
+      "keyword_score": 0.0,
+      "combined_score": 0.5564,
+      "rerank_score": 0.5564,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5624 (Natural Language Processing) taught by Vu. Average GPA: 3.84. A/A- rate: 77.6%. F rate: 0.0%. Total students taught: 49. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5624-vu",
+      "vector_score": 0.5555,
+      "keyword_score": 0.0,
+      "combined_score": 0.5555,
+      "rerank_score": 0.5555,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Ghavami. Average GPA: 3.51. A/A- rate: 55.7%. F rate: 3.95%. Total students taught: 93. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5804-ghavami",
+      "vector_score": 0.551,
+      "keyword_score": 0.0,
+      "combined_score": 0.551,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-atkinson",
+      "vector_score": 0.5468,
+      "keyword_score": 0.0,
+      "combined_score": 0.5468,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Underwood. Average GPA: 3.58. A/A- rate: 74.0%. F rate: 4.0%. Total students taught: 50. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "univ-2984-underwood",
+      "vector_score": 0.5464,
+      "keyword_score": 0.0,
+      "combined_score": 0.5464,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-jones",
+      "vector_score": 0.5448,
+      "keyword_score": 0.0,
+      "combined_score": 0.5448,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6804 (Adv Topics Intell Sys) taught by An. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 9. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-an",
+      "vector_score": 0.5442,
+      "keyword_score": 0.0,
+      "combined_score": 0.5442,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5214: Adv Method Regression. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 19.",
+      "source_type": "course",
+      "source_id": "stat-5214",
+      "vector_score": 0.5431,
+      "keyword_score": 0.0,
+      "combined_score": 0.5431,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4824 (Machine Learning) taught by Cui. Average GPA: 3.8. A/A- rate: 82.9%. F rate: 0.0%. Total students taught: 41. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4824-cui",
+      "vector_score": 0.5423,
+      "keyword_score": 0.0,
+      "combined_score": 0.5423,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Sano-Franchini. Average GPA: 3.49. A/A- rate: 61.5%. F rate: 7.7%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "univ-2984-sano-franchini",
+      "vector_score": 0.5416,
+      "keyword_score": 0.0,
+      "combined_score": 0.5416,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5754 (Virtual Environments) taught by Bowman. Average GPA: 3.44. A/A- rate: 13.0%. F rate: 0.0%. Total students taught: 41. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5754-bowman",
+      "vector_score": 0.5382,
+      "keyword_score": 0.0,
+      "combined_score": 0.5382,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5806 (Machine Learning) taught by Dawei Zhou. Average GPA: 3.71. A/A- rate: 34.5%. F rate: 0.0%. Total students taught: 29. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5806-dawei_zhou",
+      "vector_score": 0.5375,
+      "keyword_score": 0.0,
+      "combined_score": 0.5375,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6604 (TS: Data Challenges Mach Learn) taught by Lourentzou. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6604-lourentzou",
+      "vector_score": 0.5372,
+      "keyword_score": 0.0,
+      "combined_score": 0.5372,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5214G: Adv Method Regression. Credits: 3.0. Average GPA: 3.97. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "stat-5214G",
+      "vector_score": 0.5364,
+      "keyword_score": 0.0,
+      "combined_score": 0.5364,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6804 (Adv Topics Intell Sys) taught by Cui. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 30. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-cui",
+      "vector_score": 0.5364,
+      "keyword_score": 0.0,
+      "combined_score": 0.5364,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 546
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I'm Darvis, a grade-distribution assistant. Ask me about any course or professor and I'll show you historical GPA, A/A− rates, F rates, and enrollment trends. For example: \"Which CS 3114 professor has the strongest outcomes?\" or \"How has the A rate in ECE 2004 changed over time?\"",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 546
+  },
+  "errors": []
+}

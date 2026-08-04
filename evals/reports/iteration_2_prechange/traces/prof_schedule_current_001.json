@@ -1,0 +1,323 @@
+{
+  "case_id": "prof_schedule_current_001",
+  "query": "Who is teaching CS 3114 this fall?",
+  "parsed_intent": {
+    "course_no": "3114",
+    "min_gpa": null,
+    "open_seats_only": false,
+    "sort_goal": "highest_gpa",
+    "requested_courses": [
+      [
+        "CS",
+        "3114"
+      ]
+    ],
+    "needs_clarification": false,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "subject": "CS",
+    "secondary_routes": [],
+    "target_credits": null,
+    "level_low": null,
+    "min_terms": null,
+    "confidence": 0.78,
+    "time_start": null,
+    "major_query": null,
+    "min_rmp": null,
+    "level_high": null,
+    "professor_name": null,
+    "capabilities": [
+      "section_lookup"
+    ],
+    "wants_professors": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "route": "section_lookup",
+    "time_end": null
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "3114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "3114"
+      }
+    }
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for COMM 4974 (Independent Study) taught by Smith. Average GPA: 3.82. A/A- rate: 87.05%. F rate: 3.85%. Total students taught: 32. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "comm-4974-smith",
+      "vector_score": 0.4407,
+      "keyword_score": 0.0,
+      "combined_score": 0.4407,
+      "rerank_score": 0.4407,
+      "selected": true
+    },
+    {
+      "content": "Grade data for COMM 2084 (Media and Society) taught by Smith. Average GPA: 3.64. A/A- rate: 64.84%. F rate: 2.3%. Total students taught: 181. Total withdrawals: 1. Sections taught: 5 terms.",
+      "source_type": "grade",
+      "source_id": "comm-2084-smith",
+      "vector_score": 0.3949,
+      "keyword_score": 0.0,
+      "combined_score": 0.3949,
+      "rerank_score": 0.3949,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MGT 3964 (Field Study) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "mgt-3964-smith",
+      "vector_score": 0.3879,
+      "keyword_score": 0.0,
+      "combined_score": 0.3879,
+      "rerank_score": 0.3879,
+      "selected": true
+    },
+    {
+      "content": "Grade data for COMM 5014 (Communication Theory) taught by Smith. Average GPA: 3.97. A/A- rate: 90.9%. F rate: 0.0%. Total students taught: 11. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "comm-5014-smith",
+      "vector_score": 0.3835,
+      "keyword_score": 0.0,
+      "combined_score": 0.3835,
+      "rerank_score": 0.3835,
+      "selected": true
+    },
+    {
+      "content": "Grade data for HD 4994 (UR: Learning and Development) taught by Smith. Average GPA: 3.93. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "hd-4994-smith",
+      "vector_score": 0.3743,
+      "keyword_score": 0.0,
+      "combined_score": 0.3743,
+      "rerank_score": 0.3743,
+      "selected": true
+    },
+    {
+      "content": "Grade data for AS 3216 (AF Management & Leadership) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 113. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "as-3216-smith",
+      "vector_score": 0.3687,
+      "keyword_score": 0.0,
+      "combined_score": 0.3687,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for AS 3215 (AF Management & Leadership) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 114. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "as-3215-smith",
+      "vector_score": 0.3687,
+      "keyword_score": 0.0,
+      "combined_score": 0.3687,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for COMM 4204 (Communication Internship) taught by Smith. Average GPA: 3.8. A/A- rate: 86.67%. F rate: 0.0%. Total students taught: 53. Sections taught: 6 terms. Grade outcomes are improvin...",
+      "source_type": "grade",
+      "source_id": "comm-4204-smith",
+      "vector_score": 0.3625,
+      "keyword_score": 0.0,
+      "combined_score": 0.3625,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 3764 (Technical Writing) taught by Michael Smith. Average GPA: 3.67. A/A- rate: 59.53%. F rate: 2.55%. Total students taught: 116. Sections taught: 6 terms.",
+      "source_type": "grade",
+      "source_id": "engl-3764-michael_smith",
+      "vector_score": 0.3619,
+      "keyword_score": 0.0,
+      "combined_score": 0.3619,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PSCI 1014 (US Gov & Politics) taught by Smith. Average GPA: 3.39. A/A- rate: 39.5%. F rate: 2.6%. Total students taught: 38. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "psci-1014-smith",
+      "vector_score": 0.3587,
+      "keyword_score": 0.0,
+      "combined_score": 0.3587,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PHIL 3015 (Political Theory) taught by Smith. Average GPA: 3.74. A/A- rate: 60.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "phil-3015-smith",
+      "vector_score": 0.3564,
+      "keyword_score": 0.0,
+      "combined_score": 0.3564,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ECON 4994 (Undergraduate Research) taught by Smith. Average GPA: 3.67. A/A- rate: 80.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "econ-4994-smith",
+      "vector_score": 0.356,
+      "keyword_score": 0.0,
+      "combined_score": 0.356,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PR 4304 (Public Relations Campaigns) taught by Smith. Average GPA: 3.6. A/A- rate: 32.23%. F rate: 0.0%. Total students taught: 90. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "pr-4304-smith",
+      "vector_score": 0.3556,
+      "keyword_score": 0.0,
+      "combined_score": 0.3556,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MGT 3984 (SS: Innovation Collaboration) taught by Smith. Average GPA: 3.61. A/A- rate: 20.8%. F rate: 0.0%. Total students taught: 24. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "mgt-3984-smith",
+      "vector_score": 0.3523,
+      "keyword_score": 0.0,
+      "combined_score": 0.3523,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for HIST 3304 (World of Alexander the Great) taught by G.R. Bugh. Average GPA: 2.81. A/A- rate: 10.62%. F rate: 0.9%. Total students taught: 112. Total withdrawals: 9. Sections taught: 4 te...",
+      "source_type": "grade",
+      "source_id": "hist-3304-g.r._bugh",
+      "vector_score": 0.352,
+      "keyword_score": 0.0,
+      "combined_score": 0.352,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for COMM 5054 (Qualitative Methods Comm) taught by Smith. Average GPA: 3.98. A/A- rate: 94.1%. F rate: 0.0%. Total students taught: 17. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "comm-5054-smith",
+      "vector_score": 0.3512,
+      "keyword_score": 0.0,
+      "combined_score": 0.3512,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PHS 1514 (Personal Health) taught by Smith. Average GPA: 3.77. A/A- rate: 74.07%. F rate: 0.67%. Total students taught: 6156. Total withdrawals: 41. Sections taught: 25 terms.",
+      "source_type": "grade",
+      "source_id": "phs-1514-smith",
+      "vector_score": 0.3482,
+      "keyword_score": 0.0,
+      "combined_score": 0.3482,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for HD 5964 (Research Team) taught by Smith. Average GPA: 3.99. A/A- rate: 95.45%. F rate: 0.0%. Total students taught: 24. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "hd-5964-smith",
+      "vector_score": 0.3481,
+      "keyword_score": 0.0,
+      "combined_score": 0.3481,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "section_lookup",
+    "metadata_keys": [
+      "section_count"
+    ],
+    "table_titles": [
+      "CS 3114 — Fall 2026 Sections"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "CS 3114 — Fall 2026 Sections",
+        "columns": [
+          "Instructor",
+          "Days",
+          "Start",
+          "End",
+          "Location",
+          "Open Seats",
+          "Enrolled"
+        ],
+        "rows": [
+          {
+            "Instructor": "Kirshanthan Sundararajah",
+            "Days": "MonWed",
+            "Start": "4:00 PM",
+            "End": "5:15 PM",
+            "Location": "HAHN N 140",
+            "Open Seats": 114,
+            "Enrolled": 61
+          },
+          {
+            "Instructor": "Mohammed Farghally",
+            "Days": "TueThu",
+            "Start": "12:30 PM",
+            "End": "1:45 PM",
+            "Location": "HAN 100",
+            "Open Seats": 3,
+            "Enrolled": 172
+          },
+          {
+            "Instructor": "T Hoang",
+            "Days": "TueThu",
+            "Start": "9:30 AM",
+            "End": "10:45 AM",
+            "Location": "WHIT 300",
+            "Open Seats": 121,
+            "Enrolled": 54
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "section_count": 3,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 89,
+        "resolve_ms": 0,
+        "handler_ms": 17
+      },
+      "confidence": 0.78
+    }
+  },
+  "final_response": {
+    "route": "section_lookup",
+    "answer": "CS 3114 is taught by Kirshanthan Sundararajah, Mohammed Farghally, T Hoang in Fall 2026.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 89,
+    "resolve_ms": 0,
+    "handler_ms": 17
+  },
+  "errors": []
+}

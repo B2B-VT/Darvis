@@ -1,0 +1,30 @@
+{
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "feature_flags": {
+    "groq_model": "openai/gpt-oss-120b",
+    "rag_enable_local_reranker": false,
+    "rag_local_reranker_model": "cross-encoder/ms-marco-TinyBERT-L2-v2",
+    "rag_local_reranker_device": "cpu",
+    "rag_rerank_batch_size": 16,
+    "rag_enable_llm_judge": true,
+    "rag_enable_query_rewrite": true,
+    "rag_vector_weight": 0.7,
+    "rag_min_similarity": 0.2,
+    "rag_top_k_retrieve": 20,
+    "rag_top_k_rerank": 5,
+    "rag_rerank_top_k": 5,
+    "rag_embedding_provider": "",
+    "rag_redis_index_name": "darvis_embeddings",
+    "current_term": "202609",
+    "current_term_label": "Fall 2026"
+  },
+  "env_presence": {
+    "GROQ_API_KEY": true,
+    "REDIS_URL": true,
+    "SUPABASE_URL": true,
+    "SUPABASE_KEY": true,
+    "COHERE_API_KEY": false,
+    "OPENAI_API_KEY": false
+  }
+}

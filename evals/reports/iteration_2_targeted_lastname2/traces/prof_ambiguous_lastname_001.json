@@ -1,0 +1,83 @@
+{
+  "case_id": "prof_ambiguous_lastname_001",
+  "query": "Tell me about Professor Smith.",
+  "parsed_intent": {
+    "open_seats_only": false,
+    "course_no": null,
+    "secondary_routes": [],
+    "display_n": null,
+    "level_low": null,
+    "level_high": null,
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": "Smith",
+    "min_rmp": null,
+    "confidence": 1.0,
+    "missing_data_field": null,
+    "time_end": null,
+    "capabilities": [
+      "instructor_lookup"
+    ],
+    "min_students": 30,
+    "min_gpa": null,
+    "excluded_days": [],
+    "needs_clarification": true,
+    "route": "professor_profile",
+    "subject_filter": null,
+    "clarifying_question": "Which professor did you mean? Multiple verified instructors match that name: ES Smith, Michael Smith, Barbara Smith, Stephanie Smith.",
+    "sort_goal": "highest_gpa",
+    "major_query": null,
+    "wants_professors": null,
+    "min_terms": null,
+    "time_start": null,
+    "subject": null
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Smith",
+      "value": "Smith",
+      "confidence": 1.0,
+      "ambiguous": false,
+      "candidates": []
+    }
+  },
+  "retrieval": {
+    "route": "professor_profile",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "clarification_required"
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Which professor did you mean? Multiple verified instructors match that name: ES Smith, Michael Smith, Barbara Smith, Stephanie Smith."
+  },
+  "latency_ms": {
+    "plan_ms": 3,
+    "resolve_ms": 0
+  },
+  "errors": []
+}

@@ -1,0 +1,493 @@
+{
+  "case_id": "prof_ambiguous_lastname_001",
+  "query": "Tell me about Professor Smith.",
+  "parsed_intent": {
+    "time_end": null,
+    "needs_clarification": false,
+    "major_query": null,
+    "excluded_days": [],
+    "time_start": null,
+    "requested_courses": [],
+    "missing_data_field": null,
+    "min_gpa": null,
+    "open_seats_only": false,
+    "confidence": 1.0,
+    "level_high": null,
+    "clarifying_question": null,
+    "professor_name": "Smith",
+    "target_credits": null,
+    "secondary_routes": [],
+    "route": "professor_profile",
+    "sort_goal": "highest_gpa",
+    "min_terms": null,
+    "level_low": null,
+    "min_rmp": null,
+    "min_students": 30,
+    "subject_filter": null,
+    "display_n": null,
+    "wants_professors": null,
+    "capabilities": [
+      "instructor_lookup",
+      "grade_distribution"
+    ],
+    "subject": null,
+    "course_no": null
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Smith",
+      "value": "Smith",
+      "confidence": 1.0,
+      "ambiguous": false,
+      "candidates": []
+    }
+  },
+  "retrieval": {
+    "route": "professor_profile",
+    "queries": [
+      "Tell me about Professor Smith."
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "PROFESSOR:SMITH",
+        "entity_type": "professor",
+        "subject": null,
+        "course_number": null,
+        "professor_name": "Smith",
+        "source": "instructors",
+        "evidence_role": "resolved_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:PHS 1514",
+        "entity_type": "course",
+        "subject": "PHS",
+        "course_number": "1514",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:PHS 3534",
+        "entity_type": "course",
+        "subject": "PHS",
+        "course_number": "3534",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CEE 4074",
+        "entity_type": "course",
+        "subject": "CEE",
+        "course_number": "4074",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CEM 3024",
+        "entity_type": "course",
+        "subject": "CEM",
+        "course_number": "3024",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:HNFE 2664",
+        "entity_type": "course",
+        "subject": "HNFE",
+        "course_number": "2664",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:BDS 2005",
+        "entity_type": "course",
+        "subject": "BDS",
+        "course_number": "2005",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:HD 1004",
+        "entity_type": "course",
+        "subject": "HD",
+        "course_number": "1004",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:COMM 2084",
+        "entity_type": "course",
+        "subject": "COMM",
+        "course_number": "2084",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:PR 4414",
+        "entity_type": "course",
+        "subject": "PR",
+        "course_number": "4414",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ECE 5484",
+        "entity_type": "course",
+        "subject": "ECE",
+        "course_number": "5484",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "PROFESSOR:SMITH",
+    "COURSE:PHS 1514",
+    "COURSE:PHS 3534",
+    "COURSE:CEE 4074",
+    "COURSE:CEM 3024",
+    "COURSE:HNFE 2664",
+    "COURSE:BDS 2005",
+    "COURSE:HD 1004",
+    "COURSE:COMM 2084",
+    "COURSE:PR 4414",
+    "COURSE:ECE 5484"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "PROFESSOR:SMITH",
+      "COURSE:PHS 1514",
+      "COURSE:PHS 3534",
+      "COURSE:CEE 4074",
+      "COURSE:CEM 3024",
+      "COURSE:HNFE 2664",
+      "COURSE:BDS 2005",
+      "COURSE:HD 1004",
+      "COURSE:COMM 2084",
+      "COURSE:PR 4414",
+      "COURSE:ECE 5484"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "PROFESSOR:SMITH",
+    "COURSE:PHS 1514",
+    "COURSE:PHS 3534",
+    "COURSE:CEE 4074",
+    "COURSE:CEM 3024",
+    "COURSE:HNFE 2664",
+    "COURSE:BDS 2005",
+    "COURSE:HD 1004",
+    "COURSE:COMM 2084",
+    "COURSE:PR 4414",
+    "COURSE:ECE 5484"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "PROFESSOR:SMITH",
+      "entity_type": "professor",
+      "subject": null,
+      "course_number": null,
+      "professor_name": "Smith",
+      "source": "instructors",
+      "evidence_role": "resolved_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:PHS 1514",
+      "entity_type": "course",
+      "subject": "PHS",
+      "course_number": "1514",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:PHS 3534",
+      "entity_type": "course",
+      "subject": "PHS",
+      "course_number": "3534",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CEE 4074",
+      "entity_type": "course",
+      "subject": "CEE",
+      "course_number": "4074",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CEM 3024",
+      "entity_type": "course",
+      "subject": "CEM",
+      "course_number": "3024",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:HNFE 2664",
+      "entity_type": "course",
+      "subject": "HNFE",
+      "course_number": "2664",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:BDS 2005",
+      "entity_type": "course",
+      "subject": "BDS",
+      "course_number": "2005",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:HD 1004",
+      "entity_type": "course",
+      "subject": "HD",
+      "course_number": "1004",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:COMM 2084",
+      "entity_type": "course",
+      "subject": "COMM",
+      "course_number": "2084",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:PR 4414",
+      "entity_type": "course",
+      "subject": "PR",
+      "course_number": "4414",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ECE 5484",
+      "entity_type": "course",
+      "subject": "ECE",
+      "course_number": "5484",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "professor_profile",
+    "metadata_keys": [
+      "professor_query",
+      "rmp"
+    ],
+    "table_titles": [
+      "Professor Course Summary"
+    ],
+    "chart_titles": [
+      "Average GPA by Course for Smith",
+      "A/A- Rate vs F Rate for Smith"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "professor_profile",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Course Summary",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "PHS 1514",
+            "Course Title": "Personal Health",
+            "Avg GPA": 3.829,
+            "Avg A Range (%)": 88.85,
+            "Avg F Rate (%)": 0.46,
+            "Total Students": 6156,
+            "Terms Taught": 19,
+            "Total Withdraws": 41,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "PHS 3534",
+            "Course Title": "Drug Education",
+            "Avg GPA": 3.843,
+            "Avg A Range (%)": 89.8,
+            "Avg F Rate (%)": 0.52,
+            "Total Students": 5863,
+            "Terms Taught": 19,
+            "Total Withdraws": 24,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CEE 4074",
+            "Course Title": "Const Means & Methods",
+            "Avg GPA": 2.307,
+            "Avg A Range (%)": 2.96,
+            "Avg F Rate (%)": 1.17,
+            "Total Students": 642,
+            "Terms Taught": 9,
+            "Total Withdraws": 5,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CEM 3024",
+            "Course Title": "Cnst Estimating and Scheduling",
+            "Avg GPA": 2.471,
+            "Avg A Range (%)": 7.9,
+            "Avg F Rate (%)": 1.24,
+            "Total Students": 405,
+            "Terms Taught": 10,
+            "Total Withdraws": 1,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "HNFE 2664",
+            "Course Title": "Behav Theory in Hlth Promotion",
+            "Avg GPA": 3.788,
+            "Avg A Range (%)": 87.13,
+            "Avg F Rate (%)": 0.85,
+            "Total Students": 240,
+            "Terms Taught": 2,
+            "Total Withdraws": 3,
+            "Latest Year": 2021,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "BDS 2005",
+            "Course Title": "Fundamentals of BDS",
+            "Avg GPA": 3.383,
+            "Avg A Range (%)": 53.97,
+            "Avg F Rate (%)": 0.44,
+            "Total Students": 210,
+            "Terms Taught": 2,
+            "Total Withdraws": 6,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "HD 1004",
+            "Course Title": "Childhood and Adolescence",
+            "Avg GPA": 3.417,
+            "Avg A Range (%)": 54.63,
+            "Avg F Rate (%)": 1.05,
+            "Total Students": 192,
+            "Terms Taught": 2,
+            "Total Withdraws": 5,
+            "Latest Year": 2025,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "COMM 2084",
+            "Course Title": "Media and Society",
+            "Avg GPA": 3.624,
+            "Avg A Range (%)": 77.48,
+            "Avg F Rate (%)": 2.04,
+            "Total Students": 181,
+            "Terms Taught": 5,
+            "Total Withdraws": 1,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 2,
+    "metadata": {
+      "professor_query": "Smith",
+      "rmp": {
+        "rmp_rating": 2.9,
+        "rmp_difficulty": 3.3,
+        "rmp_count": 26,
+        "rmp_tags": []
+      },
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 1,
+        "handler_ms": 767
+      },
+      "confidence": 1.0
+    }
+  },
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Smith has taught 10 courses in this dataset, with an overall average GPA of 3.30 across 14,231 students. Their strongest grade outcomes appear in PHS 3534 (avg GPA 3.84, 89.8% A/A− rate). On Rate My Professors, they hold a 2.9/5.0 quality rating and 3.3/5.0 difficulty score across 26 reviews. Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 1,
+    "handler_ms": 767
+  },
+  "errors": []
+}

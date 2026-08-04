@@ -1,0 +1,164 @@
+{
+  "case_id": "course_rec_ai_prereq_001",
+  "query": "Recommend an AI class with no prerequisites.",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4824",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4824",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5814",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5814",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4654",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4654",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4824",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4824",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5814",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5814",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4654",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4654",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 5814",
+    "COURSE:CS 4654"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 5814",
+    "COURSE:CS 4654"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 5814",
+      "COURSE:CS 4654"
+    ],
+    "selected_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 5814",
+      "COURSE:CS 4654"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          },
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5007,
+        "resolve_ms": 0,
+        "handler_ms": 24
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

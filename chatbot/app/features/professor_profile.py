@@ -120,6 +120,7 @@ def handle_professor_profile(
     history: list | None = None,
     user_profile: dict | None = None,
     sections_df=None,
+    resolver=None,
 ):
     settings = get_settings()
     # Use LLM-extracted name if available; fall back to regex
@@ -131,14 +132,43 @@ def handle_professor_profile(
             "Try asking with just the last name — for example, \"Hamouda\" or \"Professor Shaffer\"."
         )
         return answer, [], [], {"professor_query": None}
+
+    subject_filter = getattr(intent, "subject", None) if intent is not None else None
+    course_filter = getattr(intent, "course_no", None) if intent is not None else None
+    if resolver is not None:
+        checked = resolver.resolve_professors_for_course(name, subject_filter, course_filter)
+        if checked.ambiguous:
+            options = ", ".join(checked.candidates[:4])
+            return (
+                f"Which professor did you mean? Multiple verified instructors match that name: {options}.",
+                [], [], {"professor_query": None, "validation_errors": ["ambiguous_professor"], "candidates": checked.candidates[:8]},
+            )
+        if not checked.value:
+            course_label = f" for {subject_filter} {course_filter}" if subject_filter and course_filter else ""
+            return (
+                f"I couldn't verify that professor in Darvis' instructor data{course_label}. Please provide a verified instructor name or ask about the course without that professor.",
+                [], [], {"professor_query": None, "validation_errors": ["unknown_professor"]},
+            )
+        if checked.warning == "professor_course_mismatch":
+            return (
+                f"I couldn't verify that professor as an instructor for {subject_filter} {course_filter}. I won't substitute professors from another course.",
+                [], [], {"professor_query": checked.value, "validation_errors": ["professor_course_mismatch"], "candidates": checked.candidates},
+            )
+        name = checked.value
+
     result = professor_profile(df, name, min_students, use_recency).head(top_n)
 
     # If the question targets a specific course, scope the table to just that course
-    course_filter = (intent.course_no if intent is not None else None)
     if course_filter and not result.empty and "Course" in result.columns:
-        narrowed = result[result["Course"].astype(str).str.strip() == str(course_filter).strip()]
+        expected_course = f"{str(subject_filter or '').upper()} {str(course_filter).strip()}".strip()
+        narrowed = result[result["Course"].astype(str).str.strip().str.upper() == expected_course.upper()]
         if not narrowed.empty:
             result = narrowed
+        else:
+            return (
+                f"I couldn't verify that professor as an instructor for {expected_course}. I won't substitute professors from another course.",
+                [], [], {"professor_query": name, "validation_errors": ["professor_course_mismatch"]},
+            )
 
     # Pull RMP data for this professor
     rmp = _lookup_rmp(name, rmp_df)
@@ -146,8 +176,11 @@ def handle_professor_profile(
     prof_sections = _build_prof_sections_table(sections_df, name)
 
     if result.empty:
-        answer = professor_answer(question, result, name, rmp=rmp)
-        return answer, prof_sections, [], {"professor_query": name, "rmp": rmp}
+        course_label = f" for {subject_filter} {course_filter}" if subject_filter and course_filter else ""
+        return (
+            f"I couldn't verify that professor in Darvis' instructor data{course_label}. Please provide a verified instructor name or ask about the course without that professor.",
+            prof_sections, [], {"professor_query": None, "rmp": rmp, "validation_errors": ["unknown_professor"]},
+        )
 
     table_text = result[PROF_COLS].to_string(index=False)
     rmp_text   = _rmp_summary(rmp)

@@ -1,0 +1,272 @@
+{
+  "case_id": "course_rec_ai_prereq_001",
+  "query": "Recommend an AI class with no prerequisites.",
+  "parsed_intent": {
+    "capabilities": [
+      "course_lookup",
+      "natural_language_filter"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "largest_sample",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.72,
+    "target_credits": null,
+    "display_n": 3,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "natural_filter",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": false
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for MATH 5514 (Topics in Mathematical Biology) taught by Childs. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-5514-childs",
+      "vector_score": 0.7106,
+      "keyword_score": 0.0,
+      "combined_score": 0.7106,
+      "rerank_score": 0.7106,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Uyeda. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-6404-uyeda",
+      "vector_score": 0.7082,
+      "keyword_score": 0.0,
+      "combined_score": 0.7082,
+      "rerank_score": 0.7082,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 1014 (Introduction to Biology) taught by Carter. Average GPA: 3.29. A/A- rate: 56.6%. F rate: 3.6%. Total students taught: 83. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-1014-carter",
+      "vector_score": 0.7076,
+      "keyword_score": 0.0,
+      "combined_score": 0.7076,
+      "rerank_score": 0.7076,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 6404 (Topics In Vertebrate Biology) taught by Moore. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-6404-moore",
+      "vector_score": 0.7026,
+      "keyword_score": 0.0,
+      "combined_score": 0.7026,
+      "rerank_score": 0.7026,
+      "selected": true
+    },
+    {
+      "content": "Grade data for GRAD 5134 (TS: BioBuild) taught by Annie Pearce. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 15. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "grad-5134-annie_pearce",
+      "vector_score": 0.7017,
+      "keyword_score": 0.0,
+      "combined_score": 0.7017,
+      "rerank_score": 0.7017,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIOL 2504 (General Zoology) taught by Sheppard. Average GPA: 2.47. A/A- rate: 4.9%. F rate: 7.8%. Total students taught: 102. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-2504-sheppard",
+      "vector_score": 0.6985,
+      "keyword_score": 0.0,
+      "combined_score": 0.6985,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for GRAD 5134 (TS:  BioBuild) taught by Benjamin Chambers. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "grad-5134-benjamin_chambers",
+      "vector_score": 0.6971,
+      "keyword_score": 0.0,
+      "combined_score": 0.6971,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Sheppard. Average GPA: 2.97. A/A- rate: 21.05%. F rate: 2.48%. Total students taught: 224. Total withdrawals: 3. Sections taught: 12 terms. Gr...",
+      "source_type": "grade",
+      "source_id": "biol-2704-sheppard",
+      "vector_score": 0.6938,
+      "keyword_score": 0.0,
+      "combined_score": 0.6938,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 5984 (SS:Macroevltn & Phylogntcs) taught by Uyeda. Average GPA: 3.98. A/A- rate: 92.3%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "biol-5984-uyeda",
+      "vector_score": 0.6925,
+      "keyword_score": 0.0,
+      "combined_score": 0.6925,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 2704 (Evolutionary Biology) taught by Uyeda. Average GPA: 3.27. A/A- rate: 27.9%. F rate: 0.46%. Total students taught: 664. Total withdrawals: 3. Sections taught: 5 terms.",
+      "source_type": "grade",
+      "source_id": "biol-2704-uyeda",
+      "vector_score": 0.6885,
+      "keyword_score": 0.0,
+      "combined_score": 0.6885,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STS 3734 (History of Modern Biology) taught by Mark Barrow. Average GPA: 3.22. A/A- rate: 36.4%. F rate: 0.0%. Total students taught: 11. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "sts-3734-mark_barrow",
+      "vector_score": 0.6881,
+      "keyword_score": 0.0,
+      "combined_score": 0.6881,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 5514 (Topics in Mathematical Biology) taught by Nicole Abaid. Average GPA: 3.94. A/A- rate: 80.0%. F rate: 0.0%. Total students taught: 10. Total withdrawals: 1. Sections taught: 1...",
+      "source_type": "grade",
+      "source_id": "math-5514-nicole_abaid",
+      "vector_score": 0.6879,
+      "keyword_score": 0.0,
+      "combined_score": 0.6879,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 5514 (Topics in Mathematical Biology) taught by Saucedo. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-5514-saucedo",
+      "vector_score": 0.6858,
+      "keyword_score": 0.0,
+      "combined_score": 0.6858,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for SYSB 4024 (Careers & Prof Systems Biology) taught by Kraikivski. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 7. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "sysb-4024-kraikivski",
+      "vector_score": 0.6853,
+      "keyword_score": 0.0,
+      "combined_score": 0.6853,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIOL 3954 (Study Abroad) taught by Moore. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 22. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "biol-3954-moore",
+      "vector_score": 0.6828,
+      "keyword_score": 0.0,
+      "combined_score": 0.6828,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "recommendation_mode",
+      "route"
+    ],
+    "table_titles": [
+      "Course Recommendations"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          },
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5008,
+        "resolve_ms": 0,
+        "handler_ms": 37
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 4824 (Machine Learning): Algorithms and principles involved in machine learning; focus on perception problems arising in computer vision, natural language processing and robotics; fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis of machine perception systems; design and implementation of a technical project applied to real-world datasets (images, text, robotics). A grade of C- or better in prerequisites.\n\nCS 5814 (Introduction to Deep Learning): History and basic concepts of artificial neural networks. Activation functions, optimization methods and regularization strategies used in deep multi-layered networks. Network architectures such as convolutional networks and recurrent neural networks. Deep reinforcement learning algorithms including deep Q•learning and policy gradient methods. Deep unsupervised models such as auto-encoders, and deep generative models including variational auto-encoders and generative adversarial networks. Advanced topics in deep learning such as transformers, graph neural networks, and ethics in Artificial Intelligence (AI). Deep learning(DL) applications such as text analysis, computer vision, and visual question answering. A platform for implementation of DL models will be used, such as Tensorflow or PyTorch.\n\nCS 4654 (Intermed Data Analytics & ML): A technical analytics course. Covers supervised and unsupervised learning strategies, including regression, generalized linear models, regulations, dimension reduction methods, tree-based methods for classification, and clustering. Upper-level analytical methods shown in practice: e.g., advanced naive Bayes and neural networks.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5008,
+    "resolve_ms": 0,
+    "handler_ms": 37
+  },
+  "errors": []
+}

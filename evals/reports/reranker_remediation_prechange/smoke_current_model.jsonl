@@ -1,0 +1,1 @@
+{"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "load_ms": 1099.1, "infer_ms": 154.3, "scores": [NaN, NaN, NaN], "finite": false, "order": [0, 1, 2], "rss_mb": 481440.0}

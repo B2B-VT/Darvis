@@ -1,0 +1,459 @@
+{
+  "case_id": "interest_business_analytics_001",
+  "query": "I'm a BIT student interested in analytics. What should I take?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "I'm a BIT student interested in analytics. What should I take?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for BIT 3484 (Advanced Business Analytics) taught by Alice Jang. Average GPA: 3.33. A/A- rate: 35.9%. F rate: 0.0%. Total students taught: 45. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "bit-3484-alice_jang",
+        "vector_score": 0.4815,
+        "keyword_score": 0.0,
+        "combined_score": 0.4815,
+        "rerank_score": 0.4815,
+        "selected": true
+      },
+      {
+        "content": "Grade data for STAT 5525 (Data Analytics) taught by Reddy. Average GPA: 3.82. A/A- rate: 57.9%. F rate: 0.0%. Total students taught: 38. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "stat-5525-reddy",
+        "vector_score": 0.4717,
+        "keyword_score": 0.0,
+        "combined_score": 0.4717,
+        "rerank_score": 0.4717,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIT 5534 (Applied Bus Intel & Analytics) taught by Major. Average GPA: 3.42. A/A- rate: 33.83%. F rate: 1.25%. Total students taught: 101. Sections taught: 4 terms. Grade outcomes have ...",
+        "source_type": "grade",
+        "source_id": "bit-5534-major",
+        "vector_score": 0.4692,
+        "keyword_score": 0.0,
+        "combined_score": 0.4692,
+        "rerank_score": 0.4692,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIT 4854 (Analytics in Action) taught by Jason Deane. Average GPA: 3.46. A/A- rate: 13.1%. F rate: 0.0%. Total students taught: 155. Total withdrawals: 1. Sections taught: 3 terms.",
+        "source_type": "grade",
+        "source_id": "bit-4854-jason_deane",
+        "vector_score": 0.4688,
+        "keyword_score": 0.0,
+        "combined_score": 0.4688,
+        "rerank_score": 0.4688,
+        "selected": true
+      },
+      {
+        "content": "Grade data for BIT 4854 (Analytics in Action) taught by Cliff Ragsdale. Average GPA: 3.89. A/A- rate: 84.07%. F rate: 1.1%. Total students taught: 98. Sections taught: 3 terms.",
+        "source_type": "grade",
+        "source_id": "bit-4854-cliff_ragsdale",
+        "vector_score": 0.4669,
+        "keyword_score": 0.0,
+        "combined_score": 0.4669,
+        "rerank_score": 0.4669,
+        "selected": true
+      },
+      {
+        "content": "Grade data for STAT 3654 (Intro Data Analytics & Visual) taught by Nizamani. Average GPA: 3.12. A/A- rate: 31.75%. F rate: 8.35%. Total students taught: 25. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "stat-3654-nizamani",
+        "vector_score": 0.4636,
+        "keyword_score": 0.0,
+        "combined_score": 0.4636,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 3654 (Intro Data Analytics & Visual) taught by North. Average GPA: 3.38. A/A- rate: 25.75%. F rate: 0.0%. Total students taught: 17. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "stat-3654-north",
+        "vector_score": 0.4625,
+        "keyword_score": 0.0,
+        "combined_score": 0.4625,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 5526 (Data Analytics) taught by Crandell. Average GPA: 3.83. A/A- rate: 66.7%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "stat-5526-crandell",
+        "vector_score": 0.4598,
+        "keyword_score": 0.0,
+        "combined_score": 0.4598,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5526 (Data Analytics) taught by Reddy. Average GPA: 3.76. A/A- rate: 40.75%. F rate: 0.0%. Total students taught: 41. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5526-reddy",
+        "vector_score": 0.4598,
+        "keyword_score": 0.0,
+        "combined_score": 0.4598,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5525 (Data Analytics) taught by Reddy. Average GPA: 3.72. A/A- rate: 38.2%. F rate: 0.0%. Total students taught: 49. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5525-reddy",
+        "vector_score": 0.4571,
+        "keyword_score": 0.0,
+        "combined_score": 0.4571,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 4654 (Intermed Data Analytics & Ml) taught by Datta. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "stat-4654-datta",
+        "vector_score": 0.4567,
+        "keyword_score": 0.0,
+        "combined_score": 0.4567,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for HTM 5564 (HTM IT & Business Analytics) taught by Kristin Lamoureux. Average GPA: 3.85. A/A- rate: 65.7%. F rate: 0.0%. Total students taught: 12. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "htm-5564-kristin_lamoureux",
+        "vector_score": 0.4539,
+        "keyword_score": 0.0,
+        "combined_score": 0.4539,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5526 (Data Analytics) taught by Reza Jafari. Average GPA: 3.25. A/A- rate: 31.65%. F rate: 5.0%. Total students taught: 16. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5526-reza_jafari",
+        "vector_score": 0.4533,
+        "keyword_score": 0.0,
+        "combined_score": 0.4533,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for BIT 5524 (Intro Bus Intel and Analytics) taught by Jeremy Sudweeks. Average GPA: 3.91. A/A- rate: 78.35%. F rate: 0.0%. Total students taught: 86. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "bit-5524-jeremy_sudweeks",
+        "vector_score": 0.4523,
+        "keyword_score": 0.0,
+        "combined_score": 0.4523,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 5154 (Stat Computing Data Analytics) taught by Christian Lucero. Average GPA: 3.97. A/A- rate: 91.42%. F rate: 0.0%. Total students taught: 24. Sections taught: 4 terms.",
+        "source_type": "grade",
+        "source_id": "stat-5154-christian_lucero",
+        "vector_score": 0.4516,
+        "keyword_score": 0.0,
+        "combined_score": 0.4516,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 5525 (Data Analytics) taught by Alt. Average GPA: 3.88. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "stat-5525-alt",
+        "vector_score": 0.4516,
+        "keyword_score": 0.0,
+        "combined_score": 0.4516,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5525 (Data Analytics) taught by Reza Jafari. Average GPA: 3.43. A/A- rate: 32.1%. F rate: 0.0%. Total students taught: 37. Sections taught: 3 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5525-reza_jafari",
+        "vector_score": 0.4509,
+        "keyword_score": 0.0,
+        "combined_score": 0.4509,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for STAT 5525 (Data Analytics) taught by Schabenberger. Average GPA: 3.95. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "stat-5525-schabenberger",
+        "vector_score": 0.4504,
+        "keyword_score": 0.0,
+        "combined_score": 0.4504,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for BIT 3484 (Advanced Business Analytics) taught by Alice Jang. Average GPA: 3.33. A/A- rate: 35.9%. F rate: 0.0%. Total students taught: 45. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "bit-3484-alice_jang",
+      "vector_score": 0.4815,
+      "keyword_score": 0.0,
+      "combined_score": 0.4815,
+      "rerank_score": 0.4815,
+      "selected": true
+    },
+    {
+      "content": "Grade data for STAT 5525 (Data Analytics) taught by Reddy. Average GPA: 3.82. A/A- rate: 57.9%. F rate: 0.0%. Total students taught: 38. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "stat-5525-reddy",
+      "vector_score": 0.4717,
+      "keyword_score": 0.0,
+      "combined_score": 0.4717,
+      "rerank_score": 0.4717,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 5534 (Applied Bus Intel & Analytics) taught by Major. Average GPA: 3.42. A/A- rate: 33.83%. F rate: 1.25%. Total students taught: 101. Sections taught: 4 terms. Grade outcomes have ...",
+      "source_type": "grade",
+      "source_id": "bit-5534-major",
+      "vector_score": 0.4692,
+      "keyword_score": 0.0,
+      "combined_score": 0.4692,
+      "rerank_score": 0.4692,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 4854 (Analytics in Action) taught by Jason Deane. Average GPA: 3.46. A/A- rate: 13.1%. F rate: 0.0%. Total students taught: 155. Total withdrawals: 1. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "bit-4854-jason_deane",
+      "vector_score": 0.4688,
+      "keyword_score": 0.0,
+      "combined_score": 0.4688,
+      "rerank_score": 0.4688,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 4854 (Analytics in Action) taught by Cliff Ragsdale. Average GPA: 3.89. A/A- rate: 84.07%. F rate: 1.1%. Total students taught: 98. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "bit-4854-cliff_ragsdale",
+      "vector_score": 0.4669,
+      "keyword_score": 0.0,
+      "combined_score": 0.4669,
+      "rerank_score": 0.4669,
+      "selected": true
+    },
+    {
+      "content": "Grade data for STAT 3654 (Intro Data Analytics & Visual) taught by Nizamani. Average GPA: 3.12. A/A- rate: 31.75%. F rate: 8.35%. Total students taught: 25. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "stat-3654-nizamani",
+      "vector_score": 0.4636,
+      "keyword_score": 0.0,
+      "combined_score": 0.4636,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 3654 (Intro Data Analytics & Visual) taught by North. Average GPA: 3.38. A/A- rate: 25.75%. F rate: 0.0%. Total students taught: 17. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "stat-3654-north",
+      "vector_score": 0.4625,
+      "keyword_score": 0.0,
+      "combined_score": 0.4625,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 5526 (Data Analytics) taught by Crandell. Average GPA: 3.83. A/A- rate: 66.7%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "stat-5526-crandell",
+      "vector_score": 0.4598,
+      "keyword_score": 0.0,
+      "combined_score": 0.4598,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5526 (Data Analytics) taught by Reddy. Average GPA: 3.76. A/A- rate: 40.75%. F rate: 0.0%. Total students taught: 41. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5526-reddy",
+      "vector_score": 0.4598,
+      "keyword_score": 0.0,
+      "combined_score": 0.4598,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5525 (Data Analytics) taught by Reddy. Average GPA: 3.72. A/A- rate: 38.2%. F rate: 0.0%. Total students taught: 49. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5525-reddy",
+      "vector_score": 0.4571,
+      "keyword_score": 0.0,
+      "combined_score": 0.4571,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 4654 (Intermed Data Analytics & Ml) taught by Datta. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "stat-4654-datta",
+      "vector_score": 0.4567,
+      "keyword_score": 0.0,
+      "combined_score": 0.4567,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for HTM 5564 (HTM IT & Business Analytics) taught by Kristin Lamoureux. Average GPA: 3.85. A/A- rate: 65.7%. F rate: 0.0%. Total students taught: 12. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "htm-5564-kristin_lamoureux",
+      "vector_score": 0.4539,
+      "keyword_score": 0.0,
+      "combined_score": 0.4539,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5526 (Data Analytics) taught by Reza Jafari. Average GPA: 3.25. A/A- rate: 31.65%. F rate: 5.0%. Total students taught: 16. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5526-reza_jafari",
+      "vector_score": 0.4533,
+      "keyword_score": 0.0,
+      "combined_score": 0.4533,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIT 5524 (Intro Bus Intel and Analytics) taught by Jeremy Sudweeks. Average GPA: 3.91. A/A- rate: 78.35%. F rate: 0.0%. Total students taught: 86. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "bit-5524-jeremy_sudweeks",
+      "vector_score": 0.4523,
+      "keyword_score": 0.0,
+      "combined_score": 0.4523,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 5154 (Stat Computing Data Analytics) taught by Christian Lucero. Average GPA: 3.97. A/A- rate: 91.42%. F rate: 0.0%. Total students taught: 24. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "stat-5154-christian_lucero",
+      "vector_score": 0.4516,
+      "keyword_score": 0.0,
+      "combined_score": 0.4516,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 5525 (Data Analytics) taught by Alt. Average GPA: 3.88. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "stat-5525-alt",
+      "vector_score": 0.4516,
+      "keyword_score": 0.0,
+      "combined_score": 0.4516,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5525 (Data Analytics) taught by Reza Jafari. Average GPA: 3.43. A/A- rate: 32.1%. F rate: 0.0%. Total students taught: 37. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5525-reza_jafari",
+      "vector_score": 0.4509,
+      "keyword_score": 0.0,
+      "combined_score": 0.4509,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 5525 (Data Analytics) taught by Schabenberger. Average GPA: 3.95. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "stat-5525-schabenberger",
+      "vector_score": 0.4504,
+      "keyword_score": 0.0,
+      "combined_score": 0.4504,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 3193
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I can work with historical grade distributions — GPA, A/A− rates, F rates, withdrawals, and enrollment counts. Try asking about a specific course (e.g. \"CS 3114\") or a professor by last name. For student opinions beyond the numbers, check the Forums page.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 3193
+  },
+  "errors": []
+}

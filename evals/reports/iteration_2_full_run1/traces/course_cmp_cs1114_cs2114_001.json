@@ -1,0 +1,268 @@
+{
+  "case_id": "course_cmp_cs1114_cs2114_001",
+  "query": "Compare CS 1114 and CS 2114.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "CS",
+    "route": "course_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "course_comparison",
+      "grade_distribution"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.82,
+    "wants_professors": null,
+    "course_no": "1114",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "CS",
+        "1114"
+      ],
+      [
+        "CS",
+        "2114"
+      ]
+    ]
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "1114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "1114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [
+      "Compare CS 1114 and CS 2114."
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 1114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "1114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_1114:GAUTAM",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "1114",
+        "professor_name": "Gautam",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_2114:ANDREY_ESAKIA",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Andrey Esakia",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 1114",
+    "COURSE:CS 2114",
+    "PROF_COURSE:CS_1114:GAUTAM",
+    "PROF_COURSE:CS_2114:ANDREY_ESAKIA"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "COURSE:CS 1114",
+      "COURSE:CS 2114",
+      "PROF_COURSE:CS_1114:GAUTAM",
+      "PROF_COURSE:CS_2114:ANDREY_ESAKIA"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 1114",
+    "COURSE:CS 2114",
+    "PROF_COURSE:CS_1114:GAUTAM",
+    "PROF_COURSE:CS_2114:ANDREY_ESAKIA"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 1114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "1114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_1114:GAUTAM",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "1114",
+      "professor_name": "Gautam",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_2114:ANDREY_ESAKIA",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Andrey Esakia",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "comparison_courses",
+      "route"
+    ],
+    "table_titles": [
+      "Professor Comparison"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "course_profile",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Comparison",
+        "columns": [
+          "Course",
+          "Best Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Fall 2026 Sections",
+          "Open Sections"
+        ],
+        "rows": [
+          {
+            "Course": "CS 1114",
+            "Best Instructor": "Gautam",
+            "Avg GPA": 3.198,
+            "Avg A Range (%)": 49.06,
+            "Avg F Rate (%)": 1.76,
+            "Total Students": 62,
+            "Fall 2026 Sections": 10,
+            "Open Sections": 8
+          },
+          {
+            "Course": "CS 2114",
+            "Best Instructor": "Andrey Esakia",
+            "Avg GPA": 3.24,
+            "Avg A Range (%)": 49.8,
+            "Avg F Rate (%)": 3.1,
+            "Total Students": 229,
+            "Fall 2026 Sections": 14,
+            "Open Sections": 11
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "comparison_courses": [
+        [
+          "CS",
+          "1114"
+        ],
+        [
+          "CS",
+          "2114"
+        ]
+      ],
+      "route": "course_profile",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 96,
+        "resolve_ms": 0,
+        "handler_ms": 233
+      },
+      "confidence": 0.82
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "Here is a focused comparison for CS 1114, CS 2114. CS 1114: Fundamental concepts of programming from an object-oriented perspective. Basic software engineering principles and programming skills in a programming language that supports the object-oriented paradigm. Simple data types, control structures, array and string data structures, basic algorithms, testing and debugging. A basic model of the computer as an abstract machine. Modeling and problem-solving skills applicable to programming at this level. Partially duplicates 1054, 1124, and 1705. CS 2114: A programming-intensive exploration of software design concepts and implementation techniques. Builds on knowledge of fundamental object-oriented programming. Advanced object-oriented software design, ethics in computing, algorithm development and analysis, and classic data structures. Includes a team-based software project. The professor outcome comparison is in the table below. Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 96,
+    "resolve_ms": 0,
+    "handler_ms": 233
+  },
+  "errors": []
+}

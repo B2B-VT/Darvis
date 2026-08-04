@@ -1,0 +1,687 @@
+{
+  "case_id": "prof_rec_typo_cs2114_001",
+  "query": "Who is the best proffesor for cs 2114?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "course_profile",
+    "confidence": 1.0,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": "2114",
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "course_lookup",
+      "instructor_lookup",
+      "grade_distribution"
+    ],
+    "target_credits": null,
+    "requested_courses": [
+      [
+        "CS",
+        "2114"
+      ]
+    ],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": "CS",
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [
+      "Who is the best proffesor for cs 2114?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83524",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83526",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83527",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83528",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83529",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83530",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83531",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "TBA",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83532",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "DH Smith IV",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83533",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "TBA",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83534",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "DH Smith IV",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83536",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "TBA",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83537",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "DH Smith IV",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83538",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "SECTION:CS 2114:83539",
+        "entity_type": "section",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": "Sehrish Nizamani",
+        "source": "sections",
+        "evidence_role": "current_section",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 2114",
+    "SECTION:CS 2114:83524",
+    "SECTION:CS 2114:83526",
+    "SECTION:CS 2114:83527",
+    "SECTION:CS 2114:83528",
+    "SECTION:CS 2114:83529",
+    "SECTION:CS 2114:83530",
+    "SECTION:CS 2114:83531",
+    "SECTION:CS 2114:83532",
+    "SECTION:CS 2114:83533",
+    "SECTION:CS 2114:83534",
+    "SECTION:CS 2114:83536",
+    "SECTION:CS 2114:83537",
+    "SECTION:CS 2114:83538",
+    "SECTION:CS 2114:83539"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "COURSE:CS 2114",
+      "SECTION:CS 2114:83524",
+      "SECTION:CS 2114:83526",
+      "SECTION:CS 2114:83527",
+      "SECTION:CS 2114:83528",
+      "SECTION:CS 2114:83529",
+      "SECTION:CS 2114:83530",
+      "SECTION:CS 2114:83531",
+      "SECTION:CS 2114:83532",
+      "SECTION:CS 2114:83533",
+      "SECTION:CS 2114:83534",
+      "SECTION:CS 2114:83536",
+      "SECTION:CS 2114:83537",
+      "SECTION:CS 2114:83538",
+      "SECTION:CS 2114:83539"
+    ],
+    "input_rrf_order": [
+      "COURSE:CS 2114",
+      "SECTION:CS 2114:83524",
+      "SECTION:CS 2114:83526",
+      "SECTION:CS 2114:83527",
+      "SECTION:CS 2114:83528",
+      "SECTION:CS 2114:83529",
+      "SECTION:CS 2114:83530",
+      "SECTION:CS 2114:83531",
+      "SECTION:CS 2114:83532",
+      "SECTION:CS 2114:83533",
+      "SECTION:CS 2114:83534",
+      "SECTION:CS 2114:83536",
+      "SECTION:CS 2114:83537",
+      "SECTION:CS 2114:83538",
+      "SECTION:CS 2114:83539"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "COURSE:CS 2114",
+      "SECTION:CS 2114:83524",
+      "SECTION:CS 2114:83526",
+      "SECTION:CS 2114:83527",
+      "SECTION:CS 2114:83528",
+      "SECTION:CS 2114:83529",
+      "SECTION:CS 2114:83530",
+      "SECTION:CS 2114:83531",
+      "SECTION:CS 2114:83532",
+      "SECTION:CS 2114:83533",
+      "SECTION:CS 2114:83534",
+      "SECTION:CS 2114:83536",
+      "SECTION:CS 2114:83537",
+      "SECTION:CS 2114:83538",
+      "SECTION:CS 2114:83539"
+    ],
+    "selected_ids": [
+      "COURSE:CS 2114",
+      "SECTION:CS 2114:83524",
+      "SECTION:CS 2114:83526",
+      "SECTION:CS 2114:83527",
+      "SECTION:CS 2114:83528",
+      "SECTION:CS 2114:83529",
+      "SECTION:CS 2114:83530",
+      "SECTION:CS 2114:83531",
+      "SECTION:CS 2114:83532",
+      "SECTION:CS 2114:83533",
+      "SECTION:CS 2114:83534",
+      "SECTION:CS 2114:83536",
+      "SECTION:CS 2114:83537",
+      "SECTION:CS 2114:83538",
+      "SECTION:CS 2114:83539"
+    ],
+    "ordered_ids": [
+      "COURSE:CS 2114",
+      "SECTION:CS 2114:83524",
+      "SECTION:CS 2114:83526",
+      "SECTION:CS 2114:83527",
+      "SECTION:CS 2114:83528",
+      "SECTION:CS 2114:83529",
+      "SECTION:CS 2114:83530",
+      "SECTION:CS 2114:83531",
+      "SECTION:CS 2114:83532",
+      "SECTION:CS 2114:83533",
+      "SECTION:CS 2114:83534",
+      "SECTION:CS 2114:83536",
+      "SECTION:CS 2114:83537",
+      "SECTION:CS 2114:83538",
+      "SECTION:CS 2114:83539"
+    ],
+    "scores": {},
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 2114",
+    "SECTION:CS 2114:83524",
+    "SECTION:CS 2114:83526",
+    "SECTION:CS 2114:83527",
+    "SECTION:CS 2114:83528",
+    "SECTION:CS 2114:83529",
+    "SECTION:CS 2114:83530",
+    "SECTION:CS 2114:83531",
+    "SECTION:CS 2114:83532",
+    "SECTION:CS 2114:83533",
+    "SECTION:CS 2114:83534",
+    "SECTION:CS 2114:83536",
+    "SECTION:CS 2114:83537",
+    "SECTION:CS 2114:83538",
+    "SECTION:CS 2114:83539"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83524",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83526",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83527",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83528",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83529",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83530",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83531",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "TBA",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83532",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "DH Smith IV",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83533",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "TBA",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83534",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "DH Smith IV",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83536",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "TBA",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83537",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "DH Smith IV",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83538",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "SECTION:CS 2114:83539",
+      "entity_type": "section",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": "Sehrish Nizamani",
+      "source": "sections",
+      "evidence_role": "current_section",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "course_no",
+      "subject"
+    ],
+    "table_titles": [
+      "Professor Summary",
+      "Fall 2026 Sections"
+    ],
+    "chart_titles": [
+      "Average GPA by Professor for CS 2114",
+      "A/A- Rate vs F Rate for CS 2114",
+      "Sample Size by Professor for CS 2114"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "course_profile",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Summary",
+        "columns": [
+          "Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Instructor": "Andrey Esakia",
+            "Avg GPA": 3.24,
+            "Avg A Range (%)": 49.8,
+            "Avg F Rate (%)": 3.1,
+            "Total Students": 229,
+            "Terms Taught": 1,
+            "Total Withdraws": 3,
+            "Latest Year": 2022,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Instructor": "Donekal Chandrashekar",
+            "Avg GPA": 3.175,
+            "Avg A Range (%)": 48.97,
+            "Avg F Rate (%)": 2.65,
+            "Total Students": 375,
+            "Terms Taught": 4,
+            "Total Withdraws": 19,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Instructor": "Derek Haqq",
+            "Avg GPA": 3.117,
+            "Avg A Range (%)": 40.9,
+            "Avg F Rate (%)": 2.53,
+            "Total Students": 1158,
+            "Terms Taught": 7,
+            "Total Withdraws": 38,
+            "Latest Year": 2023,
+            "Confidence Label": "High"
+          }
+        ]
+      },
+      {
+        "title": "Fall 2026 Sections",
+        "columns": [
+          "Instructor",
+          "Days",
+          "Time",
+          "Location",
+          "Open Seats",
+          "Capacity",
+          "CRN"
+        ],
+        "rows": [
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83524"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 14,
+            "Capacity": 27,
+            "CRN": "83526"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83527"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83528"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83529"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 1,
+            "Capacity": 30,
+            "CRN": "83530"
+          },
+          {
+            "Instructor": "TBA",
+            "Days": "TueThu",
+            "Time": "3:30 PM",
+            "Location": "SURGE 104A",
+            "Open Seats": 0,
+            "Capacity": 0,
+            "CRN": "83531"
+          },
+          {
+            "Instructor": "DH Smith IV",
+            "Days": "MonWed",
+            "Time": "10:10 AM",
+            "Location": "SURGE 104D",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83532"
+          }
+        ]
+      }
+    ],
+    "charts_count": 3,
+    "metadata": {
+      "subject": "CS",
+      "course_no": "2114",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 140
+      },
+      "confidence": 1.0
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "For CS 2114, Andrey Esakia has the strongest grade outcomes in the dataset — 3.24 average GPA and a 49.8% A/A− rate across 229 students over 1 term (Medium confidence). Sample size: 229 students. Donekal Chandrashekar is worth considering too, averaging 3.17 GPA (High confidence). Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 140
+  },
+  "errors": []
+}

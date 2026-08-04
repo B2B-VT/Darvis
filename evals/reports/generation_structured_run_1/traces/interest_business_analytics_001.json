@@ -1,0 +1,36 @@
+{
+  "case_id": "interest_business_analytics_001",
+  "query": "I’m a BIT student interested in analytics. What should I take?",
+  "parsed_intent": {
+    "route": "natural_filter"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [],
+  "evidence_ids": [],
+  "retrieved_ids": [],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [],
+    "selected_ids": [],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": null,
+    "reasons": []
+  },
+  "answer_type": "course_recommendation",
+  "structured_payload": {},
+  "final_response": {
+    "route": "natural_filter",
+    "answer": ""
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "total": 6,
+  "pass": 0,
+  "partial": 3,
+  "fail": 3,
+  "blocked": 0,
+  "metrics": {
+    "answer_type_accuracy": 0.5,
+    "entity_resolution_accuracy": 0.4167,
+    "exact_entity_match_rate": 0.4167,
+    "format_compliance_rate": 0.3333,
+    "grounding": 0.8333,
+    "intent_accuracy": 1.0,
+    "mean_reciprocal_rank": 0.2222,
+    "prohibited_candidate_rate": 0.1667,
+    "response_schema_compliance": 1.0,
+    "retrieval_ndcg_at_5": 0.2822,
+    "retrieval_precision_at_5": 0.1833,
+    "retrieval_recall_at_5": 0.4167,
+    "sufficiency_behavior": 0.5,
+    "unsupported_claim_rate": 0.1667
+  },
+  "critical_security_failures": 0
+}

@@ -1,0 +1,89 @@
+{
+  "case_id": "course_cmp_no_subject_001",
+  "query": "Compare 2505 and 2506 for computer science.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "AND",
+    "route": "course_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "grade_distribution"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.78,
+    "wants_professors": null,
+    "course_no": "2506",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "AND",
+        "2506"
+      ]
+    ]
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "AND",
+        "course_no": "2506"
+      },
+      "value": {
+        "subject": "AND",
+        "course_no": "2506"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "sufficiency_gate"
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {},
+  "final_response": {
+    "route": "course_profile",
+    "answer": "I couldn't find AND 2506 in the VT data Darvis has (grade history 2020–2026 and Fall 2026 sections). Double-check the course code, or try browsing the Courses page."
+  },
+  "latency_ms": {
+    "plan_ms": 106,
+    "resolve_ms": 17
+  },
+  "errors": []
+}

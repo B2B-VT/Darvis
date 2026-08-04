@@ -1,0 +1,93 @@
+{
+  "case_id": "prof_ambiguous_systems_001",
+  "query": "I want a chill prof for systems.",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 3214",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3214",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 3204",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3204",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 3214",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3214",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 3204",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3204",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 3214",
+    "COURSE:CS 3204"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 3214",
+    "COURSE:CS 3204"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 3214",
+      "COURSE:CS 3204"
+    ],
+    "selected_ids": [
+      "COURSE:CS 3214",
+      "COURSE:CS 3204"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Which specific course, professor, or requirement should Cyrus use?"
+  }
+}

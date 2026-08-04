@@ -1,0 +1,459 @@
+{
+  "case_id": "course_rec_ai_001",
+  "query": "I'm a CS student interested in AI/ML. What classes should I take?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "I'm a CS student interested in AI/ML. What classes should I take?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4804-vu",
+        "vector_score": 0.6613,
+        "keyword_score": 0.0,
+        "combined_score": 0.6613,
+        "rerank_score": 0.6613,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-jones",
+        "vector_score": 0.6545,
+        "keyword_score": 0.0,
+        "combined_score": 0.6545,
+        "rerank_score": 0.6545,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5740-atkinson",
+        "vector_score": 0.6534,
+        "keyword_score": 0.0,
+        "combined_score": 0.6534,
+        "rerank_score": 0.6534,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6804-vu",
+        "vector_score": 0.6528,
+        "keyword_score": 0.0,
+        "combined_score": 0.6528,
+        "rerank_score": 0.6528,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 4824 (Machine Learning) taught by Cui. Average GPA: 3.8. A/A- rate: 82.9%. F rate: 0.0%. Total students taught: 41. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4824-cui",
+        "vector_score": 0.647,
+        "keyword_score": 0.0,
+        "combined_score": 0.647,
+        "rerank_score": 0.647,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5806-reza_jafari",
+        "vector_score": 0.6423,
+        "keyword_score": 0.0,
+        "combined_score": 0.6423,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by Chen. Average GPA: 3.3. A/A- rate: 36.7%. F rate: 0.22%. Total students taught: 398. Total withdrawals: 6. Sections taught: 6 terms. Grade outcome...",
+        "source_type": "grade",
+        "source_id": "cs-4804-chen",
+        "vector_score": 0.6401,
+        "keyword_score": 0.0,
+        "combined_score": 0.6401,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Lifu Huang. Average GPA: 3.81. A/A- rate: 79.6%. F rate: 2.3%. Total students taught: 44. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-lifu_huang",
+        "vector_score": 0.6397,
+        "keyword_score": 0.0,
+        "combined_score": 0.6397,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by John Wenskovitch. Average GPA: 3.92. A/A- rate: 87.4%. F rate: 0.0%. Total students taught: 95. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5740-john_wenskovitch",
+        "vector_score": 0.6387,
+        "keyword_score": 0.0,
+        "combined_score": 0.6387,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5805 (Machine Learning) taught by Reza Jafari. Average GPA: 3.29. A/A- rate: 33.45%. F rate: 3.67%. Total students taught: 215. Sections taught: 6 terms. Grade outcomes are improving...",
+        "source_type": "grade",
+        "source_id": "cs-5805-reza_jafari",
+        "vector_score": 0.6375,
+        "keyword_score": 0.0,
+        "combined_score": 0.6375,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5644 (Machine Learning with Big Data) taught by Patrick Butler. Average GPA: 3.78. A/A- rate: 67.96%. F rate: 0.63%. Total students taught: 362. Sections taught: 7 terms. Grade outco...",
+        "source_type": "grade",
+        "source_id": "cs-5644-patrick_butler",
+        "vector_score": 0.6363,
+        "keyword_score": 0.0,
+        "combined_score": 0.6363,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Dawei Zhou. Average GPA: 3.75. A/A- rate: 57.5%. F rate: 0.0%. Total students taught: 40. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-dawei_zhou",
+        "vector_score": 0.6357,
+        "keyword_score": 0.0,
+        "combined_score": 0.6357,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by John Wenskovitch. Average GPA: 3.54. A/A- rate: 50.6%. F rate: 1.2%. Total students taught: 81. Total withdrawals: 2. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4804-john_wenskovitch",
+        "vector_score": 0.6346,
+        "keyword_score": 0.0,
+        "combined_score": 0.6346,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Xuan. Average GPA: 3.2. A/A- rate: 80.0%. F rate: 20.0%. Total students taught: 5. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-xuan",
+        "vector_score": 0.6328,
+        "keyword_score": 0.0,
+        "combined_score": 0.6328,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5806 (Machine Learning) taught by Dawei Zhou. Average GPA: 3.71. A/A- rate: 34.5%. F rate: 0.0%. Total students taught: 29. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5806-dawei_zhou",
+        "vector_score": 0.6312,
+        "keyword_score": 0.0,
+        "combined_score": 0.6312,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Huang. Average GPA: 3.81. A rate: 79.5%. F rate: 2.3%. Average enrollment: 44 students.",
+        "source_type": "grade",
+        "source_id": "cs-5824-huang",
+        "vector_score": 0.6309,
+        "keyword_score": 0.0,
+        "combined_score": 0.6309,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4824 (Machine Learning) taught by Huang. Average GPA: 3.18. A rate: 42.2%. F rate: 3.35%. Average enrollment: 49 students.",
+        "source_type": "grade",
+        "source_id": "cs-4824-huang",
+        "vector_score": 0.6268,
+        "keyword_score": 0.0,
+        "combined_score": 0.6268,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4824 (Machine Learning) taught by Amr Hilal. Average GPA: 2.93. A/A- rate: 18.4%. F rate: 2.52%. Total students taught: 105. Total withdrawals: 3. Sections taught: 4 terms. Grade out...",
+        "source_type": "grade",
+        "source_id": "cs-4824-amr_hilal",
+        "vector_score": 0.6248,
+        "keyword_score": 0.0,
+        "combined_score": 0.6248,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-vu",
+      "vector_score": 0.6613,
+      "keyword_score": 0.0,
+      "combined_score": 0.6613,
+      "rerank_score": 0.6613,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-jones",
+      "vector_score": 0.6545,
+      "keyword_score": 0.0,
+      "combined_score": 0.6545,
+      "rerank_score": 0.6545,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-atkinson",
+      "vector_score": 0.6534,
+      "keyword_score": 0.0,
+      "combined_score": 0.6534,
+      "rerank_score": 0.6534,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-vu",
+      "vector_score": 0.6528,
+      "keyword_score": 0.0,
+      "combined_score": 0.6528,
+      "rerank_score": 0.6528,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4824 (Machine Learning) taught by Cui. Average GPA: 3.8. A/A- rate: 82.9%. F rate: 0.0%. Total students taught: 41. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4824-cui",
+      "vector_score": 0.647,
+      "keyword_score": 0.0,
+      "combined_score": 0.647,
+      "rerank_score": 0.647,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5806-reza_jafari",
+      "vector_score": 0.6423,
+      "keyword_score": 0.0,
+      "combined_score": 0.6423,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Chen. Average GPA: 3.3. A/A- rate: 36.7%. F rate: 0.22%. Total students taught: 398. Total withdrawals: 6. Sections taught: 6 terms. Grade outcome...",
+      "source_type": "grade",
+      "source_id": "cs-4804-chen",
+      "vector_score": 0.6401,
+      "keyword_score": 0.0,
+      "combined_score": 0.6401,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Lifu Huang. Average GPA: 3.81. A/A- rate: 79.6%. F rate: 2.3%. Total students taught: 44. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-lifu_huang",
+      "vector_score": 0.6397,
+      "keyword_score": 0.0,
+      "combined_score": 0.6397,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by John Wenskovitch. Average GPA: 3.92. A/A- rate: 87.4%. F rate: 0.0%. Total students taught: 95. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-john_wenskovitch",
+      "vector_score": 0.6387,
+      "keyword_score": 0.0,
+      "combined_score": 0.6387,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5805 (Machine Learning) taught by Reza Jafari. Average GPA: 3.29. A/A- rate: 33.45%. F rate: 3.67%. Total students taught: 215. Sections taught: 6 terms. Grade outcomes are improving...",
+      "source_type": "grade",
+      "source_id": "cs-5805-reza_jafari",
+      "vector_score": 0.6375,
+      "keyword_score": 0.0,
+      "combined_score": 0.6375,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5644 (Machine Learning with Big Data) taught by Patrick Butler. Average GPA: 3.78. A/A- rate: 67.96%. F rate: 0.63%. Total students taught: 362. Sections taught: 7 terms. Grade outco...",
+      "source_type": "grade",
+      "source_id": "cs-5644-patrick_butler",
+      "vector_score": 0.6363,
+      "keyword_score": 0.0,
+      "combined_score": 0.6363,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Dawei Zhou. Average GPA: 3.75. A/A- rate: 57.5%. F rate: 0.0%. Total students taught: 40. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-dawei_zhou",
+      "vector_score": 0.6357,
+      "keyword_score": 0.0,
+      "combined_score": 0.6357,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by John Wenskovitch. Average GPA: 3.54. A/A- rate: 50.6%. F rate: 1.2%. Total students taught: 81. Total withdrawals: 2. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-john_wenskovitch",
+      "vector_score": 0.6346,
+      "keyword_score": 0.0,
+      "combined_score": 0.6346,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Xuan. Average GPA: 3.2. A/A- rate: 80.0%. F rate: 20.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-xuan",
+      "vector_score": 0.6328,
+      "keyword_score": 0.0,
+      "combined_score": 0.6328,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5806 (Machine Learning) taught by Dawei Zhou. Average GPA: 3.71. A/A- rate: 34.5%. F rate: 0.0%. Total students taught: 29. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5806-dawei_zhou",
+      "vector_score": 0.6312,
+      "keyword_score": 0.0,
+      "combined_score": 0.6312,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Huang. Average GPA: 3.81. A rate: 79.5%. F rate: 2.3%. Average enrollment: 44 students.",
+      "source_type": "grade",
+      "source_id": "cs-5824-huang",
+      "vector_score": 0.6309,
+      "keyword_score": 0.0,
+      "combined_score": 0.6309,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4824 (Machine Learning) taught by Huang. Average GPA: 3.18. A rate: 42.2%. F rate: 3.35%. Average enrollment: 49 students.",
+      "source_type": "grade",
+      "source_id": "cs-4824-huang",
+      "vector_score": 0.6268,
+      "keyword_score": 0.0,
+      "combined_score": 0.6268,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4824 (Machine Learning) taught by Amr Hilal. Average GPA: 2.93. A/A- rate: 18.4%. F rate: 2.52%. Total students taught: 105. Total withdrawals: 3. Sections taught: 4 terms. Grade out...",
+      "source_type": "grade",
+      "source_id": "cs-4824-amr_hilal",
+      "vector_score": 0.6248,
+      "keyword_score": 0.0,
+      "combined_score": 0.6248,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 107,
+        "resolve_ms": 0,
+        "handler_ms": 610
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I can work with historical grade distributions — GPA, A/A− rates, F rates, withdrawals, and enrollment counts. Try asking about a specific course (e.g. \"CS 3114\") or a professor by last name. For student opinions beyond the numbers, check the Forums page.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 107,
+    "resolve_ms": 0,
+    "handler_ms": 610
+  },
+  "errors": []
+}

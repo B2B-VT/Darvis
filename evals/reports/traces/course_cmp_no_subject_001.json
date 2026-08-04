@@ -1,0 +1,302 @@
+{
+  "case_id": "course_cmp_no_subject_001",
+  "query": "Compare 2505 and 2506 for computer science.",
+  "parsed_intent": {
+    "capabilities": [
+      "course_comparison",
+      "grade_distribution",
+      "natural_language_filter"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.97,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "natural_filter",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": "CS",
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "CS",
+        "2505"
+      ],
+      [
+        "CS",
+        "2506"
+      ]
+    ],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 4204 (Computer Graphics) taught by David-John. Average GPA: 3.83. A rate: 78.4%. F rate: 0.0%. Average enrollment: 15 students.",
+      "source_type": "grade",
+      "source_id": "cs-4204-david-john",
+      "vector_score": 0.6388,
+      "keyword_score": 0.0,
+      "combined_score": 0.6388,
+      "rerank_score": 0.6388,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 2506 (Intro to Computer Organization) taught by Nikolopoulos. Average GPA: 3.01. A rate: 21.56%. F rate: 3.46%. Average enrollment: 159 students.",
+      "source_type": "grade",
+      "source_id": "cs-2506-nikolopoulos",
+      "vector_score": 0.6325,
+      "keyword_score": 0.0,
+      "combined_score": 0.6325,
+      "rerank_score": 0.6325,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 6204 (Advanced Topics in Systems) taught by Butt. Average GPA: 4.0. A rate: 100.0%. F rate: 0.0%. Average enrollment: 22 students.",
+      "source_type": "grade",
+      "source_id": "cs-6204-butt",
+      "vector_score": 0.6236,
+      "keyword_score": 0.0,
+      "combined_score": 0.6236,
+      "rerank_score": 0.6236,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4414 (Issues in Scientific Computing) taught by Onufriev. Average GPA: 3.71. A rate: 51.9%. F rate: 0.0%. Average enrollment: 18 students.",
+      "source_type": "grade",
+      "source_id": "cs-4414-onufriev",
+      "vector_score": 0.6217,
+      "keyword_score": 0.0,
+      "combined_score": 0.6217,
+      "rerank_score": 0.6217,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 3414 (Numerical Methods) taught by Onufriev. Average GPA: 2.94. A rate: 16.6%. F rate: 5.27%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-3414-onufriev",
+      "vector_score": 0.6216,
+      "keyword_score": 0.0,
+      "combined_score": 0.6216,
+      "rerank_score": 0.6216,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Sandu. Average GPA: 3.77. A rate: 62.35%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-5234-sandu",
+      "vector_score": 0.6185,
+      "keyword_score": 0.0,
+      "combined_score": 0.6185,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5504 (Computer Architecture) taught by Feng. Average GPA: 3.52. A rate: 25.0%. F rate: 0.0%. Average enrollment: 8 students.",
+      "source_type": "grade",
+      "source_id": "cs-5504-feng",
+      "vector_score": 0.6173,
+      "keyword_score": 0.0,
+      "combined_score": 0.6173,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Back. Average GPA: 2.94. A rate: 24.35%. F rate: 3.99%. Average enrollment: 132 students.",
+      "source_type": "grade",
+      "source_id": "cs-3214-back",
+      "vector_score": 0.617,
+      "keyword_score": 0.0,
+      "combined_score": 0.617,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Feng. Average GPA: 3.52. A rate: 37.3%. F rate: 0.0%. Average enrollment: 10 students.",
+      "source_type": "grade",
+      "source_id": "cs-5234-feng",
+      "vector_score": 0.6153,
+      "keyword_score": 0.0,
+      "combined_score": 0.6153,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2506 (Intro to Computer Organization) taught by Dimitrios Nikolopoulos. Average GPA: 3.06. A/A- rate: 25.62%. F rate: 3.52%. Total students taught: 954. Total withdrawals: 43. Sectio...",
+      "source_type": "grade",
+      "source_id": "cs-2506-dimitrios_nikolopoulos",
+      "vector_score": 0.6138,
+      "keyword_score": 0.0,
+      "combined_score": 0.6138,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2144 (Competitive Problem Solving I) taught by Back. Average GPA: 3.82. A rate: 82.86%. F rate: 0.0%. Average enrollment: 13 students.",
+      "source_type": "grade",
+      "source_id": "cs-2144-back",
+      "vector_score": 0.6121,
+      "keyword_score": 0.0,
+      "combined_score": 0.6121,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6204 (Advanced Topics in Systems) taught by Hasan. Average GPA: 3.71. A rate: 51.65%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-6204-hasan",
+      "vector_score": 0.6108,
+      "keyword_score": 0.0,
+      "combined_score": 0.6108,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4504 (Computer Organization) taught by Feng. Average GPA: 2.64. A rate: 22.2%. F rate: 5.55%. Average enrollment: 9 students.",
+      "source_type": "grade",
+      "source_id": "cs-4504-feng",
+      "vector_score": 0.6104,
+      "keyword_score": 0.0,
+      "combined_score": 0.6104,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2505 (Intro Computer Organization) taught by Basak. Average GPA: 2.81. A rate: 18.75%. F rate: 6.7%. Average enrollment: 58 students.",
+      "source_type": "grade",
+      "source_id": "cs-2505-basak",
+      "vector_score": 0.6102,
+      "keyword_score": 0.0,
+      "combined_score": 0.6102,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4014 (Algorithms & Society) taught by Dunlap. Average GPA: 4.0. A rate: 100.0%. F rate: 0.0%. Average enrollment: 34 students.",
+      "source_type": "grade",
+      "source_id": "cs-4014-dunlap",
+      "vector_score": 0.6091,
+      "keyword_score": 0.0,
+      "combined_score": 0.6091,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "sort_goal"
+    ],
+    "table_titles": [
+      "Filter Results"
+    ],
+    "chart_titles": [
+      "Filter Results: Highest Avg GPA"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4994",
+            "Course Title": "Undergraduate Research",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 51,
+            "Terms Taught": 7,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 6804",
+            "Course Title": "Adv Topics Intell Sys",
+            "Avg GPA": 3.996,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 122,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 2974",
+            "Course Title": "Independent Study",
+            "Avg GPA": 3.986,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 112,
+            "Terms Taught": 8,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_gpa",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1118,
+        "resolve_ms": 0,
+        "handler_ms": 25015
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "Darvis doesn’t have grade data for CS 2505. For CS 2506 (Intro to Computer Organization) taught by Nikolopoulos, the average GPA is 3.01, the A‑rate is 21.56 % and the F‑rate is 3.46 %.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1118,
+    "resolve_ms": 0,
+    "handler_ms": 25015
+  },
+  "errors": []
+}

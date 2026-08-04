@@ -127,7 +127,8 @@ class RAGPipeline:
         if not candidates:
             logger.debug("[pipeline] No candidates retrieved for: %r", question[:60])
             self._last_debug_info = build_debug_info(
-                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing
+                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing,
+                ranking=self._reranker.last_ranking_trace,
             )
             return ""
 
@@ -140,6 +141,7 @@ class RAGPipeline:
         self._last_debug_info = build_debug_info(
             rewritten, candidates, selected,
             self._embedder.provider, self._reranker.provider, timing,
+            ranking=self._reranker.last_ranking_trace,
         )
 
         if self._debug_mode or logger.isEnabledFor(logging.DEBUG):
@@ -181,7 +183,8 @@ class RAGPipeline:
 
         if not candidates:
             self._last_debug_info = build_debug_info(
-                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing
+                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing,
+                ranking=self._reranker.last_ranking_trace,
             )
             return "", []
 
@@ -192,6 +195,7 @@ class RAGPipeline:
         self._last_debug_info = build_debug_info(
             rewritten, candidates, selected,
             self._embedder.provider, self._reranker.provider, timing,
+            ranking=self._reranker.last_ranking_trace,
         )
 
         if self._debug_mode or logger.isEnabledFor(logging.DEBUG):

@@ -1,0 +1,459 @@
+{
+  "case_id": "course_rec_ai_001",
+  "query": "I'm a CS student interested in AI/ML. What classes should I take?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "I'm a CS student interested in AI/ML. What classes should I take?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course CS 4804: Introduction to AI. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 9.",
+        "source_type": "course",
+        "source_id": "cs-4804",
+        "vector_score": 0.6805,
+        "keyword_score": 0.0,
+        "combined_score": 0.6805,
+        "rerank_score": 0.6805,
+        "selected": true
+      },
+      {
+        "content": "Course CS 5740: AI Tools for Software Eng. Credits: 3.0. Average GPA: 3.93. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "cs-5740",
+        "vector_score": 0.621,
+        "keyword_score": 0.0,
+        "combined_score": 0.621,
+        "rerank_score": 0.621,
+        "selected": true
+      },
+      {
+        "content": "Course AIS 4994: Undergraduate Research. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "ais-4994",
+        "vector_score": 0.608,
+        "keyword_score": 0.0,
+        "combined_score": 0.608,
+        "rerank_score": 0.608,
+        "selected": true
+      },
+      {
+        "content": "Course CS 5804: Intro Artificial Intelligence. Credits: 3.0. Average GPA: 3.63. Fall 2026 sections available: 12.",
+        "source_type": "course",
+        "source_id": "cs-5804",
+        "vector_score": 0.6071,
+        "keyword_score": 0.0,
+        "combined_score": 0.6071,
+        "rerank_score": 0.6071,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4824: Machine Learning. Credits: 3.0. Average GPA: 3.23. Fall 2026 sections available: 26.",
+        "source_type": "course",
+        "source_id": "cs-4824",
+        "vector_score": 0.5828,
+        "keyword_score": 0.0,
+        "combined_score": 0.5828,
+        "rerank_score": 0.5828,
+        "selected": true
+      },
+      {
+        "content": "Course CS 5824: Advanced Machine Learning. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 12.",
+        "source_type": "course",
+        "source_id": "cs-5824",
+        "vector_score": 0.5744,
+        "keyword_score": 0.0,
+        "combined_score": 0.5744,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5806: Machine Learning II. Credits: 3.0. Average GPA: 3.5. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "cs-5806",
+        "vector_score": 0.5715,
+        "keyword_score": 0.0,
+        "combined_score": 0.5715,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5805: Machine Learning. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 13.",
+        "source_type": "course",
+        "source_id": "cs-5805",
+        "vector_score": 0.5708,
+        "keyword_score": 0.0,
+        "combined_score": 0.5708,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5644: Machine Learning with Big Data. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 11.",
+        "source_type": "course",
+        "source_id": "cs-5644",
+        "vector_score": 0.5619,
+        "keyword_score": 0.0,
+        "combined_score": 0.5619,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 6524: Deep Learning. Credits: 3.0. Average GPA: 3.69. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "cs-6524",
+        "vector_score": 0.5514,
+        "keyword_score": 0.0,
+        "combined_score": 0.5514,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course ECE 5494: AI Innovation & Machine Learn. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "ece-5494",
+        "vector_score": 0.5444,
+        "keyword_score": 0.0,
+        "combined_score": 0.5444,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+        "vector_score": 0.5405,
+        "keyword_score": 0.0,
+        "combined_score": 0.5405,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course PHIL 1404: The Skeptic's Guide to AI. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "phil-1404",
+        "vector_score": 0.5397,
+        "keyword_score": 0.0,
+        "combined_score": 0.5397,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computer Science major (B.S.) at Virginia Tech, College of Engineering. Required courses: CS 1114 (Introduction to Software Design ( C )) [required], ENGE 1215 (Foundations of Engineering) [required],...",
+        "source_type": "requirement",
+        "source_id": "computer_science",
+        "vector_score": 0.5248,
+        "keyword_score": 0.0,
+        "combined_score": 0.5248,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5814: Introduction to Deep Learning. Credits: 3.0. Average GPA: 3.76. Fall 2026 sections available: 9.",
+        "source_type": "course",
+        "source_id": "cs-5814",
+        "vector_score": 0.5248,
+        "keyword_score": 0.0,
+        "combined_score": 0.5248,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CEM 4644: AI for Design Constr & Ops. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "cem-4644",
+        "vector_score": 0.5216,
+        "keyword_score": 0.0,
+        "combined_score": 0.5216,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "cs-5510",
+        "vector_score": 0.5166,
+        "keyword_score": 0.0,
+        "combined_score": 0.5166,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computer Science major (B.S.) — College of Engineering. required — Spring Semester: MATH 2204 (Introduction to Multivariable Calculus or Integrated Quantitative Sciences) 3cr, MATH 2114 (Introduction ...",
+        "source_type": "requirement",
+        "source_id": "req-computer_science-required-spring_semester-c0afcf",
+        "vector_score": 0.5165,
+        "keyword_score": 0.0,
+        "combined_score": 0.5165,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course CS 4804: Introduction to AI. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "cs-4804",
+      "vector_score": 0.6805,
+      "keyword_score": 0.0,
+      "combined_score": 0.6805,
+      "rerank_score": 0.6805,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5740: AI Tools for Software Eng. Credits: 3.0. Average GPA: 3.93. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "cs-5740",
+      "vector_score": 0.621,
+      "keyword_score": 0.0,
+      "combined_score": 0.621,
+      "rerank_score": 0.621,
+      "selected": true
+    },
+    {
+      "content": "Course AIS 4994: Undergraduate Research. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "ais-4994",
+      "vector_score": 0.608,
+      "keyword_score": 0.0,
+      "combined_score": 0.608,
+      "rerank_score": 0.608,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5804: Intro Artificial Intelligence. Credits: 3.0. Average GPA: 3.63. Fall 2026 sections available: 12.",
+      "source_type": "course",
+      "source_id": "cs-5804",
+      "vector_score": 0.6071,
+      "keyword_score": 0.0,
+      "combined_score": 0.6071,
+      "rerank_score": 0.6071,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4824: Machine Learning. Credits: 3.0. Average GPA: 3.23. Fall 2026 sections available: 26.",
+      "source_type": "course",
+      "source_id": "cs-4824",
+      "vector_score": 0.5828,
+      "keyword_score": 0.0,
+      "combined_score": 0.5828,
+      "rerank_score": 0.5828,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5824: Advanced Machine Learning. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 12.",
+      "source_type": "course",
+      "source_id": "cs-5824",
+      "vector_score": 0.5744,
+      "keyword_score": 0.0,
+      "combined_score": 0.5744,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5806: Machine Learning II. Credits: 3.0. Average GPA: 3.5. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5806",
+      "vector_score": 0.5715,
+      "keyword_score": 0.0,
+      "combined_score": 0.5715,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5805: Machine Learning. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "cs-5805",
+      "vector_score": 0.5708,
+      "keyword_score": 0.0,
+      "combined_score": 0.5708,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5644: Machine Learning with Big Data. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "cs-5644",
+      "vector_score": 0.5619,
+      "keyword_score": 0.0,
+      "combined_score": 0.5619,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 6524: Deep Learning. Credits: 3.0. Average GPA: 3.69. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-6524",
+      "vector_score": 0.5514,
+      "keyword_score": 0.0,
+      "combined_score": 0.5514,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ECE 5494: AI Innovation & Machine Learn. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "ece-5494",
+      "vector_score": 0.5444,
+      "keyword_score": 0.0,
+      "combined_score": 0.5444,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "vector_score": 0.5405,
+      "keyword_score": 0.0,
+      "combined_score": 0.5405,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course PHIL 1404: The Skeptic's Guide to AI. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "phil-1404",
+      "vector_score": 0.5397,
+      "keyword_score": 0.0,
+      "combined_score": 0.5397,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computer Science major (B.S.) at Virginia Tech, College of Engineering. Required courses: CS 1114 (Introduction to Software Design ( C )) [required], ENGE 1215 (Foundations of Engineering) [required],...",
+      "source_type": "requirement",
+      "source_id": "computer_science",
+      "vector_score": 0.5248,
+      "keyword_score": 0.0,
+      "combined_score": 0.5248,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5814: Introduction to Deep Learning. Credits: 3.0. Average GPA: 3.76. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "cs-5814",
+      "vector_score": 0.5248,
+      "keyword_score": 0.0,
+      "combined_score": 0.5248,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CEM 4644: AI for Design Constr & Ops. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "cem-4644",
+      "vector_score": 0.5216,
+      "keyword_score": 0.0,
+      "combined_score": 0.5216,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5510",
+      "vector_score": 0.5166,
+      "keyword_score": 0.0,
+      "combined_score": 0.5166,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computer Science major (B.S.) — College of Engineering. required — Spring Semester: MATH 2204 (Introduction to Multivariable Calculus or Integrated Quantitative Sciences) 3cr, MATH 2114 (Introduction ...",
+      "source_type": "requirement",
+      "source_id": "req-computer_science-required-spring_semester-c0afcf",
+      "vector_score": 0.5165,
+      "keyword_score": 0.0,
+      "combined_score": 0.5165,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 311
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I can work with historical grade distributions — GPA, A/A− rates, F rates, withdrawals, and enrollment counts. Try asking about a specific course (e.g. \"CS 3114\") or a professor by last name. For student opinions beyond the numbers, check the Forums page.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 311
+  },
+  "errors": []
+}

@@ -1,0 +1,302 @@
+{
+  "case_id": "course_rec_math_ai_001",
+  "query": "Which math classes help with machine learning?",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": "MATH",
+    "open_seats_only": false,
+    "route": "natural_filter",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "natural_language_filter",
+      "course_lookup"
+    ],
+    "requested_courses": [],
+    "subject_filter": "MATH",
+    "sort_goal": "highest_gpa",
+    "confidence": 0.97,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Course STAT 5114: Statistical Inference. Credits: 3.0. Average GPA: 3.87. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "stat-5114",
+      "vector_score": 0.668,
+      "keyword_score": 0.0,
+      "combined_score": 0.668,
+      "rerank_score": 0.668,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5034: Inference Fundamentals. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-5034",
+      "vector_score": 0.6487,
+      "keyword_score": 0.0,
+      "combined_score": 0.6487,
+      "rerank_score": 0.6487,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 4004: Methods Statistical Computing. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-4004",
+      "vector_score": 0.6426,
+      "keyword_score": 0.0,
+      "combined_score": 0.6426,
+      "rerank_score": 0.6426,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5054: Intro to Statistical Computing. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "stat-5054",
+      "vector_score": 0.6406,
+      "keyword_score": 0.0,
+      "combined_score": 0.6406,
+      "rerank_score": 0.6406,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5525: Statistical Learning. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 14.",
+      "source_type": "course",
+      "source_id": "stat-5525",
+      "vector_score": 0.6402,
+      "keyword_score": 0.0,
+      "combined_score": 0.6402,
+      "rerank_score": 0.6402,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 5526: Statistical Learning. Credits: 3.0. Average GPA: 3.86. Fall 2026 sections available: 8.",
+      "source_type": "course",
+      "source_id": "stat-5526",
+      "vector_score": 0.6399,
+      "keyword_score": 0.0,
+      "combined_score": 0.6399,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 4105: Theoretical Statistics. Credits: 3.0. Average GPA: 3.01. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "stat-4105",
+      "vector_score": 0.633,
+      "keyword_score": 0.0,
+      "combined_score": 0.633,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 6114: Advanced Inference. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "stat-6114",
+      "vector_score": 0.6316,
+      "keyword_score": 0.0,
+      "combined_score": 0.6316,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ISE 5334: Stat Learning & Data Science. Credits: 3.0. Average GPA: 3.83. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "ise-5334",
+      "vector_score": 0.626,
+      "keyword_score": 0.0,
+      "combined_score": 0.626,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 4106: Theoretical Statistics. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-4106",
+      "vector_score": 0.6255,
+      "keyword_score": 0.0,
+      "combined_score": 0.6255,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5154: Stat Computing Data Analytics. Credits: 3.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "stat-5154",
+      "vector_score": 0.6244,
+      "keyword_score": 0.0,
+      "combined_score": 0.6244,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 6554: Advanced Statistical Computing. Credits: 3.0. Average GPA: 3.92. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-6554",
+      "vector_score": 0.6237,
+      "keyword_score": 0.0,
+      "combined_score": 0.6237,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5984: SS: Teaching Statistics. Credits: 2.3. Average GPA: 3.98. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-5984",
+      "vector_score": 0.6206,
+      "keyword_score": 0.0,
+      "combined_score": 0.6206,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5444: Bayesian Statistics. Credits: 3.0. Average GPA: 3.91. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "stat-5444",
+      "vector_score": 0.6199,
+      "keyword_score": 0.0,
+      "combined_score": 0.6199,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 4444: Applied Bayesian Statistics. Credits: 3.0. Average GPA: 3.72. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "stat-4444",
+      "vector_score": 0.6187,
+      "keyword_score": 0.0,
+      "combined_score": 0.6187,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 2094: Basic R for Statistics. Credits: 1.0. Average GPA: 3.85. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-2094",
+      "vector_score": 0.6186,
+      "keyword_score": 0.0,
+      "combined_score": 0.6186,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 6474: Adv Topics Bayesian Statistics. Credits: 3.0. Average GPA: 3.9. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "stat-6474",
+      "vector_score": 0.6168,
+      "keyword_score": 0.0,
+      "combined_score": 0.6168,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4104: Data and Algorithm Analysis. Credits: 3.0. Average GPA: 3.11. Fall 2026 sections available: 38.",
+      "source_type": "course",
+      "source_id": "cs-4104",
+      "vector_score": 0.6118,
+      "keyword_score": 0.0,
+      "combined_score": 0.6118,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "recommendation_mode",
+      "route"
+    ],
+    "table_titles": [
+      "Course Recommendations"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          },
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 957,
+        "resolve_ms": 0,
+        "handler_ms": 18
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 5814 (Introduction to Deep Learning): History and basic concepts of artificial neural networks. Activation functions, optimization methods and regularization strategies used in deep multi-layered networks. Network architectures such as convolutional networks and recurrent neural networks. Deep reinforcement learning algorithms including deep Q•learning and policy gradient methods. Deep unsupervised models such as auto-encoders, and deep generative models including variational auto-encoders and generative adversarial networks. Advanced topics in deep learning such as transformers, graph neural networks, and ethics in Artificial Intelligence (AI). Deep learning(DL) applications such as text analysis, computer vision, and visual question answering. A platform for implementation of DL models will be used, such as Tensorflow or PyTorch.\n\nCS 4654 (Intermed Data Analytics & ML): A technical analytics course. Covers supervised and unsupervised learning strategies, including regression, generalized linear models, regulations, dimension reduction methods, tree-based methods for classification, and clustering. Upper-level analytical methods shown in practice: e.g., advanced naive Bayes and neural networks.\n\nCS 4824 (Machine Learning): Algorithms and principles involved in machine learning; focus on perception problems arising in computer vision, natural language processing and robotics; fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis of machine perception systems; design and implementation of a technical project applied to real-world datasets (images, text, robotics). A grade of C- or better in prerequisites.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 957,
+    "resolve_ms": 0,
+    "handler_ms": 18
+  },
+  "errors": []
+}

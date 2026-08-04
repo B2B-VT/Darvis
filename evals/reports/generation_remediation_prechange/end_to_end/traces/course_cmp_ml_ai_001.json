@@ -1,0 +1,181 @@
+{
+  "case_id": "course_cmp_ml_ai_001",
+  "query": "Compare machine learning and artificial intelligence at VT.",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "course_profile",
+    "confidence": 0.98,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "course_lookup",
+      "natural_language_filter",
+      "grade_distribution"
+    ],
+    "target_credits": null,
+    "requested_courses": [
+      [
+        "CS",
+        "4824"
+      ],
+      [
+        "CS",
+        "4804"
+      ]
+    ],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [
+      "Compare machine learning and artificial intelligence at VT."
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4824",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4824",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4804",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4804",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 4804"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "input_rrf_order": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "selected_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "ordered_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "scores": {},
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 4804"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4824",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4824",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4804",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4804",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "course_profile",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1080,
+        "resolve_ms": 1,
+        "handler_ms": 759
+      },
+      "confidence": 0.98
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "Darvis doesn't have that data.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1080,
+    "resolve_ms": 1,
+    "handler_ms": 759
+  },
+  "errors": []
+}

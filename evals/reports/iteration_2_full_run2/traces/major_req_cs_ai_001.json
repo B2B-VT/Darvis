@@ -1,0 +1,104 @@
+{
+  "case_id": "major_req_cs_ai_001",
+  "query": "I'm a CS major. What requirements should I prioritize if I want AI?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "major_requirements",
+    "target_credits": null,
+    "major_query": "should I prioritize if I want AI",
+    "clarifying_question": null,
+    "capabilities": [
+      "major_requirement_lookup"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.7,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "major_requirements",
+    "queries": [
+      "I'm a CS major. What requirements should I prioritize if I want AI?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "major_requirements",
+    "metadata_keys": [
+      "matched_major",
+      "needs_clarification",
+      "route"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "route": "major_requirements",
+      "matched_major": null,
+      "needs_clarification": true,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 0
+      },
+      "confidence": 0.7
+    }
+  },
+  "final_response": {
+    "route": "major_requirements",
+    "answer": "Which major should we check? We need the major or a specific requirement list before we can identify required courses that fit your constraints.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 0
+  },
+  "errors": []
+}
