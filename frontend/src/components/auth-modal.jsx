@@ -47,7 +47,7 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         >×</button>
 
         <div style={{ marginBottom: 20 }}>
-          <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 56, height: 56 }} />
+          <img src="/darvis-logo.png" alt="Darvis" style={{ width: 56, height: 56, borderRadius: 12, objectFit: "cover" }} />
         </div>
 
         <div style={{
