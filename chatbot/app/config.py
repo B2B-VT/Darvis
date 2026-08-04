@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     # Number of top chunks to pass to the LLM after reranking
     rag_top_k_rerank: int = Field(default=5, alias="RAG_TOP_K_RERANK")
 
+    # Alias used by the local-reranker A/B tooling. Defaults to the same value
+    # as RAG_TOP_K_RERANK unless explicitly set.
+    rag_rerank_top_k: int = Field(default=5, alias="RAG_RERANK_TOP_K")
+
     # Enable/disable query rewriting (adds ~100–300ms latency when LLM is used)
     rag_enable_query_rewrite: bool = Field(
         default=True, alias="RAG_ENABLE_QUERY_REWRITE"
@@ -79,6 +83,13 @@ class Settings(BaseSettings):
     # Disable local cross-encoder reranker to save RAM on Render free tier.
     # When false, falls back to passthrough if Cohere is not configured.
     rag_enable_local_reranker: bool = Field(default=False, alias="RAG_ENABLE_LOCAL_RERANKER")
+    rag_local_reranker_model: str = Field(
+        default="cross-encoder/ms-marco-TinyBERT-L2-v2",
+        alias="RAG_LOCAL_RERANKER_MODEL",
+    )
+    rag_local_reranker_device: str = Field(default="cpu", alias="RAG_LOCAL_RERANKER_DEVICE")
+    rag_rerank_batch_size: int = Field(default=16, alias="RAG_RERANK_BATCH_SIZE")
+    rag_rerank_timeout_ms: int = Field(default=0, alias="RAG_RERANK_TIMEOUT_MS")
 
     # LLM-judgement fallback: when retrieval quality is borderline on the last
     # critic attempt, ask Gemma whether the context actually answers the

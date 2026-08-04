@@ -1,0 +1,119 @@
+{
+  "case_id": "unsupported_workload_001",
+  "query": "Which CS 2114 professor gives the least homework?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "CS",
+    "route": "professor_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": "Which professor did you mean? Multiple verified instructors match that name: J He, He, X He.",
+    "capabilities": [
+      "instructor_lookup"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": "workload",
+    "min_rmp": null,
+    "needs_clarification": true,
+    "confidence": 1.0,
+    "wants_professors": null,
+    "course_no": "2114",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": [
+      [
+        "CS",
+        "2114"
+      ]
+    ]
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "professor_profile",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "clarification_required"
+  },
+  "evidence_ids": [
+    "COURSE:CS 2114"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "COURSE:CS 2114"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 2114"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Which professor did you mean? Multiple verified instructors match that name: J He, He, X He."
+  },
+  "latency_ms": {
+    "plan_ms": 39,
+    "resolve_ms": 0
+  },
+  "errors": []
+}

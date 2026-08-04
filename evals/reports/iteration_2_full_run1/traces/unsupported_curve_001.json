@@ -1,0 +1,71 @@
+{
+  "case_id": "unsupported_curve_001",
+  "query": "Which teacher curves the most?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "curve_data_unavailable"
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "reasons": [
+      "curve_data_unavailable"
+    ]
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {},
+  "final_response": {},
+  "latency_ms": {
+    "plan_ms": 131,
+    "resolve_ms": 0
+  },
+  "errors": []
+}

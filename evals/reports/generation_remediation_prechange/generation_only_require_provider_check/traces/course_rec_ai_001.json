@@ -1,0 +1,525 @@
+{
+  "case_id": "course_rec_ai_001",
+  "query": "I'm a CS student interested in AI/ML. What classes should I take?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "general_rag",
+    "confidence": 0.45,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "I'm a CS student interested in AI/ML. What classes should I take?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course CS 4804: Introduction to AI. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 9.",
+        "source_type": "course",
+        "source_id": "cs-4804",
+        "vector_score": 0.7284,
+        "keyword_score": 0.0,
+        "combined_score": 0.7284,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5740-atkinson",
+        "vector_score": 0.6764,
+        "keyword_score": 0.0,
+        "combined_score": 0.6764,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4824: Machine Learning. Credits: 3.0. Average GPA: 3.23. Fall 2026 sections available: 26.",
+        "source_type": "course",
+        "source_id": "cs-4824",
+        "vector_score": 0.6704,
+        "keyword_score": 0.0,
+        "combined_score": 0.6704,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6804-vu",
+        "vector_score": 0.6681,
+        "keyword_score": 0.0,
+        "combined_score": 0.6681,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by Chen. Average GPA: 3.3. A/A- rate: 36.7%. F rate: 0.22%. Total students taught: 398. Total withdrawals: 6. Sections taught: 6 terms. Grade outcome...",
+        "source_type": "grade",
+        "source_id": "cs-4804-chen",
+        "vector_score": 0.6652,
+        "keyword_score": 0.0,
+        "combined_score": 0.6652,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course CS 5824: Advanced Machine Learning. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 12.",
+        "source_type": "course",
+        "source_id": "cs-5824",
+        "vector_score": 0.6642,
+        "keyword_score": 0.0,
+        "combined_score": 0.6642,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5740: AI Tools for Software Eng. Credits: 3.0. Average GPA: 3.93. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "cs-5740",
+        "vector_score": 0.6619,
+        "keyword_score": 0.0,
+        "combined_score": 0.6619,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5805: Machine Learning. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 13.",
+        "source_type": "course",
+        "source_id": "cs-5805",
+        "vector_score": 0.6616,
+        "keyword_score": 0.0,
+        "combined_score": 0.6616,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5806: Machine Learning II. Credits: 3.0. Average GPA: 3.5. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "cs-5806",
+        "vector_score": 0.6597,
+        "keyword_score": 0.0,
+        "combined_score": 0.6597,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by John Wenskovitch. Average GPA: 3.92. A/A- rate: 87.4%. F rate: 0.0%. Total students taught: 95. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5740-john_wenskovitch",
+        "vector_score": 0.6592,
+        "keyword_score": 0.0,
+        "combined_score": 0.6592,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5824-jones",
+        "vector_score": 0.657,
+        "keyword_score": 0.0,
+        "combined_score": 0.657,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5804: Intro Artificial Intelligence. Credits: 3.0. Average GPA: 3.63. Fall 2026 sections available: 12.",
+        "source_type": "course",
+        "source_id": "cs-5804",
+        "vector_score": 0.6555,
+        "keyword_score": 0.0,
+        "combined_score": 0.6555,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Das. Average GPA: 3.33. A/A- rate: 26.3%. F rate: 0.0%. Total students taught: 19. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5804-das",
+        "vector_score": 0.6456,
+        "keyword_score": 0.0,
+        "combined_score": 0.6456,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by John Wenskovitch. Average GPA: 3.54. A/A- rate: 50.6%. F rate: 1.2%. Total students taught: 81. Total withdrawals: 2. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4804-john_wenskovitch",
+        "vector_score": 0.6456,
+        "keyword_score": 0.0,
+        "combined_score": 0.6456,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5806-reza_jafari",
+        "vector_score": 0.6446,
+        "keyword_score": 0.0,
+        "combined_score": 0.6446,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5805 (Machine Learning) taught by Reza Jafari. Average GPA: 3.29. A/A- rate: 33.45%. F rate: 3.67%. Total students taught: 215. Sections taught: 6 terms. Grade outcomes are improving...",
+        "source_type": "grade",
+        "source_id": "cs-5805-reza_jafari",
+        "vector_score": 0.6434,
+        "keyword_score": 0.0,
+        "combined_score": 0.6434,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4804-vu",
+        "vector_score": 0.6421,
+        "keyword_score": 0.0,
+        "combined_score": 0.6421,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Chen. Average GPA: 3.71. A/A- rate: 55.4%. F rate: 0.0%. Total students taught: 205. Sections taught: 6 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5804-chen",
+        "vector_score": 0.6401,
+        "keyword_score": 0.0,
+        "combined_score": 0.6401,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "rrf_passthrough",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "cs-4804",
+      "cs-5740-atkinson",
+      "cs-4824",
+      "cs-6804-vu",
+      "cs-4804-chen",
+      "cs-5824",
+      "cs-5740",
+      "cs-5805",
+      "cs-5806",
+      "cs-5740-john_wenskovitch",
+      "cs-5824-jones",
+      "cs-5804",
+      "cs-5804-das",
+      "cs-4804-john_wenskovitch",
+      "cs-5806-reza_jafari",
+      "cs-5805-reza_jafari",
+      "cs-4804-vu",
+      "cs-5804-chen"
+    ],
+    "input_rrf_order": [
+      "cs-4804",
+      "cs-5740-atkinson",
+      "cs-4824",
+      "cs-6804-vu",
+      "cs-4804-chen",
+      "cs-5824",
+      "cs-5740",
+      "cs-5805",
+      "cs-5806",
+      "cs-5740-john_wenskovitch",
+      "cs-5824-jones",
+      "cs-5804",
+      "cs-5804-das",
+      "cs-4804-john_wenskovitch",
+      "cs-5806-reza_jafari",
+      "cs-5805-reza_jafari",
+      "cs-4804-vu",
+      "cs-5804-chen"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "cs-4804",
+      "cs-5740-atkinson",
+      "cs-4824",
+      "cs-6804-vu",
+      "cs-4804-chen"
+    ],
+    "selected_ids": [
+      "cs-4804",
+      "cs-5740-atkinson",
+      "cs-4824",
+      "cs-6804-vu",
+      "cs-4804-chen"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0.1,
+    "ordered_ids": [
+      "cs-4804",
+      "cs-5740-atkinson",
+      "cs-4824",
+      "cs-6804-vu",
+      "cs-4804-chen"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course CS 4804: Introduction to AI. Credits: 3.0. Average GPA: 3.44. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "cs-4804",
+      "vector_score": 0.7284,
+      "keyword_score": 0.0,
+      "combined_score": 0.7284,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-atkinson",
+      "vector_score": 0.6764,
+      "keyword_score": 0.0,
+      "combined_score": 0.6764,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4824: Machine Learning. Credits: 3.0. Average GPA: 3.23. Fall 2026 sections available: 26.",
+      "source_type": "course",
+      "source_id": "cs-4824",
+      "vector_score": 0.6704,
+      "keyword_score": 0.0,
+      "combined_score": 0.6704,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-vu",
+      "vector_score": 0.6681,
+      "keyword_score": 0.0,
+      "combined_score": 0.6681,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Chen. Average GPA: 3.3. A/A- rate: 36.7%. F rate: 0.22%. Total students taught: 398. Total withdrawals: 6. Sections taught: 6 terms. Grade outcome...",
+      "source_type": "grade",
+      "source_id": "cs-4804-chen",
+      "vector_score": 0.6652,
+      "keyword_score": 0.0,
+      "combined_score": 0.6652,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5824: Advanced Machine Learning. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 12.",
+      "source_type": "course",
+      "source_id": "cs-5824",
+      "vector_score": 0.6642,
+      "keyword_score": 0.0,
+      "combined_score": 0.6642,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5740: AI Tools for Software Eng. Credits: 3.0. Average GPA: 3.93. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "cs-5740",
+      "vector_score": 0.6619,
+      "keyword_score": 0.0,
+      "combined_score": 0.6619,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5805: Machine Learning. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "cs-5805",
+      "vector_score": 0.6616,
+      "keyword_score": 0.0,
+      "combined_score": 0.6616,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5806: Machine Learning II. Credits: 3.0. Average GPA: 3.5. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5806",
+      "vector_score": 0.6597,
+      "keyword_score": 0.0,
+      "combined_score": 0.6597,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by John Wenskovitch. Average GPA: 3.92. A/A- rate: 87.4%. F rate: 0.0%. Total students taught: 95. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-john_wenskovitch",
+      "vector_score": 0.6592,
+      "keyword_score": 0.0,
+      "combined_score": 0.6592,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5824 (Advanced Machine Learning) taught by Jones. Average GPA: 3.8. A/A- rate: 61.9%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5824-jones",
+      "vector_score": 0.657,
+      "keyword_score": 0.0,
+      "combined_score": 0.657,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5804: Intro Artificial Intelligence. Credits: 3.0. Average GPA: 3.63. Fall 2026 sections available: 12.",
+      "source_type": "course",
+      "source_id": "cs-5804",
+      "vector_score": 0.6555,
+      "keyword_score": 0.0,
+      "combined_score": 0.6555,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Das. Average GPA: 3.33. A/A- rate: 26.3%. F rate: 0.0%. Total students taught: 19. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5804-das",
+      "vector_score": 0.6456,
+      "keyword_score": 0.0,
+      "combined_score": 0.6456,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by John Wenskovitch. Average GPA: 3.54. A/A- rate: 50.6%. F rate: 1.2%. Total students taught: 81. Total withdrawals: 2. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-john_wenskovitch",
+      "vector_score": 0.6456,
+      "keyword_score": 0.0,
+      "combined_score": 0.6456,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5806 (Machine Learning II) taught by Reza Jafari. Average GPA: 3.44. A/A- rate: 23.1%. F rate: 0.0%. Total students taught: 52. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5806-reza_jafari",
+      "vector_score": 0.6446,
+      "keyword_score": 0.0,
+      "combined_score": 0.6446,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5805 (Machine Learning) taught by Reza Jafari. Average GPA: 3.29. A/A- rate: 33.45%. F rate: 3.67%. Total students taught: 215. Sections taught: 6 terms. Grade outcomes are improving...",
+      "source_type": "grade",
+      "source_id": "cs-5805-reza_jafari",
+      "vector_score": 0.6434,
+      "keyword_score": 0.0,
+      "combined_score": 0.6434,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-vu",
+      "vector_score": 0.6421,
+      "keyword_score": 0.0,
+      "combined_score": 0.6421,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5804 (Intro Artificial Intelligence) taught by Chen. Average GPA: 3.71. A/A- rate: 55.4%. F rate: 0.0%. Total students taught: 205. Sections taught: 6 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5804-chen",
+      "vector_score": 0.6401,
+      "keyword_score": 0.0,
+      "combined_score": 0.6401,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 7229,
+        "resolve_ms": 1,
+        "handler_ms": 955
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Take CS 4804 Introduction to AI (average GPA 3.30, A/A‑ rate 36.7%) and CS 4824 Machine Learning (average GPA 3.23) to cover core concepts. For a higher‑grade outcome, consider CS 5740 AI Tools for Software Engineering (average GPA 3.93, A/A‑ rate 88.85%) or CS 6804 Frontier AI Systems (average GPA 3.96, A/A‑ rate 90.6%). These four courses give you a solid mix of fundamentals and advanced AI topics.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 7229,
+    "resolve_ms": 1,
+    "handler_ms": 955
+  },
+  "errors": []
+}

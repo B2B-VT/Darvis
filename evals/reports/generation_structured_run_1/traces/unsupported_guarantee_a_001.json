@@ -1,0 +1,255 @@
+{
+  "case_id": "unsupported_guarantee_a_001",
+  "query": "Which class guarantees an A?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:UAP 5414",
+        "entity_type": "course",
+        "subject": "UAP",
+        "course_number": "5414",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ME 5774",
+        "entity_type": "course",
+        "subject": "ME",
+        "course_number": "5774",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:JPN 3954",
+        "entity_type": "course",
+        "subject": "JPN",
+        "course_number": "3954",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ECE 5124",
+        "entity_type": "course",
+        "subject": "ECE",
+        "course_number": "5124",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ART 1004",
+        "entity_type": "course",
+        "subject": "ART",
+        "course_number": "1004",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:UAP 5414",
+      "entity_type": "course",
+      "subject": "UAP",
+      "course_number": "5414",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ME 5774",
+      "entity_type": "course",
+      "subject": "ME",
+      "course_number": "5774",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:JPN 3954",
+      "entity_type": "course",
+      "subject": "JPN",
+      "course_number": "3954",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ECE 5124",
+      "entity_type": "course",
+      "subject": "ECE",
+      "course_number": "5124",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ART 1004",
+      "entity_type": "course",
+      "subject": "ART",
+      "course_number": "1004",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:UAP 5414",
+    "COURSE:ME 5774",
+    "COURSE:JPN 3954",
+    "COURSE:ECE 5124",
+    "COURSE:ART 1004"
+  ],
+  "retrieved_ids": [
+    "COURSE:UAP 5414",
+    "COURSE:ME 5774",
+    "COURSE:JPN 3954",
+    "COURSE:ECE 5124",
+    "COURSE:ART 1004"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:UAP 5414",
+      "COURSE:ME 5774",
+      "COURSE:JPN 3954",
+      "COURSE:ECE 5124",
+      "COURSE:ART 1004"
+    ],
+    "selected_ids": [
+      "COURSE:UAP 5414",
+      "COURSE:ME 5774",
+      "COURSE:JPN 3954",
+      "COURSE:ECE 5124",
+      "COURSE:ART 1004"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "UAP 5414",
+            "Course Title": "Natural Res Planning Topics",
+            "Avg GPA": 3.94,
+            "Avg A Range (%)": 100.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 112,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2021,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ME 5774",
+            "Course Title": "Machine Learning for Mech Engr",
+            "Avg GPA": 3.98,
+            "Avg A Range (%)": 100.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 31,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "JPN 3954",
+            "Course Title": "Study Abroad",
+            "Avg GPA": 3.995,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 83,
+            "Terms Taught": 2,
+            "Total Withdraws": 0,
+            "Latest Year": 2025,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ECE 5124",
+            "Course Title": "Quantum Eng & Tech",
+            "Avg GPA": 3.991,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 35,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "ART 1004",
+            "Course Title": "Drawing for Non-majors",
+            "Avg GPA": 3.991,
+            "Avg A Range (%)": 100.05,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 34,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2021,
+            "Confidence Label": "Medium"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_a_rate",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 850,
+        "resolve_ms": 0,
+        "handler_ms": 13073
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

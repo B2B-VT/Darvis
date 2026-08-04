@@ -1,0 +1,198 @@
+{
+  "case_id": "course_cmp_prereq_sequence_001",
+  "query": "Can I take CS 2114 before CS 1114?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "course_profile",
+    "confidence": 0.97,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": "2114",
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "course_lookup",
+      "general_question"
+    ],
+    "target_credits": null,
+    "requested_courses": [
+      [
+        "CS",
+        "2114"
+      ],
+      [
+        "CS",
+        "1114"
+      ]
+    ],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": "CS",
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "course_profile",
+    "queries": [
+      "Can I take CS 2114 before CS 1114?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 1114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "1114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 2114",
+    "COURSE:CS 1114"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "input_rrf_order": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "selected_ids": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "ordered_ids": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "scores": {},
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "COURSE:CS 2114",
+    "COURSE:CS 1114"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 1114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "1114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "course_no",
+      "route",
+      "subject"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "course_profile",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "subject": "CS",
+      "course_no": "2114",
+      "route": "course_profile",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1175,
+        "resolve_ms": 0,
+        "handler_ms": 0
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "CS 2114's prerequisite: CS 1114 or CS 2064. Darvis doesn't have prerequisite data on file for CS 1114 — check the official VT course catalog or your academic advisor to confirm.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1175,
+    "resolve_ms": 0,
+    "handler_ms": 0
+  },
+  "errors": []
+}

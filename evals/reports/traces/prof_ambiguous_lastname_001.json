@@ -1,0 +1,260 @@
+{
+  "case_id": "prof_ambiguous_lastname_001",
+  "query": "Tell me about Professor Smith.",
+  "parsed_intent": {
+    "capabilities": [
+      "general_question"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.45,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for MGT 3964 (Field Study) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "mgt-3964-smith",
+      "vector_score": 0.7197,
+      "keyword_score": 0.0,
+      "combined_score": 0.7197,
+      "rerank_score": 0.7197,
+      "selected": true
+    },
+    {
+      "content": "Grade data for COMM 4974 (Independent Study) taught by Smith. Average GPA: 3.82. A/A- rate: 87.05%. F rate: 3.85%. Total students taught: 32. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "comm-4974-smith",
+      "vector_score": 0.7078,
+      "keyword_score": 0.0,
+      "combined_score": 0.7078,
+      "rerank_score": 0.7078,
+      "selected": true
+    },
+    {
+      "content": "Grade data for HD 5964 (Research Team) taught by Smith. Average GPA: 3.99. A/A- rate: 95.45%. F rate: 0.0%. Total students taught: 24. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "hd-5964-smith",
+      "vector_score": 0.6917,
+      "keyword_score": 0.0,
+      "combined_score": 0.6917,
+      "rerank_score": 0.6917,
+      "selected": true
+    },
+    {
+      "content": "Grade data for HD 3234 (Lifespan Community Services) taught by Smithee. Average GPA: 3.84. A/A- rate: 72.4%. F rate: 0.0%. Total students taught: 29. Total withdrawals: 2. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "hd-3234-smithee",
+      "vector_score": 0.6765,
+      "keyword_score": 0.0,
+      "combined_score": 0.6765,
+      "rerank_score": 0.6765,
+      "selected": true
+    },
+    {
+      "content": "Grade data for COMM 2084 (Media and Society) taught by Smith. Average GPA: 3.64. A/A- rate: 64.84%. F rate: 2.3%. Total students taught: 181. Total withdrawals: 1. Sections taught: 5 terms.",
+      "source_type": "grade",
+      "source_id": "comm-2084-smith",
+      "vector_score": 0.6734,
+      "keyword_score": 0.0,
+      "combined_score": 0.6734,
+      "rerank_score": 0.6734,
+      "selected": true
+    },
+    {
+      "content": "Grade data for UNIV 1004 (College Success Strategies) taught by Smith. Average GPA: 2.9. A/A- rate: 50.9%. F rate: 15.64%. Total students taught: 69. Total withdrawals: 2. Sections taught: 5 terms. Gr...",
+      "source_type": "grade",
+      "source_id": "univ-1004-smith",
+      "vector_score": 0.6709,
+      "keyword_score": 0.0,
+      "combined_score": 0.6709,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PR 4304 (Public Relations Campaigns) taught by Smith. Average GPA: 3.6. A/A- rate: 32.23%. F rate: 0.0%. Total students taught: 90. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "pr-4304-smith",
+      "vector_score": 0.6702,
+      "keyword_score": 0.0,
+      "combined_score": 0.6702,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for STAT 3616 (Biological Statistics) taught by Smith. Average GPA: 3.52. A/A- rate: 58.3%. F rate: 1.97%. Total students taught: 42. Total withdrawals: 4. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "stat-3616-smith",
+      "vector_score": 0.669,
+      "keyword_score": 0.0,
+      "combined_score": 0.669,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ECON 3134 (Choice and Behavior) taught by Smith. Average GPA: 3.22. A/A- rate: 24.9%. F rate: 1.2%. Total students taught: 81. Total withdrawals: 1. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "econ-3134-smith",
+      "vector_score": 0.667,
+      "keyword_score": 0.0,
+      "combined_score": 0.667,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PHS 1514 (Personal Health) taught by Smith. Average GPA: 3.77. A/A- rate: 74.07%. F rate: 0.67%. Total students taught: 6156. Total withdrawals: 41. Sections taught: 25 terms.",
+      "source_type": "grade",
+      "source_id": "phs-1514-smith",
+      "vector_score": 0.6653,
+      "keyword_score": 0.0,
+      "combined_score": 0.6653,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for HD 4994 (UR: Learning and Development) taught by Smith. Average GPA: 3.93. A/A- rate: 83.3%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "hd-4994-smith",
+      "vector_score": 0.6651,
+      "keyword_score": 0.0,
+      "combined_score": 0.6651,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PR 4414 (PR Standards and Practices) taught by Smith. Average GPA: 3.16. A/A- rate: 10.82%. F rate: 0.5%. Total students taught: 174. Sections taught: 4 terms. Grade outcomes have decli...",
+      "source_type": "grade",
+      "source_id": "pr-4414-smith",
+      "vector_score": 0.6632,
+      "keyword_score": 0.0,
+      "combined_score": 0.6632,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for AS 3216 (AF Management & Leadership) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 113. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "as-3216-smith",
+      "vector_score": 0.6623,
+      "keyword_score": 0.0,
+      "combined_score": 0.6623,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for AS 3215 (AF Management & Leadership) taught by Smith. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 114. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "as-3215-smith",
+      "vector_score": 0.6609,
+      "keyword_score": 0.0,
+      "combined_score": 0.6609,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ECON 4994 (Undergraduate Research) taught by Smith. Average GPA: 3.67. A/A- rate: 80.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "econ-4994-smith",
+      "vector_score": 0.6579,
+      "keyword_score": 0.0,
+      "combined_score": 0.6579,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PR 5724 (Reputation Management and PR) taught by Smith. Average GPA: 3.91. A/A- rate: 79.6%. F rate: 0.0%. Total students taught: 36. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "pr-5724-smith",
+      "vector_score": 0.6537,
+      "keyword_score": 0.0,
+      "combined_score": 0.6537,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PR 3014 (Public Relations Cases) taught by Smith. Average GPA: 2.83. A/A- rate: 3.47%. F rate: 3.47%. Total students taught: 90. Total withdrawals: 1. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "pr-3014-smith",
+      "vector_score": 0.6523,
+      "keyword_score": 0.0,
+      "combined_score": 0.6523,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for PHIL 3015 (Political Theory) taught by Smith. Average GPA: 3.74. A/A- rate: 60.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "phil-3015-smith",
+      "vector_score": 0.6491,
+      "keyword_score": 0.0,
+      "combined_score": 0.6491,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5007,
+        "resolve_ms": 0,
+        "handler_ms": 8958
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Professor Smith’s courses show very high A/A‑ minus rates: 100 % in MGT 3964 (5 students), 95.45 % in HD 5964 (24 students), and 87.05 % in COMM 4974 (32 students), with virtually no F grades except a 3.85 % F rate in COMM 4974. The larger class, COMM 2084, had a 64.84 % A/A‑ minus rate and a 2.3 % F rate across 181 students. Darvis doesn’t have any additional data on Smith’s teaching beyond these grade outcomes.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5007,
+    "resolve_ms": 0,
+    "handler_ms": 8958
+  },
+  "errors": []
+}

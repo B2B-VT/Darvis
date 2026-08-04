@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.1, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/kushpatel/Desktop/b2b/Darvis
+plugins: anyio-4.14.1
+collected 11 items
+
+chatbot/tests/test_reranker.py ...........                               [100%]
+
+=============================== warnings summary ===============================
+chatbot/tests/test_reranker.py::test_feature_flag_disabled_uses_passthrough_without_loading
+  /Users/kushpatel/Desktop/b2b/Darvis/chatbot/app/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class Settings(BaseSettings):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 11 passed, 1 warning in 0.16s =========================

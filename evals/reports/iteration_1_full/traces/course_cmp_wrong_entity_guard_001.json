@@ -1,0 +1,327 @@
+{
+  "case_id": "course_cmp_wrong_entity_guard_001",
+  "query": "Compare CS 3114 with CS 3214, not CS 2114.",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": "CS",
+    "open_seats_only": false,
+    "route": "course_profile",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "course_comparison",
+      "natural_language_filter",
+      "grade_distribution"
+    ],
+    "requested_courses": [
+      [
+        "CS",
+        "3114"
+      ],
+      [
+        "CS",
+        "3214"
+      ]
+    ],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.98,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 6804 (TS: Frontier AI Systems) taught by Vu. Average GPA: 3.96. A/A- rate: 90.6%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6804-vu",
+      "vector_score": 0.6737,
+      "keyword_score": 0.0,
+      "combined_score": 0.6737,
+      "rerank_score": 0.6737,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4804 (Introduction to AI) taught by Vu. Average GPA: 3.79. A/A- rate: 80.6%. F rate: 0.0%. Total students taught: 67. Total withdrawals: 1. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4804-vu",
+      "vector_score": 0.6694,
+      "keyword_score": 0.0,
+      "combined_score": 0.6694,
+      "rerank_score": 0.6694,
+      "selected": true
+    },
+    {
+      "content": "Instructor Vu at Virginia Tech. Teaches CS courses. Has taught 2 distinct courses. Average GPA across all sections: 3.82.",
+      "source_type": "instructor",
+      "source_id": "vu",
+      "vector_score": 0.6307,
+      "keyword_score": 0.0,
+      "combined_score": 0.6307,
+      "rerank_score": 0.6307,
+      "selected": true
+    },
+    {
+      "content": "Instructor AS Bertke at Virginia Tech. Teaches PHS, VM courses. Has taught 13 distinct courses. Average GPA across all sections: 3.7.",
+      "source_type": "instructor",
+      "source_id": "as_bertke",
+      "vector_score": 0.6168,
+      "keyword_score": 0.0,
+      "combined_score": 0.6168,
+      "rerank_score": 0.6168,
+      "selected": true
+    },
+    {
+      "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Sano-Franchini. Average GPA: 3.49. A/A- rate: 61.5%. F rate: 7.7%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "univ-2984-sano-franchini",
+      "vector_score": 0.6039,
+      "keyword_score": 0.0,
+      "combined_score": 0.6039,
+      "rerank_score": 0.6039,
+      "selected": true
+    },
+    {
+      "content": "Instructor A Vakilian at Virginia Tech. Teaches CS courses. Has taught 1 distinct courses. Average GPA across all sections: 3.8.",
+      "source_type": "instructor",
+      "source_id": "a_vakilian",
+      "vector_score": 0.6031,
+      "keyword_score": 0.0,
+      "combined_score": 0.6031,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for UNIV 2984 (SS: Exploring Success at VT) taught by Underwood. Average GPA: 3.58. A/A- rate: 74.0%. F rate: 4.0%. Total students taught: 50. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "univ-2984-underwood",
+      "vector_score": 0.6022,
+      "keyword_score": 0.0,
+      "combined_score": 0.6022,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Sandu at Virginia Tech. Teaches CS courses. Has taught 6 distinct courses. Average GPA across all sections: 3.51.",
+      "source_type": "instructor",
+      "source_id": "sandu",
+      "vector_score": 0.6002,
+      "keyword_score": 0.0,
+      "combined_score": 0.6002,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5624 (Natural Language Processing) taught by Vu. Average GPA: 3.84. A/A- rate: 77.6%. F rate: 0.0%. Total students taught: 49. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5624-vu",
+      "vector_score": 0.5977,
+      "keyword_score": 0.0,
+      "combined_score": 0.5977,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Gan at Virginia Tech. Teaches CS courses. Has taught 2 distinct courses. Average GPA across all sections: 3.63.",
+      "source_type": "instructor",
+      "source_id": "gan",
+      "vector_score": 0.5954,
+      "keyword_score": 0.0,
+      "combined_score": 0.5954,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5754 (Virtual Environments) taught by Bowman. Average GPA: 3.44. A/A- rate: 13.0%. F rate: 0.0%. Total students taught: 41. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5754-bowman",
+      "vector_score": 0.5949,
+      "keyword_score": 0.0,
+      "combined_score": 0.5949,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Carriker at Virginia Tech. Teaches MS courses. Has taught 8 distinct courses. Average GPA across all sections: 3.49. Courses taught include: MS 1005, MS 1006.",
+      "source_type": "instructor",
+      "source_id": "carriker",
+      "vector_score": 0.5927,
+      "keyword_score": 0.0,
+      "combined_score": 0.5927,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Vakilian at Virginia Tech. Teaches CS courses. Has taught 1 distinct courses. Average GPA across all sections: 3.8.",
+      "source_type": "instructor",
+      "source_id": "vakilian",
+      "vector_score": 0.5888,
+      "keyword_score": 0.0,
+      "combined_score": 0.5888,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Yao at Virginia Tech. Teaches CS courses. Has taught 8 distinct courses. Average GPA across all sections: 3.89.",
+      "source_type": "instructor",
+      "source_id": "yao",
+      "vector_score": 0.5825,
+      "keyword_score": 0.0,
+      "combined_score": 0.5825,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5740 (AI Tools for Software Eng) taught by Atkinson. Average GPA: 3.93. A/A- rate: 88.85%. F rate: 0.0%. Total students taught: 152. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5740-atkinson",
+      "vector_score": 0.5824,
+      "keyword_score": 0.0,
+      "combined_score": 0.5824,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Trang Vu at Virginia Tech. Teaches CS, ECON, ENGL, FIN courses. Has taught 10 distinct courses. Average GPA across all sections: 3.43. RateMyProfessors: 4.3/5.0 (9 ratings). RMP difficulty:...",
+      "source_type": "instructor",
+      "source_id": "trang_vu",
+      "vector_score": 0.58,
+      "keyword_score": 0.0,
+      "combined_score": 0.58,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Jan at Virginia Tech. Teaches SOC courses. Has taught 2 distinct courses. Average GPA across all sections: 3.78. Courses taught include: SOC 2004, SOC 2024.",
+      "source_type": "instructor",
+      "source_id": "jan",
+      "vector_score": 0.5789,
+      "keyword_score": 0.0,
+      "combined_score": 0.5789,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Murali at Virginia Tech. Teaches CS courses. Has taught 4 distinct courses. Average GPA across all sections: 3.02.",
+      "source_type": "instructor",
+      "source_id": "murali",
+      "vector_score": 0.5775,
+      "keyword_score": 0.0,
+      "combined_score": 0.5775,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [
+    "CS 2114"
+  ],
+  "exclusion_reasons": [
+    "injected_entity_rejected"
+  ],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "comparison_courses",
+      "route"
+    ],
+    "table_titles": [
+      "Professor Comparison"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Comparison",
+        "columns": [
+          "Course",
+          "Best Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Fall 2026 Sections",
+          "Open Sections"
+        ],
+        "rows": [
+          {
+            "Course": "CS 3114",
+            "Best Instructor": "Sally Hamouda",
+            "Avg GPA": 3.673,
+            "Avg A Range (%)": 78.01,
+            "Avg F Rate (%)": 1.07,
+            "Total Students": 459,
+            "Fall 2026 Sections": 3,
+            "Open Sections": 3
+          },
+          {
+            "Course": "CS 3214",
+            "Best Instructor": "Shaffer",
+            "Avg GPA": 3.21,
+            "Avg A Range (%)": 36.2,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 149,
+            "Fall 2026 Sections": 3,
+            "Open Sections": 3
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "comparison_courses": [
+        [
+          "CS",
+          "3114"
+        ],
+        [
+          "CS",
+          "3214"
+        ]
+      ],
+      "route": "course_profile",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 918,
+        "resolve_ms": 0,
+        "handler_ms": 253
+      },
+      "confidence": 0.98
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "Here is a focused comparison for CS 3114, CS 3214. CS 3114: Advanced data structures and analysis of data structure and algorithm performance. Sorting, searching, hashing, and advanced tree structures and algorithms. File system organization and access methods. Ethical issues in the context of data analysis and software performance. Course projects require advanced problem-solving, design, and implementation skills. CS 3214: Introduction to computer systems as they are relevant to application programmers today, with emphasis on operating system principles. Operating system design and architectures; processes; threads, synchronization techniques, deadlock; CPU scheduling; system call interfaces, system level I/O and file management; shell programming; separate compilation, loading and linking; inter-process communication (IPC); virtual and physical memory management and garbage collection; network protocols and programming; virtualization; performance analysis and optimization. A grade of C or better is required in CS pre-requisites 2506 and 2114. The professor outcome comparison is in the table below. Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 918,
+    "resolve_ms": 0,
+    "handler_ms": 253
+  },
+  "errors": []
+}

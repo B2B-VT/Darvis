@@ -1,0 +1,272 @@
+{
+  "case_id": "course_rec_interdisciplinary_bio_ai_001",
+  "query": "I want AI courses for bioinformatics or computational biology.",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": null,
+    "open_seats_only": false,
+    "route": "natural_filter",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "natural_language_filter",
+      "course_lookup"
+    ],
+    "requested_courses": [],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.97,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Lindah Kotut. Average GPA: 3.59. A/A- rate: 53.4%. F rate: 1.17%. Total students taught: 185. Total withdrawals: 3. Sections taught: 3...",
+      "source_type": "grade",
+      "source_id": "cs-2104-lindah_kotut",
+      "vector_score": 0.5862,
+      "keyword_score": 0.0,
+      "combined_score": 0.5862,
+      "rerank_score": 0.5862,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Andrey Esakia. Average GPA: 3.63. A/A- rate: 56.1%. F rate: 1.07%. Total students taught: 276. Total withdrawals: 4. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "cs-2104-andrey_esakia",
+      "vector_score": 0.5776,
+      "keyword_score": 0.0,
+      "combined_score": 0.5776,
+      "rerank_score": 0.5776,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Li. Average GPA: 2.93. A/A- rate: 16.33%. F rate: 2.0%. Total students taught: 476. Total withdrawals: 21. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-li",
+      "vector_score": 0.5773,
+      "keyword_score": 0.0,
+      "combined_score": 0.5773,
+      "rerank_score": 0.5773,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Patrick Sullivan. Average GPA: 3.53. A/A- rate: 44.32%. F rate: 0.36%. Total students taught: 376. Total withdrawals: 3. Sections taug...",
+      "source_type": "grade",
+      "source_id": "cs-2104-patrick_sullivan",
+      "vector_score": 0.5749,
+      "keyword_score": 0.0,
+      "combined_score": 0.5749,
+      "rerank_score": 0.5749,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4144 (Competitive Problem Solving II) taught by Back. Average GPA: 3.83. A rate: 83.35%. F rate: 0.0%. Average enrollment: 5 students.",
+      "source_type": "grade",
+      "source_id": "cs-4144-back",
+      "vector_score": 0.5738,
+      "keyword_score": 0.0,
+      "combined_score": 0.5738,
+      "rerank_score": 0.5738,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5204 (Operating Systems) taught by Li. Average GPA: 3.76. A/A- rate: 52.4%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5204-li",
+      "vector_score": 0.5718,
+      "keyword_score": 0.0,
+      "combined_score": 0.5718,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5485 (Numer Analy and Softw) taught by Adrian Sandu. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5485-adrian_sandu",
+      "vector_score": 0.571,
+      "keyword_score": 0.0,
+      "combined_score": 0.571,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Sullivan. Average GPA: 3.53. A rate: 44.32%. F rate: 0.36%. Average enrollment: 75 students.",
+      "source_type": "grade",
+      "source_id": "cs-2104-sullivan",
+      "vector_score": 0.57,
+      "keyword_score": 0.0,
+      "combined_score": 0.57,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4894 (TS: Starting a CS Business) taught by Harder. Average GPA: 3.62. A/A- rate: 59.4%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4894-harder",
+      "vector_score": 0.5698,
+      "keyword_score": 0.0,
+      "combined_score": 0.5698,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3304 (Comparative Languages) taught by Eli  Tilevich. Average GPA: 3.01. A/A- rate: 21.8%. F rate: 2.63%. Total students taught: 318. Total withdrawals: 21. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3304-eli__tilevich",
+      "vector_score": 0.5689,
+      "keyword_score": 0.0,
+      "combined_score": 0.5689,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2064 (Intermediate Prog in Python) taught by Heath Hillman. Average GPA: 2.82. A/A- rate: 23.15%. F rate: 3.3%. Total students taught: 207. Total withdrawals: 26. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "cs-2064-heath_hillman",
+      "vector_score": 0.5674,
+      "keyword_score": 0.0,
+      "combined_score": 0.5674,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Hu. Average GPA: 2.93. A/A- rate: 28.1%. F rate: 3.7%. Total students taught: 82. Total withdrawals: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-hu",
+      "vector_score": 0.5668,
+      "keyword_score": 0.0,
+      "combined_score": 0.5668,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Ellis. Average GPA: 3.57. A rate: 38.95%. F rate: 0.0%. Average enrollment: 77 students.",
+      "source_type": "grade",
+      "source_id": "cs-2104-ellis",
+      "vector_score": 0.5651,
+      "keyword_score": 0.0,
+      "combined_score": 0.5651,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Esakia. Average GPA: 3.63. A rate: 56.1%. F rate: 1.07%. Average enrollment: 69 students.",
+      "source_type": "grade",
+      "source_id": "cs-2104-esakia",
+      "vector_score": 0.5644,
+      "keyword_score": 0.0,
+      "combined_score": 0.5644,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4224 (Linux Kernel Programming) taught by Min. Average GPA: 3.21. A/A- rate: 56.9%. F rate: 10.87%. Total students taught: 50. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4224-min",
+      "vector_score": 0.5623,
+      "keyword_score": 0.0,
+      "combined_score": 0.5623,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "recommendation_mode",
+      "route"
+    ],
+    "table_titles": [
+      "Course Recommendations"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          },
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1180,
+        "resolve_ms": 0,
+        "handler_ms": 20
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 5814 (Introduction to Deep Learning): History and basic concepts of artificial neural networks. Activation functions, optimization methods and regularization strategies used in deep multi-layered networks. Network architectures such as convolutional networks and recurrent neural networks. Deep reinforcement learning algorithms including deep Q•learning and policy gradient methods. Deep unsupervised models such as auto-encoders, and deep generative models including variational auto-encoders and generative adversarial networks. Advanced topics in deep learning such as transformers, graph neural networks, and ethics in Artificial Intelligence (AI). Deep learning(DL) applications such as text analysis, computer vision, and visual question answering. A platform for implementation of DL models will be used, such as Tensorflow or PyTorch.\n\nCS 4654 (Intermed Data Analytics & ML): A technical analytics course. Covers supervised and unsupervised learning strategies, including regression, generalized linear models, regulations, dimension reduction methods, tree-based methods for classification, and clustering. Upper-level analytical methods shown in practice: e.g., advanced naive Bayes and neural networks.\n\nCS 4824 (Machine Learning): Algorithms and principles involved in machine learning; focus on perception problems arising in computer vision, natural language processing and robotics; fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis of machine perception systems; design and implementation of a technical project applied to real-world datasets (images, text, robotics). A grade of C- or better in prerequisites.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1180,
+    "resolve_ms": 0,
+    "handler_ms": 20
+  },
+  "errors": []
+}

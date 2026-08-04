@@ -1,0 +1,47 @@
+{
+  "case_id": "prof_ambiguous_lastname_001",
+  "query": "Tell me about Professor Smith.",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Smith",
+      "value": "Smith",
+      "confidence": 1.0,
+      "ambiguous": false,
+      "candidates": []
+    }
+  },
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [],
+  "evidence_ids": [],
+  "retrieved_ids": [],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [],
+    "selected_ids": [],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Which specific course, professor, or requirement should Cyrus use?"
+  }
+}

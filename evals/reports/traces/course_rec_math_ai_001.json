@@ -1,0 +1,260 @@
+{
+  "case_id": "course_rec_math_ai_001",
+  "query": "Which math classes help with machine learning?",
+  "parsed_intent": {
+    "capabilities": [
+      "general_question"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.45,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Course MATH 5424: Numerical Linear Algebra. Credits: 3.0. Average GPA: 3.66. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-5424",
+      "vector_score": 0.6515,
+      "keyword_score": 0.0,
+      "combined_score": 0.6515,
+      "rerank_score": 0.6515,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 4144: Linear Algebra II. Credits: 3.0. Average GPA: 3.29. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-4144",
+      "vector_score": 0.6506,
+      "keyword_score": 0.0,
+      "combined_score": 0.6506,
+      "rerank_score": 0.6506,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 1114: Elementary Linear Algebra. Credits: 2.0. Average GPA: 2.58. Fall 2026 sections available: 22.",
+      "source_type": "course",
+      "source_id": "math-1114",
+      "vector_score": 0.6476,
+      "keyword_score": 0.0,
+      "combined_score": 0.6476,
+      "rerank_score": 0.6476,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 5544: Optimization, Machine Learning. Credits: 3.0. Average GPA: 3.91. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "math-5544",
+      "vector_score": 0.6447,
+      "keyword_score": 0.0,
+      "combined_score": 0.6447,
+      "rerank_score": 0.6447,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 3144: Linear Algebra I. Credits: 3.0. Average GPA: 2.87. Fall 2026 sections available: 29.",
+      "source_type": "course",
+      "source_id": "math-3144",
+      "vector_score": 0.6296,
+      "keyword_score": 0.0,
+      "combined_score": 0.6296,
+      "rerank_score": 0.6296,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sun. Average GPA: 2.6. A/A- rate: 13.28%. F rate: 4.6%. Total students taught: 169. Total withdrawals: 19. Sections taught: 6 terms....",
+      "source_type": "grade",
+      "source_id": "math-2114-sun",
+      "vector_score": 0.6245,
+      "keyword_score": 0.0,
+      "combined_score": 0.6245,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Serbin. Average GPA: 2.62. A/A- rate: 6.1%. F rate: 6.1%. Total students taught: 33. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-2114-serbin",
+      "vector_score": 0.6227,
+      "keyword_score": 0.0,
+      "combined_score": 0.6227,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Julia Truman. Average GPA: 2.34. A/A- rate: 7.19%. F rate: 8.06%. Total students taught: 174. Total withdrawals: 37. Sections taught...",
+      "source_type": "grade",
+      "source_id": "math-2114-julia_truman",
+      "vector_score": 0.6206,
+      "keyword_score": 0.0,
+      "combined_score": 0.6206,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Mlinaric. Average GPA: 2.48. A/A- rate: 16.05%. F rate: 6.55%. Total students taught: 57. Total withdrawals: 11. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-mlinaric",
+      "vector_score": 0.619,
+      "keyword_score": 0.0,
+      "combined_score": 0.619,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sanja Pantic. Average GPA: 2.47. A/A- rate: 2.4%. F rate: 2.4%. Total students taught: 71. Total withdrawals: 7. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-sanja_pantic",
+      "vector_score": 0.6183,
+      "keyword_score": 0.0,
+      "combined_score": 0.6183,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Susan Hagen. Average GPA: 2.45. A/A- rate: 15.09%. F rate: 6.2%. Total students taught: 183. Total withdrawals: 10. Sections taught:...",
+      "source_type": "grade",
+      "source_id": "math-2114-susan_hagen",
+      "vector_score": 0.6182,
+      "keyword_score": 0.0,
+      "combined_score": 0.6182,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Carlos Nicolas. Average GPA: 2.51. A/A- rate: 6.84%. F rate: 5.49%. Total students taught: 338. Total withdrawals: 21. Sections taug...",
+      "source_type": "grade",
+      "source_id": "math-2114-carlos_nicolas",
+      "vector_score": 0.6124,
+      "keyword_score": 0.0,
+      "combined_score": 0.6124,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Garrett Fowler. Average GPA: 2.59. A/A- rate: 14.34%. F rate: 7.72%. Total students taught: 312. Total withdrawals: 38. Sections tau...",
+      "source_type": "grade",
+      "source_id": "math-2114-garrett_fowler",
+      "vector_score": 0.6117,
+      "keyword_score": 0.0,
+      "combined_score": 0.6117,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nicholas Robbins. Average GPA: 2.65. A/A- rate: 11.08%. F rate: 3.04%. Total students taught: 791. Total withdrawals: 43. Sections t...",
+      "source_type": "grade",
+      "source_id": "math-2114-nicholas_robbins",
+      "vector_score": 0.6109,
+      "keyword_score": 0.0,
+      "combined_score": 0.6109,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Camps Moreno. Average GPA: 2.6. A/A- rate: 31.3%. F rate: 6.3%. Total students taught: 32. Total withdrawals: 4. Sections taught: 1 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-camps_moreno",
+      "vector_score": 0.6103,
+      "keyword_score": 0.0,
+      "combined_score": 0.6103,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Jason Wilson. Average GPA: 3.37. A/A- rate: 36.75%. F rate: 0.0%. Total students taught: 95. Total withdrawals: 4. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "math-2114-jason_wilson",
+      "vector_score": 0.6095,
+      "keyword_score": 0.0,
+      "combined_score": 0.6095,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Seyed Zoalroshd. Average GPA: 3.19. A/A- rate: 27.38%. F rate: 1.23%. Total students taught: 162. Total withdrawals: 1. Sections tau...",
+      "source_type": "grade",
+      "source_id": "math-2114-seyed_zoalroshd",
+      "vector_score": 0.6089,
+      "keyword_score": 0.0,
+      "combined_score": 0.6089,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Kevin Summers. Average GPA: 2.73. A/A- rate: 18.17%. F rate: 2.43%. Total students taught: 117. Total withdrawals: 7. Sections taugh...",
+      "source_type": "grade",
+      "source_id": "math-2114-kevin_summers",
+      "vector_score": 0.6087,
+      "keyword_score": 0.0,
+      "combined_score": 0.6087,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5009,
+        "resolve_ms": 0,
+        "handler_ms": 825
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "MATH 5544 (Optimization, Machine Learning) is the most directly focused on ML, with the highest average GPA of 3.91 indicating strong outcomes for students. Complementary courses are MATH 5424 (Numerical Linear Algebra) and MATH 4144 (Linear Algebra II), which give the linear‑algebra foundations that ML work relies on.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5009,
+    "resolve_ms": 0,
+    "handler_ms": 825
+  },
+  "errors": []
+}

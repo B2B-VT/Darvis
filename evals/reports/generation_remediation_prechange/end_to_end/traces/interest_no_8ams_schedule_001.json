@@ -1,0 +1,247 @@
+{
+  "case_id": "interest_no_8ams_schedule_001",
+  "query": "Build me a CS schedule with no 8ams.",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "schedule_builder",
+    "confidence": 0.72,
+    "missing_data_field": null,
+    "time_start": "09:00",
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "schedule_build"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "schedule_builder",
+    "queries": [
+      "Build me a CS schedule with no 8ams."
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "deterministic",
+    "model": null,
+    "enabled": false,
+    "input_ids": [],
+    "input_rrf_order": [],
+    "cross_encoder_scores": {},
+    "output_order": [],
+    "selected_ids": [],
+    "ordered_ids": [],
+    "scores": {},
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "schedule_builder",
+    "metadata_keys": [
+      "schedule_actions"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "schedule_builder",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "schedule_actions": [
+        {
+          "crn": "92226",
+          "subject": "CS",
+          "courseNumber": "4664",
+          "instructor": "P Yanardag Delul",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "12:30",
+          "endTime": "13:45",
+          "location": "DDS 132",
+          "seats": 10,
+          "enrolled": 4,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83576",
+          "subject": "CS",
+          "courseNumber": "3604",
+          "instructor": "Daniel Dunlap",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "14:30",
+          "endTime": "15:45",
+          "location": "DDS 230",
+          "seats": 120,
+          "enrolled": 82,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "91854",
+          "subject": "CS",
+          "courseNumber": "4784",
+          "instructor": "DS McCrickard",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "11:00",
+          "endTime": "12:15",
+          "location": "TORG 1100",
+          "seats": 10,
+          "enrolled": 3,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83628",
+          "subject": "CS",
+          "courseNumber": "4944",
+          "instructor": "Stephen Edwards",
+          "days": [
+            "F"
+          ],
+          "startTime": "14:30",
+          "endTime": "15:20",
+          "location": "MCB 100",
+          "seats": 300,
+          "enrolled": 269,
+          "credits": 1.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83607",
+          "subject": "CS",
+          "courseNumber": "4134",
+          "instructor": "A Mantri",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "16:00",
+          "endTime": "17:15",
+          "location": "DER 3081",
+          "seats": 70,
+          "enrolled": 0,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83530",
+          "subject": "CS",
+          "courseNumber": "2114",
+          "instructor": "Sehrish Nizamani",
+          "days": [
+            "M",
+            "W"
+          ],
+          "startTime": "12:20",
+          "endTime": "13:10",
+          "location": "NCB 320",
+          "seats": 30,
+          "enrolled": 29,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "91845",
+          "subject": "CS",
+          "courseNumber": "4274",
+          "instructor": "Shaddi Hasan",
+          "days": [
+            "T",
+            "R"
+          ],
+          "startTime": "09:30",
+          "endTime": "10:45",
+          "location": "TORG 1040",
+          "seats": 15,
+          "enrolled": 13,
+          "credits": 3.0,
+          "term": "202609"
+        },
+        {
+          "crn": "83522",
+          "subject": "CS",
+          "courseNumber": "2104",
+          "instructor": "Onyeka Emebo",
+          "days": [
+            "M",
+            "W",
+            "F"
+          ],
+          "startTime": "13:25",
+          "endTime": "14:15",
+          "location": "NCB 120",
+          "seats": 75,
+          "enrolled": 59,
+          "credits": 3.0,
+          "term": "202609"
+        }
+      ],
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 112
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "schedule_builder",
+    "answer": "Based on your profile (Computer Science), I've built a schedule with the highest-GPA instructors available with 8 courses (22 credits total) that fits entirely within 9:00 AM–10:00 PM with no conflicts: CS 4664 (TuTh, 12:30–1:45 PM, Delul), CS 3604 (MW, 2:30–3:45 PM, Dunlap), CS 4784 (TuTh, 11:00 AM–12:15 PM, McCrickard), CS 4944 (F, 2:30–3:20 PM, Edwards), CS 4134 (MW, 4:00–5:15 PM, Mantri), CS 2114 (MW, 12:20–1:10 PM, Nizamani), CS 4274 (TuTh, 9:30–10:45 AM, Hasan), CS 2104 (MWF, 1:25–2:15 PM, Emebo). I've added them to your Schedule tab — you can swap any section out from there.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 112
+  },
+  "errors": []
+}

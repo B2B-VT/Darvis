@@ -1,0 +1,326 @@
+{
+  "case_id": "major_missing_profile_001",
+  "query": "What classes do I still need for my major?",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": null,
+    "open_seats_only": false,
+    "route": "major_requirements",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "major_requirement_lookup",
+      "natural_language_filter"
+    ],
+    "requested_courses": [],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.98,
+    "major_query": "remaining_courses",
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MAT...",
+      "source_type": "requirement",
+      "source_id": "mathematics_major_with_applied_discrete_mathematics_option",
+      "vector_score": 0.5948,
+      "keyword_score": 0.0,
+      "combined_score": 0.5948,
+      "rerank_score": 0.5948,
+      "selected": true
+    },
+    {
+      "content": "Career and Technical Education Major with Business and Information Technologies Education Option major (B.S.) — College of Liberal Arts and Human Sciences. required — Major Requirements: EDCI 1004 (In...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-required-major_requirements-c04919",
+      "vector_score": 0.5943,
+      "keyword_score": 0.0,
+      "combined_score": 0.5943,
+      "rerank_score": 0.5943,
+      "selected": true
+    },
+    {
+      "content": "Career and Technical Education Major with Family and Consumer Sciences Education Option major (B.S.) — College of Liberal Arts and Human Sciences. required — Major Requirements: EDCI 1004 (Introductio...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-required-major_requirements-e788fb",
+      "vector_score": 0.5898,
+      "keyword_score": 0.0,
+      "combined_score": 0.5898,
+      "rerank_score": 0.5898,
+      "selected": true
+    },
+    {
+      "content": "Business Information Technology Major with Operations and Supply Chain Management Option major (B.S.) — Pamplin College of Business. required — Degree Core Requirements: HTM 2314 (Introduction to Inte...",
+      "source_type": "requirement",
+      "source_id": "req-business_information_tech-required-degree_core_requirem-ebe33b",
+      "vector_score": 0.5878,
+      "keyword_score": 0.0,
+      "combined_score": 0.5878,
+      "rerank_score": 0.5878,
+      "selected": true
+    },
+    {
+      "content": "Mathematics major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MATH 1004 (Discovering Mathematics I ( Free Electi...",
+      "source_type": "requirement",
+      "source_id": "mathematics",
+      "vector_score": 0.5869,
+      "keyword_score": 0.0,
+      "combined_score": 0.5869,
+      "rerank_score": 0.5869,
+      "selected": true
+    },
+    {
+      "content": "Mathematics Major with Applied Computational Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required]...",
+      "source_type": "requirement",
+      "source_id": "mathematics_major_with_applied_computational_mathematics_option",
+      "vector_score": 0.5867,
+      "keyword_score": 0.0,
+      "combined_score": 0.5867,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Major with Mathematics Education (Master's Track) Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [requ...",
+      "source_type": "requirement",
+      "source_id": "mathematics_major_with_mathematics_education_(master's_track)_option",
+      "vector_score": 0.5856,
+      "keyword_score": 0.0,
+      "combined_score": 0.5856,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Technology Professional Option major (B.A.) — College of Architecture, Arts, and Design. required — Continuation Exam requirement: MUS 2026 (European-American Music Theory) 3cr, MUS 3...",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_technolo-required-continuation_exam_re-38f2ef",
+      "vector_score": 0.5838,
+      "keyword_score": 0.0,
+      "combined_score": 0.5838,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Business Information Technology Major with Computer Based Decision Support Systems Option major (B.S.) — Pamplin College of Business. required — Degree Core Requirements: HTM 2314 (Introduction to Int...",
+      "source_type": "requirement",
+      "source_id": "req-business_information_tech-required-degree_core_requirem-a01870",
+      "vector_score": 0.5817,
+      "keyword_score": 0.0,
+      "combined_score": 0.5817,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "History and Social Sciences Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Major Requirements: EDCI 1004 (Introduction to Teacher Education and Licensure) 1cr.",
+      "source_type": "requirement",
+      "source_id": "req-history_and_social_scienc-required-major_requirements-1bf926",
+      "vector_score": 0.5717,
+      "keyword_score": 0.0,
+      "combined_score": 0.5717,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Major Requirements: MATH 4044 (History of Mathematics) 3cr, MATH 2114 (Introduction to Linear Algebra) 3cr, ...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_education-required-major_requirements-fdf4b0",
+      "vector_score": 0.571,
+      "keyword_score": 0.0,
+      "combined_score": 0.571,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Graphic Design major (B.F.A.) — College of Architecture, Arts, and Design. required — Major Requirements: ART 1614 (Principles of Visual Communication Design) 3cr, ART 3900 (Bridge Experience), ART 35...",
+      "source_type": "requirement",
+      "source_id": "req-graphic_design-required-major_requirements-9ed526",
+      "vector_score": 0.5689,
+      "keyword_score": 0.0,
+      "combined_score": 0.5689,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Technology Liberal Arts Option major (B.A.) — College of Architecture, Arts, and Design. required — Major Requirements: MUS 2054 (Introduction to Music Technology) 2cr.",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_technolo-required-major_requirements-409faf",
+      "vector_score": 0.5683,
+      "keyword_score": 0.0,
+      "combined_score": 0.5683,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics major (B.S.) — College of Science. required — Spring Semester: MATH 1044 (Discovering Mathematics II ( Free Elective - strongly recommended for math majors, spring only )) 2cr, ENGL 1106 (...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics-required-spring_semester-5f4ee7",
+      "vector_score": 0.5637,
+      "keyword_score": 0.0,
+      "combined_score": 0.5637,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Performance Professional Instrumental Option major (B.A.) — College of Architecture, Arts, and Design. required — Major Requirements: MUS 2054 (Introduction to Music Technology) 2cr.",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_performa-required-major_requirements-4f1982",
+      "vector_score": 0.5629,
+      "keyword_score": 0.0,
+      "combined_score": 0.5629,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Technology Professional Option major (B.A.) — College of Architecture, Arts, and Design. required — Major Requirements: MUS 2054 (Introduction to Music Technology) 2cr.",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_technolo-required-major_requirements-f432fa",
+      "vector_score": 0.5619,
+      "keyword_score": 0.0,
+      "combined_score": 0.5619,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) — College of Science. required — Fall Semester: MATH 3214 (Calculus of Several Variables) 3cr, MATH 1225 (Calculus of a Single V...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_major_with_ap-required-fall_semester-4fb88b",
+      "vector_score": 0.5616,
+      "keyword_score": 0.0,
+      "combined_score": 0.5616,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Career and Technical Education Major with Business and Information Technologies Education Option major (B.S.) — College of Liberal Arts and Human Sciences. required — Degree Core Requirements: EDEP 23...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-required-degree_core_requirem-c5fcb6",
+      "vector_score": 0.561,
+      "keyword_score": 0.0,
+      "combined_score": 0.561,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Performance Professional Instrumental Option major (B.A.) — College of Architecture, Arts, and Design. required — Continuation Exam Requirement: MUS 2026 (European-American Music Theo...",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_performa-required-continuation_exam_re-1b6d1c",
+      "vector_score": 0.5608,
+      "keyword_score": 0.0,
+      "combined_score": 0.5608,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Music Major with Performance Liberal Arts Option major (B.A.) — College of Architecture, Arts, and Design. required — Major Requirements: MUS 2054 (Introduction to Music Technology) 2cr.",
+      "source_type": "requirement",
+      "source_id": "req-music_major_with_performa-required-major_requirements-488a8f",
+      "vector_score": 0.5602,
+      "keyword_score": 0.0,
+      "combined_score": 0.5602,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Career and Technical Education Major with Family and Consumer Sciences Education Option major (B.S.) — College of Liberal Arts and Human Sciences. required — Degree Core Requirements: EDCI 4724 (Secon...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-required-degree_core_requirem-10ac8e",
+      "vector_score": 0.5597,
+      "keyword_score": 0.0,
+      "combined_score": 0.5597,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Career and Technical Education Major with Business and Information Technologies Education Option major (B.S.) — College of Liberal Arts and Human Sciences. required — Field-Based Requirements: EDCI 20...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-required-field-based_requirem-d055f8",
+      "vector_score": 0.5589,
+      "keyword_score": 0.0,
+      "combined_score": 0.5589,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Career and Technical Education Major with Family and Consumer Sciences Education Option major (B.S.) — College of Liberal Arts and Human Sciences. elective_option — Option Required Courses: HTM 4414 (...",
+      "source_type": "requirement",
+      "source_id": "req-career_and_technical_educ-elective_o-option_required_cour-033cd2",
+      "vector_score": 0.5585,
+      "keyword_score": 0.0,
+      "combined_score": 0.5585,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Physics Major with Pre-Law Option major (B.A.) — College of Science. required — Topical Courses: STL 2304 (Foundations of Science, Technology and Law 1) 3cr, ENGL 3764 (Technical Writing 1) 3cr, COMM ...",
+      "source_type": "requirement",
+      "source_id": "req-physics_major_with_pre-la-required-topical_courses-b98e6a",
+      "vector_score": 0.5583,
+      "keyword_score": 0.0,
+      "combined_score": 0.5583,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "major_requirements",
+    "metadata_keys": [
+      "matched_major",
+      "route"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "route": "major_requirements",
+      "matched_major": null,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 900,
+        "resolve_ms": 2,
+        "handler_ms": 1769
+      },
+      "confidence": 0.98
+    }
+  },
+  "final_response": {
+    "route": "major_requirements",
+    "answer": "You still need to complete the full set of required courses for the Mathematics major with the Applied Discrete Mathematics option: Calculus I (MATH 1225) and II (MATH 1226), Discovering Mathematics I & II (MATH 1004, 1044), Linear Algebra I (MATH 2114) and Linear Algebra II (MATH 4144), Multivariable Calculus (MATH 2204), Differential Equations (MATH 2214), Introduction to Proofs (MATH 3034), Modern Algebra (MATH 3124), Calculus of Several Variables (MATH 3214), Applied Combinatorics and Graph Theory (MATH 3134), Probability/Statistics for Engineers (STAT 4705), Advanced Calculus (MATH 3224), Data Structures and Algorithms (CS 3114), Software Design and Data Structures (CS 2114), Introduction to Computer Organization (CS 2505), Data and Algorithm Analysis (or Formal Languages/Computation) (CS 4104), plus the elective‑option courses you choose such as Abstract Algebra (MATH 4124), Number Theory (MATH 4134), Linear Algebra II (MATH 4144), Cryptography (MATH 4175/4176), Graph Theory 1 (MATH 5454), or Combinatorics 1 (MATH 5464).",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 900,
+    "resolve_ms": 2,
+    "handler_ms": 1769
+  },
+  "errors": []
+}

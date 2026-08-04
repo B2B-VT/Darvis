@@ -1,0 +1,104 @@
+{
+  "case_id": "course_cmp_ml_ai_001",
+  "query": "Compare machine learning and artificial intelligence at VT.",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4824",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4824",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4804",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4804",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4824",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4824",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4804",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4804",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 4804"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 4804"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "selected_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 4804"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1080,
+        "resolve_ms": 1,
+        "handler_ms": 759
+      },
+      "confidence": 0.98
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

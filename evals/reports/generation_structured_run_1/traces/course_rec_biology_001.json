@@ -1,0 +1,183 @@
+{
+  "case_id": "course_rec_biology_001",
+  "query": "What classes are good for biology?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:ITDS 1114",
+        "entity_type": "course",
+        "subject": "ITDS",
+        "course_number": "1114",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:ENGL 1106",
+        "entity_type": "course",
+        "subject": "ENGL",
+        "course_number": "1106",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CHEM 1035",
+        "entity_type": "course",
+        "subject": "CHEM",
+        "course_number": "1035",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:ITDS 1114",
+      "entity_type": "course",
+      "subject": "ITDS",
+      "course_number": "1114",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:ENGL 1106",
+      "entity_type": "course",
+      "subject": "ENGL",
+      "course_number": "1106",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CHEM 1035",
+      "entity_type": "course",
+      "subject": "CHEM",
+      "course_number": "1035",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:ITDS 1114",
+    "COURSE:ENGL 1106",
+    "COURSE:CHEM 1035"
+  ],
+  "retrieved_ids": [
+    "COURSE:ITDS 1114",
+    "COURSE:ENGL 1106",
+    "COURSE:CHEM 1035"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:ITDS 1114",
+      "COURSE:ENGL 1106",
+      "COURSE:CHEM 1035"
+    ],
+    "selected_ids": [
+      "COURSE:ITDS 1114",
+      "COURSE:ENGL 1106",
+      "COURSE:CHEM 1035"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "ITDS 1114",
+            "Course Title": "Design Appreciation",
+            "Avg GPA": 3.585,
+            "Avg A Range (%)": 76.31,
+            "Avg F Rate (%)": 2.34,
+            "Total Students": 36698,
+            "Terms Taught": 20,
+            "Total Withdraws": 711,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "ENGL 1106",
+            "Course Title": "First-Year Writing",
+            "Avg GPA": 3.573,
+            "Avg A Range (%)": 75.68,
+            "Avg F Rate (%)": 2.73,
+            "Total Students": 21314,
+            "Terms Taught": 18,
+            "Total Withdraws": 606,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CHEM 1035",
+            "Course Title": "General Chemistry",
+            "Avg GPA": 2.642,
+            "Avg A Range (%)": 23.85,
+            "Avg F Rate (%)": 4.9,
+            "Total Students": 18046,
+            "Terms Taught": 24,
+            "Total Withdraws": 2113,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "largest_sample",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5008,
+        "resolve_ms": 0,
+        "handler_ms": 15039
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

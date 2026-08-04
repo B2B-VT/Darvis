@@ -1,0 +1,459 @@
+{
+  "case_id": "unsupported_pathways_001",
+  "query": "Which CS courses satisfy Pathways 5f?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "Which CS courses satisfy Pathways 5f?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course CS 5304: Trans Design and Con. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 2.",
+        "source_type": "course",
+        "source_id": "cs-5304",
+        "vector_score": 0.628,
+        "keyword_score": 0.0,
+        "combined_score": 0.628,
+        "rerank_score": 0.628,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4504: Computer Organization. Credits: 3.0. Average GPA: 2.82. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "cs-4504",
+        "vector_score": 0.618,
+        "keyword_score": 0.0,
+        "combined_score": 0.618,
+        "rerank_score": 0.618,
+        "selected": true
+      },
+      {
+        "content": "Course CS 2505: Intro Computer Organization. Credits: 3.0. Average GPA: 3.02. Fall 2026 sections available: 42.",
+        "source_type": "course",
+        "source_id": "cs-2505",
+        "vector_score": 0.6159,
+        "keyword_score": 0.0,
+        "combined_score": 0.6159,
+        "rerank_score": 0.6159,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4974: Independent Study. Credits: 3.0. Average GPA: 3.95. Fall 2026 sections available: 16.",
+        "source_type": "course",
+        "source_id": "cs-4974",
+        "vector_score": 0.6065,
+        "keyword_score": 0.0,
+        "combined_score": 0.6065,
+        "rerank_score": 0.6065,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4994: Undergraduate Research. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 9.",
+        "source_type": "course",
+        "source_id": "cs-4994",
+        "vector_score": 0.6047,
+        "keyword_score": 0.0,
+        "combined_score": 0.6047,
+        "rerank_score": 0.6047,
+        "selected": true
+      },
+      {
+        "content": "Course CS 4894: TS: Starting a CS Business. Credits: 3.0. Average GPA: 3.38. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "cs-4894",
+        "vector_score": 0.6023,
+        "keyword_score": 0.0,
+        "combined_score": 0.6023,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 2974: Independent Study. Credits: 2.8. Average GPA: 3.99. Fall 2026 sections available: 13.",
+        "source_type": "course",
+        "source_id": "cs-2974",
+        "vector_score": 0.6011,
+        "keyword_score": 0.0,
+        "combined_score": 0.6011,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CSES 3954: SA: South Africa. Credits: 1.7. Average GPA: 4.0. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "cses-3954",
+        "vector_score": 0.5947,
+        "keyword_score": 0.0,
+        "combined_score": 0.5947,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 2506: Intro to Computer Organization. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 29.",
+        "source_type": "course",
+        "source_id": "cs-2506",
+        "vector_score": 0.5942,
+        "keyword_score": 0.0,
+        "combined_score": 0.5942,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5504: Computer Architecture. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "cs-5504",
+        "vector_score": 0.5933,
+        "keyword_score": 0.0,
+        "combined_score": 0.5933,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "cs-5510",
+        "vector_score": 0.5922,
+        "keyword_score": 0.0,
+        "combined_score": 0.5922,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 3984: SS: Starting a CS Business. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "cs-3984",
+        "vector_score": 0.5881,
+        "keyword_score": 0.0,
+        "combined_score": 0.5881,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 1044: Intro Prog in C. Credits: 3.0. Average GPA: 3.26. Fall 2026 sections available: 10.",
+        "source_type": "course",
+        "source_id": "cs-1044",
+        "vector_score": 0.5881,
+        "keyword_score": 0.0,
+        "combined_score": 0.5881,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5926: Integrated Project Design. Credits: 6.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "cs-5926",
+        "vector_score": 0.5871,
+        "keyword_score": 0.0,
+        "combined_score": 0.5871,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 3724: Human-Computr Intrctn. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 46.",
+        "source_type": "course",
+        "source_id": "cs-3724",
+        "vector_score": 0.5869,
+        "keyword_score": 0.0,
+        "combined_score": 0.5869,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 5925: Integrated Project Design. Credits: 6.0. Average GPA: 3.93. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "cs-5925",
+        "vector_score": 0.5866,
+        "keyword_score": 0.0,
+        "combined_score": 0.5866,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 4634: Design Of Information. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "cs-4634",
+        "vector_score": 0.5835,
+        "keyword_score": 0.0,
+        "combined_score": 0.5835,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course CS 4254: Network Arch Prog. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "cs-4254",
+        "vector_score": 0.5831,
+        "keyword_score": 0.0,
+        "combined_score": 0.5831,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course CS 5304: Trans Design and Con. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "cs-5304",
+      "vector_score": 0.628,
+      "keyword_score": 0.0,
+      "combined_score": 0.628,
+      "rerank_score": 0.628,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4504: Computer Organization. Credits: 3.0. Average GPA: 2.82. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-4504",
+      "vector_score": 0.618,
+      "keyword_score": 0.0,
+      "combined_score": 0.618,
+      "rerank_score": 0.618,
+      "selected": true
+    },
+    {
+      "content": "Course CS 2505: Intro Computer Organization. Credits: 3.0. Average GPA: 3.02. Fall 2026 sections available: 42.",
+      "source_type": "course",
+      "source_id": "cs-2505",
+      "vector_score": 0.6159,
+      "keyword_score": 0.0,
+      "combined_score": 0.6159,
+      "rerank_score": 0.6159,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4974: Independent Study. Credits: 3.0. Average GPA: 3.95. Fall 2026 sections available: 16.",
+      "source_type": "course",
+      "source_id": "cs-4974",
+      "vector_score": 0.6065,
+      "keyword_score": 0.0,
+      "combined_score": 0.6065,
+      "rerank_score": 0.6065,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4994: Undergraduate Research. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "cs-4994",
+      "vector_score": 0.6047,
+      "keyword_score": 0.0,
+      "combined_score": 0.6047,
+      "rerank_score": 0.6047,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4894: TS: Starting a CS Business. Credits: 3.0. Average GPA: 3.38. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-4894",
+      "vector_score": 0.6023,
+      "keyword_score": 0.0,
+      "combined_score": 0.6023,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 2974: Independent Study. Credits: 2.8. Average GPA: 3.99. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "cs-2974",
+      "vector_score": 0.6011,
+      "keyword_score": 0.0,
+      "combined_score": 0.6011,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CSES 3954: SA: South Africa. Credits: 1.7. Average GPA: 4.0. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "cses-3954",
+      "vector_score": 0.5947,
+      "keyword_score": 0.0,
+      "combined_score": 0.5947,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 2506: Intro to Computer Organization. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 29.",
+      "source_type": "course",
+      "source_id": "cs-2506",
+      "vector_score": 0.5942,
+      "keyword_score": 0.0,
+      "combined_score": 0.5942,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5504: Computer Architecture. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-5504",
+      "vector_score": 0.5933,
+      "keyword_score": 0.0,
+      "combined_score": 0.5933,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5510",
+      "vector_score": 0.5922,
+      "keyword_score": 0.0,
+      "combined_score": 0.5922,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 3984: SS: Starting a CS Business. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-3984",
+      "vector_score": 0.5881,
+      "keyword_score": 0.0,
+      "combined_score": 0.5881,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 1044: Intro Prog in C. Credits: 3.0. Average GPA: 3.26. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "cs-1044",
+      "vector_score": 0.5881,
+      "keyword_score": 0.0,
+      "combined_score": 0.5881,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5926: Integrated Project Design. Credits: 6.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-5926",
+      "vector_score": 0.5871,
+      "keyword_score": 0.0,
+      "combined_score": 0.5871,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 3724: Human-Computr Intrctn. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 46.",
+      "source_type": "course",
+      "source_id": "cs-3724",
+      "vector_score": 0.5869,
+      "keyword_score": 0.0,
+      "combined_score": 0.5869,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5925: Integrated Project Design. Credits: 6.0. Average GPA: 3.93. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-5925",
+      "vector_score": 0.5866,
+      "keyword_score": 0.0,
+      "combined_score": 0.5866,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4634: Design Of Information. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "cs-4634",
+      "vector_score": 0.5835,
+      "keyword_score": 0.0,
+      "combined_score": 0.5835,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4254: Network Arch Prog. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-4254",
+      "vector_score": 0.5831,
+      "keyword_score": 0.0,
+      "combined_score": 0.5831,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 3171
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I'm Darvis, a grade-distribution assistant. Ask me about any course or professor and I'll show you historical GPA, A/A− rates, F rates, and enrollment trends. For example: \"Which CS 3114 professor has the strongest outcomes?\" or \"How has the A rate in ECE 2004 changed over time?\"",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 3171
+  },
+  "errors": []
+}

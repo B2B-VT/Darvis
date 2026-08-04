@@ -1,0 +1,525 @@
+{
+  "case_id": "interest_schedule_balance_001",
+  "query": "How should I balance math, coding, and writing classes next semester?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "general_rag",
+    "confidence": 0.45,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "How should I balance math, coding, and writing classes next semester?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "math-3054",
+        "vector_score": 0.6257,
+        "keyword_score": 0.0,
+        "combined_score": 0.6257,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "math-5134",
+        "vector_score": 0.6084,
+        "keyword_score": 0.0,
+        "combined_score": 0.6084,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "mse-2114",
+        "vector_score": 0.5902,
+        "keyword_score": 0.0,
+        "combined_score": 0.5902,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "mse-3114",
+        "vector_score": 0.59,
+        "keyword_score": 0.0,
+        "combined_score": 0.59,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Course PR 3144: Writing and Editing for PR. Credits: 3.0. Average GPA: 3.32. Fall 2026 sections available: 24.",
+        "source_type": "course",
+        "source_id": "pr-3144",
+        "vector_score": 0.5796,
+        "keyword_score": 0.0,
+        "combined_score": 0.5796,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Reilly. Average GPA: 3.67. A/A- rate: 61.5%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "engl-2744-reilly",
+        "vector_score": 0.5746,
+        "keyword_score": 0.0,
+        "combined_score": 0.5746,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Andrew Hobin. Average GPA: 3.65. A/A- rate: 65.73%. F rate: 2.03%. Total students taught: 493. Total withdrawals: 11. Sections taught: 26...",
+        "source_type": "grade",
+        "source_id": "engl-2744-andrew_hobin",
+        "vector_score": 0.5658,
+        "keyword_score": 0.0,
+        "combined_score": 0.5658,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Joseph Scallorns. Average GPA: 3.75. A/A- rate: 77.32%. F rate: 1.51%. Total students taught: 410. Total withdrawals: 9. Sections taught:...",
+        "source_type": "grade",
+        "source_id": "engl-2744-joseph_scallorns",
+        "vector_score": 0.5652,
+        "keyword_score": 0.0,
+        "combined_score": 0.5652,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 3094: SAS Programming. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "stat-3094",
+        "vector_score": 0.5643,
+        "keyword_score": 0.0,
+        "combined_score": 0.5643,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Sarah Boudreau. Average GPA: 3.63. A/A- rate: 71.4%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "engl-2744-sarah_boudreau",
+        "vector_score": 0.5637,
+        "keyword_score": 0.0,
+        "combined_score": 0.5637,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 1614: Numbers and Operations. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 16.",
+        "source_type": "course",
+        "source_id": "math-1614",
+        "vector_score": 0.5617,
+        "keyword_score": 0.0,
+        "combined_score": 0.5617,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Hooper. Average GPA: 3.78. A/A- rate: 80.74%. F rate: 0.75%. Total students taught: 274. Total withdrawals: 1. Sections taught: 14 terms.",
+        "source_type": "grade",
+        "source_id": "engl-2744-hooper",
+        "vector_score": 0.5609,
+        "keyword_score": 0.0,
+        "combined_score": 0.5609,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "math-2644",
+        "vector_score": 0.5602,
+        "keyword_score": 0.0,
+        "combined_score": 0.5602,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Santana. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 22. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "engl-2744-santana",
+        "vector_score": 0.5594,
+        "keyword_score": 0.0,
+        "combined_score": 0.5594,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 1106 (First-Year Writing) taught by Bruce McComiskey. Average GPA: 3.59. A/A- rate: 83.3%. F rate: 5.6%. Total students taught: 18. Total withdrawals: 2. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "engl-1106-bruce_mccomiskey",
+        "vector_score": 0.5588,
+        "keyword_score": 0.0,
+        "combined_score": 0.5588,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Raveen. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 14. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "engl-2744-raveen",
+        "vector_score": 0.5573,
+        "keyword_score": 0.0,
+        "combined_score": 0.5573,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 1106 (First-Year Writing) taught by Le Corre-Cochran. Average GPA: 3.59. A/A- rate: 44.8%. F rate: 0.0%. Total students taught: 34. Total withdrawals: 2. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "engl-1106-le_corre-cochran",
+        "vector_score": 0.5562,
+        "keyword_score": 0.0,
+        "combined_score": 0.5562,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Craig. Average GPA: 3.63. A/A- rate: 67.95%. F rate: 1.28%. Total students taught: 279. Total withdrawals: 8. Sections taught: 15 terms. ...",
+        "source_type": "grade",
+        "source_id": "engl-2744-craig",
+        "vector_score": 0.5554,
+        "keyword_score": 0.0,
+        "combined_score": 0.5554,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "rrf_passthrough",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "math-3054",
+      "math-5134",
+      "mse-2114",
+      "mse-3114",
+      "pr-3144",
+      "engl-2744-reilly",
+      "engl-2744-andrew_hobin",
+      "engl-2744-joseph_scallorns",
+      "stat-3094",
+      "engl-2744-sarah_boudreau",
+      "math-1614",
+      "engl-2744-hooper",
+      "math-2644",
+      "engl-2744-santana",
+      "engl-1106-bruce_mccomiskey",
+      "engl-2744-raveen",
+      "engl-1106-le_corre-cochran",
+      "engl-2744-craig"
+    ],
+    "input_rrf_order": [
+      "math-3054",
+      "math-5134",
+      "mse-2114",
+      "mse-3114",
+      "pr-3144",
+      "engl-2744-reilly",
+      "engl-2744-andrew_hobin",
+      "engl-2744-joseph_scallorns",
+      "stat-3094",
+      "engl-2744-sarah_boudreau",
+      "math-1614",
+      "engl-2744-hooper",
+      "math-2644",
+      "engl-2744-santana",
+      "engl-1106-bruce_mccomiskey",
+      "engl-2744-raveen",
+      "engl-1106-le_corre-cochran",
+      "engl-2744-craig"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "math-3054",
+      "math-5134",
+      "mse-2114",
+      "mse-3114",
+      "pr-3144"
+    ],
+    "selected_ids": [
+      "math-3054",
+      "math-5134",
+      "mse-2114",
+      "mse-3114",
+      "pr-3144"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0.1,
+    "ordered_ids": [
+      "math-3054",
+      "math-5134",
+      "mse-2114",
+      "mse-3114",
+      "pr-3144"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "math-3054",
+      "vector_score": 0.6257,
+      "keyword_score": 0.0,
+      "combined_score": 0.6257,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "math-5134",
+      "vector_score": 0.6084,
+      "keyword_score": 0.0,
+      "combined_score": 0.6084,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-2114",
+      "vector_score": 0.5902,
+      "keyword_score": 0.0,
+      "combined_score": 0.5902,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-3114",
+      "vector_score": 0.59,
+      "keyword_score": 0.0,
+      "combined_score": 0.59,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Course PR 3144: Writing and Editing for PR. Credits: 3.0. Average GPA: 3.32. Fall 2026 sections available: 24.",
+      "source_type": "course",
+      "source_id": "pr-3144",
+      "vector_score": 0.5796,
+      "keyword_score": 0.0,
+      "combined_score": 0.5796,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Reilly. Average GPA: 3.67. A/A- rate: 61.5%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "engl-2744-reilly",
+      "vector_score": 0.5746,
+      "keyword_score": 0.0,
+      "combined_score": 0.5746,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Andrew Hobin. Average GPA: 3.65. A/A- rate: 65.73%. F rate: 2.03%. Total students taught: 493. Total withdrawals: 11. Sections taught: 26...",
+      "source_type": "grade",
+      "source_id": "engl-2744-andrew_hobin",
+      "vector_score": 0.5658,
+      "keyword_score": 0.0,
+      "combined_score": 0.5658,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Joseph Scallorns. Average GPA: 3.75. A/A- rate: 77.32%. F rate: 1.51%. Total students taught: 410. Total withdrawals: 9. Sections taught:...",
+      "source_type": "grade",
+      "source_id": "engl-2744-joseph_scallorns",
+      "vector_score": 0.5652,
+      "keyword_score": 0.0,
+      "combined_score": 0.5652,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 3094: SAS Programming. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-3094",
+      "vector_score": 0.5643,
+      "keyword_score": 0.0,
+      "combined_score": 0.5643,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Sarah Boudreau. Average GPA: 3.63. A/A- rate: 71.4%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "engl-2744-sarah_boudreau",
+      "vector_score": 0.5637,
+      "keyword_score": 0.0,
+      "combined_score": 0.5637,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 1614: Numbers and Operations. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 16.",
+      "source_type": "course",
+      "source_id": "math-1614",
+      "vector_score": 0.5617,
+      "keyword_score": 0.0,
+      "combined_score": 0.5617,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Hooper. Average GPA: 3.78. A/A- rate: 80.74%. F rate: 0.75%. Total students taught: 274. Total withdrawals: 1. Sections taught: 14 terms.",
+      "source_type": "grade",
+      "source_id": "engl-2744-hooper",
+      "vector_score": 0.5609,
+      "keyword_score": 0.0,
+      "combined_score": 0.5609,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "math-2644",
+      "vector_score": 0.5602,
+      "keyword_score": 0.0,
+      "combined_score": 0.5602,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Santana. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 22. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "engl-2744-santana",
+      "vector_score": 0.5594,
+      "keyword_score": 0.0,
+      "combined_score": 0.5594,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 1106 (First-Year Writing) taught by Bruce McComiskey. Average GPA: 3.59. A/A- rate: 83.3%. F rate: 5.6%. Total students taught: 18. Total withdrawals: 2. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "engl-1106-bruce_mccomiskey",
+      "vector_score": 0.5588,
+      "keyword_score": 0.0,
+      "combined_score": 0.5588,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Raveen. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 14. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "engl-2744-raveen",
+      "vector_score": 0.5573,
+      "keyword_score": 0.0,
+      "combined_score": 0.5573,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 1106 (First-Year Writing) taught by Le Corre-Cochran. Average GPA: 3.59. A/A- rate: 44.8%. F rate: 0.0%. Total students taught: 34. Total withdrawals: 2. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "engl-1106-le_corre-cochran",
+      "vector_score": 0.5562,
+      "keyword_score": 0.0,
+      "combined_score": 0.5562,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ENGL 2744 (Intro to Creative Writing) taught by Craig. Average GPA: 3.63. A/A- rate: 67.95%. F rate: 1.28%. Total students taught: 279. Total withdrawals: 8. Sections taught: 15 terms. ...",
+      "source_type": "grade",
+      "source_id": "engl-2744-craig",
+      "vector_score": 0.5554,
+      "keyword_score": 0.0,
+      "combined_score": 0.5554,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 1087
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Pick the high‑GPA coding class (MATH 5134, avg 3.89) for a strong grade boost, pair it with a solid math programming option (MSE 2114 or MSE 3114, avg ~3.38‑3.39), and add the writing course (PR 3144, avg 3.32) to meet the communication requirement while keeping overall GPA manageable. This mix gives you one top‑grade potential, two reliable math credits, and a writing class with a decent average.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 1087
+  },
+  "errors": []
+}

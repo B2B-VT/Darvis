@@ -1,0 +1,50 @@
+{
+  "case_id": "prof_rec_cs3114_001",
+  "query": "Which professor has the strongest outcomes for CS 3114?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "has the",
+      "value": "J He",
+      "confidence": 0.6400000000000001,
+      "ambiguous": true,
+      "candidates": [
+        "J He",
+        "He",
+        "X He"
+      ]
+    }
+  },
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [],
+  "evidence_ids": [],
+  "retrieved_ids": [],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [],
+    "selected_ids": [],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": false,
+    "reasons": [
+      "ambiguous_professor_surname"
+    ]
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

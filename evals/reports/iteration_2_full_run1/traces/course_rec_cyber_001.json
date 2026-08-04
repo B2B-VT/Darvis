@@ -1,0 +1,102 @@
+{
+  "case_id": "course_rec_cyber_001",
+  "query": "I'm a CS major interested in cybersecurity. What electives fit?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "major_requirements",
+    "target_credits": null,
+    "major_query": "terested in cybersecurity. What electives fit",
+    "clarifying_question": null,
+    "capabilities": [
+      "major_requirement_lookup"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.7,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "major_requirements",
+    "queries": [
+      "I'm a CS major interested in cybersecurity. What electives fit?"
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "major_requirements",
+    "metadata_keys": [
+      "matched_major",
+      "route"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "major_requirements",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "route": "major_requirements",
+      "matched_major": null,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 140,
+        "resolve_ms": 0,
+        "handler_ms": 813
+      },
+      "confidence": 0.7
+    }
+  },
+  "final_response": {
+    "route": "major_requirements",
+    "answer": "I don't have specific requirement data for that major. Try asking with the full major name, like \"Computer Science\" or \"Mechanical Engineering\".",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 140,
+    "resolve_ms": 0,
+    "handler_ms": 813
+  },
+  "errors": []
+}

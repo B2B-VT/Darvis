@@ -16,7 +16,7 @@ from app.rag.query_planner import QueryPlanner, _repair_json
 from app.safety.entity_resolver import EntityResolver
 from app.data.indexes import DataIndexes
 from app.rag.verifier import check_plan, missing_data_answer
-from app.features.course_profile import handle_course_profile
+from app.features.course_profile import handle_course_profile, _is_course_comparison_question
 from app.features.natural_filter import handle_natural_filter
 from app.features.section_lookup import handle_section_lookup
 from app.features.schedule_builder import (
@@ -908,3 +908,7 @@ def test_retrieval_debug_disabled_by_default():
         main.settings.rag_debug_mode = old_debug
 
     assert response.status_code == 404
+
+
+def test_course_comparison_detection_accepts_differ_wording():
+    assert _is_course_comparison_question("How do CS 2505 and CS 2506 differ?")

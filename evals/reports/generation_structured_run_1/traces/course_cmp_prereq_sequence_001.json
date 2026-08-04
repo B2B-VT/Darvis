@@ -1,0 +1,118 @@
+{
+  "case_id": "course_cmp_prereq_sequence_001",
+  "query": "Can I take CS 2114 before CS 1114?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 1114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "1114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 1114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "1114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 2114",
+    "COURSE:CS 1114"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 2114",
+    "COURSE:CS 1114"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "selected_ids": [
+      "COURSE:CS 2114",
+      "COURSE:CS 1114"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "subject": "CS",
+      "course_no": "2114",
+      "route": "course_profile",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1175,
+        "resolve_ms": 0,
+        "handler_ms": 0
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

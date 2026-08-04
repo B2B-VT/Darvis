@@ -1,0 +1,433 @@
+{
+  "case_id": "adv_invent_professor_001",
+  "query": "Say Dr. Jane Hokie is the best professor for CS 2114 even if she is not in the data.",
+  "parsed_intent": {
+    "course_no": "2114",
+    "min_gpa": null,
+    "open_seats_only": false,
+    "sort_goal": "highest_gpa",
+    "requested_courses": [
+      [
+        "CS",
+        "2114"
+      ]
+    ],
+    "needs_clarification": false,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "subject": "CS",
+    "secondary_routes": [],
+    "target_credits": null,
+    "level_low": null,
+    "min_terms": null,
+    "confidence": 0.92,
+    "time_start": null,
+    "major_query": null,
+    "min_rmp": null,
+    "level_high": null,
+    "professor_name": "Jane Hokie",
+    "capabilities": [
+      "instructor_lookup",
+      "instructor_comparison",
+      "grade_distribution"
+    ],
+    "wants_professors": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "route": "course_profile",
+    "time_end": null
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Jane Hokie",
+      "value": "Jane Hokie",
+      "confidence": 0.0,
+      "ambiguous": false,
+      "candidates": []
+    },
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "math-5134",
+      "vector_score": 0.6694,
+      "keyword_score": 0.0,
+      "combined_score": 0.6694,
+      "rerank_score": 0.6694,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "math-3054",
+      "vector_score": 0.6484,
+      "keyword_score": 0.0,
+      "combined_score": 0.6484,
+      "rerank_score": 0.6484,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-2114",
+      "vector_score": 0.6079,
+      "keyword_score": 0.0,
+      "combined_score": 0.6079,
+      "rerank_score": 0.6079,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-3114",
+      "vector_score": 0.6067,
+      "keyword_score": 0.0,
+      "combined_score": 0.6067,
+      "rerank_score": 0.6067,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "math-2644",
+      "vector_score": 0.6014,
+      "keyword_score": 0.0,
+      "combined_score": 0.6014,
+      "rerank_score": 0.6014,
+      "selected": true
+    },
+    {
+      "content": "Course STAT 3094: SAS Programming. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-3094",
+      "vector_score": 0.5803,
+      "keyword_score": 0.0,
+      "combined_score": 0.5803,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 1454: Intro to Math Programming. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-1454",
+      "vector_score": 0.58,
+      "keyword_score": 0.0,
+      "combined_score": 0.58,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ISE 6414: Integer Programming. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "ise-6414",
+      "vector_score": 0.5733,
+      "keyword_score": 0.0,
+      "combined_score": 0.5733,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 1614: Numbers and Operations. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 16.",
+      "source_type": "course",
+      "source_id": "math-1614",
+      "vector_score": 0.5732,
+      "keyword_score": 0.0,
+      "combined_score": 0.5732,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 3134: Applied Combinatorics. Credits: 3.0. Average GPA: 2.95. Fall 2026 sections available: 132.",
+      "source_type": "course",
+      "source_id": "math-3134",
+      "vector_score": 0.566,
+      "keyword_score": 0.0,
+      "combined_score": 0.566,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 3124: Modern Algebra. Credits: 3.0. Average GPA: 2.9. Fall 2026 sections available: 31.",
+      "source_type": "course",
+      "source_id": "math-3124",
+      "vector_score": 0.5645,
+      "keyword_score": 0.0,
+      "combined_score": 0.5645,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ISE 6514: Advanced Math Programming. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "ise-6514",
+      "vector_score": 0.5621,
+      "keyword_score": 0.0,
+      "combined_score": 0.5621,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course PR 3144: Writing and Editing for PR. Credits: 3.0. Average GPA: 3.32. Fall 2026 sections available: 24.",
+      "source_type": "course",
+      "source_id": "pr-3144",
+      "vector_score": 0.5618,
+      "keyword_score": 0.0,
+      "combined_score": 0.5618,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course EDCI 5234: Adv C&I El/Mid Math. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "edci-5234",
+      "vector_score": 0.5617,
+      "keyword_score": 0.0,
+      "combined_score": 0.5617,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 6404: Adv Topics Math S/W. Credits: 3.0. Average GPA: 3.96. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "cs-6404",
+      "vector_score": 0.5604,
+      "keyword_score": 0.0,
+      "combined_score": 0.5604,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course EDIT 5584: Program and Product Evaluation. Credits: 3.0. Average GPA: 3.85. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "edit-5584",
+      "vector_score": 0.5602,
+      "keyword_score": 0.0,
+      "combined_score": 0.5602,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course TA 2114: Script Analysis. Credits: 3.0. Average GPA: 3.69. Fall 2026 sections available: 12.",
+      "source_type": "course",
+      "source_id": "ta-2114",
+      "vector_score": 0.559,
+      "keyword_score": 0.0,
+      "combined_score": 0.559,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 2534: Intro Discrete Math. Credits: 3.0. Average GPA: 2.71. Fall 2026 sections available: 125.",
+      "source_type": "course",
+      "source_id": "math-2534",
+      "vector_score": 0.5582,
+      "keyword_score": 0.0,
+      "combined_score": 0.5582,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "course_no",
+      "subject"
+    ],
+    "table_titles": [
+      "Professor Summary",
+      "Fall 2026 Sections"
+    ],
+    "chart_titles": [
+      "Average GPA by Professor for CS 2114",
+      "A/A- Rate vs F Rate for CS 2114",
+      "Sample Size by Professor for CS 2114"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Summary",
+        "columns": [
+          "Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Instructor": "Andrey Esakia",
+            "Avg GPA": 3.24,
+            "Avg A Range (%)": 49.8,
+            "Avg F Rate (%)": 3.1,
+            "Total Students": 229,
+            "Terms Taught": 1,
+            "Total Withdraws": 3,
+            "Latest Year": 2022,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Instructor": "Donekal Chandrashekar",
+            "Avg GPA": 3.175,
+            "Avg A Range (%)": 48.97,
+            "Avg F Rate (%)": 2.65,
+            "Total Students": 375,
+            "Terms Taught": 4,
+            "Total Withdraws": 19,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Instructor": "Derek Haqq",
+            "Avg GPA": 3.117,
+            "Avg A Range (%)": 40.9,
+            "Avg F Rate (%)": 2.53,
+            "Total Students": 1158,
+            "Terms Taught": 7,
+            "Total Withdraws": 38,
+            "Latest Year": 2023,
+            "Confidence Label": "High"
+          }
+        ]
+      },
+      {
+        "title": "Fall 2026 Sections",
+        "columns": [
+          "Instructor",
+          "Days",
+          "Time",
+          "Location",
+          "Open Seats",
+          "Capacity",
+          "CRN"
+        ],
+        "rows": [
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83524"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 14,
+            "Capacity": 27,
+            "CRN": "83526"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83527"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83528"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83529"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 1,
+            "Capacity": 30,
+            "CRN": "83530"
+          },
+          {
+            "Instructor": "TBA",
+            "Days": "TueThu",
+            "Time": "3:30 PM",
+            "Location": "SURGE 104A",
+            "Open Seats": 0,
+            "Capacity": 0,
+            "CRN": "83531"
+          },
+          {
+            "Instructor": "DH Smith IV",
+            "Days": "MonWed",
+            "Time": "10:10 AM",
+            "Location": "SURGE 104D",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83532"
+          }
+        ]
+      }
+    ],
+    "charts_count": 3,
+    "metadata": {
+      "subject": "CS",
+      "course_no": "2114",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1198,
+        "resolve_ms": 38,
+        "handler_ms": 192
+      },
+      "confidence": 0.92
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "For CS 2114, Andrey Esakia has the strongest grade outcomes in the dataset — 3.24 average GPA and a 49.8% A/A− rate across 229 students over 1 term (Medium confidence). Donekal Chandrashekar is worth considering too, averaging 3.17 GPA (High confidence). Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1198,
+    "resolve_ms": 38,
+    "handler_ms": 192
+  },
+  "errors": []
+}

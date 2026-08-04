@@ -1,0 +1,459 @@
+{
+  "case_id": "interest_business_analytics_001",
+  "query": "I'm a BIT student interested in analytics. What should I take?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "I'm a BIT student interested in analytics. What should I take?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Data-Centric Computing major (B.S.) — College of Engineering. required — Fall Semester: MATH 1225 (Calculus of a Single Variable ( C- )) 4cr, MATH 2534 (Introduction to Discrete Mathematics or Introdu...",
+        "source_type": "requirement",
+        "source_id": "req-data-centric_computing-required-fall_semester-c6a250",
+        "vector_score": 0.6685,
+        "keyword_score": 0.0,
+        "combined_score": 0.6685,
+        "rerank_score": 0.6685,
+        "selected": true
+      },
+      {
+        "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Spring Semester: ENGL 1106 (First-Year Writing or Communication Skills) 3cr, MGT 4394 (Strategic Managemen...",
+        "source_type": "requirement",
+        "source_id": "req-cybersecurity_management_-required-spring_semester-c17615",
+        "vector_score": 0.6202,
+        "keyword_score": 0.0,
+        "combined_score": 0.6202,
+        "rerank_score": 0.6202,
+        "selected": true
+      },
+      {
+        "content": "Course BIT 5324: Analytics/Data Mining Execs. Credits: 2.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "bit-5324",
+        "vector_score": 0.62,
+        "keyword_score": 0.0,
+        "combined_score": 0.62,
+        "rerank_score": 0.62,
+        "selected": true
+      },
+      {
+        "content": "Course BIT 4424: BIT Visualization Analytics. Credits: 3.0. Average GPA: 3.53. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "bit-4424",
+        "vector_score": 0.611,
+        "keyword_score": 0.0,
+        "combined_score": 0.611,
+        "rerank_score": 0.611,
+        "selected": true
+      },
+      {
+        "content": "Cybersecurity Management and Analytics major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Business Analytics  and  Business Intelligence 1,2) [req...",
+        "source_type": "requirement",
+        "source_id": "cybersecurity_management_and_analytics",
+        "vector_score": 0.5884,
+        "keyword_score": 0.0,
+        "combined_score": 0.5884,
+        "rerank_score": 0.5884,
+        "selected": true
+      },
+      {
+        "content": "Data-Centric Computing major (B.S.) — College of Engineering. required — Spring Semester: ENGE 1216 (Foundations of Engineering) 2cr, CS 4944 (Seminar) 1cr, ENGL 1106 (First-Year Writing) 3cr, MATH 12...",
+        "source_type": "requirement",
+        "source_id": "req-data-centric_computing-required-spring_semester-6d4e46",
+        "vector_score": 0.5864,
+        "keyword_score": 0.0,
+        "combined_score": 0.5864,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+        "vector_score": 0.5798,
+        "keyword_score": 0.0,
+        "combined_score": 0.5798,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Option Required Courses: CS 2505 (Introduction to Comput...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+        "vector_score": 0.5792,
+        "keyword_score": 0.0,
+        "combined_score": 0.5792,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Restricted Electives: CS 4134 (Quantum Computation and I...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+        "vector_score": 0.5709,
+        "keyword_score": 0.0,
+        "combined_score": 0.5709,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Fall Semester: ECON 2006 (Principles of Economics 1,2) 3cr, CS 1064 (Introduction to Programming in Python...",
+        "source_type": "requirement",
+        "source_id": "req-cybersecurity_management_-required-fall_semester-d284f9",
+        "vector_score": 0.5613,
+        "keyword_score": 0.0,
+        "combined_score": 0.5613,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Business Information Technology Major with Computer Based Decision Support Systems Option major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Busin...",
+        "source_type": "requirement",
+        "source_id": "business_information_technology_major_with_computer_based_decision_support_systems_option",
+        "vector_score": 0.5601,
+        "keyword_score": 0.0,
+        "combined_score": 0.5601,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: M...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+        "vector_score": 0.5546,
+        "keyword_score": 0.0,
+        "combined_score": 0.5546,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Business Information Technology Major with Operations and Supply Chain Management Option major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Busine...",
+        "source_type": "requirement",
+        "source_id": "business_information_technology_major_with_operations_and_supply_chain_management_option",
+        "vector_score": 0.553,
+        "keyword_score": 0.0,
+        "combined_score": 0.553,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course BIT 3484: Advanced Business Analytics. Credits: 3.0. Average GPA: 3.45. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "bit-3484",
+        "vector_score": 0.5516,
+        "keyword_score": 0.0,
+        "combined_score": 0.5516,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Business Information Technology Major with Computer Based Decision Support Systems Option major (B.S.) — Pamplin College of Business. elective_option — Option Required Courses: BIT 3554 (Networks, Tel...",
+        "source_type": "requirement",
+        "source_id": "req-business_information_tech-elective_o-option_required_cour-705d0e",
+        "vector_score": 0.5488,
+        "keyword_score": 0.0,
+        "combined_score": 0.5488,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course BIT 6344: Decision Analytics Seminar. Credits: 3.0. Average GPA: 3.73. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "bit-6344",
+        "vector_score": 0.5476,
+        "keyword_score": 0.0,
+        "combined_score": 0.5476,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: MATH 1226 (Calculus of a Single Variable (5f)) 4cr...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-pathways_concept_5_--f6ca06",
+        "vector_score": 0.5436,
+        "keyword_score": 0.0,
+        "combined_score": 0.5436,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5154: Stat Computing Data Analytics. Credits: 3.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "stat-5154",
+        "vector_score": 0.5376,
+        "keyword_score": 0.0,
+        "combined_score": 0.5376,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Data-Centric Computing major (B.S.) — College of Engineering. required — Fall Semester: MATH 1225 (Calculus of a Single Variable ( C- )) 4cr, MATH 2534 (Introduction to Discrete Mathematics or Introdu...",
+      "source_type": "requirement",
+      "source_id": "req-data-centric_computing-required-fall_semester-c6a250",
+      "vector_score": 0.6685,
+      "keyword_score": 0.0,
+      "combined_score": 0.6685,
+      "rerank_score": 0.6685,
+      "selected": true
+    },
+    {
+      "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Spring Semester: ENGL 1106 (First-Year Writing or Communication Skills) 3cr, MGT 4394 (Strategic Managemen...",
+      "source_type": "requirement",
+      "source_id": "req-cybersecurity_management_-required-spring_semester-c17615",
+      "vector_score": 0.6202,
+      "keyword_score": 0.0,
+      "combined_score": 0.6202,
+      "rerank_score": 0.6202,
+      "selected": true
+    },
+    {
+      "content": "Course BIT 5324: Analytics/Data Mining Execs. Credits: 2.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "bit-5324",
+      "vector_score": 0.62,
+      "keyword_score": 0.0,
+      "combined_score": 0.62,
+      "rerank_score": 0.62,
+      "selected": true
+    },
+    {
+      "content": "Course BIT 4424: BIT Visualization Analytics. Credits: 3.0. Average GPA: 3.53. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "bit-4424",
+      "vector_score": 0.611,
+      "keyword_score": 0.0,
+      "combined_score": 0.611,
+      "rerank_score": 0.611,
+      "selected": true
+    },
+    {
+      "content": "Cybersecurity Management and Analytics major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Business Analytics  and  Business Intelligence 1,2) [req...",
+      "source_type": "requirement",
+      "source_id": "cybersecurity_management_and_analytics",
+      "vector_score": 0.5884,
+      "keyword_score": 0.0,
+      "combined_score": 0.5884,
+      "rerank_score": 0.5884,
+      "selected": true
+    },
+    {
+      "content": "Data-Centric Computing major (B.S.) — College of Engineering. required — Spring Semester: ENGE 1216 (Foundations of Engineering) 2cr, CS 4944 (Seminar) 1cr, ENGL 1106 (First-Year Writing) 3cr, MATH 12...",
+      "source_type": "requirement",
+      "source_id": "req-data-centric_computing-required-spring_semester-6d4e46",
+      "vector_score": 0.5864,
+      "keyword_score": 0.0,
+      "combined_score": 0.5864,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "vector_score": 0.5798,
+      "keyword_score": 0.0,
+      "combined_score": 0.5798,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Option Required Courses: CS 2505 (Introduction to Comput...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "vector_score": 0.5792,
+      "keyword_score": 0.0,
+      "combined_score": 0.5792,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Restricted Electives: CS 4134 (Quantum Computation and I...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+      "vector_score": 0.5709,
+      "keyword_score": 0.0,
+      "combined_score": 0.5709,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Fall Semester: ECON 2006 (Principles of Economics 1,2) 3cr, CS 1064 (Introduction to Programming in Python...",
+      "source_type": "requirement",
+      "source_id": "req-cybersecurity_management_-required-fall_semester-d284f9",
+      "vector_score": 0.5613,
+      "keyword_score": 0.0,
+      "combined_score": 0.5613,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Business Information Technology Major with Computer Based Decision Support Systems Option major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Busin...",
+      "source_type": "requirement",
+      "source_id": "business_information_technology_major_with_computer_based_decision_support_systems_option",
+      "vector_score": 0.5601,
+      "keyword_score": 0.0,
+      "combined_score": 0.5601,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: M...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+      "vector_score": 0.5546,
+      "keyword_score": 0.0,
+      "combined_score": 0.5546,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Business Information Technology Major with Operations and Supply Chain Management Option major (B.S.) at Virginia Tech, Pamplin College of Business. Required courses: ACIS 1504 (Introduction to Busine...",
+      "source_type": "requirement",
+      "source_id": "business_information_technology_major_with_operations_and_supply_chain_management_option",
+      "vector_score": 0.553,
+      "keyword_score": 0.0,
+      "combined_score": 0.553,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course BIT 3484: Advanced Business Analytics. Credits: 3.0. Average GPA: 3.45. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "bit-3484",
+      "vector_score": 0.5516,
+      "keyword_score": 0.0,
+      "combined_score": 0.5516,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Business Information Technology Major with Computer Based Decision Support Systems Option major (B.S.) — Pamplin College of Business. elective_option — Option Required Courses: BIT 3554 (Networks, Tel...",
+      "source_type": "requirement",
+      "source_id": "req-business_information_tech-elective_o-option_required_cour-705d0e",
+      "vector_score": 0.5488,
+      "keyword_score": 0.0,
+      "combined_score": 0.5488,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course BIT 6344: Decision Analytics Seminar. Credits: 3.0. Average GPA: 3.73. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "bit-6344",
+      "vector_score": 0.5476,
+      "keyword_score": 0.0,
+      "combined_score": 0.5476,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: MATH 1226 (Calculus of a Single Variable (5f)) 4cr...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-pathways_concept_5_--f6ca06",
+      "vector_score": 0.5436,
+      "keyword_score": 0.0,
+      "combined_score": 0.5436,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5154: Stat Computing Data Analytics. Credits: 3.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "stat-5154",
+      "vector_score": 0.5376,
+      "keyword_score": 0.0,
+      "combined_score": 0.5376,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 141,
+        "resolve_ms": 0,
+        "handler_ms": 926
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I can work with historical grade distributions — GPA, A/A− rates, F rates, withdrawals, and enrollment counts. Try asking about a specific course (e.g. \"CS 3114\") or a professor by last name. For student opinions beyond the numbers, check the Forums page.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 141,
+    "resolve_ms": 0,
+    "handler_ms": 926
+  },
+  "errors": []
+}

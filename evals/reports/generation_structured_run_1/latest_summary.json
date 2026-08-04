@@ -1,0 +1,36 @@
+{
+  "total": 40,
+  "pass": 0,
+  "partial": 1,
+  "fail": 6,
+  "blocked": 33,
+  "metrics": {
+    "answer_type_accuracy": 0.2857,
+    "entity_resolution_accuracy": 0.8571,
+    "exact_entity_match_rate": 0.8571,
+    "format_compliance_rate": 1.0,
+    "grounding": 1.0,
+    "intent_accuracy": 1.0,
+    "prohibited_candidate_rate": 0.0,
+    "response_schema_compliance": 1.0,
+    "retrieval_ndcg_at_5": 0.0,
+    "sufficiency_behavior": 0.2857,
+    "unsupported_claim_rate": 0.0
+  },
+  "critical_security_failures": 0,
+  "mode": "generation_only",
+  "provider": {
+    "run_valid": false,
+    "invalid_reasons": [
+      "blocked_cases",
+      "fallback_used",
+      "rate_limited"
+    ],
+    "provider_count": 1,
+    "model_count": 1,
+    "fallback_rate": 0.825,
+    "rate_limited_count": 32,
+    "timeout_count": 0,
+    "error_count": 0
+  }
+}

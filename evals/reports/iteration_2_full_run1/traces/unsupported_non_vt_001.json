@@ -1,0 +1,607 @@
+{
+  "case_id": "unsupported_non_vt_001",
+  "query": "What is the best UVA CS professor?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": "CS",
+    "route": "natural_filter",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "natural_language_filter"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.68,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [
+      "What is the best UVA CS professor?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for CS 5510 (Multiprocessor Programming) taught by Adrian Sandu. Average GPA: 3.84. A/A- rate: 70.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5510-adrian_sandu",
+        "vector_score": 0.4578,
+        "keyword_score": 0.0,
+        "combined_score": 0.4578,
+        "rerank_score": 0.4578,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5914 (Emerging Topics in CS) taught by Dan Williams. Average GPA: 3.81. A/A- rate: 81.0%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5914-dan_williams",
+        "vector_score": 0.4572,
+        "keyword_score": 0.0,
+        "combined_score": 0.4572,
+        "rerank_score": 0.4572,
+        "selected": true
+      },
+      {
+        "content": "Grade data for UH 2554 (Humanities&Global Citizenship) taught by Steinert Borella. Average GPA: 3.94. A/A- rate: 87.97%. F rate: 0.0%. Total students taught: 116. Sections taught: 4 terms.",
+        "source_type": "grade",
+        "source_id": "uh-2554-steinert_borella",
+        "vector_score": 0.4568,
+        "keyword_score": 0.0,
+        "combined_score": 0.4568,
+        "rerank_score": 0.4568,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 4624 (Multimedia/Hypertext) taught by Fox. Average GPA: 3.44. A rate: 34.5%. F rate: 0.98%. Average enrollment: 60 students.",
+        "source_type": "grade",
+        "source_id": "cs-4624-fox",
+        "vector_score": 0.4563,
+        "keyword_score": 0.0,
+        "combined_score": 0.4563,
+        "rerank_score": 0.4563,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 3724 (Human-Computr Intrctn) taught by Hassan. Average GPA: 3.81. A rate: 68.25%. F rate: 0.7%. Average enrollment: 44 students.",
+        "source_type": "grade",
+        "source_id": "cs-3724-hassan",
+        "vector_score": 0.4535,
+        "keyword_score": 0.0,
+        "combined_score": 0.4535,
+        "rerank_score": 0.4535,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5565 (Network Arch and Protocols) taught by Midkiff. Average GPA: 3.61. A/A- rate: 43.67%. F rate: 0.97%. Total students taught: 54. Sections taught: 3 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5565-midkiff",
+        "vector_score": 0.453,
+        "keyword_score": 0.0,
+        "combined_score": 0.453,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 6604 (TS: Future CS Faculty Prep) taught by Mohammed Farghally. Average GPA: 3.77. A/A- rate: 71.4%. F rate: 0.0%. Total students taught: 14. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-6604-mohammed_farghally",
+        "vector_score": 0.452,
+        "keyword_score": 0.0,
+        "combined_score": 0.452,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 3604 (Professionalism in Computing) taught by Cal Ribbens. Average GPA: 3.69. A/A- rate: 67.07%. F rate: 1.6%. Total students taught: 318. Sections taught: 4 terms. Grade outcomes ar...",
+        "source_type": "grade",
+        "source_id": "cs-3604-cal_ribbens",
+        "vector_score": 0.4504,
+        "keyword_score": 0.0,
+        "combined_score": 0.4504,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Sandu. Average GPA: 3.77. A rate: 62.35%. F rate: 0.0%. Average enrollment: 16 students.",
+        "source_type": "grade",
+        "source_id": "cs-5234-sandu",
+        "vector_score": 0.4501,
+        "keyword_score": 0.0,
+        "combined_score": 0.4501,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for DASC 2664 (Prof Discourse and Career Dev) taught by Cockrum. Average GPA: 3.59. A/A- rate: 67.42%. F rate: 3.72%. Total students taught: 111. Total withdrawals: 1. Sections taught: 5 te...",
+        "source_type": "grade",
+        "source_id": "dasc-2664-cockrum",
+        "vector_score": 0.4501,
+        "keyword_score": 0.0,
+        "combined_score": 0.4501,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 4254 (Network Arch Prog) taught by Richards. Average GPA: 3.93. A/A- rate: 76.7%. F rate: 0.0%. Total students taught: 30. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4254-richards",
+        "vector_score": 0.4499,
+        "keyword_score": 0.0,
+        "combined_score": 0.4499,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Adrian Sandu. Average GPA: 3.77. A/A- rate: 62.35%. F rate: 0.0%. Total students taught: 32. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5234-adrian_sandu",
+        "vector_score": 0.4496,
+        "keyword_score": 0.0,
+        "combined_score": 0.4496,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5024 (Ethics & Professionalism in CS) taught by Lyman. Average GPA: 3.81. A/A- rate: 49.15%. F rate: 0.0%. Total students taught: 73. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5024-lyman",
+        "vector_score": 0.4484,
+        "keyword_score": 0.0,
+        "combined_score": 0.4484,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for EDCI 5364 (Technology in Science Clsrm) taught by Collver. Average GPA: 3.81. A/A- rate: 71.45%. F rate: 0.0%. Total students taught: 15. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "edci-5364-collver",
+        "vector_score": 0.4481,
+        "keyword_score": 0.0,
+        "combined_score": 0.4481,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Williams. Average GPA: 2.91. A rate: 22.04%. F rate: 2.58%. Average enrollment: 105 students.",
+        "source_type": "grade",
+        "source_id": "cs-3214-williams",
+        "vector_score": 0.4473,
+        "keyword_score": 0.0,
+        "combined_score": 0.4473,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4094",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4094",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_4094:CUI",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "4094",
+        "professor_name": "Cui",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4624",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4624",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "4624",
+        "professor_name": "Sally Hamouda",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5934",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "PROF_COURSE:CS_5934:OLIMPIEW",
+        "entity_type": "professor_course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": "Olimpiew",
+        "source": "grades",
+        "evidence_role": "ranked_professor",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 4094",
+    "PROF_COURSE:CS_4094:CUI",
+    "COURSE:CS 4624",
+    "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+    "COURSE:CS 5934",
+    "PROF_COURSE:CS_5934:OLIMPIEW"
+  ],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [
+      "COURSE:CS 4094",
+      "PROF_COURSE:CS_4094:CUI",
+      "COURSE:CS 4624",
+      "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+      "COURSE:CS 5934",
+      "PROF_COURSE:CS_5934:OLIMPIEW"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 5510 (Multiprocessor Programming) taught by Adrian Sandu. Average GPA: 3.84. A/A- rate: 70.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5510-adrian_sandu",
+      "vector_score": 0.4578,
+      "keyword_score": 0.0,
+      "combined_score": 0.4578,
+      "rerank_score": 0.4578,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5914 (Emerging Topics in CS) taught by Dan Williams. Average GPA: 3.81. A/A- rate: 81.0%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5914-dan_williams",
+      "vector_score": 0.4572,
+      "keyword_score": 0.0,
+      "combined_score": 0.4572,
+      "rerank_score": 0.4572,
+      "selected": true
+    },
+    {
+      "content": "Grade data for UH 2554 (Humanities&Global Citizenship) taught by Steinert Borella. Average GPA: 3.94. A/A- rate: 87.97%. F rate: 0.0%. Total students taught: 116. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "uh-2554-steinert_borella",
+      "vector_score": 0.4568,
+      "keyword_score": 0.0,
+      "combined_score": 0.4568,
+      "rerank_score": 0.4568,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4624 (Multimedia/Hypertext) taught by Fox. Average GPA: 3.44. A rate: 34.5%. F rate: 0.98%. Average enrollment: 60 students.",
+      "source_type": "grade",
+      "source_id": "cs-4624-fox",
+      "vector_score": 0.4563,
+      "keyword_score": 0.0,
+      "combined_score": 0.4563,
+      "rerank_score": 0.4563,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 3724 (Human-Computr Intrctn) taught by Hassan. Average GPA: 3.81. A rate: 68.25%. F rate: 0.7%. Average enrollment: 44 students.",
+      "source_type": "grade",
+      "source_id": "cs-3724-hassan",
+      "vector_score": 0.4535,
+      "keyword_score": 0.0,
+      "combined_score": 0.4535,
+      "rerank_score": 0.4535,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5565 (Network Arch and Protocols) taught by Midkiff. Average GPA: 3.61. A/A- rate: 43.67%. F rate: 0.97%. Total students taught: 54. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5565-midkiff",
+      "vector_score": 0.453,
+      "keyword_score": 0.0,
+      "combined_score": 0.453,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6604 (TS: Future CS Faculty Prep) taught by Mohammed Farghally. Average GPA: 3.77. A/A- rate: 71.4%. F rate: 0.0%. Total students taught: 14. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6604-mohammed_farghally",
+      "vector_score": 0.452,
+      "keyword_score": 0.0,
+      "combined_score": 0.452,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3604 (Professionalism in Computing) taught by Cal Ribbens. Average GPA: 3.69. A/A- rate: 67.07%. F rate: 1.6%. Total students taught: 318. Sections taught: 4 terms. Grade outcomes ar...",
+      "source_type": "grade",
+      "source_id": "cs-3604-cal_ribbens",
+      "vector_score": 0.4504,
+      "keyword_score": 0.0,
+      "combined_score": 0.4504,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Sandu. Average GPA: 3.77. A rate: 62.35%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-5234-sandu",
+      "vector_score": 0.4501,
+      "keyword_score": 0.0,
+      "combined_score": 0.4501,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for DASC 2664 (Prof Discourse and Career Dev) taught by Cockrum. Average GPA: 3.59. A/A- rate: 67.42%. F rate: 3.72%. Total students taught: 111. Total withdrawals: 1. Sections taught: 5 te...",
+      "source_type": "grade",
+      "source_id": "dasc-2664-cockrum",
+      "vector_score": 0.4501,
+      "keyword_score": 0.0,
+      "combined_score": 0.4501,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4254 (Network Arch Prog) taught by Richards. Average GPA: 3.93. A/A- rate: 76.7%. F rate: 0.0%. Total students taught: 30. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4254-richards",
+      "vector_score": 0.4499,
+      "keyword_score": 0.0,
+      "combined_score": 0.4499,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Adrian Sandu. Average GPA: 3.77. A/A- rate: 62.35%. F rate: 0.0%. Total students taught: 32. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5234-adrian_sandu",
+      "vector_score": 0.4496,
+      "keyword_score": 0.0,
+      "combined_score": 0.4496,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5024 (Ethics & Professionalism in CS) taught by Lyman. Average GPA: 3.81. A/A- rate: 49.15%. F rate: 0.0%. Total students taught: 73. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5024-lyman",
+      "vector_score": 0.4484,
+      "keyword_score": 0.0,
+      "combined_score": 0.4484,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for EDCI 5364 (Technology in Science Clsrm) taught by Collver. Average GPA: 3.81. A/A- rate: 71.45%. F rate: 0.0%. Total students taught: 15. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "edci-5364-collver",
+      "vector_score": 0.4481,
+      "keyword_score": 0.0,
+      "combined_score": 0.4481,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Williams. Average GPA: 2.91. A rate: 22.04%. F rate: 2.58%. Average enrollment: 105 students.",
+      "source_type": "grade",
+      "source_id": "cs-3214-williams",
+      "vector_score": 0.4473,
+      "keyword_score": 0.0,
+      "combined_score": 0.4473,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4094",
+    "PROF_COURSE:CS_4094:CUI",
+    "COURSE:CS 4624",
+    "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+    "COURSE:CS 5934",
+    "PROF_COURSE:CS_5934:OLIMPIEW"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4094",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4094",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_4094:CUI",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "4094",
+      "professor_name": "Cui",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4624",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4624",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_4624:SALLY_HAMOUDA",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "4624",
+      "professor_name": "Sally Hamouda",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5934",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "PROF_COURSE:CS_5934:OLIMPIEW",
+      "entity_type": "professor_course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": "Olimpiew",
+      "source": "grades",
+      "evidence_role": "ranked_professor",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "sort_goal"
+    ],
+    "table_titles": [
+      "Filter Results"
+    ],
+    "chart_titles": [
+      "Filter Results: Highest Avg GPA"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "natural_filter",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4094",
+            "Course Title": "Computer Science Capstone",
+            "Instructor": "Cui",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 46,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 4624",
+            "Course Title": "Multimedia/Hypertext",
+            "Instructor": "Sally Hamouda",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 44,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Instructor": "Olimpiew",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 41,
+            "Terms Taught": 2,
+            "Total Withdraws": 0,
+            "Latest Year": 2024,
+            "Confidence Label": "Medium"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_gpa",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 103,
+        "resolve_ms": 0,
+        "handler_ms": 26894
+      },
+      "confidence": 0.68
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "Cui (CS 4094) comes out on top — 4.00 average GPA and a 100.0% A/A− rate (Medium confidence). Sally Hamouda (CS 4624) is close behind at 4.00 GPA. Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 103,
+    "resolve_ms": 0,
+    "handler_ms": 26894
+  },
+  "errors": []
+}

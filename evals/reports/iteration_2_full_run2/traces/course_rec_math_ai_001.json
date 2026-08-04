@@ -1,0 +1,459 @@
+{
+  "case_id": "course_rec_math_ai_001",
+  "query": "Which math classes help with machine learning?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "Which math classes help with machine learning?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Instructor Shalqini at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.33. Courses taught include: MATH 1225, MATH 1226.",
+        "source_type": "instructor",
+        "source_id": "shalqini",
+        "vector_score": 0.4824,
+        "keyword_score": 0.0,
+        "combined_score": 0.4824,
+        "rerank_score": 0.4824,
+        "selected": true
+      },
+      {
+        "content": "Instructor Haroun Meghaichi at Virginia Tech. Teaches MATH courses. Has taught 15 distinct courses. Average GPA across all sections: 3.04. RateMyProfessors: 4.3/5.0 (7 ratings). RMP difficulty: 2.6/5....",
+        "source_type": "instructor",
+        "source_id": "haroun_meghaichi",
+        "vector_score": 0.4746,
+        "keyword_score": 0.0,
+        "combined_score": 0.4746,
+        "rerank_score": 0.4746,
+        "selected": true
+      },
+      {
+        "content": "Instructor Serbin at Virginia Tech. Teaches MATH courses. Has taught 1 distinct courses. Average GPA across all sections: 2.62. Courses taught include: MATH 2114.",
+        "source_type": "instructor",
+        "source_id": "serbin",
+        "vector_score": 0.4713,
+        "keyword_score": 0.0,
+        "combined_score": 0.4713,
+        "rerank_score": 0.4713,
+        "selected": true
+      },
+      {
+        "content": "Instructor Sarah Barreto at Virginia Tech. Teaches MATH courses. Has taught 48 distinct courses. Average GPA across all sections: 2.52. RateMyProfessors: 3.1/5.0 (34 ratings). RMP difficulty: 3.8/5.0....",
+        "source_type": "instructor",
+        "source_id": "sarah_barreto",
+        "vector_score": 0.4614,
+        "keyword_score": 0.0,
+        "combined_score": 0.4614,
+        "rerank_score": 0.4614,
+        "selected": true
+      },
+      {
+        "content": "Instructor Numann Malik at Virginia Tech. Teaches ENGL, MATH courses. Has taught 37 distinct courses. Average GPA across all sections: 2.75. RateMyProfessors: 3.0/5.0 (19 ratings). RMP difficulty: 3.7...",
+        "source_type": "instructor",
+        "source_id": "numann_malik",
+        "vector_score": 0.4604,
+        "keyword_score": 0.0,
+        "combined_score": 0.4604,
+        "rerank_score": 0.4604,
+        "selected": true
+      },
+      {
+        "content": "Instructor Madhavi Vishnubhotla at Virginia Tech. Teaches MATH courses. Has taught 33 distinct courses. Average GPA across all sections: 2.56. RateMyProfessors: 1.7/5.0 (16 ratings). RMP difficulty: 4...",
+        "source_type": "instructor",
+        "source_id": "madhavi_vishnubhotla",
+        "vector_score": 0.4602,
+        "keyword_score": 0.0,
+        "combined_score": 0.4602,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Swanson at Virginia Tech. Teaches MATH, PSYC courses. Has taught 7 distinct courses. Average GPA across all sections: 3.58. Courses taught include: MATH 1225, PSYC 4284, PSYC 4994.",
+        "source_type": "instructor",
+        "source_id": "swanson",
+        "vector_score": 0.4593,
+        "keyword_score": 0.0,
+        "combined_score": 0.4593,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Jamal Benbourenane at Virginia Tech. Teaches MATH courses. Has taught 11 distinct courses. Average GPA across all sections: 2.48. RateMyProfessors: 3.4/5.0 (9 ratings). RMP difficulty: 3.4/...",
+        "source_type": "instructor",
+        "source_id": "jamal_benbourenane",
+        "vector_score": 0.4542,
+        "keyword_score": 0.0,
+        "combined_score": 0.4542,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Alexey Onufriev at Virginia Tech. Teaches CS, MATH courses. Has taught 10 distinct courses. Average GPA across all sections: 3.33. RateMyProfessors: 4.2/5.0 (5 ratings). RMP difficulty: 3.4...",
+        "source_type": "instructor",
+        "source_id": "alexey_onufriev",
+        "vector_score": 0.4535,
+        "keyword_score": 0.0,
+        "combined_score": 0.4535,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Julia Truman at Virginia Tech. Teaches MATH courses. Has taught 22 distinct courses. Average GPA across all sections: 2.32. RateMyProfessors: 1.4/5.0 (16 ratings). RMP difficulty: 4.3/5.0. ...",
+        "source_type": "instructor",
+        "source_id": "julia_truman",
+        "vector_score": 0.4517,
+        "keyword_score": 0.0,
+        "combined_score": 0.4517,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor S Shafian at Virginia Tech. Teaches CSES courses. Has taught 7 distinct courses. Average GPA across all sections: 3.83.",
+        "source_type": "instructor",
+        "source_id": "s_shafian",
+        "vector_score": 0.4489,
+        "keyword_score": 0.0,
+        "combined_score": 0.4489,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Sanja Pantic at Virginia Tech. Teaches MATH courses. Has taught 35 distinct courses. Average GPA across all sections: 2.26. RateMyProfessors: 2.1/5.0 (50 ratings). RMP difficulty: 4.3/5.0. ...",
+        "source_type": "instructor",
+        "source_id": "sanja_pantic",
+        "vector_score": 0.4488,
+        "keyword_score": 0.0,
+        "combined_score": 0.4488,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Susan Hagen at Virginia Tech. Teaches MATH courses. Has taught 11 distinct courses. Average GPA across all sections: 2.52. RateMyProfessors: 2.6/5.0 (17 ratings). RMP difficulty: 3.4/5.0. C...",
+        "source_type": "instructor",
+        "source_id": "susan_hagen",
+        "vector_score": 0.4478,
+        "keyword_score": 0.0,
+        "combined_score": 0.4478,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Lichtenwalner at Virginia Tech. Teaches MATH courses. Has taught 2 distinct courses. Average GPA across all sections: 2.79. Courses taught include: MATH 1225.",
+        "source_type": "instructor",
+        "source_id": "lichtenwalner",
+        "vector_score": 0.4471,
+        "keyword_score": 0.0,
+        "combined_score": 0.4471,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Osama Fakron at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.5. RateMyProfessors: 4.0/5.0 (7 ratings). RMP difficulty: 3.7/5.0. Cou...",
+        "source_type": "instructor",
+        "source_id": "osama_fakron",
+        "vector_score": 0.445,
+        "keyword_score": 0.0,
+        "combined_score": 0.445,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Diane Agud at Virginia Tech. Teaches MATH courses. Has taught 47 distinct courses. Average GPA across all sections: 2.39. RateMyProfessors: 3.0/5.0 (43 ratings). RMP difficulty: 3.6/5.0. Co...",
+        "source_type": "instructor",
+        "source_id": "diane_agud",
+        "vector_score": 0.4443,
+        "keyword_score": 0.0,
+        "combined_score": 0.4443,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Samantha Brooker at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.72. RateMyProfessors: 3.5/5.0 (4 ratings). RMP difficulty: 2.5/5.0...",
+        "source_type": "instructor",
+        "source_id": "samantha_brooker",
+        "vector_score": 0.4431,
+        "keyword_score": 0.0,
+        "combined_score": 0.4431,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Instructor Greco at Virginia Tech. Teaches MATH courses. Has taught 1 distinct courses. Average GPA across all sections: 1.93. Courses taught include: MATH 1214.",
+        "source_type": "instructor",
+        "source_id": "greco",
+        "vector_score": 0.443,
+        "keyword_score": 0.0,
+        "combined_score": 0.443,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Instructor Shalqini at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.33. Courses taught include: MATH 1225, MATH 1226.",
+      "source_type": "instructor",
+      "source_id": "shalqini",
+      "vector_score": 0.4824,
+      "keyword_score": 0.0,
+      "combined_score": 0.4824,
+      "rerank_score": 0.4824,
+      "selected": true
+    },
+    {
+      "content": "Instructor Haroun Meghaichi at Virginia Tech. Teaches MATH courses. Has taught 15 distinct courses. Average GPA across all sections: 3.04. RateMyProfessors: 4.3/5.0 (7 ratings). RMP difficulty: 2.6/5....",
+      "source_type": "instructor",
+      "source_id": "haroun_meghaichi",
+      "vector_score": 0.4746,
+      "keyword_score": 0.0,
+      "combined_score": 0.4746,
+      "rerank_score": 0.4746,
+      "selected": true
+    },
+    {
+      "content": "Instructor Serbin at Virginia Tech. Teaches MATH courses. Has taught 1 distinct courses. Average GPA across all sections: 2.62. Courses taught include: MATH 2114.",
+      "source_type": "instructor",
+      "source_id": "serbin",
+      "vector_score": 0.4713,
+      "keyword_score": 0.0,
+      "combined_score": 0.4713,
+      "rerank_score": 0.4713,
+      "selected": true
+    },
+    {
+      "content": "Instructor Sarah Barreto at Virginia Tech. Teaches MATH courses. Has taught 48 distinct courses. Average GPA across all sections: 2.52. RateMyProfessors: 3.1/5.0 (34 ratings). RMP difficulty: 3.8/5.0....",
+      "source_type": "instructor",
+      "source_id": "sarah_barreto",
+      "vector_score": 0.4614,
+      "keyword_score": 0.0,
+      "combined_score": 0.4614,
+      "rerank_score": 0.4614,
+      "selected": true
+    },
+    {
+      "content": "Instructor Numann Malik at Virginia Tech. Teaches ENGL, MATH courses. Has taught 37 distinct courses. Average GPA across all sections: 2.75. RateMyProfessors: 3.0/5.0 (19 ratings). RMP difficulty: 3.7...",
+      "source_type": "instructor",
+      "source_id": "numann_malik",
+      "vector_score": 0.4604,
+      "keyword_score": 0.0,
+      "combined_score": 0.4604,
+      "rerank_score": 0.4604,
+      "selected": true
+    },
+    {
+      "content": "Instructor Madhavi Vishnubhotla at Virginia Tech. Teaches MATH courses. Has taught 33 distinct courses. Average GPA across all sections: 2.56. RateMyProfessors: 1.7/5.0 (16 ratings). RMP difficulty: 4...",
+      "source_type": "instructor",
+      "source_id": "madhavi_vishnubhotla",
+      "vector_score": 0.4602,
+      "keyword_score": 0.0,
+      "combined_score": 0.4602,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Swanson at Virginia Tech. Teaches MATH, PSYC courses. Has taught 7 distinct courses. Average GPA across all sections: 3.58. Courses taught include: MATH 1225, PSYC 4284, PSYC 4994.",
+      "source_type": "instructor",
+      "source_id": "swanson",
+      "vector_score": 0.4593,
+      "keyword_score": 0.0,
+      "combined_score": 0.4593,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Jamal Benbourenane at Virginia Tech. Teaches MATH courses. Has taught 11 distinct courses. Average GPA across all sections: 2.48. RateMyProfessors: 3.4/5.0 (9 ratings). RMP difficulty: 3.4/...",
+      "source_type": "instructor",
+      "source_id": "jamal_benbourenane",
+      "vector_score": 0.4542,
+      "keyword_score": 0.0,
+      "combined_score": 0.4542,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Alexey Onufriev at Virginia Tech. Teaches CS, MATH courses. Has taught 10 distinct courses. Average GPA across all sections: 3.33. RateMyProfessors: 4.2/5.0 (5 ratings). RMP difficulty: 3.4...",
+      "source_type": "instructor",
+      "source_id": "alexey_onufriev",
+      "vector_score": 0.4535,
+      "keyword_score": 0.0,
+      "combined_score": 0.4535,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Julia Truman at Virginia Tech. Teaches MATH courses. Has taught 22 distinct courses. Average GPA across all sections: 2.32. RateMyProfessors: 1.4/5.0 (16 ratings). RMP difficulty: 4.3/5.0. ...",
+      "source_type": "instructor",
+      "source_id": "julia_truman",
+      "vector_score": 0.4517,
+      "keyword_score": 0.0,
+      "combined_score": 0.4517,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor S Shafian at Virginia Tech. Teaches CSES courses. Has taught 7 distinct courses. Average GPA across all sections: 3.83.",
+      "source_type": "instructor",
+      "source_id": "s_shafian",
+      "vector_score": 0.4489,
+      "keyword_score": 0.0,
+      "combined_score": 0.4489,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Sanja Pantic at Virginia Tech. Teaches MATH courses. Has taught 35 distinct courses. Average GPA across all sections: 2.26. RateMyProfessors: 2.1/5.0 (50 ratings). RMP difficulty: 4.3/5.0. ...",
+      "source_type": "instructor",
+      "source_id": "sanja_pantic",
+      "vector_score": 0.4488,
+      "keyword_score": 0.0,
+      "combined_score": 0.4488,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Susan Hagen at Virginia Tech. Teaches MATH courses. Has taught 11 distinct courses. Average GPA across all sections: 2.52. RateMyProfessors: 2.6/5.0 (17 ratings). RMP difficulty: 3.4/5.0. C...",
+      "source_type": "instructor",
+      "source_id": "susan_hagen",
+      "vector_score": 0.4478,
+      "keyword_score": 0.0,
+      "combined_score": 0.4478,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Lichtenwalner at Virginia Tech. Teaches MATH courses. Has taught 2 distinct courses. Average GPA across all sections: 2.79. Courses taught include: MATH 1225.",
+      "source_type": "instructor",
+      "source_id": "lichtenwalner",
+      "vector_score": 0.4471,
+      "keyword_score": 0.0,
+      "combined_score": 0.4471,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Osama Fakron at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.5. RateMyProfessors: 4.0/5.0 (7 ratings). RMP difficulty: 3.7/5.0. Cou...",
+      "source_type": "instructor",
+      "source_id": "osama_fakron",
+      "vector_score": 0.445,
+      "keyword_score": 0.0,
+      "combined_score": 0.445,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Diane Agud at Virginia Tech. Teaches MATH courses. Has taught 47 distinct courses. Average GPA across all sections: 2.39. RateMyProfessors: 3.0/5.0 (43 ratings). RMP difficulty: 3.6/5.0. Co...",
+      "source_type": "instructor",
+      "source_id": "diane_agud",
+      "vector_score": 0.4443,
+      "keyword_score": 0.0,
+      "combined_score": 0.4443,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Samantha Brooker at Virginia Tech. Teaches MATH courses. Has taught 4 distinct courses. Average GPA across all sections: 2.72. RateMyProfessors: 3.5/5.0 (4 ratings). RMP difficulty: 2.5/5.0...",
+      "source_type": "instructor",
+      "source_id": "samantha_brooker",
+      "vector_score": 0.4431,
+      "keyword_score": 0.0,
+      "combined_score": 0.4431,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Instructor Greco at Virginia Tech. Teaches MATH courses. Has taught 1 distinct courses. Average GPA across all sections: 1.93. Courses taught include: MATH 1214.",
+      "source_type": "instructor",
+      "source_id": "greco",
+      "vector_score": 0.443,
+      "keyword_score": 0.0,
+      "combined_score": 0.443,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 246
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I'm Darvis, a grade-distribution assistant. Ask me about any course or professor and I'll show you historical GPA, A/A− rates, F rates, and enrollment trends. For example: \"Which CS 3114 professor has the strongest outcomes?\" or \"How has the A rate in ECE 2004 changed over time?\"",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 246
+  },
+  "errors": []
+}

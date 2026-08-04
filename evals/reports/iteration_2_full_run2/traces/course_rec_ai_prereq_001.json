@@ -1,0 +1,515 @@
+{
+  "case_id": "course_rec_ai_prereq_001",
+  "query": "Recommend an AI class with no prerequisites.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "natural_filter",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "natural_language_filter"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.72,
+    "wants_professors": false,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": 3,
+    "sort_goal": "largest_sample",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [
+      "Recommend an AI class with no prerequisites."
+    ],
+    "raw_candidates": [
+      {
+        "content": "Biological Sciences major (B.S.) — College of Science. elective_option — a. Select at least one of the following:: BIOL 2504 (General Zoology #), BIOL 2304 (Plant Biology #), BIOL 2604 (General Microb...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences-elective_o-a._select_at_least_o-08a2f8",
+        "vector_score": 0.7129,
+        "keyword_score": 0.0,
+        "combined_score": 0.7129,
+        "rerank_score": 0.7129,
+        "selected": true
+      },
+      {
+        "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 1. Organismal Diversity: BIOL 2504 (General Zoology #), BIOL 2604 (General Microbio...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-1._organismal_divers-d81cf8",
+        "vector_score": 0.7084,
+        "keyword_score": 0.0,
+        "combined_score": 0.7084,
+        "rerank_score": 0.7084,
+        "selected": true
+      },
+      {
+        "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. elective_option — 1. Basic Biomedical Elective: BIOL 4884 (Cell Biology #), BIOL 4104 (Developmental Biology #), BIO...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-elective_o-1._basic_biomedical_-2abe74",
+        "vector_score": 0.6724,
+        "keyword_score": 0.0,
+        "combined_score": 0.6724,
+        "rerank_score": 0.6724,
+        "selected": true
+      },
+      {
+        "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — Spring Semester: PHYS 2216 (General Physics Laboratory) 1cr, CHEM 1046 (General Che...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-spring_semester-ce8fc5",
+        "vector_score": 0.6712,
+        "keyword_score": 0.0,
+        "combined_score": 0.6712,
+        "rerank_score": 0.6712,
+        "selected": true
+      },
+      {
+        "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. elective_option — Option Required Courses: BIOL 2614 (General Microbiology Laboratory #) 1cr, BIOL 2304 (Plan...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-elective_o-option_required_cour-0bec6e",
+        "vector_score": 0.6703,
+        "keyword_score": 0.0,
+        "combined_score": 0.6703,
+        "rerank_score": 0.6703,
+        "selected": true
+      },
+      {
+        "content": "Microbiology Major with Biomedical Option major (B.S.) — College of Science. elective_option — Elective Courses: BIOL 4644 (Microbial Molecular Genetics and Physiology Laboratory #), BIOL 3774 (Molecu...",
+        "source_type": "requirement",
+        "source_id": "req-microbiology_major_with_b-elective_o-elective_courses-a20dce",
+        "vector_score": 0.6691,
+        "keyword_score": 0.0,
+        "combined_score": 0.6691,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. elective_option — Select at least two linked or inclusive laboratory courses of the following:: BIOL 3604 (Fo...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-elective_o-select_at_least_two_-b4dbad",
+        "vector_score": 0.6635,
+        "keyword_score": 0.0,
+        "combined_score": 0.6635,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Microbiology Major with Biomedical Option major (B.S.) — College of Science. required — Pathways Concept 4 - Reasoning in the Natural Sciences: BIOL 1106 (Principles of Biology 1) 3cr, BIOL 1105 (Prin...",
+        "source_type": "requirement",
+        "source_id": "req-microbiology_major_with_b-required-pathways_concept_4_--c4e953",
+        "vector_score": 0.6612,
+        "keyword_score": 0.0,
+        "combined_score": 0.6612,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 4. Laboratory Courses: BIOL 4304 (Field Ecology #), BIOL 3204 (Plant Taxonomy #), F...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-4._laboratory_course-8e2b7f",
+        "vector_score": 0.6589,
+        "keyword_score": 0.0,
+        "combined_score": 0.6589,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. required — Spring Semester: BIOL 2134 (Cell Function and Differentiation) 3cr, PHYS 2206 (General Physics) 3c...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-spring_semester-e9c081",
+        "vector_score": 0.6539,
+        "keyword_score": 0.0,
+        "combined_score": 0.6539,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — Fall Semester: BIOL 1105 (Principles of Biology) 3cr, PHYS 2215 (General Physics La...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-fall_semester-fba1bb",
+        "vector_score": 0.652,
+        "keyword_score": 0.0,
+        "combined_score": 0.652,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. elective_option — 2. Biomedical Systems Elective: BIOL 3514 (Introduction to Histology 4, #), BIOL 3134 (Human Genet...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-elective_o-2._biomedical_system-22b0ff",
+        "vector_score": 0.6511,
+        "keyword_score": 0.0,
+        "combined_score": 0.6511,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 3. Ecology and Evolution: FIW 4624 (Marine Ecology #), BIOL 4134 (Evolutionary Gene...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-3._ecology_and_evolu-432fbe",
+        "vector_score": 0.6491,
+        "keyword_score": 0.0,
+        "combined_score": 0.6491,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences major (B.S.) — College of Science. required — Fall Semester: BIOL 1115 (Principles of Biology Laboratory) 1cr, BIOL 2304 (Plant Biology or General Zoology or General Microbiology) ...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences-required-fall_semester-26c4a7",
+        "vector_score": 0.6469,
+        "keyword_score": 0.0,
+        "combined_score": 0.6469,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. required — 4. Laboratory Courses 6: BIOL 4824 (Bioinformatics Methods #), BIOL 3454 (Introductory Parasitology #), B...",
+        "source_type": "requirement",
+        "source_id": "req-biological_sciences_major-required-4._laboratory_course-a309d9",
+        "vector_score": 0.6468,
+        "keyword_score": 0.0,
+        "combined_score": 0.6468,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4824",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4824",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5814",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5814",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4654",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4654",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 5814",
+    "COURSE:CS 4654"
+  ],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [
+      "COURSE:CS 4824",
+      "COURSE:CS 5814",
+      "COURSE:CS 4654"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Biological Sciences major (B.S.) — College of Science. elective_option — a. Select at least one of the following:: BIOL 2504 (General Zoology #), BIOL 2304 (Plant Biology #), BIOL 2604 (General Microb...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences-elective_o-a._select_at_least_o-08a2f8",
+      "vector_score": 0.7129,
+      "keyword_score": 0.0,
+      "combined_score": 0.7129,
+      "rerank_score": 0.7129,
+      "selected": true
+    },
+    {
+      "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 1. Organismal Diversity: BIOL 2504 (General Zoology #), BIOL 2604 (General Microbio...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-1._organismal_divers-d81cf8",
+      "vector_score": 0.7084,
+      "keyword_score": 0.0,
+      "combined_score": 0.7084,
+      "rerank_score": 0.7084,
+      "selected": true
+    },
+    {
+      "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. elective_option — 1. Basic Biomedical Elective: BIOL 4884 (Cell Biology #), BIOL 4104 (Developmental Biology #), BIO...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-elective_o-1._basic_biomedical_-2abe74",
+      "vector_score": 0.6724,
+      "keyword_score": 0.0,
+      "combined_score": 0.6724,
+      "rerank_score": 0.6724,
+      "selected": true
+    },
+    {
+      "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — Spring Semester: PHYS 2216 (General Physics Laboratory) 1cr, CHEM 1046 (General Che...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-spring_semester-ce8fc5",
+      "vector_score": 0.6712,
+      "keyword_score": 0.0,
+      "combined_score": 0.6712,
+      "rerank_score": 0.6712,
+      "selected": true
+    },
+    {
+      "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. elective_option — Option Required Courses: BIOL 2614 (General Microbiology Laboratory #) 1cr, BIOL 2304 (Plan...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-elective_o-option_required_cour-0bec6e",
+      "vector_score": 0.6703,
+      "keyword_score": 0.0,
+      "combined_score": 0.6703,
+      "rerank_score": 0.6703,
+      "selected": true
+    },
+    {
+      "content": "Microbiology Major with Biomedical Option major (B.S.) — College of Science. elective_option — Elective Courses: BIOL 4644 (Microbial Molecular Genetics and Physiology Laboratory #), BIOL 3774 (Molecu...",
+      "source_type": "requirement",
+      "source_id": "req-microbiology_major_with_b-elective_o-elective_courses-a20dce",
+      "vector_score": 0.6691,
+      "keyword_score": 0.0,
+      "combined_score": 0.6691,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. elective_option — Select at least two linked or inclusive laboratory courses of the following:: BIOL 3604 (Fo...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-elective_o-select_at_least_two_-b4dbad",
+      "vector_score": 0.6635,
+      "keyword_score": 0.0,
+      "combined_score": 0.6635,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Microbiology Major with Biomedical Option major (B.S.) — College of Science. required — Pathways Concept 4 - Reasoning in the Natural Sciences: BIOL 1106 (Principles of Biology 1) 3cr, BIOL 1105 (Prin...",
+      "source_type": "requirement",
+      "source_id": "req-microbiology_major_with_b-required-pathways_concept_4_--c4e953",
+      "vector_score": 0.6612,
+      "keyword_score": 0.0,
+      "combined_score": 0.6612,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 4. Laboratory Courses: BIOL 4304 (Field Ecology #), BIOL 3204 (Plant Taxonomy #), F...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-4._laboratory_course-8e2b7f",
+      "vector_score": 0.6589,
+      "keyword_score": 0.0,
+      "combined_score": 0.6589,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Science Education Option major (B.S.) — College of Science. required — Spring Semester: BIOL 2134 (Cell Function and Differentiation) 3cr, PHYS 2206 (General Physics) 3c...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-spring_semester-e9c081",
+      "vector_score": 0.6539,
+      "keyword_score": 0.0,
+      "combined_score": 0.6539,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — Fall Semester: BIOL 1105 (Principles of Biology) 3cr, PHYS 2215 (General Physics La...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-fall_semester-fba1bb",
+      "vector_score": 0.652,
+      "keyword_score": 0.0,
+      "combined_score": 0.652,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. elective_option — 2. Biomedical Systems Elective: BIOL 3514 (Introduction to Histology 4, #), BIOL 3134 (Human Genet...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-elective_o-2._biomedical_system-22b0ff",
+      "vector_score": 0.6511,
+      "keyword_score": 0.0,
+      "combined_score": 0.6511,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Ecology, Evolution, and Behavior Option major (B.S.) — College of Science. required — 3. Ecology and Evolution: FIW 4624 (Marine Ecology #), BIOL 4134 (Evolutionary Gene...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-3._ecology_and_evolu-432fbe",
+      "vector_score": 0.6491,
+      "keyword_score": 0.0,
+      "combined_score": 0.6491,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences major (B.S.) — College of Science. required — Fall Semester: BIOL 1115 (Principles of Biology Laboratory) 1cr, BIOL 2304 (Plant Biology or General Zoology or General Microbiology) ...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences-required-fall_semester-26c4a7",
+      "vector_score": 0.6469,
+      "keyword_score": 0.0,
+      "combined_score": 0.6469,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Biological Sciences Major with Biomedical Option major (B.S.) — College of Science. required — 4. Laboratory Courses 6: BIOL 4824 (Bioinformatics Methods #), BIOL 3454 (Introductory Parasitology #), B...",
+      "source_type": "requirement",
+      "source_id": "req-biological_sciences_major-required-4._laboratory_course-a309d9",
+      "vector_score": 0.6468,
+      "keyword_score": 0.0,
+      "combined_score": 0.6468,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4824",
+    "COURSE:CS 5814",
+    "COURSE:CS 4654"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4824",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4824",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5814",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5814",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4654",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4654",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "recommendation_mode",
+      "route"
+    ],
+    "table_titles": [
+      "Course Recommendations"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "natural_filter",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          },
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 19
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 4824 (Machine Learning): Algorithms and principles involved in machine learning; focus on perception problems arising in computer vision, natural language processing and robotics; fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis of machine perception systems; design and implementation of a technical project applied to real-world datasets (images, text, robotics). A grade of C- or better in prerequisites.\n\nCS 5814 (Introduction to Deep Learning): History and basic concepts of artificial neural networks. Activation functions, optimization methods and regularization strategies used in deep multi-layered networks. Network architectures such as convolutional networks and recurrent neural networks. Deep reinforcement learning algorithms including deep Q•learning and policy gradient methods. Deep unsupervised models such as auto-encoders, and deep generative models including variational auto-encoders and generative adversarial networks. Advanced topics in deep learning such as transformers, graph neural networks, and ethics in Artificial Intelligence (AI). Deep learning(DL) applications such as text analysis, computer vision, and visual question answering. A platform for implementation of DL models will be used, such as Tensorflow or PyTorch.\n\nCS 4654 (Intermed Data Analytics & ML): A technical analytics course. Covers supervised and unsupervised learning strategies, including regression, generalized linear models, regulations, dimension reduction methods, tree-based methods for classification, and clustering. Upper-level analytical methods shown in practice: e.g., advanced naive Bayes and neural networks.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 19
+  },
+  "errors": []
+}

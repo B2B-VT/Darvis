@@ -1,0 +1,659 @@
+{
+  "case_id": "course_rec_cyber_001",
+  "query": "I'm a CS major interested in cybersecurity. What electives fit?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "natural_filter",
+    "confidence": 0.97,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "natural_language_filter",
+      "course_lookup"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": "CS",
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [
+      "I'm a CS major interested in cybersecurity. What electives fit?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Option Required Courses: CS 2505 (Introduction to Comput...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+        "vector_score": 0.681,
+        "keyword_score": 0.0,
+        "combined_score": 0.681,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Secure Computing major (B.S.) — College of Engineering. required — Spring Semester: ENGE 3900 (Bridge Experience), MATH 1226 (Calculus of a Single Variable) 4cr, MATH 2204 (Introduction to Multivariab...",
+        "source_type": "requirement",
+        "source_id": "req-secure_computing-required-spring_semester-2a9dca",
+        "vector_score": 0.6729,
+        "keyword_score": 0.0,
+        "combined_score": 0.6729,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Secure Computing major (B.S.) — College of Engineering. required — Fall Semester: CS 3114 (Data Structures and Algorithms ( C )) 3cr, ENGL 1105 (First-Year Writing) 3cr, CS 2505 (Introduction to Compu...",
+        "source_type": "requirement",
+        "source_id": "req-secure_computing-required-fall_semester-6aa961",
+        "vector_score": 0.6617,
+        "keyword_score": 0.0,
+        "combined_score": 0.6617,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+        "vector_score": 0.6447,
+        "keyword_score": 0.0,
+        "combined_score": 0.6447,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Secure Computing major (B.S.) at Virginia Tech, College of Engineering. Required courses: CS 1114 (Introduction to Software Design ( C )) [required], ENGE 1215 (Foundations of Engineering) [required],...",
+        "source_type": "requirement",
+        "source_id": "secure_computing",
+        "vector_score": 0.6444,
+        "keyword_score": 0.0,
+        "combined_score": 0.6444,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 6 - Critique and Practice in Design and the Ar...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-pathways_concept_6_--7369d0",
+        "vector_score": 0.6359,
+        "keyword_score": 0.0,
+        "combined_score": 0.6359,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Fall Semester: ECON 2006 (Principles of Economics 1,2) 3cr, CS 1064 (Introduction to Programming in Python...",
+        "source_type": "requirement",
+        "source_id": "req-cybersecurity_management_-required-fall_semester-d284f9",
+        "vector_score": 0.6347,
+        "keyword_score": 0.0,
+        "combined_score": 0.6347,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Networking & Cybersecurity major (B.S.) — College of Engineering. required — Fall Semester: ECE 3514 (Data Structures & Algorithms ( C- )) 3cr, ECE 2514 (Computational Engineering ( C )) 3cr, ECE 2544...",
+        "source_type": "requirement",
+        "source_id": "req-networking_&_cybersecurit-required-fall_semester-f232d5",
+        "vector_score": 0.6338,
+        "keyword_score": 0.0,
+        "combined_score": 0.6338,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Restricted Electives: CS 4134 (Quantum Computation and I...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+        "vector_score": 0.6229,
+        "keyword_score": 0.0,
+        "combined_score": 0.6229,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Degree Core Requirements: CMDA 3605 (Mathematical Modeling: Met...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-degree_core_requirem-aa0114",
+        "vector_score": 0.6224,
+        "keyword_score": 0.0,
+        "combined_score": 0.6224,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Networking & Cybersecurity major (B.S.) — College of Engineering. required — Spring Semester: ECE 2214 (Physical Electronics ( C )) 3cr, ENGE 1216 (Foundations of Engineering) 2cr, ENGE 3900 (Bridge E...",
+        "source_type": "requirement",
+        "source_id": "req-networking_&_cybersecurit-required-spring_semester-062485",
+        "vector_score": 0.6172,
+        "keyword_score": 0.0,
+        "combined_score": 0.6172,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: M...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+        "vector_score": 0.6111,
+        "keyword_score": 0.0,
+        "combined_score": 0.6111,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Spring Semester: ENGL 1106 (First-Year Writing or Communication Skills) 3cr, MGT 4394 (Strategic Managemen...",
+        "source_type": "requirement",
+        "source_id": "req-cybersecurity_management_-required-spring_semester-c17615",
+        "vector_score": 0.6092,
+        "keyword_score": 0.0,
+        "combined_score": 0.6092,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computer Science major (B.S.) — College of Engineering. required — Spring Semester: MATH 2204 (Introduction to Multivariable Calculus or Integrated Quantitative Sciences) 3cr, MATH 2114 (Introduction ...",
+        "source_type": "requirement",
+        "source_id": "req-computer_science-required-spring_semester-c0afcf",
+        "vector_score": 0.6066,
+        "keyword_score": 0.0,
+        "combined_score": 0.6066,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Major Requirements: CMDA 1634 (Discovering Computational Modeli...",
+        "source_type": "requirement",
+        "source_id": "req-computational_modeling_an-required-major_requirements-d1c4de",
+        "vector_score": 0.5949,
+        "keyword_score": 0.0,
+        "combined_score": 0.5949,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 4994",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4994",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 6804",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "6804",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4774",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4774",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5914",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5914",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5934",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 4994",
+    "COURSE:CS 6804",
+    "COURSE:CS 4774",
+    "COURSE:CS 5914",
+    "COURSE:CS 5934"
+  ],
+  "ranking": {
+    "method": "rrf_passthrough",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "req-secure_computing-required-spring_semester-2a9dca",
+      "req-secure_computing-required-fall_semester-6aa961",
+      "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "secure_computing",
+      "req-computational_modeling_an-required-pathways_concept_6_--7369d0",
+      "req-cybersecurity_management_-required-fall_semester-d284f9",
+      "req-networking_&_cybersecurit-required-fall_semester-f232d5",
+      "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+      "req-computational_modeling_an-required-degree_core_requirem-aa0114",
+      "req-networking_&_cybersecurit-required-spring_semester-062485",
+      "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+      "req-cybersecurity_management_-required-spring_semester-c17615",
+      "req-computer_science-required-spring_semester-c0afcf",
+      "req-computational_modeling_an-required-major_requirements-d1c4de"
+    ],
+    "input_rrf_order": [
+      "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "req-secure_computing-required-spring_semester-2a9dca",
+      "req-secure_computing-required-fall_semester-6aa961",
+      "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "secure_computing",
+      "req-computational_modeling_an-required-pathways_concept_6_--7369d0",
+      "req-cybersecurity_management_-required-fall_semester-d284f9",
+      "req-networking_&_cybersecurit-required-fall_semester-f232d5",
+      "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+      "req-computational_modeling_an-required-degree_core_requirem-aa0114",
+      "req-networking_&_cybersecurit-required-spring_semester-062485",
+      "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+      "req-cybersecurity_management_-required-spring_semester-c17615",
+      "req-computer_science-required-spring_semester-c0afcf",
+      "req-computational_modeling_an-required-major_requirements-d1c4de"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "req-secure_computing-required-spring_semester-2a9dca",
+      "req-secure_computing-required-fall_semester-6aa961",
+      "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "secure_computing"
+    ],
+    "selected_ids": [
+      "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "req-secure_computing-required-spring_semester-2a9dca",
+      "req-secure_computing-required-fall_semester-6aa961",
+      "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "secure_computing"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0.1,
+    "ordered_ids": [
+      "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "req-secure_computing-required-spring_semester-2a9dca",
+      "req-secure_computing-required-fall_semester-6aa961",
+      "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "secure_computing"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Option Required Courses: CS 2505 (Introduction to Comput...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-elective_o-option_required_cour-1828cf",
+      "vector_score": 0.681,
+      "keyword_score": 0.0,
+      "combined_score": 0.681,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Secure Computing major (B.S.) — College of Engineering. required — Spring Semester: ENGE 3900 (Bridge Experience), MATH 1226 (Calculus of a Single Variable) 4cr, MATH 2204 (Introduction to Multivariab...",
+      "source_type": "requirement",
+      "source_id": "req-secure_computing-required-spring_semester-2a9dca",
+      "vector_score": 0.6729,
+      "keyword_score": 0.0,
+      "combined_score": 0.6729,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Secure Computing major (B.S.) — College of Engineering. required — Fall Semester: CS 3114 (Data Structures and Algorithms ( C )) 3cr, ENGL 1105 (First-Year Writing) 3cr, CS 2505 (Introduction to Compu...",
+      "source_type": "requirement",
+      "source_id": "req-secure_computing-required-fall_semester-6aa961",
+      "vector_score": 0.6617,
+      "keyword_score": 0.0,
+      "combined_score": 0.6617,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Additional Course Requirements: CS 3754 (Cloud Software Develop...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-additional_course_re-de3e3f",
+      "vector_score": 0.6447,
+      "keyword_score": 0.0,
+      "combined_score": 0.6447,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Secure Computing major (B.S.) at Virginia Tech, College of Engineering. Required courses: CS 1114 (Introduction to Software Design ( C )) [required], ENGE 1215 (Foundations of Engineering) [required],...",
+      "source_type": "requirement",
+      "source_id": "secure_computing",
+      "vector_score": 0.6444,
+      "keyword_score": 0.0,
+      "combined_score": 0.6444,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 6 - Critique and Practice in Design and the Ar...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-pathways_concept_6_--7369d0",
+      "vector_score": 0.6359,
+      "keyword_score": 0.0,
+      "combined_score": 0.6359,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Fall Semester: ECON 2006 (Principles of Economics 1,2) 3cr, CS 1064 (Introduction to Programming in Python...",
+      "source_type": "requirement",
+      "source_id": "req-cybersecurity_management_-required-fall_semester-d284f9",
+      "vector_score": 0.6347,
+      "keyword_score": 0.0,
+      "combined_score": 0.6347,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Networking & Cybersecurity major (B.S.) — College of Engineering. required — Fall Semester: ECE 3514 (Data Structures & Algorithms ( C- )) 3cr, ECE 2514 (Computational Engineering ( C )) 3cr, ECE 2544...",
+      "source_type": "requirement",
+      "source_id": "req-networking_&_cybersecurit-required-fall_semester-f232d5",
+      "vector_score": 0.6338,
+      "keyword_score": 0.0,
+      "combined_score": 0.6338,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. elective_option — Restricted Electives: CS 4134 (Quantum Computation and I...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-elective_o-restricted_electives-c15715",
+      "vector_score": 0.6229,
+      "keyword_score": 0.0,
+      "combined_score": 0.6229,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Degree Core Requirements: CMDA 3605 (Mathematical Modeling: Met...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-degree_core_requirem-aa0114",
+      "vector_score": 0.6224,
+      "keyword_score": 0.0,
+      "combined_score": 0.6224,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Networking & Cybersecurity major (B.S.) — College of Engineering. required — Spring Semester: ECE 2214 (Physical Electronics ( C )) 3cr, ENGE 1216 (Foundations of Engineering) 2cr, ENGE 3900 (Bridge E...",
+      "source_type": "requirement",
+      "source_id": "req-networking_&_cybersecurit-required-spring_semester-062485",
+      "vector_score": 0.6172,
+      "keyword_score": 0.0,
+      "combined_score": 0.6172,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Pathways Concept 5 - Quantitative and Computational Thinking: M...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-pathways_concept_5_--2e75cb",
+      "vector_score": 0.6111,
+      "keyword_score": 0.0,
+      "combined_score": 0.6111,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Cybersecurity Management and Analytics major (B.S.) — Pamplin College of Business. required — Spring Semester: ENGL 1106 (First-Year Writing or Communication Skills) 3cr, MGT 4394 (Strategic Managemen...",
+      "source_type": "requirement",
+      "source_id": "req-cybersecurity_management_-required-spring_semester-c17615",
+      "vector_score": 0.6092,
+      "keyword_score": 0.0,
+      "combined_score": 0.6092,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computer Science major (B.S.) — College of Engineering. required — Spring Semester: MATH 2204 (Introduction to Multivariable Calculus or Integrated Quantitative Sciences) 3cr, MATH 2114 (Introduction ...",
+      "source_type": "requirement",
+      "source_id": "req-computer_science-required-spring_semester-c0afcf",
+      "vector_score": 0.6066,
+      "keyword_score": 0.0,
+      "combined_score": 0.6066,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Computational Modeling and Data Analytics Major with Cryptography and Cybersecurity Option major (B.S.) — College of Science. required — Major Requirements: CMDA 1634 (Discovering Computational Modeli...",
+      "source_type": "requirement",
+      "source_id": "req-computational_modeling_an-required-major_requirements-d1c4de",
+      "vector_score": 0.5949,
+      "keyword_score": 0.0,
+      "combined_score": 0.5949,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 4994",
+    "COURSE:CS 6804",
+    "COURSE:CS 4774",
+    "COURSE:CS 5914",
+    "COURSE:CS 5934"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 4994",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4994",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 6804",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "6804",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4774",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4774",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5914",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5914",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5934",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "sort_goal"
+    ],
+    "table_titles": [
+      "Filter Results"
+    ],
+    "chart_titles": [
+      "Filter Results: Highest Avg GPA"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "natural_filter",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Filter Results",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4994",
+            "Course Title": "Undergraduate Research",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 51,
+            "Terms Taught": 7,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 6804",
+            "Course Title": "Adv Topics Intell Sys",
+            "Avg GPA": 3.996,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 122,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4774",
+            "Course Title": "HCI Design Experience",
+            "Avg GPA": 3.971,
+            "Avg A Range (%)": 97.1,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 32,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5914",
+            "Course Title": "TS:Software Project Management",
+            "Avg GPA": 3.97,
+            "Avg A Range (%)": 97.4,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 39,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2022,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Avg GPA": 3.968,
+            "Avg A Range (%)": 98.67,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 1325,
+            "Terms Taught": 14,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      }
+    ],
+    "charts_count": 1,
+    "metadata": {
+      "sort_goal": "highest_gpa",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 783,
+        "resolve_ms": 0,
+        "handler_ms": 39183
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 4264 (Principles of Computer Security) and CS 4274 (Secure Computing Capstone) are core cybersecurity electives, both required in the Secure Computing major. Additional options include CS 5580 (Cryptographic Engineering), CS 5584 (Network Security), CS 5590 (System and Software Security) and CS 5594 (Blockchain Technologies), each listed as required courses in the cybersecurity‑focused curricula.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 783,
+    "resolve_ms": 0,
+    "handler_ms": 39183
+  },
+  "errors": []
+}

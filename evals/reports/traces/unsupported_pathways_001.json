@@ -1,0 +1,260 @@
+{
+  "case_id": "unsupported_pathways_001",
+  "query": "Which CS courses satisfy Pathways 5f?",
+  "parsed_intent": {
+    "capabilities": [
+      "general_question"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.45,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Course CS 2505: Intro Computer Organization. Credits: 3.0. Average GPA: 3.02. Fall 2026 sections available: 42.",
+      "source_type": "course",
+      "source_id": "cs-2505",
+      "vector_score": 0.6184,
+      "keyword_score": 0.0,
+      "combined_score": 0.6184,
+      "rerank_score": 0.6184,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5304: Trans Design and Con. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "cs-5304",
+      "vector_score": 0.6115,
+      "keyword_score": 0.0,
+      "combined_score": 0.6115,
+      "rerank_score": 0.6115,
+      "selected": true
+    },
+    {
+      "content": "Course CS 2506: Intro to Computer Organization. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 29.",
+      "source_type": "course",
+      "source_id": "cs-2506",
+      "vector_score": 0.6056,
+      "keyword_score": 0.0,
+      "combined_score": 0.6056,
+      "rerank_score": 0.6056,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4504: Computer Organization. Credits: 3.0. Average GPA: 2.82. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-4504",
+      "vector_score": 0.5997,
+      "keyword_score": 0.0,
+      "combined_score": 0.5997,
+      "rerank_score": 0.5997,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4994: Undergraduate Research. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "cs-4994",
+      "vector_score": 0.5947,
+      "keyword_score": 0.0,
+      "combined_score": 0.5947,
+      "rerank_score": 0.5947,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4894: TS: Starting a CS Business. Credits: 3.0. Average GPA: 3.38. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-4894",
+      "vector_score": 0.5934,
+      "keyword_score": 0.0,
+      "combined_score": 0.5934,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 3984: SS: Starting a CS Business. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-3984",
+      "vector_score": 0.5821,
+      "keyword_score": 0.0,
+      "combined_score": 0.5821,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4974: Independent Study. Credits: 3.0. Average GPA: 3.95. Fall 2026 sections available: 16.",
+      "source_type": "course",
+      "source_id": "cs-4974",
+      "vector_score": 0.578,
+      "keyword_score": 0.0,
+      "combined_score": 0.578,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4634: Design Of Information. Credits: 3.0. Average GPA: 3.24. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "cs-4634",
+      "vector_score": 0.5776,
+      "keyword_score": 0.0,
+      "combined_score": 0.5776,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 1044: Intro Prog in C. Credits: 3.0. Average GPA: 3.26. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "cs-1044",
+      "vector_score": 0.5769,
+      "keyword_score": 0.0,
+      "combined_score": 0.5769,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5590: System and Software Security. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "cs-5590",
+      "vector_score": 0.5767,
+      "keyword_score": 0.0,
+      "combined_score": 0.5767,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 2974: Independent Study. Credits: 2.8. Average GPA: 3.99. Fall 2026 sections available: 13.",
+      "source_type": "course",
+      "source_id": "cs-2974",
+      "vector_score": 0.5763,
+      "keyword_score": 0.0,
+      "combined_score": 0.5763,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5510",
+      "vector_score": 0.5759,
+      "keyword_score": 0.0,
+      "combined_score": 0.5759,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5764: Information Visualization. Credits: 3.0. Average GPA: 3.82. Fall 2026 sections available: 18.",
+      "source_type": "course",
+      "source_id": "cs-5764",
+      "vector_score": 0.5746,
+      "keyword_score": 0.0,
+      "combined_score": 0.5746,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4164: Future of Security. Credits: 3.0. Average GPA: 3.8. Fall 2026 sections available: 10.",
+      "source_type": "course",
+      "source_id": "cs-4164",
+      "vector_score": 0.5739,
+      "keyword_score": 0.0,
+      "combined_score": 0.5739,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5504: Computer Architecture. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-5504",
+      "vector_score": 0.5718,
+      "keyword_score": 0.0,
+      "combined_score": 0.5718,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5925: Integrated Project Design. Credits: 6.0. Average GPA: 3.93. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-5925",
+      "vector_score": 0.5695,
+      "keyword_score": 0.0,
+      "combined_score": 0.5695,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5926: Integrated Project Design. Credits: 6.0. Average GPA: 3.98. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "cs-5926",
+      "vector_score": 0.5659,
+      "keyword_score": 0.0,
+      "combined_score": 0.5659,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5002,
+        "resolve_ms": 0,
+        "handler_ms": 3681
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Darvis doesn't have that data.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5002,
+    "resolve_ms": 0,
+    "handler_ms": 3681
+  },
+  "errors": []
+}

@@ -1,0 +1,87 @@
+{
+  "case_id": "major_req_cs_ai_001",
+  "query": "I'm a CS major. What requirements should I prioritize if I want AI?",
+  "parsed_intent": {
+    "capabilities": [
+      "major_requirement_lookup",
+      "natural_language_filter"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.98,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "major_requirements",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": "CS",
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": "AI",
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "major_requirements",
+    "metadata_keys": [
+      "matched_major",
+      "needs_clarification",
+      "route"
+    ],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "route": "major_requirements",
+      "matched_major": null,
+      "needs_clarification": true,
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1519,
+        "resolve_ms": 0,
+        "handler_ms": 0
+      },
+      "confidence": 0.98
+    }
+  },
+  "final_response": {
+    "route": "major_requirements",
+    "answer": "Which major should we check? We need the major or a specific requirement list before we can identify required courses that fit your constraints.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1519,
+    "resolve_ms": 0,
+    "handler_ms": 0
+  },
+  "errors": []
+}

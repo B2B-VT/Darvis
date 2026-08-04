@@ -1,0 +1,80 @@
+{
+  "case_id": "unsupported_workload_001",
+  "query": "Which CS 2114 professor gives the least homework?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 2114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "2114",
+        "professor_name": null,
+        "source": "entity_resolver",
+        "evidence_role": "requested_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 2114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "2114",
+      "professor_name": null,
+      "source": "entity_resolver",
+      "evidence_role": "requested_course",
+      "approval_status": "approved"
+    }
+  ],
+  "evidence_ids": [
+    "COURSE:CS 2114"
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 2114"
+  ],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [
+      "COURSE:CS 2114"
+    ],
+    "selected_ids": [
+      "COURSE:CS 2114"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": false,
+    "status": "clarification_required",
+    "reasons": [
+      "deterministic_professor_ambiguity"
+    ]
+  },
+  "answer_type": "insufficient_data",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Cyrus does not have enough approved evidence to answer this without guessing."
+  }
+}

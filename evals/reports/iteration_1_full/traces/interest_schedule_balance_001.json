@@ -1,0 +1,260 @@
+{
+  "case_id": "interest_schedule_balance_001",
+  "query": "How should I balance math, coding, and writing classes next semester?",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": null,
+    "open_seats_only": false,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "general_question"
+    ],
+    "requested_courses": [],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.97,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "math-5134",
+      "vector_score": 0.5896,
+      "keyword_score": 0.0,
+      "combined_score": 0.5896,
+      "rerank_score": 0.5896,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "math-3054",
+      "vector_score": 0.5868,
+      "keyword_score": 0.0,
+      "combined_score": 0.5868,
+      "rerank_score": 0.5868,
+      "selected": true
+    },
+    {
+      "content": "Course CS 4234: Parallel Computation. Credits: 3.0. Average GPA: 3.53. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-4234",
+      "vector_score": 0.5701,
+      "keyword_score": 0.0,
+      "combined_score": 0.5701,
+      "rerank_score": 0.5701,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-2114",
+      "vector_score": 0.5589,
+      "keyword_score": 0.0,
+      "combined_score": 0.5589,
+      "rerank_score": 0.5589,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-3114",
+      "vector_score": 0.5544,
+      "keyword_score": 0.0,
+      "combined_score": 0.5544,
+      "rerank_score": 0.5544,
+      "selected": true
+    },
+    {
+      "content": "Course CS 5234: Advanced Parallel Computation. Credits: 3.0. Average GPA: 3.62. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-5234",
+      "vector_score": 0.538,
+      "keyword_score": 0.0,
+      "combined_score": 0.538,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 1454: Intro to Math Programming. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-1454",
+      "vector_score": 0.533,
+      "keyword_score": 0.0,
+      "combined_score": 0.533,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 3094: SAS Programming. Credits: 3.0. Average GPA: 3.56. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "stat-3094",
+      "vector_score": 0.5325,
+      "keyword_score": 0.0,
+      "combined_score": 0.5325,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 6404: Adv Topics Math S/W. Credits: 3.0. Average GPA: 3.96. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "cs-6404",
+      "vector_score": 0.5311,
+      "keyword_score": 0.0,
+      "combined_score": 0.5311,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5544: Compiler Optimizations. Credits: 3.0. Average GPA: 3.84. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-5544",
+      "vector_score": 0.5291,
+      "keyword_score": 0.0,
+      "combined_score": 0.5291,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "math-2644",
+      "vector_score": 0.5259,
+      "keyword_score": 0.0,
+      "combined_score": 0.5259,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 2104: Intro to Problem Solving in CS. Credits: 3.0. Average GPA: 3.46. Fall 2026 sections available: 56.",
+      "source_type": "course",
+      "source_id": "cs-2104",
+      "vector_score": 0.5255,
+      "keyword_score": 0.0,
+      "combined_score": 0.5255,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ISE 6414: Integer Programming. Credits: 3.0. Average GPA: 3.64. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "ise-6414",
+      "vector_score": 0.5248,
+      "keyword_score": 0.0,
+      "combined_score": 0.5248,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 5510: Multiprocessor Programming. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "cs-5510",
+      "vector_score": 0.5226,
+      "keyword_score": 0.0,
+      "combined_score": 0.5226,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ISE 6514: Advanced Math Programming. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "ise-6514",
+      "vector_score": 0.5226,
+      "keyword_score": 0.0,
+      "combined_score": 0.5226,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4304: Compiler Design. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "cs-4304",
+      "vector_score": 0.5226,
+      "keyword_score": 0.0,
+      "combined_score": 0.5226,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 2144: Competitive Problem Solving I. Credits: 3.0. Average GPA: 3.82. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "cs-2144",
+      "vector_score": 0.5202,
+      "keyword_score": 0.0,
+      "combined_score": 0.5202,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course CS 4144: Competitive Problem Solving II. Credits: 3.0. Average GPA: 3.84. Fall 2026 sections available: 2.",
+      "source_type": "course",
+      "source_id": "cs-4144",
+      "vector_score": 0.5195,
+      "keyword_score": 0.0,
+      "combined_score": 0.5195,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 439,
+        "resolve_ms": 0,
+        "handler_ms": 1064
+      },
+      "confidence": 0.97
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Darvis doesn’t have that data.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 439,
+    "resolve_ms": 0,
+    "handler_ms": 1064
+  },
+  "errors": []
+}

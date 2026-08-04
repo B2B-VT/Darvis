@@ -1,0 +1,459 @@
+{
+  "case_id": "unsupported_guarantee_a_001",
+  "query": "Which class guarantees an A?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "Which class guarantees an A?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course ASPT 6204: TS: The Rule of Property. Credits: 3.0. Average GPA: 3.76. Fall 2026 sections available: 11.",
+        "source_type": "course",
+        "source_id": "aspt-6204",
+        "vector_score": 0.4277,
+        "keyword_score": 0.0,
+        "combined_score": 0.4277,
+        "rerank_score": 0.4277,
+        "selected": true
+      },
+      {
+        "content": "Course ACIS 4684: IS Security and Assurance. Credits: 3.0. Average GPA: 3.33. Fall 2026 sections available: 11.",
+        "source_type": "course",
+        "source_id": "acis-4684",
+        "vector_score": 0.3993,
+        "keyword_score": 0.0,
+        "combined_score": 0.3993,
+        "rerank_score": 0.3993,
+        "selected": true
+      },
+      {
+        "content": "Course AOE 4604: Booster Design. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "aoe-4604",
+        "vector_score": 0.3839,
+        "keyword_score": 0.0,
+        "combined_score": 0.3839,
+        "rerank_score": 0.3839,
+        "selected": true
+      },
+      {
+        "content": "Course AOE 5224G: Advanced A&O Vehicle Model ID. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "aoe-5224G",
+        "vector_score": 0.377,
+        "keyword_score": 0.0,
+        "combined_score": 0.377,
+        "rerank_score": 0.377,
+        "selected": true
+      },
+      {
+        "content": "Course GR 1106: Class and NT Greek. Credits: 3.0. Average GPA: 3.78. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "gr-1106",
+        "vector_score": 0.3689,
+        "keyword_score": 0.0,
+        "combined_score": 0.3689,
+        "rerank_score": 0.3689,
+        "selected": true
+      },
+      {
+        "content": "Course AAD 1204: Thinking Globally. Credits: 1.0. Average GPA: 3.77. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "aad-1204",
+        "vector_score": 0.3683,
+        "keyword_score": 0.0,
+        "combined_score": 0.3683,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AHRM 2404: Consumer Rights. Credits: 3.0. Average GPA: 3.26. Fall 2026 sections available: 14.",
+        "source_type": "course",
+        "source_id": "ahrm-2404",
+        "vector_score": 0.367,
+        "keyword_score": 0.0,
+        "combined_score": 0.367,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AOE 5764: Applied Linear Control. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "aoe-5764",
+        "vector_score": 0.3645,
+        "keyword_score": 0.0,
+        "combined_score": 0.3645,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AOE 5034: Mechanical & Struct Dynamics. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "aoe-5034",
+        "vector_score": 0.3625,
+        "keyword_score": 0.0,
+        "combined_score": 0.3625,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course APSC 2714: Design Precision Anim Ag Syst. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "apsc-2714",
+        "vector_score": 0.361,
+        "keyword_score": 0.0,
+        "combined_score": 0.361,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course GR 1105: Class and NT Greek. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "gr-1105",
+        "vector_score": 0.3604,
+        "keyword_score": 0.0,
+        "combined_score": 0.3604,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course APSC 5334: Adjunctive Appr Anim Behavior. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "apsc-5334",
+        "vector_score": 0.3594,
+        "keyword_score": 0.0,
+        "combined_score": 0.3594,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course ME 5804: Actv Matls/Smart Struct-I. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "me-5804",
+        "vector_score": 0.3587,
+        "keyword_score": 0.0,
+        "combined_score": 0.3587,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AOE 4054: Stability of Structures. Credits: 3.0. Average GPA: 3.16. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "aoe-4054",
+        "vector_score": 0.3582,
+        "keyword_score": 0.0,
+        "combined_score": 0.3582,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AOE 5754: Applied Linear Systems. Credits: 3.0. Average GPA: 3.78. Fall 2026 sections available: 7.",
+        "source_type": "course",
+        "source_id": "aoe-5754",
+        "vector_score": 0.3569,
+        "keyword_score": 0.0,
+        "combined_score": 0.3569,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course ACIS 4124: Governmental Acctg. Credits: 3.0. Average GPA: 3.1. Fall 2026 sections available: 9.",
+        "source_type": "course",
+        "source_id": "acis-4124",
+        "vector_score": 0.3568,
+        "keyword_score": 0.0,
+        "combined_score": 0.3568,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course AOE 4004: State-Space Control. Credits: 3.0. Average GPA: 3.34. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "aoe-4004",
+        "vector_score": 0.3563,
+        "keyword_score": 0.0,
+        "combined_score": 0.3563,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course STAT 5454: Reliability Theory. Credits: 3.0. Average GPA: 3.47. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "stat-5454",
+        "vector_score": 0.3562,
+        "keyword_score": 0.0,
+        "combined_score": 0.3562,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course ASPT 6204: TS: The Rule of Property. Credits: 3.0. Average GPA: 3.76. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "aspt-6204",
+      "vector_score": 0.4277,
+      "keyword_score": 0.0,
+      "combined_score": 0.4277,
+      "rerank_score": 0.4277,
+      "selected": true
+    },
+    {
+      "content": "Course ACIS 4684: IS Security and Assurance. Credits: 3.0. Average GPA: 3.33. Fall 2026 sections available: 11.",
+      "source_type": "course",
+      "source_id": "acis-4684",
+      "vector_score": 0.3993,
+      "keyword_score": 0.0,
+      "combined_score": 0.3993,
+      "rerank_score": 0.3993,
+      "selected": true
+    },
+    {
+      "content": "Course AOE 4604: Booster Design. Credits: 3.0. Average GPA: 3.77. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "aoe-4604",
+      "vector_score": 0.3839,
+      "keyword_score": 0.0,
+      "combined_score": 0.3839,
+      "rerank_score": 0.3839,
+      "selected": true
+    },
+    {
+      "content": "Course AOE 5224G: Advanced A&O Vehicle Model ID. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "aoe-5224G",
+      "vector_score": 0.377,
+      "keyword_score": 0.0,
+      "combined_score": 0.377,
+      "rerank_score": 0.377,
+      "selected": true
+    },
+    {
+      "content": "Course GR 1106: Class and NT Greek. Credits: 3.0. Average GPA: 3.78. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "gr-1106",
+      "vector_score": 0.3689,
+      "keyword_score": 0.0,
+      "combined_score": 0.3689,
+      "rerank_score": 0.3689,
+      "selected": true
+    },
+    {
+      "content": "Course AAD 1204: Thinking Globally. Credits: 1.0. Average GPA: 3.77. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "aad-1204",
+      "vector_score": 0.3683,
+      "keyword_score": 0.0,
+      "combined_score": 0.3683,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AHRM 2404: Consumer Rights. Credits: 3.0. Average GPA: 3.26. Fall 2026 sections available: 14.",
+      "source_type": "course",
+      "source_id": "ahrm-2404",
+      "vector_score": 0.367,
+      "keyword_score": 0.0,
+      "combined_score": 0.367,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AOE 5764: Applied Linear Control. Credits: 3.0. Average GPA: 3.71. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "aoe-5764",
+      "vector_score": 0.3645,
+      "keyword_score": 0.0,
+      "combined_score": 0.3645,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AOE 5034: Mechanical & Struct Dynamics. Credits: 3.0. Average GPA: 3.7. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "aoe-5034",
+      "vector_score": 0.3625,
+      "keyword_score": 0.0,
+      "combined_score": 0.3625,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course APSC 2714: Design Precision Anim Ag Syst. Credits: 3.0. Average GPA: 3.55. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "apsc-2714",
+      "vector_score": 0.361,
+      "keyword_score": 0.0,
+      "combined_score": 0.361,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course GR 1105: Class and NT Greek. Credits: 3.0. Average GPA: 3.81. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "gr-1105",
+      "vector_score": 0.3604,
+      "keyword_score": 0.0,
+      "combined_score": 0.3604,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course APSC 5334: Adjunctive Appr Anim Behavior. Credits: 3.0. Average GPA: 3.88. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "apsc-5334",
+      "vector_score": 0.3594,
+      "keyword_score": 0.0,
+      "combined_score": 0.3594,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ME 5804: Actv Matls/Smart Struct-I. Credits: 3.0. Average GPA: 4.0. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "me-5804",
+      "vector_score": 0.3587,
+      "keyword_score": 0.0,
+      "combined_score": 0.3587,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AOE 4054: Stability of Structures. Credits: 3.0. Average GPA: 3.16. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "aoe-4054",
+      "vector_score": 0.3582,
+      "keyword_score": 0.0,
+      "combined_score": 0.3582,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AOE 5754: Applied Linear Systems. Credits: 3.0. Average GPA: 3.78. Fall 2026 sections available: 7.",
+      "source_type": "course",
+      "source_id": "aoe-5754",
+      "vector_score": 0.3569,
+      "keyword_score": 0.0,
+      "combined_score": 0.3569,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course ACIS 4124: Governmental Acctg. Credits: 3.0. Average GPA: 3.1. Fall 2026 sections available: 9.",
+      "source_type": "course",
+      "source_id": "acis-4124",
+      "vector_score": 0.3568,
+      "keyword_score": 0.0,
+      "combined_score": 0.3568,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course AOE 4004: State-Space Control. Credits: 3.0. Average GPA: 3.34. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "aoe-4004",
+      "vector_score": 0.3563,
+      "keyword_score": 0.0,
+      "combined_score": 0.3563,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course STAT 5454: Reliability Theory. Credits: 3.0. Average GPA: 3.47. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "stat-5454",
+      "vector_score": 0.3562,
+      "keyword_score": 0.0,
+      "combined_score": 0.3562,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 1,
+        "handler_ms": 3234
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I'm Darvis, a grade-distribution assistant. Ask me about any course or professor and I'll show you historical GPA, A/A− rates, F rates, and enrollment trends. For example: \"Which CS 3114 professor has the strongest outcomes?\" or \"How has the A rate in ECE 2004 changed over time?\"",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 1,
+    "handler_ms": 3234
+  },
+  "errors": []
+}

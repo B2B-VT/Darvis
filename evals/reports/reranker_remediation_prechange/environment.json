@@ -1,0 +1,22 @@
+{
+  "git_commit": "9f2976d8fdf1d3e8c2422688d5d30ed176fe96e7",
+  "working_tree_diff_sha256": "241714f895a50c1f1586f551d4991b9dcabde3b1083a364350d982e1dc33c736",
+  "python": "3.13.1 (v3.13.1:06714517797, Dec  3 2024, 14:00:22) [Clang 15.0.0 (clang-1500.3.9.4)]",
+  "platform": "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+  "uname": {
+    "system": "Darwin",
+    "node": "Mac",
+    "release": "24.6.0",
+    "version": "Darwin Kernel Version 24.6.0: Mon Jul 14 11:30:51 PDT 2025; root:xnu-11417.140.69~1/RELEASE_ARM64_T8112",
+    "machine": "arm64",
+    "processor": "arm"
+  },
+  "torch": "2.13.0",
+  "transformers": "5.13.0",
+  "sentence_transformers": "5.6.0",
+  "numpy": "2.5.1",
+  "tokenizers": "0.22.2",
+  "safetensors": "0.8.0",
+  "cuda": false,
+  "mps": false
+}

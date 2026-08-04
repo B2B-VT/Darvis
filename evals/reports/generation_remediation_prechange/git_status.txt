@@ -1,0 +1,29 @@
+ M chatbot/app/config.py
+ M chatbot/app/features/course_profile.py
+ M chatbot/app/features/natural_filter.py
+ M chatbot/app/features/professor_profile.py
+ M chatbot/app/features/templated_answers.py
+ M chatbot/app/main.py
+ M chatbot/app/models.py
+ M chatbot/app/rag/observability.py
+ M chatbot/app/rag/pipeline.py
+ M chatbot/app/rag/reranker.py
+ M chatbot/app/safety/entity_resolver.py
+ M chatbot/tests/test_rag_refactor.py
+ M outputs/rag_qa_workbook/rag_llm_fallback_qa_test_workbook_completed.xlsx
+ D outputs/rag_qa_workbook/~$rag_llm_fallback_qa_test_workbook_completed.xlsx
+?? .claude/agents/
+?? .claude/settings/
+?? .claude/system-prompts/
+?? chatbot/tests/test_cyrus_eval_graders.py
+?? chatbot/tests/test_entity_retrieval_guards.py
+?? chatbot/tests/test_reranker.py
+?? docs/
+?? evals/README.md
+?? evals/datasets/
+?? evals/graders/
+?? evals/reports/
+?? evals/run.py
+?? evals/run_reranker_ab.py
+?? evals/thresholds.yaml
+?? tools/

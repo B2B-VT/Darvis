@@ -1,0 +1,73 @@
+major_req_cs_ai_001: candidates=16 control_ndcg=0.8556691603792903 experiment_ndcg=0.8178747578506881
+interest_business_analytics_001: candidates=18 control_ndcg=0.7978637366933587 experiment_ndcg=0.6735439182299785
+interest_no_8ams_schedule_001: candidates=18 control_ndcg=0.6309297535714575 experiment_ndcg=1.0
+followup_course_context_001: candidates=18 control_ndcg=0.0 experiment_ndcg=0.0
+adv_prompt_injection_001: candidates=0 control_ndcg=0.0 experiment_ndcg=0.0
+adv_wrong_entity_instruction_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+adv_invent_professor_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+adv_format_001: candidates=18 control_ndcg=0.6131471927654584 experiment_ndcg=0.6131471927654584
+course_cmp_cs1114_cs2114_001: candidates=18 control_ndcg=0.6131471927654584 experiment_ndcg=0.6131471927654584
+course_cmp_cs2505_cs2506_001: candidates=13 control_ndcg=0.6131471927654584 experiment_ndcg=0.6131471927654584
+course_cmp_ml_ai_001: candidates=18 control_ndcg=0.2640681225725909 experiment_ndcg=0.38685280723454163
+course_cmp_wrong_entity_guard_001: candidates=18 control_ndcg=0.6131471927654584 experiment_ndcg=0.6131471927654584
+course_cmp_no_subject_001: candidates=0 control_ndcg=0.0 experiment_ndcg=0.0
+course_cmp_prereq_sequence_001: candidates=18 control_ndcg=0.6131471927654584 experiment_ndcg=0.6131471927654584
+course_rec_ai_001: candidates=18 control_ndcg=0.0 experiment_ndcg=0.492661526824024
+course_rec_biology_001: candidates=5 control_ndcg=0.6735439182299785 experiment_ndcg=0.6735439182299785
+course_rec_ai_prereq_001: candidates=18 control_ndcg=0.6131471927654584 experiment_ndcg=0.3065735963827292
+course_rec_cyber_001: candidates=16 control_ndcg=0.33677195911498925 experiment_ndcg=0.6735439182299785
+course_rec_data_science_001: candidates=18 control_ndcg=0.5982318540006005 experiment_ndcg=0.5982318540006005
+course_rec_math_ai_001: candidates=18 control_ndcg=0.4966392596877323 experiment_ndcg=0.7871546029909718
+course_rec_easiest_cs_elective_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+course_rec_interdisciplinary_bio_ai_001: candidates=17 control_ndcg=0.31083481571321947 experiment_ndcg=0.6258764478439752
+prof_rec_cs2114_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+prof_rec_typo_cs2114_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+prof_rec_cs3114_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+prof_exact_instructor_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+prof_schedule_current_001: candidates=18 control_ndcg=1.0 experiment_ndcg=1.0
+{
+  "total_cases": 27,
+  "initial_pool": {
+    "recall_at_candidate_k": 0.6451,
+    "has_any_relevant_rate": 0.8889,
+    "has_all_required_rate": 0.7037
+  },
+  "control": {
+    "precision_at_5": 0.208,
+    "recall_at_5": 0.5957,
+    "ndcg_at_5": 0.6164,
+    "mrr": 0.7438,
+    "prohibited_candidate_rate": 0.0,
+    "exact_entity_match_rate": 0.4667,
+    "avg_first_grade3_rank": 1.3478,
+    "avg_selected_count": 4.6296,
+    "duplicate_candidate_rate": 0.0
+  },
+  "experiment": {
+    "precision_at_5": 0.216,
+    "recall_at_5": 0.5988,
+    "ndcg_at_5": 0.6704,
+    "mrr": 0.8457,
+    "prohibited_candidate_rate": 0.0,
+    "exact_entity_match_rate": 0.4667,
+    "avg_first_grade3_rank": 1.125,
+    "avg_selected_count": 4.6296,
+    "duplicate_candidate_rate": 0.0
+  },
+  "performance": {
+    "avg_latency_ms": 85.1481,
+    "p50_latency_ms": 13.3,
+    "p95_latency_ms": 30.6,
+    "max_latency_ms": 5775.7,
+    "warm_avg_latency_ms": 13.6611,
+    "warm_p50_latency_ms": 12.3,
+    "warm_p95_latency_ms": 30.6,
+    "fallback_rate": 0.0,
+    "error_rate": 0.0,
+    "changed_order_rate": 0.9259
+  },
+  "introduced_candidate_total": 0,
+  "pre_reranker_excluded_total": 36
+}
+Report: /Users/kushpatel/Desktop/b2b/Darvis/evals/reports/CYRUS_RERANKER_AB_REPORT.md
+Raw results: evals/reports/reranker_remediation_tinybert_ab

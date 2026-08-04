@@ -1,0 +1,515 @@
+{
+  "case_id": "course_rec_interdisciplinary_bio_ai_001",
+  "query": "I want AI courses for bioinformatics or computational biology.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "natural_filter",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "course_lookup",
+      "natural_language_filter"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.72,
+    "wants_professors": false,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": 3,
+    "sort_goal": "largest_sample",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "natural_filter",
+    "queries": [
+      "I want AI courses for bioinformatics or computational biology."
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Li. Average GPA: 2.93. A/A- rate: 16.33%. F rate: 2.0%. Total students taught: 476. Total withdrawals: 21. Sections taught: 3 terms.",
+        "source_type": "grade",
+        "source_id": "cs-3214-li",
+        "vector_score": 0.6218,
+        "keyword_score": 0.0,
+        "combined_score": 0.6218,
+        "rerank_score": 0.6218,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 5204 (Operating Systems) taught by Li. Average GPA: 3.76. A/A- rate: 52.4%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5204-li",
+        "vector_score": 0.6191,
+        "keyword_score": 0.0,
+        "combined_score": 0.6191,
+        "rerank_score": 0.6191,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 4894 (TS: Starting a CS Business) taught by Harder. Average GPA: 3.62. A/A- rate: 59.4%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-4894-harder",
+        "vector_score": 0.6169,
+        "keyword_score": 0.0,
+        "combined_score": 0.6169,
+        "rerank_score": 0.6169,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Dan Williams. Average GPA: 2.91. A/A- rate: 22.06%. F rate: 2.58%. Total students taught: 525. Total withdrawals: 17. Sections taught: 5 terms.",
+        "source_type": "grade",
+        "source_id": "cs-3214-dan_williams",
+        "vector_score": 0.6088,
+        "keyword_score": 0.0,
+        "combined_score": 0.6088,
+        "rerank_score": 0.6088,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 2505 (Intro Computer Organization) taught by Allyson Senger. Average GPA: 2.91. A/A- rate: 19.22%. F rate: 5.08%. Total students taught: 1520. Total withdrawals: 91. Sections taught:...",
+        "source_type": "grade",
+        "source_id": "cs-2505-allyson_senger",
+        "vector_score": 0.6075,
+        "keyword_score": 0.0,
+        "combined_score": 0.6075,
+        "rerank_score": 0.6075,
+        "selected": true
+      },
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Hu. Average GPA: 2.93. A/A- rate: 28.1%. F rate: 3.7%. Total students taught: 82. Total withdrawals: 5. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-3214-hu",
+        "vector_score": 0.6042,
+        "keyword_score": 0.0,
+        "combined_score": 0.6042,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Feng. Average GPA: 3.52. A rate: 37.3%. F rate: 0.0%. Average enrollment: 10 students.",
+        "source_type": "grade",
+        "source_id": "cs-5234-feng",
+        "vector_score": 0.6042,
+        "keyword_score": 0.0,
+        "combined_score": 0.6042,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Back. Average GPA: 2.94. A rate: 24.35%. F rate: 3.99%. Average enrollment: 132 students.",
+        "source_type": "grade",
+        "source_id": "cs-3214-back",
+        "vector_score": 0.6032,
+        "keyword_score": 0.0,
+        "combined_score": 0.6032,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 3214 (Computer Systems) taught by Xun Jian. Average GPA: 2.58. A/A- rate: 12.1%. F rate: 6.1%. Total students taught: 33. Total withdrawals: 4. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-3214-xun_jian",
+        "vector_score": 0.6026,
+        "keyword_score": 0.0,
+        "combined_score": 0.6026,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 2505 (Intro Computer Organization) taught by Arinjoy Basak. Average GPA: 2.81. A/A- rate: 18.75%. F rate: 6.7%. Total students taught: 116. Total withdrawals: 16. Sections taught: 2 ...",
+        "source_type": "grade",
+        "source_id": "cs-2505-arinjoy_basak",
+        "vector_score": 0.6024,
+        "keyword_score": 0.0,
+        "combined_score": 0.6024,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5504 (Computer Architecture) taught by Paul. Average GPA: 3.34. A/A- rate: 40.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5504-paul",
+        "vector_score": 0.6023,
+        "keyword_score": 0.0,
+        "combined_score": 0.6023,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5204 (Operating Systems) taught by Cameron. Average GPA: 3.75. A/A- rate: 61.5%. F rate: 0.0%. Total students taught: 26. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5204-cameron",
+        "vector_score": 0.6012,
+        "keyword_score": 0.0,
+        "combined_score": 0.6012,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 3984 (SS: Starting a CS Business) taught by Harder. Average GPA: 3.44. A/A- rate: 38.5%. F rate: 3.9%. Total students taught: 26. Sections taught: 1 terms.",
+        "source_type": "grade",
+        "source_id": "cs-3984-harder",
+        "vector_score": 0.6011,
+        "keyword_score": 0.0,
+        "combined_score": 0.6011,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 5504 (Computer Architecture) taught by Xiong. Average GPA: 3.75. A/A- rate: 64.4%. F rate: 0.0%. Total students taught: 17. Sections taught: 2 terms.",
+        "source_type": "grade",
+        "source_id": "cs-5504-xiong",
+        "vector_score": 0.6007,
+        "keyword_score": 0.0,
+        "combined_score": 0.6007,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for CS 6204 (Advanced Topics in Systems) taught by Hasan. Average GPA: 3.71. A rate: 51.65%. F rate: 0.0%. Average enrollment: 16 students.",
+        "source_type": "grade",
+        "source_id": "cs-6204-hasan",
+        "vector_score": 0.6006,
+        "keyword_score": 0.0,
+        "combined_score": 0.6006,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [
+      {
+        "stable_id": "COURSE:CS 5814",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5814",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4654",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4654",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4824",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4824",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "COURSE:CS 5814",
+    "COURSE:CS 4654",
+    "COURSE:CS 4824"
+  ],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [
+      "COURSE:CS 5814",
+      "COURSE:CS 4654",
+      "COURSE:CS 4824"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Li. Average GPA: 2.93. A/A- rate: 16.33%. F rate: 2.0%. Total students taught: 476. Total withdrawals: 21. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-li",
+      "vector_score": 0.6218,
+      "keyword_score": 0.0,
+      "combined_score": 0.6218,
+      "rerank_score": 0.6218,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5204 (Operating Systems) taught by Li. Average GPA: 3.76. A/A- rate: 52.4%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5204-li",
+      "vector_score": 0.6191,
+      "keyword_score": 0.0,
+      "combined_score": 0.6191,
+      "rerank_score": 0.6191,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4894 (TS: Starting a CS Business) taught by Harder. Average GPA: 3.62. A/A- rate: 59.4%. F rate: 0.0%. Total students taught: 32. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4894-harder",
+      "vector_score": 0.6169,
+      "keyword_score": 0.0,
+      "combined_score": 0.6169,
+      "rerank_score": 0.6169,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Dan Williams. Average GPA: 2.91. A/A- rate: 22.06%. F rate: 2.58%. Total students taught: 525. Total withdrawals: 17. Sections taught: 5 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-dan_williams",
+      "vector_score": 0.6088,
+      "keyword_score": 0.0,
+      "combined_score": 0.6088,
+      "rerank_score": 0.6088,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 2505 (Intro Computer Organization) taught by Allyson Senger. Average GPA: 2.91. A/A- rate: 19.22%. F rate: 5.08%. Total students taught: 1520. Total withdrawals: 91. Sections taught:...",
+      "source_type": "grade",
+      "source_id": "cs-2505-allyson_senger",
+      "vector_score": 0.6075,
+      "keyword_score": 0.0,
+      "combined_score": 0.6075,
+      "rerank_score": 0.6075,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Hu. Average GPA: 2.93. A/A- rate: 28.1%. F rate: 3.7%. Total students taught: 82. Total withdrawals: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-hu",
+      "vector_score": 0.6042,
+      "keyword_score": 0.0,
+      "combined_score": 0.6042,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Feng. Average GPA: 3.52. A rate: 37.3%. F rate: 0.0%. Average enrollment: 10 students.",
+      "source_type": "grade",
+      "source_id": "cs-5234-feng",
+      "vector_score": 0.6042,
+      "keyword_score": 0.0,
+      "combined_score": 0.6042,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Back. Average GPA: 2.94. A rate: 24.35%. F rate: 3.99%. Average enrollment: 132 students.",
+      "source_type": "grade",
+      "source_id": "cs-3214-back",
+      "vector_score": 0.6032,
+      "keyword_score": 0.0,
+      "combined_score": 0.6032,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3214 (Computer Systems) taught by Xun Jian. Average GPA: 2.58. A/A- rate: 12.1%. F rate: 6.1%. Total students taught: 33. Total withdrawals: 4. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3214-xun_jian",
+      "vector_score": 0.6026,
+      "keyword_score": 0.0,
+      "combined_score": 0.6026,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2505 (Intro Computer Organization) taught by Arinjoy Basak. Average GPA: 2.81. A/A- rate: 18.75%. F rate: 6.7%. Total students taught: 116. Total withdrawals: 16. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "cs-2505-arinjoy_basak",
+      "vector_score": 0.6024,
+      "keyword_score": 0.0,
+      "combined_score": 0.6024,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5504 (Computer Architecture) taught by Paul. Average GPA: 3.34. A/A- rate: 40.0%. F rate: 0.0%. Total students taught: 5. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5504-paul",
+      "vector_score": 0.6023,
+      "keyword_score": 0.0,
+      "combined_score": 0.6023,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5204 (Operating Systems) taught by Cameron. Average GPA: 3.75. A/A- rate: 61.5%. F rate: 0.0%. Total students taught: 26. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5204-cameron",
+      "vector_score": 0.6012,
+      "keyword_score": 0.0,
+      "combined_score": 0.6012,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 3984 (SS: Starting a CS Business) taught by Harder. Average GPA: 3.44. A/A- rate: 38.5%. F rate: 3.9%. Total students taught: 26. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-3984-harder",
+      "vector_score": 0.6011,
+      "keyword_score": 0.0,
+      "combined_score": 0.6011,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5504 (Computer Architecture) taught by Xiong. Average GPA: 3.75. A/A- rate: 64.4%. F rate: 0.0%. Total students taught: 17. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5504-xiong",
+      "vector_score": 0.6007,
+      "keyword_score": 0.0,
+      "combined_score": 0.6007,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6204 (Advanced Topics in Systems) taught by Hasan. Average GPA: 3.71. A rate: 51.65%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-6204-hasan",
+      "vector_score": 0.6006,
+      "keyword_score": 0.0,
+      "combined_score": 0.6006,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [
+    "COURSE:CS 5814",
+    "COURSE:CS 4654",
+    "COURSE:CS 4824"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "COURSE:CS 5814",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5814",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4654",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4654",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4824",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4824",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "natural_filter",
+    "metadata_keys": [
+      "recommendation_mode",
+      "route"
+    ],
+    "table_titles": [
+      "Course Recommendations"
+    ],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "natural_filter",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Course Recommendations",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Total Students"
+        ],
+        "rows": [
+          {
+            "Course": "CS 5814",
+            "Course Title": "Introduction to Deep Learning",
+            "Avg GPA": 3.712,
+            "Avg A Range (%)": 75.48,
+            "Total Students": 359.0
+          },
+          {
+            "Course": "CS 4654",
+            "Course Title": "Intermed Data Analytics & ML",
+            "Avg GPA": 3.546,
+            "Avg A Range (%)": 53.85,
+            "Total Students": 26.0
+          },
+          {
+            "Course": "CS 4824",
+            "Course Title": "Machine Learning",
+            "Avg GPA": 3.297,
+            "Avg A Range (%)": 57.22,
+            "Total Students": 825.0
+          }
+        ]
+      }
+    ],
+    "charts_count": 0,
+    "metadata": {
+      "route": "natural_filter",
+      "recommendation_mode": "topic_courses",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 82,
+        "resolve_ms": 0,
+        "handler_ms": 21
+      },
+      "confidence": 0.72
+    }
+  },
+  "final_response": {
+    "route": "natural_filter",
+    "answer": "CS 5814 (Introduction to Deep Learning): History and basic concepts of artificial neural networks. Activation functions, optimization methods and regularization strategies used in deep multi-layered networks. Network architectures such as convolutional networks and recurrent neural networks. Deep reinforcement learning algorithms including deep Q•learning and policy gradient methods. Deep unsupervised models such as auto-encoders, and deep generative models including variational auto-encoders and generative adversarial networks. Advanced topics in deep learning such as transformers, graph neural networks, and ethics in Artificial Intelligence (AI). Deep learning(DL) applications such as text analysis, computer vision, and visual question answering. A platform for implementation of DL models will be used, such as Tensorflow or PyTorch.\n\nCS 4654 (Intermed Data Analytics & ML): A technical analytics course. Covers supervised and unsupervised learning strategies, including regression, generalized linear models, regulations, dimension reduction methods, tree-based methods for classification, and clustering. Upper-level analytical methods shown in practice: e.g., advanced naive Bayes and neural networks.\n\nCS 4824 (Machine Learning): Algorithms and principles involved in machine learning; focus on perception problems arising in computer vision, natural language processing and robotics; fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis of machine perception systems; design and implementation of a technical project applied to real-world datasets (images, text, robotics). A grade of C- or better in prerequisites.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 82,
+    "resolve_ms": 0,
+    "handler_ms": 21
+  },
+  "errors": []
+}

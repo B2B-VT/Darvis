@@ -1,0 +1,525 @@
+{
+  "case_id": "course_rec_math_ai_001",
+  "query": "Which math classes help with machine learning?",
+  "parsed_intent": {
+    "time_end": null,
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "major_query": null,
+    "route": "general_rag",
+    "confidence": 0.45,
+    "missing_data_field": null,
+    "time_start": null,
+    "course_no": null,
+    "min_terms": null,
+    "level_low": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "target_credits": null,
+    "requested_courses": [],
+    "professor_name": null,
+    "wants_professors": null,
+    "subject": null,
+    "min_gpa": null,
+    "display_n": null,
+    "level_high": null,
+    "clarifying_question": null,
+    "open_seats_only": false,
+    "min_rmp": null,
+    "min_students": 30,
+    "secondary_routes": [],
+    "needs_clarification": false
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "Which math classes help with machine learning?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Numann Malik. Average GPA: 2.7. A/A- rate: 9.1%. F rate: 4.85%. Total students taught: 109. Total withdrawals: 7. Sections taught: 4...",
+        "source_type": "grade",
+        "source_id": "math-2114-numann_malik",
+        "vector_score": 0.6295,
+        "keyword_score": 0.0,
+        "combined_score": 0.6295,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sun. Average GPA: 2.6. A/A- rate: 13.28%. F rate: 4.6%. Total students taught: 169. Total withdrawals: 19. Sections taught: 6 terms....",
+        "source_type": "grade",
+        "source_id": "math-2114-sun",
+        "vector_score": 0.6282,
+        "keyword_score": 0.0,
+        "combined_score": 0.6282,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Susan Hagen. Average GPA: 2.45. A/A- rate: 15.09%. F rate: 6.2%. Total students taught: 183. Total withdrawals: 10. Sections taught:...",
+        "source_type": "grade",
+        "source_id": "math-2114-susan_hagen",
+        "vector_score": 0.6261,
+        "keyword_score": 0.0,
+        "combined_score": 0.6261,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Julia Truman. Average GPA: 2.34. A/A- rate: 7.19%. F rate: 8.06%. Total students taught: 174. Total withdrawals: 37. Sections taught...",
+        "source_type": "grade",
+        "source_id": "math-2114-julia_truman",
+        "vector_score": 0.6256,
+        "keyword_score": 0.0,
+        "combined_score": 0.6256,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Mlinaric. Average GPA: 2.48. A/A- rate: 16.05%. F rate: 6.55%. Total students taught: 57. Total withdrawals: 11. Sections taught: 2 ...",
+        "source_type": "grade",
+        "source_id": "math-2114-mlinaric",
+        "vector_score": 0.6252,
+        "keyword_score": 0.0,
+        "combined_score": 0.6252,
+        "rerank_score": null,
+        "selected": true
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sanja Pantic. Average GPA: 2.47. A/A- rate: 2.4%. F rate: 2.4%. Total students taught: 71. Total withdrawals: 7. Sections taught: 2 ...",
+        "source_type": "grade",
+        "source_id": "math-2114-sanja_pantic",
+        "vector_score": 0.625,
+        "keyword_score": 0.0,
+        "combined_score": 0.625,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Carlos Nicolas. Average GPA: 2.51. A/A- rate: 6.84%. F rate: 5.49%. Total students taught: 338. Total withdrawals: 21. Sections taug...",
+        "source_type": "grade",
+        "source_id": "math-2114-carlos_nicolas",
+        "vector_score": 0.6177,
+        "keyword_score": 0.0,
+        "combined_score": 0.6177,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Kyle Dahlin. Average GPA: 2.45. A/A- rate: 8.3%. F rate: 4.2%. Total students taught: 24. Total withdrawals: 9. Sections taught: 1 t...",
+        "source_type": "grade",
+        "source_id": "math-2114-kyle_dahlin",
+        "vector_score": 0.617,
+        "keyword_score": 0.0,
+        "combined_score": 0.617,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Garrett Fowler. Average GPA: 2.59. A/A- rate: 14.34%. F rate: 7.72%. Total students taught: 312. Total withdrawals: 38. Sections tau...",
+        "source_type": "grade",
+        "source_id": "math-2114-garrett_fowler",
+        "vector_score": 0.6169,
+        "keyword_score": 0.0,
+        "combined_score": 0.6169,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Jason Wilson. Average GPA: 3.37. A/A- rate: 36.75%. F rate: 0.0%. Total students taught: 95. Total withdrawals: 4. Sections taught: ...",
+        "source_type": "grade",
+        "source_id": "math-2114-jason_wilson",
+        "vector_score": 0.6161,
+        "keyword_score": 0.0,
+        "combined_score": 0.6161,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Seyed Zoalroshd. Average GPA: 3.19. A/A- rate: 27.38%. F rate: 1.23%. Total students taught: 162. Total withdrawals: 1. Sections tau...",
+        "source_type": "grade",
+        "source_id": "math-2114-seyed_zoalroshd",
+        "vector_score": 0.616,
+        "keyword_score": 0.0,
+        "combined_score": 0.616,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nicholas Robbins. Average GPA: 2.65. A/A- rate: 11.08%. F rate: 3.04%. Total students taught: 791. Total withdrawals: 43. Sections t...",
+        "source_type": "grade",
+        "source_id": "math-2114-nicholas_robbins",
+        "vector_score": 0.6153,
+        "keyword_score": 0.0,
+        "combined_score": 0.6153,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Camps Moreno. Average GPA: 2.6. A/A- rate: 31.3%. F rate: 6.3%. Total students taught: 32. Total withdrawals: 4. Sections taught: 1 ...",
+        "source_type": "grade",
+        "source_id": "math-2114-camps_moreno",
+        "vector_score": 0.6152,
+        "keyword_score": 0.0,
+        "combined_score": 0.6152,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nate Gildersleeve. Average GPA: 2.58. A/A- rate: 9.89%. F rate: 4.11%. Total students taught: 321. Total withdrawals: 14. Sections t...",
+        "source_type": "grade",
+        "source_id": "math-2114-nate_gildersleeve",
+        "vector_score": 0.6152,
+        "keyword_score": 0.0,
+        "combined_score": 0.6152,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Ackermann. Average GPA: 2.47. A/A- rate: 18.0%. F rate: 2.6%. Total students taught: 39. Total withdrawals: 1. Sections taught: 1 te...",
+        "source_type": "grade",
+        "source_id": "math-2114-ackermann",
+        "vector_score": 0.6148,
+        "keyword_score": 0.0,
+        "combined_score": 0.6148,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nicholas Loehr. Average GPA: 2.7. A/A- rate: 23.7%. F rate: 2.6%. Total students taught: 38. Total withdrawals: 5. Sections taught: ...",
+        "source_type": "grade",
+        "source_id": "math-2114-nicholas_loehr",
+        "vector_score": 0.6145,
+        "keyword_score": 0.0,
+        "combined_score": 0.6145,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Calle. Average GPA: 2.13. A/A- rate: 4.09%. F rate: 7.75%. Total students taught: 230. Total withdrawals: 53. Sections taught: 8 ter...",
+        "source_type": "grade",
+        "source_id": "math-2114-calle",
+        "vector_score": 0.6137,
+        "keyword_score": 0.0,
+        "combined_score": 0.6137,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 4144: Linear Algebra II. Credits: 3.0. Average GPA: 3.29. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "math-4144",
+        "vector_score": 0.6131,
+        "keyword_score": 0.0,
+        "combined_score": 0.6131,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "rrf_passthrough",
+    "model": null,
+    "enabled": false,
+    "input_ids": [
+      "math-2114-numann_malik",
+      "math-2114-sun",
+      "math-2114-susan_hagen",
+      "math-2114-julia_truman",
+      "math-2114-mlinaric",
+      "math-2114-sanja_pantic",
+      "math-2114-carlos_nicolas",
+      "math-2114-kyle_dahlin",
+      "math-2114-garrett_fowler",
+      "math-2114-jason_wilson",
+      "math-2114-seyed_zoalroshd",
+      "math-2114-nicholas_robbins",
+      "math-2114-camps_moreno",
+      "math-2114-nate_gildersleeve",
+      "math-2114-ackermann",
+      "math-2114-nicholas_loehr",
+      "math-2114-calle",
+      "math-4144"
+    ],
+    "input_rrf_order": [
+      "math-2114-numann_malik",
+      "math-2114-sun",
+      "math-2114-susan_hagen",
+      "math-2114-julia_truman",
+      "math-2114-mlinaric",
+      "math-2114-sanja_pantic",
+      "math-2114-carlos_nicolas",
+      "math-2114-kyle_dahlin",
+      "math-2114-garrett_fowler",
+      "math-2114-jason_wilson",
+      "math-2114-seyed_zoalroshd",
+      "math-2114-nicholas_robbins",
+      "math-2114-camps_moreno",
+      "math-2114-nate_gildersleeve",
+      "math-2114-ackermann",
+      "math-2114-nicholas_loehr",
+      "math-2114-calle",
+      "math-4144"
+    ],
+    "cross_encoder_scores": {},
+    "output_order": [
+      "math-2114-numann_malik",
+      "math-2114-sun",
+      "math-2114-susan_hagen",
+      "math-2114-julia_truman",
+      "math-2114-mlinaric"
+    ],
+    "selected_ids": [
+      "math-2114-numann_malik",
+      "math-2114-sun",
+      "math-2114-susan_hagen",
+      "math-2114-julia_truman",
+      "math-2114-mlinaric"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null,
+    "latency_ms": 0.1,
+    "ordered_ids": [
+      "math-2114-numann_malik",
+      "math-2114-sun",
+      "math-2114-susan_hagen",
+      "math-2114-julia_truman",
+      "math-2114-mlinaric"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Numann Malik. Average GPA: 2.7. A/A- rate: 9.1%. F rate: 4.85%. Total students taught: 109. Total withdrawals: 7. Sections taught: 4...",
+      "source_type": "grade",
+      "source_id": "math-2114-numann_malik",
+      "vector_score": 0.6295,
+      "keyword_score": 0.0,
+      "combined_score": 0.6295,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sun. Average GPA: 2.6. A/A- rate: 13.28%. F rate: 4.6%. Total students taught: 169. Total withdrawals: 19. Sections taught: 6 terms....",
+      "source_type": "grade",
+      "source_id": "math-2114-sun",
+      "vector_score": 0.6282,
+      "keyword_score": 0.0,
+      "combined_score": 0.6282,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Susan Hagen. Average GPA: 2.45. A/A- rate: 15.09%. F rate: 6.2%. Total students taught: 183. Total withdrawals: 10. Sections taught:...",
+      "source_type": "grade",
+      "source_id": "math-2114-susan_hagen",
+      "vector_score": 0.6261,
+      "keyword_score": 0.0,
+      "combined_score": 0.6261,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Julia Truman. Average GPA: 2.34. A/A- rate: 7.19%. F rate: 8.06%. Total students taught: 174. Total withdrawals: 37. Sections taught...",
+      "source_type": "grade",
+      "source_id": "math-2114-julia_truman",
+      "vector_score": 0.6256,
+      "keyword_score": 0.0,
+      "combined_score": 0.6256,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Mlinaric. Average GPA: 2.48. A/A- rate: 16.05%. F rate: 6.55%. Total students taught: 57. Total withdrawals: 11. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-mlinaric",
+      "vector_score": 0.6252,
+      "keyword_score": 0.0,
+      "combined_score": 0.6252,
+      "rerank_score": null,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Sanja Pantic. Average GPA: 2.47. A/A- rate: 2.4%. F rate: 2.4%. Total students taught: 71. Total withdrawals: 7. Sections taught: 2 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-sanja_pantic",
+      "vector_score": 0.625,
+      "keyword_score": 0.0,
+      "combined_score": 0.625,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Carlos Nicolas. Average GPA: 2.51. A/A- rate: 6.84%. F rate: 5.49%. Total students taught: 338. Total withdrawals: 21. Sections taug...",
+      "source_type": "grade",
+      "source_id": "math-2114-carlos_nicolas",
+      "vector_score": 0.6177,
+      "keyword_score": 0.0,
+      "combined_score": 0.6177,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Kyle Dahlin. Average GPA: 2.45. A/A- rate: 8.3%. F rate: 4.2%. Total students taught: 24. Total withdrawals: 9. Sections taught: 1 t...",
+      "source_type": "grade",
+      "source_id": "math-2114-kyle_dahlin",
+      "vector_score": 0.617,
+      "keyword_score": 0.0,
+      "combined_score": 0.617,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Garrett Fowler. Average GPA: 2.59. A/A- rate: 14.34%. F rate: 7.72%. Total students taught: 312. Total withdrawals: 38. Sections tau...",
+      "source_type": "grade",
+      "source_id": "math-2114-garrett_fowler",
+      "vector_score": 0.6169,
+      "keyword_score": 0.0,
+      "combined_score": 0.6169,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Jason Wilson. Average GPA: 3.37. A/A- rate: 36.75%. F rate: 0.0%. Total students taught: 95. Total withdrawals: 4. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "math-2114-jason_wilson",
+      "vector_score": 0.6161,
+      "keyword_score": 0.0,
+      "combined_score": 0.6161,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Seyed Zoalroshd. Average GPA: 3.19. A/A- rate: 27.38%. F rate: 1.23%. Total students taught: 162. Total withdrawals: 1. Sections tau...",
+      "source_type": "grade",
+      "source_id": "math-2114-seyed_zoalroshd",
+      "vector_score": 0.616,
+      "keyword_score": 0.0,
+      "combined_score": 0.616,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nicholas Robbins. Average GPA: 2.65. A/A- rate: 11.08%. F rate: 3.04%. Total students taught: 791. Total withdrawals: 43. Sections t...",
+      "source_type": "grade",
+      "source_id": "math-2114-nicholas_robbins",
+      "vector_score": 0.6153,
+      "keyword_score": 0.0,
+      "combined_score": 0.6153,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Camps Moreno. Average GPA: 2.6. A/A- rate: 31.3%. F rate: 6.3%. Total students taught: 32. Total withdrawals: 4. Sections taught: 1 ...",
+      "source_type": "grade",
+      "source_id": "math-2114-camps_moreno",
+      "vector_score": 0.6152,
+      "keyword_score": 0.0,
+      "combined_score": 0.6152,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nate Gildersleeve. Average GPA: 2.58. A/A- rate: 9.89%. F rate: 4.11%. Total students taught: 321. Total withdrawals: 14. Sections t...",
+      "source_type": "grade",
+      "source_id": "math-2114-nate_gildersleeve",
+      "vector_score": 0.6152,
+      "keyword_score": 0.0,
+      "combined_score": 0.6152,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Ackermann. Average GPA: 2.47. A/A- rate: 18.0%. F rate: 2.6%. Total students taught: 39. Total withdrawals: 1. Sections taught: 1 te...",
+      "source_type": "grade",
+      "source_id": "math-2114-ackermann",
+      "vector_score": 0.6148,
+      "keyword_score": 0.0,
+      "combined_score": 0.6148,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Nicholas Loehr. Average GPA: 2.7. A/A- rate: 23.7%. F rate: 2.6%. Total students taught: 38. Total withdrawals: 5. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "math-2114-nicholas_loehr",
+      "vector_score": 0.6145,
+      "keyword_score": 0.0,
+      "combined_score": 0.6145,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 2114 (Introduction to Linear Algebra) taught by Calle. Average GPA: 2.13. A/A- rate: 4.09%. F rate: 7.75%. Total students taught: 230. Total withdrawals: 53. Sections taught: 8 ter...",
+      "source_type": "grade",
+      "source_id": "math-2114-calle",
+      "vector_score": 0.6137,
+      "keyword_score": 0.0,
+      "combined_score": 0.6137,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 4144: Linear Algebra II. Credits: 3.0. Average GPA: 3.29. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-4144",
+      "vector_score": 0.6131,
+      "keyword_score": 0.0,
+      "combined_score": 0.6131,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5007,
+        "resolve_ms": 0,
+        "handler_ms": 5639
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Linear algebra (MATH 2114) and probability/statistics courses are the core math classes that directly support machine‑learning concepts. You’ll also benefit from a solid grounding in multivariable calculus and discrete mathematics for algorithmic foundations.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5007,
+    "resolve_ms": 0,
+    "handler_ms": 5639
+  },
+  "errors": []
+}

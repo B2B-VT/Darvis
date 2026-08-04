@@ -1,0 +1,408 @@
+{
+  "case_id": "prof_exact_instructor_001",
+  "query": "Tell me about Professor Hamouda.",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": null,
+    "open_seats_only": false,
+    "route": "professor_profile",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "instructor_lookup",
+      "instructor_comparison",
+      "grade_distribution"
+    ],
+    "requested_courses": [],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.99,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": null,
+    "display_n": null,
+    "professor_name": "Sally Hamouda",
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": null
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Hamouda",
+      "value": "Sally Hamouda",
+      "confidence": 0.95,
+      "ambiguous": false,
+      "candidates": []
+    }
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for SYSB 2024 (Fundamentals Systems Biology) taught by Luliana Lazar. Average GPA: 3.59. A/A- rate: 60.77%. F rate: 3.33%. Total students taught: 25. Total withdrawals: 1. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "sysb-2024-luliana_lazar",
+      "vector_score": 0.5552,
+      "keyword_score": 0.0,
+      "combined_score": 0.5552,
+      "rerank_score": 0.5552,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 1225 (Calculus of a Single Variable) taught by Lowden. Average GPA: 2.39. A/A- rate: 7.7%. F rate: 7.7%. Total students taught: 26. Total withdrawals: 7. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-1225-lowden",
+      "vector_score": 0.5504,
+      "keyword_score": 0.0,
+      "combined_score": 0.5504,
+      "rerank_score": 0.5504,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 4224 (Linux Kernel Programming) taught by Min. Average GPA: 3.21. A/A- rate: 56.9%. F rate: 10.87%. Total students taught: 50. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4224-min",
+      "vector_score": 0.549,
+      "keyword_score": 0.0,
+      "combined_score": 0.549,
+      "rerank_score": 0.549,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5264 (Adv Linux Kernel Programming) taught by Min. Average GPA: 3.53. A/A- rate: 50.15%. F rate: 0.0%. Total students taught: 28. Total withdrawals: 1. Sections taught: 4 terms. Grad...",
+      "source_type": "grade",
+      "source_id": "cs-5264-min",
+      "vector_score": 0.5486,
+      "keyword_score": 0.0,
+      "combined_score": 0.5486,
+      "rerank_score": 0.5486,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 3514 (Systems Analysis) taught by Philip Romero-Masters. Average GPA: 2.74. A/A- rate: 34.83%. F rate: 5.39%. Total students taught: 429. Total withdrawals: 16. Sections taught: 8 t...",
+      "source_type": "grade",
+      "source_id": "bit-3514-philip_romero-masters",
+      "vector_score": 0.5484,
+      "keyword_score": 0.0,
+      "combined_score": 0.5484,
+      "rerank_score": 0.5484,
+      "selected": true
+    },
+    {
+      "content": "Grade data for ISE 6614 (Human Computer Systems) taught by Nathan Lau. Average GPA: 3.79. A/A- rate: 30.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "ise-6614-nathan_lau",
+      "vector_score": 0.5451,
+      "keyword_score": 0.0,
+      "combined_score": 0.5451,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIT 3514 (Systems Analysis) taught by John Russell. Average GPA: 3.88. A/A- rate: 77.75%. F rate: 0.0%. Total students taught: 80. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "bit-3514-john_russell",
+      "vector_score": 0.5426,
+      "keyword_score": 0.0,
+      "combined_score": 0.5426,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5114 (Theory of Algorithms) taught by Sharath Raghvendra. Average GPA: 3.66. A/A- rate: 48.35%. F rate: 0.0%. Total students taught: 54. Total withdrawals: 1. Sections taught: 2 term...",
+      "source_type": "grade",
+      "source_id": "cs-5114-sharath_raghvendra",
+      "vector_score": 0.541,
+      "keyword_score": 0.0,
+      "combined_score": 0.541,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ECE 4414 (Linux Kernel Programming) taught by Changwoo Min. Average GPA: 3.54. A/A- rate: 50.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "ece-4414-changwoo_min",
+      "vector_score": 0.5367,
+      "keyword_score": 0.0,
+      "combined_score": 0.5367,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ISE 6454 (Stochastic & Robust Optimiz) taught by Manish Bansal. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 13. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "ise-6454-manish_bansal",
+      "vector_score": 0.5361,
+      "keyword_score": 0.0,
+      "combined_score": 0.5361,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for SYSB 2025 (Intro to Systems Biology) taught by Luliana Lazar. Average GPA: 3.57. A/A- rate: 45.5%. F rate: 0.0%. Total students taught: 11. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "sysb-2025-luliana_lazar",
+      "vector_score": 0.5354,
+      "keyword_score": 0.0,
+      "combined_score": 0.5354,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for HORT 3664 (Hardscape Materials & Instal) taught by Alex Niemiera. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "hort-3664-alex_niemiera",
+      "vector_score": 0.5348,
+      "keyword_score": 0.0,
+      "combined_score": 0.5348,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5485 (Numer Analy and Softw) taught by Adrian Sandu. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5485-adrian_sandu",
+      "vector_score": 0.5346,
+      "keyword_score": 0.0,
+      "combined_score": 0.5346,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5854 (Computational Systems Biology) taught by Murali. Average GPA: 3.62. A rate: 34.3%. F rate: 0.0%. Average enrollment: 8 students.",
+      "source_type": "grade",
+      "source_id": "cs-5854-murali",
+      "vector_score": 0.5343,
+      "keyword_score": 0.0,
+      "combined_score": 0.5343,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ARCH 5125 (Materials Processes Workshop) taught by Sullivan. Average GPA: 3.81. A/A- rate: 65.2%. F rate: 0.0%. Total students taught: 31. Sections taught: 4 terms. Grade outcomes have ...",
+      "source_type": "grade",
+      "source_id": "arch-5125-sullivan",
+      "vector_score": 0.5339,
+      "keyword_score": 0.0,
+      "combined_score": 0.5339,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "professor_profile",
+    "metadata_keys": [
+      "professor_query",
+      "rmp"
+    ],
+    "table_titles": [
+      "Professor Course Summary",
+      "Fall 2026 Schedule"
+    ],
+    "chart_titles": [
+      "Average GPA by Course for Sally Hamouda",
+      "A/A- Rate vs F Rate for Sally Hamouda"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Course Summary",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4604",
+            "Course Title": "Int Data Base Mgt Sys",
+            "Avg GPA": 3.891,
+            "Avg A Range (%)": 92.45,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 580,
+            "Terms Taught": 7,
+            "Total Withdraws": 2,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 3114",
+            "Course Title": "Data Structures and Algorithms",
+            "Avg GPA": 3.673,
+            "Avg A Range (%)": 78.01,
+            "Avg F Rate (%)": 1.07,
+            "Total Students": 459,
+            "Terms Taught": 4,
+            "Total Withdraws": 21,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4104",
+            "Course Title": "Data and Algorithm Analysis",
+            "Avg GPA": 3.577,
+            "Avg A Range (%)": 66.58,
+            "Avg F Rate (%)": 0.41,
+            "Total Students": 225,
+            "Terms Taught": 3,
+            "Total Withdraws": 2,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Avg GPA": 3.997,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 157,
+            "Terms Taught": 3,
+            "Total Withdraws": 0,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5614",
+            "Course Title": "Database Management Systems",
+            "Avg GPA": 3.987,
+            "Avg A Range (%)": 99.07,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 128,
+            "Terms Taught": 3,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4624",
+            "Course Title": "Multimedia/Hypertext",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 44,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 4974",
+            "Course Title": "Independent Study",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 32,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      },
+      {
+        "title": "Fall 2026 Schedule",
+        "columns": [
+          "Course",
+          "Title",
+          "Days",
+          "Time",
+          "Location",
+          "Open Seats",
+          "Capacity"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4094",
+            "Title": "—",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "ONLINE",
+            "Open Seats": 30,
+            "Capacity": 30
+          },
+          {
+            "Course": "CS 4604",
+            "Title": "—",
+            "Days": "TueThu",
+            "Time": "8:00 AM",
+            "Location": "SURGE 104D",
+            "Open Seats": 28,
+            "Capacity": 80
+          },
+          {
+            "Course": "CS 5994",
+            "Title": "—",
+            "Days": "ThuThu",
+            "Time": null,
+            "Location": "00X",
+            "Open Seats": 999,
+            "Capacity": 999
+          },
+          {
+            "Course": "CS 7994",
+            "Title": "—",
+            "Days": "ThuThu",
+            "Time": null,
+            "Location": "00X",
+            "Open Seats": 9997,
+            "Capacity": 9999
+          }
+        ]
+      }
+    ],
+    "charts_count": 2,
+    "metadata": {
+      "professor_query": "Sally Hamouda",
+      "rmp": {
+        "rmp_rating": 5.0,
+        "rmp_difficulty": 1.9,
+        "rmp_count": 8,
+        "rmp_tags": []
+      },
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 1240,
+        "resolve_ms": 0,
+        "handler_ms": 723
+      },
+      "confidence": 0.99
+    }
+  },
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Professor Hamouda has a 5.0 overall quality rating on Rate My Professors and a difficulty score of 1.9 / 5.0. Darvis doesn’t have grade‑outcome data linked to her specifically, so we can’t provide A‑rate or GPA numbers for her courses.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 1240,
+    "resolve_ms": 0,
+    "handler_ms": 723
+  },
+  "errors": []
+}

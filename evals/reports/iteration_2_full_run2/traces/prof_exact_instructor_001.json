@@ -1,0 +1,532 @@
+{
+  "case_id": "prof_exact_instructor_001",
+  "query": "Tell me about Professor Hamouda.",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": "Sally Hamouda",
+    "subject": null,
+    "route": "professor_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "instructor_lookup",
+      "grade_distribution"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 1.0,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "Sally Hamouda",
+      "value": "Sally Hamouda",
+      "confidence": 1.0,
+      "ambiguous": false,
+      "candidates": []
+    }
+  },
+  "retrieval": {
+    "route": "professor_profile",
+    "queries": [
+      "Tell me about Professor Hamouda."
+    ],
+    "raw_candidates": [],
+    "approved_candidates": [
+      {
+        "stable_id": "PROFESSOR:SALLY_HAMOUDA",
+        "entity_type": "professor",
+        "subject": null,
+        "course_number": null,
+        "professor_name": "Sally Hamouda",
+        "source": "instructors",
+        "evidence_role": "resolved_professor",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4604",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4604",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 3114",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "3114",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4104",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4104",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5934",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5934",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5614",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5614",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4624",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4624",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4974",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4974",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 4094",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "4094",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 5994",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "5994",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      },
+      {
+        "stable_id": "COURSE:CS 7994",
+        "entity_type": "course",
+        "subject": "CS",
+        "course_number": "7994",
+        "professor_name": null,
+        "source": "table",
+        "evidence_role": "table_course",
+        "approval_status": "approved"
+      }
+    ],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [
+    "PROFESSOR:SALLY_HAMOUDA",
+    "COURSE:CS 4604",
+    "COURSE:CS 3114",
+    "COURSE:CS 4104",
+    "COURSE:CS 5934",
+    "COURSE:CS 5614",
+    "COURSE:CS 4624",
+    "COURSE:CS 4974",
+    "COURSE:CS 4094",
+    "COURSE:CS 5994",
+    "COURSE:CS 7994"
+  ],
+  "ranking": {
+    "method": "deterministic",
+    "ordered_ids": [
+      "PROFESSOR:SALLY_HAMOUDA",
+      "COURSE:CS 4604",
+      "COURSE:CS 3114",
+      "COURSE:CS 4104",
+      "COURSE:CS 5934",
+      "COURSE:CS 5614",
+      "COURSE:CS 4624",
+      "COURSE:CS 4974",
+      "COURSE:CS 4094",
+      "COURSE:CS 5994",
+      "COURSE:CS 7994"
+    ],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [
+    "PROFESSOR:SALLY_HAMOUDA",
+    "COURSE:CS 4604",
+    "COURSE:CS 3114",
+    "COURSE:CS 4104",
+    "COURSE:CS 5934",
+    "COURSE:CS 5614",
+    "COURSE:CS 4624",
+    "COURSE:CS 4974",
+    "COURSE:CS 4094",
+    "COURSE:CS 5994",
+    "COURSE:CS 7994"
+  ],
+  "reranked_candidates": [],
+  "approved_candidates": [
+    {
+      "stable_id": "PROFESSOR:SALLY_HAMOUDA",
+      "entity_type": "professor",
+      "subject": null,
+      "course_number": null,
+      "professor_name": "Sally Hamouda",
+      "source": "instructors",
+      "evidence_role": "resolved_professor",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4604",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4604",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 3114",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "3114",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4104",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4104",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5934",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5934",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5614",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5614",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4624",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4624",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4974",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4974",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 4094",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "4094",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 5994",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "5994",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    },
+    {
+      "stable_id": "COURSE:CS 7994",
+      "entity_type": "course",
+      "subject": "CS",
+      "course_number": "7994",
+      "professor_name": null,
+      "source": "table",
+      "evidence_role": "table_course",
+      "approval_status": "approved"
+    }
+  ],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "professor_profile",
+    "metadata_keys": [
+      "professor_query",
+      "rmp"
+    ],
+    "table_titles": [
+      "Professor Course Summary",
+      "Fall 2026 Schedule"
+    ],
+    "chart_titles": [
+      "Average GPA by Course for Sally Hamouda",
+      "A/A- Rate vs F Rate for Sally Hamouda"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "professor_profile",
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Course Summary",
+        "columns": [
+          "Course",
+          "Course Title",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4604",
+            "Course Title": "Int Data Base Mgt Sys",
+            "Avg GPA": 3.891,
+            "Avg A Range (%)": 92.45,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 580,
+            "Terms Taught": 7,
+            "Total Withdraws": 2,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 3114",
+            "Course Title": "Data Structures and Algorithms",
+            "Avg GPA": 3.673,
+            "Avg A Range (%)": 78.01,
+            "Avg F Rate (%)": 1.07,
+            "Total Students": 459,
+            "Terms Taught": 4,
+            "Total Withdraws": 21,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4104",
+            "Course Title": "Data and Algorithm Analysis",
+            "Avg GPA": 3.577,
+            "Avg A Range (%)": 66.58,
+            "Avg F Rate (%)": 0.41,
+            "Total Students": 225,
+            "Terms Taught": 3,
+            "Total Withdraws": 2,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5934",
+            "Course Title": "Capstone Project",
+            "Avg GPA": 3.997,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 157,
+            "Terms Taught": 3,
+            "Total Withdraws": 0,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 5614",
+            "Course Title": "Database Management Systems",
+            "Avg GPA": 3.987,
+            "Avg A Range (%)": 99.07,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 128,
+            "Terms Taught": 3,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          },
+          {
+            "Course": "CS 4624",
+            "Course Title": "Multimedia/Hypertext",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 44,
+            "Terms Taught": 1,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Course": "CS 4974",
+            "Course Title": "Independent Study",
+            "Avg GPA": 4.0,
+            "Avg A Range (%)": 100.0,
+            "Avg F Rate (%)": 0.0,
+            "Total Students": 32,
+            "Terms Taught": 5,
+            "Total Withdraws": 0,
+            "Latest Year": 2026,
+            "Confidence Label": "High"
+          }
+        ]
+      },
+      {
+        "title": "Fall 2026 Schedule",
+        "columns": [
+          "Course",
+          "Title",
+          "Days",
+          "Time",
+          "Location",
+          "Open Seats",
+          "Capacity"
+        ],
+        "rows": [
+          {
+            "Course": "CS 4094",
+            "Title": "—",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "ONLINE",
+            "Open Seats": 30,
+            "Capacity": 30
+          },
+          {
+            "Course": "CS 4604",
+            "Title": "—",
+            "Days": "TueThu",
+            "Time": "8:00 AM",
+            "Location": "SURGE 104D",
+            "Open Seats": 28,
+            "Capacity": 80
+          },
+          {
+            "Course": "CS 5994",
+            "Title": "—",
+            "Days": "ThuThu",
+            "Time": null,
+            "Location": "00X",
+            "Open Seats": 999,
+            "Capacity": 999
+          },
+          {
+            "Course": "CS 7994",
+            "Title": "—",
+            "Days": "ThuThu",
+            "Time": null,
+            "Location": "00X",
+            "Open Seats": 9997,
+            "Capacity": 9999
+          }
+        ]
+      }
+    ],
+    "charts_count": 2,
+    "metadata": {
+      "professor_query": "Sally Hamouda",
+      "rmp": {
+        "rmp_rating": 5.0,
+        "rmp_difficulty": 1.9,
+        "rmp_count": 8,
+        "rmp_tags": []
+      },
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 222
+      },
+      "confidence": 1.0
+    }
+  },
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Sally Hamouda has taught 7 courses in this dataset, with an overall average GPA of 3.88 across 1,625 students. Their strongest grade outcomes appear in CS 4624 (avg GPA 4.00, 100.0% A/A− rate). On Rate My Professors, they hold a 5.0/5.0 quality rating and 1.9/5.0 difficulty score across 8 reviews. Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 222
+  },
+  "errors": []
+}

@@ -12,7 +12,7 @@ COURSE_COLS = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "To
 COURSE_COLS_RMP = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "RMP Rating", "Confidence Label"]
 
 _RMP_KEYWORDS = {"rate my professor", "rmp rating", "rmp score", "rated", "rmp"}
-_COMPARISON_KEYWORDS = {"compare", "comparison", "vs", "versus", "difference", "differences"}
+_COMPARISON_KEYWORDS = {"compare", "comparison", "vs", "versus", "differ", "different", "difference", "differences"}
 
 
 def _is_rmp_question(question: str) -> bool:
@@ -220,9 +220,27 @@ def _course_overview_answer(
     return " ".join(pieces)
 
 
-def _requested_courses_from_question(question: str, intent=None) -> list[tuple[str, str]]:
+def _requested_courses_from_question(question: str, intent=None, resolver=None) -> list[tuple[str, str]]:
     raw_courses = getattr(intent, "requested_courses", None) if intent is not None else None
     courses: list[tuple[str, str]] = []
+
+    if resolver is not None:
+        default_subject = getattr(intent, "subject", None) if intent is not None else None
+        resolved = resolver.resolve_course_references(question, default_subject=default_subject)
+        courses = [
+            (r.subject, r.course_number)
+            for r in resolved
+            if r.status == "resolved"
+        ]
+        if courses:
+            seen: set[tuple[str, str]] = set()
+            deduped: list[tuple[str, str]] = []
+            for course in courses:
+                if course in seen:
+                    continue
+                seen.add(course)
+                deduped.append(course)
+            return deduped
 
     for item in raw_courses or []:
         if isinstance(item, (list, tuple)) and len(item) >= 2:
@@ -235,6 +253,8 @@ def _requested_courses_from_question(question: str, intent=None) -> list[tuple[s
             courses.append((str(subj).upper().strip(), str(num).strip()))
 
     for match in re.finditer(r"\b([A-Za-z]{2,5})\s*-?\s*(\d{4})\b(?![-\s]?level)", question):
+        if match.group(1).lower() in {"and", "for", "not"}:
+            continue
         courses.append((match.group(1).upper(), match.group(2)))
 
     seen: set[tuple[str, str]] = set()
@@ -340,6 +360,7 @@ def handle_course_profile(
     user_profile: dict | None = None,
     sections_df: pd.DataFrame | None = None,
     indexes=None,
+    resolver=None,
 ):
     settings = get_settings()
 
@@ -353,7 +374,7 @@ def handle_course_profile(
     if not course_no:
         return None
 
-    requested_courses = _requested_courses_from_question(question, intent)
+    requested_courses = _requested_courses_from_question(question, intent, resolver=resolver)
 
     if _is_prerequisite_question(question):
         courses_to_check = requested_courses if len(requested_courses) >= 2 else [(subject, course_no)]

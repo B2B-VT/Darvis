@@ -1,0 +1,459 @@
+{
+  "case_id": "interest_schedule_balance_001",
+  "query": "How should I balance math, coding, and writing classes next semester?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": null,
+    "subject": null,
+    "route": "general_rag",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": null,
+    "capabilities": [
+      "general_question"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": false,
+    "confidence": 0.45,
+    "wants_professors": null,
+    "course_no": null,
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [
+      "How should I balance math, coding, and writing classes next semester?"
+    ],
+    "raw_candidates": [
+      {
+        "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "math-5134",
+        "vector_score": 0.5041,
+        "keyword_score": 0.0,
+        "combined_score": 0.5041,
+        "rerank_score": 0.5041,
+        "selected": true
+      },
+      {
+        "content": "Mathematics Major with Mathematics Education (Master's Track) Option major (B.S.) — College of Science. required — Fall Semester: MATH 3214 (Calculus of Several Variables) 3cr, MATH 3124 (Modern Algeb...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics_major_with_ma-required-fall_semester-a74a59",
+        "vector_score": 0.4859,
+        "keyword_score": 0.0,
+        "combined_score": 0.4859,
+        "rerank_score": 0.4859,
+        "selected": true
+      },
+      {
+        "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+        "source_type": "course",
+        "source_id": "math-3054",
+        "vector_score": 0.4804,
+        "keyword_score": 0.0,
+        "combined_score": 0.4804,
+        "rerank_score": 0.4804,
+        "selected": true
+      },
+      {
+        "content": "Mathematics major (B.S.) — College of Science. required — Fall Semester: MATH 2114 (Introduction to Linear Algebra) 3cr, MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) 4cr, MATH 1004 (Discov...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics-required-fall_semester-448249",
+        "vector_score": 0.4719,
+        "keyword_score": 0.0,
+        "combined_score": 0.4719,
+        "rerank_score": 0.4719,
+        "selected": true
+      },
+      {
+        "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+        "source_type": "course",
+        "source_id": "math-2644",
+        "vector_score": 0.4694,
+        "keyword_score": 0.0,
+        "combined_score": 0.4694,
+        "rerank_score": 0.4694,
+        "selected": true
+      },
+      {
+        "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "mse-2114",
+        "vector_score": 0.4598,
+        "keyword_score": 0.0,
+        "combined_score": 0.4598,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) — College of Science. required — Fall Semester: MATH 3214 (Calculus of Several Variables) 3cr, MATH 1225 (Calculus of a Single V...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics_major_with_ap-required-fall_semester-4fb88b",
+        "vector_score": 0.4493,
+        "keyword_score": 0.0,
+        "combined_score": 0.4493,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MATH 1004 (Discovering Mathematics I ( Free Electi...",
+        "source_type": "requirement",
+        "source_id": "mathematics",
+        "vector_score": 0.4489,
+        "keyword_score": 0.0,
+        "combined_score": 0.4489,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "mse-3114",
+        "vector_score": 0.4451,
+        "keyword_score": 0.0,
+        "combined_score": 0.4451,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 4626: Math for Secondary Teachers. Credits: 3.0. Average GPA: 3.75. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "math-4626",
+        "vector_score": 0.4441,
+        "keyword_score": 0.0,
+        "combined_score": 0.4441,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Pathways Concept 5 - Quantitative and Computational Thinking: STAT 3005 (Statistical Methods (5A)) 3cr, MATH...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics_education-required-pathways_concept_5_--00f2a1",
+        "vector_score": 0.4436,
+        "keyword_score": 0.0,
+        "combined_score": 0.4436,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Computer Programming: CS 1114 (Introduction to Software Design), CS 1064 (Introduction to Programming in Pyt...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics_education-required-computer_programming-47c3f8",
+        "vector_score": 0.4406,
+        "keyword_score": 0.0,
+        "combined_score": 0.4406,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 4625: Math for Secondary Teachers. Credits: 3.0. Average GPA: 3.62. Fall 2026 sections available: 4.",
+        "source_type": "course",
+        "source_id": "math-4625",
+        "vector_score": 0.4399,
+        "keyword_score": 0.0,
+        "combined_score": 0.4399,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics major (B.S.) — College of Science. required — Spring Semester: MATH 1044 (Discovering Mathematics II ( Free Elective - strongly recommended for math majors, spring only )) 2cr, ENGL 1106 (...",
+        "source_type": "requirement",
+        "source_id": "req-mathematics-required-spring_semester-5f4ee7",
+        "vector_score": 0.4383,
+        "keyword_score": 0.0,
+        "combined_score": 0.4383,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 1454: Intro to Math Programming. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 6.",
+        "source_type": "course",
+        "source_id": "math-1454",
+        "vector_score": 0.4355,
+        "keyword_score": 0.0,
+        "combined_score": 0.4355,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MAT...",
+        "source_type": "requirement",
+        "source_id": "mathematics_major_with_applied_discrete_mathematics_option",
+        "vector_score": 0.4333,
+        "keyword_score": 0.0,
+        "combined_score": 0.4333,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Course MATH 5624: Research Math Learning. Credits: 3.0. Average GPA: 3.82. Fall 2026 sections available: 1.",
+        "source_type": "course",
+        "source_id": "math-5624",
+        "vector_score": 0.4308,
+        "keyword_score": 0.0,
+        "combined_score": 0.4308,
+        "rerank_score": null,
+        "selected": false
+      },
+      {
+        "content": "Mathematics Major with Applied Computational Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required]...",
+        "source_type": "requirement",
+        "source_id": "mathematics_major_with_applied_computational_mathematics_option",
+        "vector_score": 0.4302,
+        "keyword_score": 0.0,
+        "combined_score": 0.4302,
+        "rerank_score": null,
+        "selected": false
+      }
+    ],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "semantic",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Course MATH 5134: Coding Theory and Applications. Credits: 3.0. Average GPA: 3.89. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "math-5134",
+      "vector_score": 0.5041,
+      "keyword_score": 0.0,
+      "combined_score": 0.5041,
+      "rerank_score": 0.5041,
+      "selected": true
+    },
+    {
+      "content": "Mathematics Major with Mathematics Education (Master's Track) Option major (B.S.) — College of Science. required — Fall Semester: MATH 3214 (Calculus of Several Variables) 3cr, MATH 3124 (Modern Algeb...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_major_with_ma-required-fall_semester-a74a59",
+      "vector_score": 0.4859,
+      "keyword_score": 0.0,
+      "combined_score": 0.4859,
+      "rerank_score": 0.4859,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 3054: Programming for Math. Credits: 3.0. Average GPA: 3.15. Fall 2026 sections available: 3.",
+      "source_type": "course",
+      "source_id": "math-3054",
+      "vector_score": 0.4804,
+      "keyword_score": 0.0,
+      "combined_score": 0.4804,
+      "rerank_score": 0.4804,
+      "selected": true
+    },
+    {
+      "content": "Mathematics major (B.S.) — College of Science. required — Fall Semester: MATH 2114 (Introduction to Linear Algebra) 3cr, MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) 4cr, MATH 1004 (Discov...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics-required-fall_semester-448249",
+      "vector_score": 0.4719,
+      "keyword_score": 0.0,
+      "combined_score": 0.4719,
+      "rerank_score": 0.4719,
+      "selected": true
+    },
+    {
+      "content": "Course MATH 2644: Mathematics Tutoring. Credits: 1.0. Average GPA: 3.97. Fall 2026 sections available: 5.",
+      "source_type": "course",
+      "source_id": "math-2644",
+      "vector_score": 0.4694,
+      "keyword_score": 0.0,
+      "combined_score": 0.4694,
+      "rerank_score": 0.4694,
+      "selected": true
+    },
+    {
+      "content": "Course MSE 2114: Math Programming MSE I. Credits: 1.0. Average GPA: 3.39. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-2114",
+      "vector_score": 0.4598,
+      "keyword_score": 0.0,
+      "combined_score": 0.4598,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) — College of Science. required — Fall Semester: MATH 3214 (Calculus of Several Variables) 3cr, MATH 1225 (Calculus of a Single V...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_major_with_ap-required-fall_semester-4fb88b",
+      "vector_score": 0.4493,
+      "keyword_score": 0.0,
+      "combined_score": 0.4493,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MATH 1004 (Discovering Mathematics I ( Free Electi...",
+      "source_type": "requirement",
+      "source_id": "mathematics",
+      "vector_score": 0.4489,
+      "keyword_score": 0.0,
+      "combined_score": 0.4489,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MSE 3114: Math Programming MSE II. Credits: 1.0. Average GPA: 3.38. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "mse-3114",
+      "vector_score": 0.4451,
+      "keyword_score": 0.0,
+      "combined_score": 0.4451,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 4626: Math for Secondary Teachers. Credits: 3.0. Average GPA: 3.75. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "math-4626",
+      "vector_score": 0.4441,
+      "keyword_score": 0.0,
+      "combined_score": 0.4441,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Pathways Concept 5 - Quantitative and Computational Thinking: STAT 3005 (Statistical Methods (5A)) 3cr, MATH...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_education-required-pathways_concept_5_--00f2a1",
+      "vector_score": 0.4436,
+      "keyword_score": 0.0,
+      "combined_score": 0.4436,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Education major (B.S.) — College of Liberal Arts and Human Sciences. required — Computer Programming: CS 1114 (Introduction to Software Design), CS 1064 (Introduction to Programming in Pyt...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics_education-required-computer_programming-47c3f8",
+      "vector_score": 0.4406,
+      "keyword_score": 0.0,
+      "combined_score": 0.4406,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 4625: Math for Secondary Teachers. Credits: 3.0. Average GPA: 3.62. Fall 2026 sections available: 4.",
+      "source_type": "course",
+      "source_id": "math-4625",
+      "vector_score": 0.4399,
+      "keyword_score": 0.0,
+      "combined_score": 0.4399,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics major (B.S.) — College of Science. required — Spring Semester: MATH 1044 (Discovering Mathematics II ( Free Elective - strongly recommended for math majors, spring only )) 2cr, ENGL 1106 (...",
+      "source_type": "requirement",
+      "source_id": "req-mathematics-required-spring_semester-5f4ee7",
+      "vector_score": 0.4383,
+      "keyword_score": 0.0,
+      "combined_score": 0.4383,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 1454: Intro to Math Programming. Credits: 3.0. Average GPA: 2.96. Fall 2026 sections available: 6.",
+      "source_type": "course",
+      "source_id": "math-1454",
+      "vector_score": 0.4355,
+      "keyword_score": 0.0,
+      "combined_score": 0.4355,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Major with Applied Discrete Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required], MAT...",
+      "source_type": "requirement",
+      "source_id": "mathematics_major_with_applied_discrete_mathematics_option",
+      "vector_score": 0.4333,
+      "keyword_score": 0.0,
+      "combined_score": 0.4333,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Course MATH 5624: Research Math Learning. Credits: 3.0. Average GPA: 3.82. Fall 2026 sections available: 1.",
+      "source_type": "course",
+      "source_id": "math-5624",
+      "vector_score": 0.4308,
+      "keyword_score": 0.0,
+      "combined_score": 0.4308,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Mathematics Major with Applied Computational Mathematics Option major (B.S.) at Virginia Tech, College of Science. Required courses: MATH 1225 (Calculus of a Single Variable ( Pathway 5f )) [required]...",
+      "source_type": "requirement",
+      "source_id": "mathematics_major_with_applied_computational_mathematics_option",
+      "vector_score": 0.4302,
+      "keyword_score": 0.0,
+      "combined_score": 0.4302,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "answer_type": "general_rag",
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 0,
+        "resolve_ms": 0,
+        "handler_ms": 3248
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "I can work with historical grade distributions — GPA, A/A− rates, F rates, withdrawals, and enrollment counts. Try asking about a specific course (e.g. \"CS 3114\") or a professor by last name. For student opinions beyond the numbers, check the Forums page.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 0,
+    "resolve_ms": 0,
+    "handler_ms": 3248
+  },
+  "errors": []
+}

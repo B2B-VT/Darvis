@@ -1,0 +1,85 @@
+{
+  "case_id": "prof_rec_cs3114_001",
+  "query": "Which professor has the strongest outcomes for CS 3114?",
+  "parsed_intent": {
+    "min_terms": null,
+    "level_high": null,
+    "open_seats_only": false,
+    "professor_name": "has the",
+    "subject": "CS",
+    "route": "professor_profile",
+    "target_credits": null,
+    "major_query": null,
+    "clarifying_question": "Which professor did you mean? Multiple verified instructors match that name: J He, He, X He.",
+    "capabilities": [
+      "instructor_lookup"
+    ],
+    "level_low": null,
+    "time_start": null,
+    "time_end": null,
+    "missing_data_field": null,
+    "min_rmp": null,
+    "needs_clarification": true,
+    "confidence": 1.0,
+    "wants_professors": null,
+    "course_no": "3114",
+    "min_gpa": null,
+    "subject_filter": null,
+    "excluded_days": [],
+    "display_n": null,
+    "sort_goal": "highest_gpa",
+    "min_students": 30,
+    "secondary_routes": [],
+    "requested_courses": []
+  },
+  "resolved_entities": {
+    "professor": {
+      "input": "has the",
+      "value": "J He",
+      "confidence": 0.6400000000000001,
+      "ambiguous": true,
+      "candidates": [
+        "J He",
+        "He",
+        "X He"
+      ]
+    }
+  },
+  "retrieval": {
+    "route": "",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": []
+  },
+  "evidence_ids": [],
+  "ranking": {
+    "method": "",
+    "ordered_ids": [],
+    "scores": {}
+  },
+  "retrieved_candidates": [],
+  "retrieved_ids": [],
+  "reranked_candidates": [],
+  "approved_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {},
+  "sufficiency": {
+    "passed": false,
+    "reasons": [
+      "ambiguous_professor_surname"
+    ]
+  },
+  "answer_type": "",
+  "structured_payload": {},
+  "final_response": {
+    "route": "professor_profile",
+    "answer": "Assuming you meant 'J He' — others match too: He, X He"
+  },
+  "latency_ms": {
+    "plan_ms": 39,
+    "resolve_ms": 21
+  },
+  "errors": []
+}

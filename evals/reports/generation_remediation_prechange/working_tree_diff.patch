@@ -1,0 +1,1888 @@
+diff --git a/chatbot/app/config.py b/chatbot/app/config.py
+index f3d2fa3..d9c674f 100644
+--- a/chatbot/app/config.py
++++ b/chatbot/app/config.py
+@@ -59,6 +59,10 @@ class Settings(BaseSettings):
+     # Number of top chunks to pass to the LLM after reranking
+     rag_top_k_rerank: int = Field(default=5, alias="RAG_TOP_K_RERANK")
+ 
++    # Alias used by the local-reranker A/B tooling. Defaults to the same value
++    # as RAG_TOP_K_RERANK unless explicitly set.
++    rag_rerank_top_k: int = Field(default=5, alias="RAG_RERANK_TOP_K")
++
+     # Enable/disable query rewriting (adds ~100–300ms latency when LLM is used)
+     rag_enable_query_rewrite: bool = Field(
+         default=True, alias="RAG_ENABLE_QUERY_REWRITE"
+@@ -79,6 +83,13 @@ class Settings(BaseSettings):
+     # Disable local cross-encoder reranker to save RAM on Render free tier.
+     # When false, falls back to passthrough if Cohere is not configured.
+     rag_enable_local_reranker: bool = Field(default=False, alias="RAG_ENABLE_LOCAL_RERANKER")
++    rag_local_reranker_model: str = Field(
++        default="cross-encoder/ms-marco-TinyBERT-L2-v2",
++        alias="RAG_LOCAL_RERANKER_MODEL",
++    )
++    rag_local_reranker_device: str = Field(default="cpu", alias="RAG_LOCAL_RERANKER_DEVICE")
++    rag_rerank_batch_size: int = Field(default=16, alias="RAG_RERANK_BATCH_SIZE")
++    rag_rerank_timeout_ms: int = Field(default=0, alias="RAG_RERANK_TIMEOUT_MS")
+ 
+     # LLM-judgement fallback: when retrieval quality is borderline on the last
+     # critic attempt, ask Gemma whether the context actually answers the
+diff --git a/chatbot/app/features/course_profile.py b/chatbot/app/features/course_profile.py
+index a992998..f28fe63 100644
+--- a/chatbot/app/features/course_profile.py
++++ b/chatbot/app/features/course_profile.py
+@@ -12,7 +12,7 @@ COURSE_COLS = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "To
+ COURSE_COLS_RMP = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "RMP Rating", "Confidence Label"]
+ 
+ _RMP_KEYWORDS = {"rate my professor", "rmp rating", "rmp score", "rated", "rmp"}
+-_COMPARISON_KEYWORDS = {"compare", "comparison", "vs", "versus", "difference", "differences"}
++_COMPARISON_KEYWORDS = {"compare", "comparison", "vs", "versus", "differ", "different", "difference", "differences"}
+ 
+ 
+ def _is_rmp_question(question: str) -> bool:
+@@ -220,10 +220,28 @@ def _course_overview_answer(
+     return " ".join(pieces)
+ 
+ 
+-def _requested_courses_from_question(question: str, intent=None) -> list[tuple[str, str]]:
++def _requested_courses_from_question(question: str, intent=None, resolver=None) -> list[tuple[str, str]]:
+     raw_courses = getattr(intent, "requested_courses", None) if intent is not None else None
+     courses: list[tuple[str, str]] = []
+ 
++    if resolver is not None:
++        default_subject = getattr(intent, "subject", None) if intent is not None else None
++        resolved = resolver.resolve_course_references(question, default_subject=default_subject)
++        courses = [
++            (r.subject, r.course_number)
++            for r in resolved
++            if r.status == "resolved"
++        ]
++        if courses:
++            seen: set[tuple[str, str]] = set()
++            deduped: list[tuple[str, str]] = []
++            for course in courses:
++                if course in seen:
++                    continue
++                seen.add(course)
++                deduped.append(course)
++            return deduped
++
+     for item in raw_courses or []:
+         if isinstance(item, (list, tuple)) and len(item) >= 2:
+             subj, num = item[0], item[1]
+@@ -235,6 +253,8 @@ def _requested_courses_from_question(question: str, intent=None) -> list[tuple[s
+             courses.append((str(subj).upper().strip(), str(num).strip()))
+ 
+     for match in re.finditer(r"\b([A-Za-z]{2,5})\s*-?\s*(\d{4})\b(?![-\s]?level)", question):
++        if match.group(1).lower() in {"and", "for", "not"}:
++            continue
+         courses.append((match.group(1).upper(), match.group(2)))
+ 
+     seen: set[tuple[str, str]] = set()
+@@ -340,6 +360,7 @@ def handle_course_profile(
+     user_profile: dict | None = None,
+     sections_df: pd.DataFrame | None = None,
+     indexes=None,
++    resolver=None,
+ ):
+     settings = get_settings()
+ 
+@@ -353,7 +374,7 @@ def handle_course_profile(
+     if not course_no:
+         return None
+ 
+-    requested_courses = _requested_courses_from_question(question, intent)
++    requested_courses = _requested_courses_from_question(question, intent, resolver=resolver)
+ 
+     if _is_prerequisite_question(question):
+         courses_to_check = requested_courses if len(requested_courses) >= 2 else [(subject, course_no)]
+diff --git a/chatbot/app/features/natural_filter.py b/chatbot/app/features/natural_filter.py
+index 0488382..721b56b 100644
+--- a/chatbot/app/features/natural_filter.py
++++ b/chatbot/app/features/natural_filter.py
+@@ -18,6 +18,14 @@ _TOPIC_STOPWORDS = {
+     "suggest", "suggestions", "give", "me", "find", "show", "take",
+     "i", "im", "am", "my", "student", "students", "interested", "interest",
+     "should", "could", "would", "can", "want", "wanna", "need",
++    # Day/time/connector words — verified live these leaked into the
++    # displayed sentence and corrupted relevance scoring on schedule/time
++    # questions ("good that fit between and monday wednesday course
++    # matches"), because they were treated as topic search terms.
++    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
++    "before", "after", "between", "fit", "not", "too", "early", "and", "or",
++    "has", "have", "decent", "outcomes", "this", "that", "brand",
++    "new", "morning", "evening", "mornin", "pm",
+ }
+ 
+ _AI_ML_TERMS = {
+@@ -31,14 +39,6 @@ _MAJOR_SUBJECTS = {
+     "cs": {"CS", "CMDA", "MATH", "STAT", "ECE"},
+     "business information technology": {"BIT", "CMDA", "STAT", "CS"},
+     "bit": {"BIT", "CMDA", "STAT", "CS"},
+-    # Day/time/connector words — verified live these leaked into the
+-    # displayed sentence and corrupted relevance scoring on schedule/time
+-    # questions ("good that fit between and monday wednesday course
+-    # matches"), because they were treated as topic search terms.
+-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+-    "before", "after", "between", "fit", "not", "too", "early", "and", "or",
+-    "need", "has", "have", "decent", "outcomes", "this", "that", "brand",
+-    "new", "morning", "evening", "mornin", "am", "pm",
+ }
+ 
+ 
+diff --git a/chatbot/app/features/professor_profile.py b/chatbot/app/features/professor_profile.py
+index d65c58b..43bd02c 100644
+--- a/chatbot/app/features/professor_profile.py
++++ b/chatbot/app/features/professor_profile.py
+@@ -120,6 +120,7 @@ def handle_professor_profile(
+     history: list | None = None,
+     user_profile: dict | None = None,
+     sections_df=None,
++    resolver=None,
+ ):
+     settings = get_settings()
+     # Use LLM-extracted name if available; fall back to regex
+@@ -131,14 +132,43 @@ def handle_professor_profile(
+             "Try asking with just the last name — for example, \"Hamouda\" or \"Professor Shaffer\"."
+         )
+         return answer, [], [], {"professor_query": None}
++
++    subject_filter = getattr(intent, "subject", None) if intent is not None else None
++    course_filter = getattr(intent, "course_no", None) if intent is not None else None
++    if resolver is not None:
++        checked = resolver.resolve_professors_for_course(name, subject_filter, course_filter)
++        if checked.ambiguous:
++            options = ", ".join(checked.candidates[:4])
++            return (
++                f"Which professor did you mean? Multiple verified instructors match that name: {options}.",
++                [], [], {"professor_query": None, "validation_errors": ["ambiguous_professor"], "candidates": checked.candidates[:8]},
++            )
++        if not checked.value:
++            course_label = f" for {subject_filter} {course_filter}" if subject_filter and course_filter else ""
++            return (
++                f"I couldn't verify that professor in Darvis' instructor data{course_label}. Please provide a verified instructor name or ask about the course without that professor.",
++                [], [], {"professor_query": None, "validation_errors": ["unknown_professor"]},
++            )
++        if checked.warning == "professor_course_mismatch":
++            return (
++                f"I couldn't verify that professor as an instructor for {subject_filter} {course_filter}. I won't substitute professors from another course.",
++                [], [], {"professor_query": checked.value, "validation_errors": ["professor_course_mismatch"], "candidates": checked.candidates},
++            )
++        name = checked.value
++
+     result = professor_profile(df, name, min_students, use_recency).head(top_n)
+ 
+     # If the question targets a specific course, scope the table to just that course
+-    course_filter = (intent.course_no if intent is not None else None)
+     if course_filter and not result.empty and "Course" in result.columns:
+-        narrowed = result[result["Course"].astype(str).str.strip() == str(course_filter).strip()]
++        expected_course = f"{str(subject_filter or '').upper()} {str(course_filter).strip()}".strip()
++        narrowed = result[result["Course"].astype(str).str.strip().str.upper() == expected_course.upper()]
+         if not narrowed.empty:
+             result = narrowed
++        else:
++            return (
++                f"I couldn't verify that professor as an instructor for {expected_course}. I won't substitute professors from another course.",
++                [], [], {"professor_query": name, "validation_errors": ["professor_course_mismatch"]},
++            )
+ 
+     # Pull RMP data for this professor
+     rmp = _lookup_rmp(name, rmp_df)
+@@ -146,8 +176,11 @@ def handle_professor_profile(
+     prof_sections = _build_prof_sections_table(sections_df, name)
+ 
+     if result.empty:
+-        answer = professor_answer(question, result, name, rmp=rmp)
+-        return answer, prof_sections, [], {"professor_query": name, "rmp": rmp}
++        course_label = f" for {subject_filter} {course_filter}" if subject_filter and course_filter else ""
++        return (
++            f"I couldn't verify that professor in Darvis' instructor data{course_label}. Please provide a verified instructor name or ask about the course without that professor.",
++            prof_sections, [], {"professor_query": None, "rmp": rmp, "validation_errors": ["unknown_professor"]},
++        )
+ 
+     table_text = result[PROF_COLS].to_string(index=False)
+     rmp_text   = _rmp_summary(rmp)
+diff --git a/chatbot/app/features/templated_answers.py b/chatbot/app/features/templated_answers.py
+index ddd609e..ee91898 100644
+--- a/chatbot/app/features/templated_answers.py
++++ b/chatbot/app/features/templated_answers.py
+@@ -90,13 +90,15 @@ def course_answer(
+             parts = [
+                 f"For {course_label}, {top_name} has the toughest grade outcomes on record "
+                 f"— {top_gpa} average GPA{f_note} across "
+-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
++                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
++                f"Sample size: {top_students:,} students.",
+             ]
+         else:
+             parts = [
+                 f"For {course_label}, {top_name} has the strongest grade outcomes in the dataset "
+                 f"— {top_gpa} average GPA and a {top_a} A/A− rate across "
+-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
++                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
++                f"Sample size: {top_students:,} students.",
+             ]
+ 
+         if len(result) > 2:
+@@ -113,13 +115,15 @@ def course_answer(
+             parts = [
+                 f"{top_name} has the toughest grade outcomes on record for {course_label} "
+                 f"— {top_gpa} average GPA{f_note} across "
+-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
++                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
++                f"Sample size: {top_students:,} students.",
+             ]
+         else:
+             parts = [
+                 f"{top_name} has the top grade outcomes for {course_label} "
+                 f"— {top_gpa} average GPA and a {top_a} A/A− rate across "
+-                f"{top_students:,} students over {top_terms} {term_word}{conf}.",
++                f"{top_students:,} students over {top_terms} {term_word}{conf}. "
++                f"Sample size: {top_students:,} students.",
+             ]
+         if len(result) > 1:
+             others = result.iloc[1:3]
+diff --git a/chatbot/app/main.py b/chatbot/app/main.py
+index 410d420..91bcbaf 100644
+--- a/chatbot/app/main.py
++++ b/chatbot/app/main.py
+@@ -30,6 +30,7 @@ from app.data.loader import (
+ from app.rag.vector_store import GradeVectorStore
+ from app.rag.gemma_client import GemmaAnswerClient
+ from app.rag.query_planner import QueryPlanner
++from app.rag.planner_models import QueryPlan
+ from app.rag.verifier import check_plan
+ from app.data.indexes import DataIndexes
+ from app.features.course_profile import handle_course_profile
+@@ -460,6 +461,7 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
+             user_profile=body.user_profile,
+             sections_df=STATE.get("sections_df"),
+             indexes=STATE.get("indexes"),
++            resolver=STATE.get("entity_resolver"),
+         )
+         if result is None:
+             return handle_general_chat(question, df, llm, vector_store, history=[m.model_dump() for m in body.history], user_profile=body.user_profile, rmp_df=STATE.get("rmp_df"))
+@@ -473,6 +475,7 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
+             history=[m.model_dump() for m in body.history],
+             user_profile=body.user_profile,
+             sections_df=STATE.get("sections_df"),
++            resolver=STATE.get("entity_resolver"),
+         )
+     elif route == "natural_filter":
+         return handle_natural_filter(
+@@ -567,6 +570,202 @@ def _missing_user_major_context(question: str, intent, body: ChatRequest) -> boo
+     return not major_query or major_query in {"my", "my major", "required", "required courses", "courses"}
+ 
+ 
++def _explicit_prompt_injection_attempt(question: str) -> bool:
++    q = question.lower()
++    return any(
++        phrase in q
++        for phrase in (
++            "ignore previous instructions",
++            "ignore all previous instructions",
++            "bypass filters",
++            "override retrieval",
++            "make up",
++            "invent records",
++            "invent a professor",
++        )
++    )
++
++
++def _professor_query_signal(question: str) -> bool:
++    q = question.lower()
++    return any(
++        phrase in q
++        for phrase in (
++            "who should i take",
++            "who teaches",
++            "which professor",
++            "which prof",
++            "best professor",
++            "best prof",
++            "chill prof",
++            "chill professor",
++            "tell me about professor",
++            "tell me about prof",
++            "is professor",
++            "is prof",
++            "best proffesor",
++            "which proffesor",
++        )
++    ) or bool(re.search(r"\bprof(?:essor)?|proffesor|dr\.\s+[a-z]", q))
++
++
++def _professor_name_candidate(question: str) -> str | None:
++    q = question.strip()
++    patterns = (
++        r"\bdr\.\s+([A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*)?)\b",
++        r"\bprof(?:essor)?\s+([A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*)?)\b",
++        r"\btell me about\s+([A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*)?)\b",
++        r"\bis\s+([A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*)?)\s+good\b",
++    )
++    stop = {"good", "best", "chill", "hard", "hardest", "easiest", "easy", "for", "systems"}
++    for pattern in patterns:
++        match = re.search(pattern, q, re.I)
++        if not match:
++            continue
++        name = re.sub(r"\s+", " ", match.group(1)).strip(" ?.,")
++        if name and name.lower() not in stop:
++            return name
++    return None
++
++
++def _deterministic_professor_plan(question: str, body: ChatRequest, er=None):
++    if er is None or not _professor_query_signal(question):
++        return None
++    q = question.lower()
++    refs = er.resolve_course_references(question)
++    approved = [r for r in refs if r.status == "resolved"]
++    rejected = [r for r in refs if r.status == "rejected"]
++    name_candidate = _professor_name_candidate(question)
++
++    if "systems" in q and not approved:
++        return QueryPlan(
++            route="general_rag",
++            capabilities=["instructor_lookup", "unsupported_or_missing_data"],
++            confidence=1.0,
++            requested_courses=[["CS", "3214"], ["CS", "3204"]],
++            needs_clarification=True,
++            clarifying_question=(
++                "Which systems course do you mean: CS 3214, CS 3204, or another systems course?"
++            ),
++        ), rejected
++
++    subject = approved[0].subject if approved else None
++    course_no = approved[0].course_number if approved else None
++    wants_schedule = any(phrase in q for phrase in ("who teaches", "teaching", "this fall", "schedule", "when does", "what time"))
++
++    if name_candidate:
++        surname_matches = er.surname_candidates(name_candidate) if hasattr(er, "surname_candidates") else []
++        if len(surname_matches) > 1:
++            return QueryPlan(
++                route="professor_profile",
++                capabilities=["instructor_lookup"],
++                confidence=1.0,
++                subject=subject,
++                course_no=course_no,
++                professor_name=name_candidate,
++                needs_clarification=True,
++                clarifying_question=(
++                    "Which professor did you mean? Multiple verified instructors match that name: "
++                    + ", ".join(surname_matches[:4])
++                    + "."
++                ),
++            ), rejected
++        checked = er.resolve_professors_for_course(name_candidate, subject, course_no)
++        if checked.ambiguous:
++            return QueryPlan(
++                route="professor_profile",
++                capabilities=["instructor_lookup"],
++                confidence=1.0,
++                subject=subject,
++                course_no=course_no,
++                professor_name=name_candidate,
++                needs_clarification=True,
++                clarifying_question=(
++                    "Which professor did you mean? Multiple verified instructors match that name: "
++                    + ", ".join(checked.candidates[:4])
++                    + "."
++                ),
++            ), rejected
++        if not checked.value:
++            return QueryPlan(
++                route="professor_profile",
++                capabilities=["instructor_lookup", "unsupported_or_missing_data"],
++                confidence=1.0,
++                subject=subject,
++                course_no=course_no,
++                professor_name=name_candidate,
++                missing_data_field="professor",
++            ), rejected
++        return QueryPlan(
++            route="section_lookup" if wants_schedule else "professor_profile",
++            capabilities=["section_lookup", "instructor_lookup"] if wants_schedule else ["instructor_lookup", "grade_distribution"],
++            confidence=1.0,
++            subject=subject,
++            course_no=course_no,
++            professor_name=checked.value,
++            requested_courses=[[r.subject, r.course_number] for r in approved],
++        ), rejected
++
++    if approved:
++        return QueryPlan(
++            route="section_lookup" if wants_schedule else "course_profile",
++            capabilities=["section_lookup", "instructor_lookup"] if wants_schedule else ["course_lookup", "instructor_lookup", "grade_distribution"],
++            confidence=1.0,
++            subject=subject,
++            course_no=course_no,
++            requested_courses=[[r.subject, r.course_number] for r in approved],
++        ), rejected
++
++    return None
++
++
++def _history_course_referent(history: list | None, er=None) -> tuple[str, str] | None:
++    if er is None or not history:
++        return None
++    for msg in reversed(history[-6:]):
++        content = msg.content if hasattr(msg, "content") else msg.get("content") if isinstance(msg, dict) else None
++        if not content:
++            continue
++        refs = [r for r in er.resolve_course_references(content) if r.status == "resolved"]
++        if refs:
++            return refs[-1].subject, refs[-1].course_number
++    return None
++
++
++def _apply_exact_course_policy(question: str, intent, body: ChatRequest, er=None) -> list:
++    """Make explicit course entities authoritative before route dispatch."""
++    if intent is None or er is None:
++        return []
++    refs = er.resolve_course_references(question, default_subject=getattr(intent, "subject", None))
++    approved = [r for r in refs if r.status == "resolved"]
++    rejected = [r for r in refs if r.status == "rejected"]
++
++    if not approved and re.search(r"\b(it|that course|this course)\b", question, re.I):
++        prior = _history_course_referent(body.history, er=er)
++        if prior:
++            subj, num = prior
++            approved = er.resolve_course_references(f"{subj} {num}")
++
++    if approved:
++        intent.requested_courses = [[r.subject, r.course_number] for r in approved]
++        if len(approved) == 1:
++            intent.subject = approved[0].subject
++            intent.course_no = approved[0].course_number
++        q = question.lower()
++        comparison = len(approved) >= 2 and (
++            "course_comparison" in (getattr(intent, "capabilities", None) or [])
++            or any(word in q for word in ("compare", "differ", "different", "versus"))
++            or " vs " in f" {q} "
++        )
++        if comparison:
++            intent.route = "course_profile"
++        elif not getattr(intent, "professor_name", None) and any(phrase in q for phrase in ("who should", "best professor", "best prof", "which professor", "which prof")):
++            intent.route = "course_profile"
++        elif any(phrase in q for phrase in ("this fall", "teaching", "who teaches", "what time", "when does", "open seats")):
++            intent.route = "section_lookup"
++    return rejected
++
++
+ def _asks_workload_question(question: str) -> bool:
+     q = question.lower()
+     return any(
+@@ -595,23 +794,259 @@ def _asks_curve_question(question: str) -> bool:
+     return "curve" in q or "curves" in q or "curving" in q
+ 
+ 
+-def _clarification_response(answer: str, route: str, warnings: list[str], timings: dict[str, int], reason: str) -> ChatResponse:
++def _clarification_response(answer: str, route: str, warnings: list[str], timings: dict[str, int], reason: str, eval_trace: dict | None = None) -> ChatResponse:
++    metadata = {
++        "needs_clarification": True,
++        "clarification_reason": reason,
++        "fallback_used": False,
++        "timings_ms": timings,
++    }
++    if eval_trace is not None:
++        eval_trace["final_response"] = {"route": route, "answer": answer}
++        metadata["eval_trace"] = eval_trace
+     return ChatResponse(
+         answer=answer,
+         route=route,
+         warnings=warnings,
+         tables=[],
+         charts=[],
+-        metadata={
+-            "needs_clarification": True,
+-            "clarification_reason": reason,
+-            "fallback_used": False,
+-            "timings_ms": timings,
+-        },
++        metadata=metadata,
+         schedule_actions=[],
+     )
+ 
+ 
++def _safe_plan_dict(intent) -> dict:
++    if intent is None:
++        return {}
++    try:
++        data = intent.model_dump()
++    except Exception:
++        return {}
++    allowed = {
++        "route", "secondary_routes", "capabilities", "confidence", "subject",
++        "course_no", "professor_name", "sort_goal", "min_students", "min_gpa",
++        "min_terms", "level_low", "level_high", "wants_professors",
++        "major_query", "time_start", "time_end", "subject_filter",
++        "requested_courses", "excluded_days", "min_rmp", "target_credits",
++        "open_seats_only", "display_n", "missing_data_field",
++        "needs_clarification", "clarifying_question",
++    }
++    return {k: data.get(k) for k in allowed if k in data}
++
++
++def _safe_table_preview(tables: list, max_rows: int = 8) -> list[dict]:
++    out = []
++    for table in tables or []:
++        title = getattr(table, "title", None) or (table.get("title") if isinstance(table, dict) else "")
++        columns = getattr(table, "columns", None) or (table.get("columns") if isinstance(table, dict) else [])
++        rows = getattr(table, "rows", None) or (table.get("rows") if isinstance(table, dict) else [])
++        out.append({"title": title, "columns": columns, "rows": list(rows or [])[:max_rows]})
++    return out
++
++
++def _retrieval_trace(vector_store) -> dict:
++    if vector_store is None:
++        return {}
++    try:
++        info = vector_store.last_debug_info()
++        return info.to_dict() if info is not None else {}
++    except Exception:
++        return {}
++
++
++def _course_candidate(subject: str, course_no: str, source: str, role: str = "primary") -> dict:
++    subj = str(subject or "").upper().strip()
++    num = str(course_no or "").strip()
++    return {
++        "stable_id": f"COURSE:{subj} {num}",
++        "entity_type": "course",
++        "subject": subj,
++        "course_number": num,
++        "professor_name": None,
++        "source": source,
++        "evidence_role": role,
++        "approval_status": "approved",
++    }
++
++
++def _prof_course_candidate(professor: str, course: str | None, source: str, role: str = "ranked_professor") -> dict:
++    course = str(course or "").strip()
++    subject = None
++    course_no = None
++    m = re.search(r"\b([A-Z]{2,5})\s*-?\s*(\d{4})\b", course, re.I)
++    if m:
++        subject, course_no = m.group(1).upper(), m.group(2)
++    stable_course = f"{subject} {course_no}" if subject and course_no else course
++    return {
++        "stable_id": f"PROF_COURSE:{stable_course}:{professor}".upper().replace(" ", "_"),
++        "entity_type": "professor_course",
++        "subject": subject,
++        "course_number": course_no,
++        "professor_name": professor,
++        "source": source,
++        "evidence_role": role,
++        "approval_status": "approved",
++    }
++
++
++def _section_candidate(row: dict, source: str = "sections", fallback_subject: str | None = None, fallback_course_no: str | None = None) -> dict:
++    subject = str(row.get("Subject") or row.get("subject") or "").upper().strip()
++    course_no = str(row.get("Course Number") or row.get("course_number") or "").strip()
++    course = str(row.get("Course") or "").strip()
++    if course and (not subject or not course_no):
++        m = re.search(r"\b([A-Z]{2,5})\s*-?\s*(\d{4})\b", course, re.I)
++        if m:
++            subject, course_no = m.group(1).upper(), m.group(2)
++    if not subject and fallback_subject:
++        subject = str(fallback_subject).upper().strip()
++    if not course_no and fallback_course_no:
++        course_no = str(fallback_course_no).strip()
++    crn = str(row.get("CRN") or row.get("crn") or "").strip()
++    instructor = str(row.get("Instructor") or row.get("instructor") or "").strip() or None
++    stable = f"SECTION:{subject} {course_no}:{crn or instructor or 'UNKNOWN'}"
++    return {
++        "stable_id": stable,
++        "entity_type": "section",
++        "subject": subject or None,
++        "course_number": course_no or None,
++        "professor_name": instructor,
++        "source": source,
++        "evidence_role": "current_section",
++        "approval_status": "approved",
++    }
++
++
++def _table_rows_for_trace(tables: list) -> list[dict]:
++    rows: list[dict] = []
++    for table in tables or []:
++        title = getattr(table, "title", None) or (table.get("title") if isinstance(table, dict) else "")
++        for row in (getattr(table, "rows", None) or (table.get("rows") if isinstance(table, dict) else []) or []):
++            if isinstance(row, dict):
++                rows.append({"title": title, "row": row})
++    return rows
++
++
++def _canonical_evidence(route: str, intent, tables: list, metadata: dict) -> tuple[list[dict], list[str]]:
++    evidence: list[dict] = []
++    seen: set[str] = set()
++
++    def add(candidate: dict):
++        sid = candidate.get("stable_id")
++        if not sid or sid in seen:
++            return
++        seen.add(sid)
++        evidence.append(candidate)
++
++    for subj, num in getattr(intent, "requested_courses", None) or []:
++        if subj and num:
++            add(_course_candidate(subj, num, "entity_resolver", "requested_course"))
++    if getattr(intent, "subject", None) and getattr(intent, "course_no", None):
++        add(_course_candidate(intent.subject, intent.course_no, "entity_resolver", "resolved_course"))
++
++    for subj, num in (metadata or {}).get("comparison_courses") or []:
++        add(_course_candidate(subj, num, "course_profile", "comparison_course"))
++    if (metadata or {}).get("subject") and (metadata or {}).get("course_no"):
++        add(_course_candidate(metadata["subject"], metadata["course_no"], "course_profile", "course_profile"))
++    if (metadata or {}).get("professor_query"):
++        prof = metadata["professor_query"]
++        add({
++            "stable_id": f"PROFESSOR:{str(prof).upper().replace(' ', '_')}",
++            "entity_type": "professor",
++            "subject": getattr(intent, "subject", None),
++            "course_number": getattr(intent, "course_no", None),
++            "professor_name": prof,
++            "source": "instructors",
++            "evidence_role": "resolved_professor",
++            "approval_status": "approved",
++        })
++
++    for item in _table_rows_for_trace(tables):
++        title = item["title"]
++        row = item["row"]
++        course = row.get("Course")
++        if course:
++            m = re.search(r"\b([A-Z]{2,5})\s*-?\s*(\d{4})\b", str(course), re.I)
++            if m:
++                add(_course_candidate(m.group(1), m.group(2), "table", "table_course"))
++            instructor = row.get("Instructor") or row.get("Best Instructor") or row.get("Professor")
++            if instructor:
++                add(_prof_course_candidate(str(instructor), str(course), "grades", "ranked_professor"))
++        if "section" in str(title).lower() or row.get("CRN"):
++            add(_section_candidate(row, fallback_subject=getattr(intent, "subject", None), fallback_course_no=getattr(intent, "course_no", None)))
++
++    rejected = []
++    for cand, reason in zip((metadata or {}).get("excluded_candidates") or [], (metadata or {}).get("exclusion_reasons") or []):
++        rejected.append({
++            "stable_id": f"REJECTED:{cand}",
++            "entity_type": "unknown",
++            "subject": None,
++            "course_number": None,
++            "professor_name": None,
++            "source": "entity_resolver",
++            "evidence_role": reason or "rejected",
++            "approval_status": "rejected",
++        })
++
++    return evidence, [c["stable_id"] for c in rejected]
++
++
++def _answer_type_for_route(route: str, metadata: dict) -> str:
++    if route == "refusal":
++        return "refusal"
++    if (metadata or {}).get("needs_clarification") or (metadata or {}).get("validation_errors"):
++        if "unknown_professor" in ((metadata or {}).get("validation_errors") or []):
++            return "insufficient_data"
++        return "clarification_required"
++    return route or "general_rag"
++
++
++def _init_eval_trace(body: ChatRequest, question: str) -> dict | None:
++    if not getattr(body, "eval_mode", False):
++        return None
++    return {
++        "case_id": body.eval_case_id,
++        "query": question,
++        "parsed_intent": None,
++        "resolved_entities": {},
++        "retrieval": {
++            "route": "",
++            "queries": [],
++            "raw_candidates": [],
++            "approved_candidates": [],
++            "rejected_candidates": [],
++        },
++        "evidence_ids": [],
++        "ranking": {
++            "method": "",
++            "model": None,
++            "enabled": False,
++            "input_ids": [],
++            "input_rrf_order": [],
++            "cross_encoder_scores": {},
++            "output_order": [],
++            "selected_ids": [],
++            "ordered_ids": [],
++            "scores": {},
++            "fallback_used": False,
++            "fallback_reason": None,
++            "latency_ms": 0,
++        },
++        "retrieved_candidates": [],
++        "retrieved_ids": [],
++        "reranked_candidates": [],
++        "approved_candidates": [],
++        "excluded_candidates": [],
++        "exclusion_reasons": [],
++        "analytics": {},
++        "sufficiency": {"passed": None, "reasons": []},
++        "answer_type": "",
++        "structured_payload": {},
++        "final_response": {},
++        "latency_ms": {},
++        "errors": [],
++    }
++
++
+ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+     """
+     Shared 4-stage pipeline (plan -> resolve -> sufficiency gate -> handler)
+@@ -626,9 +1061,17 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+ 
+     warnings = default_warnings() + privacy_warnings(body.question)
+     timings: dict[str, int] = {}
++    eval_trace = _init_eval_trace(body, question)
+ 
+     safety = classify_safety(question)
+     if safety.blocked:
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {"passed": False, "reasons": [safety.reason]}
++            eval_trace["retrieval"]["route"] = "refusal"
++            eval_trace["retrieval"]["not_run_reason"] = safety.reason
++            eval_trace["answer_type"] = "refusal"
++            eval_trace["final_response"] = {"route": "refusal", "answer": refusal_answer(safety)}
++            eval_trace["latency_ms"] = timings
+         return ChatResponse(
+             answer=refusal_answer(safety),
+             route="refusal",
+@@ -641,6 +1084,32 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+                 "normalized_query": question,
+                 "fallback_used": False,
+                 "timings_ms": timings,
++                **({"eval_trace": eval_trace} if eval_trace is not None else {}),
++            },
++            schedule_actions=[],
++        )
++
++    if _explicit_prompt_injection_attempt(question):
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {"passed": False, "reasons": ["prompt_injection_rejected"]}
++            eval_trace["retrieval"]["route"] = "refusal"
++            eval_trace["retrieval"]["not_run_reason"] = "prompt_injection_rejected"
++            eval_trace["answer_type"] = "refusal"
++            eval_trace["final_response"] = {"route": "refusal", "answer": "I can't follow instructions that try to override Darvis' retrieval or invent academic records."}
++            eval_trace["latency_ms"] = timings
++        return ChatResponse(
++            answer="I can't follow instructions that try to override Darvis' retrieval or invent academic records.",
++            route="refusal",
++            warnings=warnings,
++            tables=[],
++            charts=[],
++            metadata={
++                "safety_decision": "refuse",
++                "refusal_reason": "prompt_injection_rejected",
++                "normalized_query": question,
++                "fallback_used": False,
++                "timings_ms": timings,
++                **({"eval_trace": eval_trace} if eval_trace is not None else {}),
+             },
+             schedule_actions=[],
+         )
+@@ -652,8 +1121,20 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+     # old hardcoded section-signal override is gone.
+     t0 = time.time()
+     planner = STATE.get("planner")
+-    intent = planner.plan(question, history=body.history) if planner else None
++    er = STATE.get("entity_resolver")
++    deterministic_professor = _deterministic_professor_plan(question, body, er=er)
++    if deterministic_professor is not None:
++        intent, pre_rejected_course_refs = deterministic_professor
++    else:
++        intent = planner.plan(question, history=body.history) if planner else None
++        pre_rejected_course_refs = []
+     timings["plan_ms"] = int((time.time() - t0) * 1000)
++    if eval_trace is not None:
++        eval_trace["parsed_intent"] = _safe_plan_dict(intent)
++        eval_trace["latency_ms"] = dict(timings)
++        if pre_rejected_course_refs:
++            eval_trace["excluded_candidates"].extend([r.normalized_code for r in pre_rejected_course_refs])
++            eval_trace["exclusion_reasons"].extend([r.reason or "injected_entity_rejected" for r in pre_rejected_course_refs])
+ 
+     if intent is not None and _asks_workload_question(question):
+         intent.missing_data_field = "workload"
+@@ -663,6 +1144,12 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+ 
+     if _asks_curve_question(question):
+         timings["resolve_ms"] = 0
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {"passed": False, "reasons": ["curve_data_unavailable"]}
++            eval_trace["retrieval"]["route"] = "general_rag"
++            eval_trace["retrieval"]["not_run_reason"] = "curve_data_unavailable"
++            eval_trace["answer_type"] = "insufficient_data"
++            eval_trace["latency_ms"] = dict(timings)
+         return ChatResponse(
+             answer=(
+                 "Darvis doesn't track grading-curve policies — that's not something the historical "
+@@ -671,19 +1158,31 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+             route="general_rag",
+             warnings=warnings,
+             tables=[], charts=[],
+-            metadata={"missing_data_field": "curve", "timings_ms": timings},
++            metadata={"missing_data_field": "curve", "timings_ms": timings, **({"eval_trace": eval_trace} if eval_trace is not None else {})},
+             schedule_actions=[],
+         )
+ 
+     # ── Stage 2: resolve entities ──────────────────────────────────────────────
+     t0 = time.time()
+     if intent is not None:
+-        er = STATE.get("entity_resolver")
++        rejected_course_refs = _apply_exact_course_policy(question, intent, body, er=er)
++        if eval_trace is not None and rejected_course_refs:
++            eval_trace["excluded_candidates"].extend([r.normalized_code for r in rejected_course_refs])
++            eval_trace["exclusion_reasons"].extend([r.reason or "injected_entity_rejected" for r in rejected_course_refs])
+         if er is not None:
+             if intent.professor_name:
++                before_professor_name = intent.professor_name
+                 resolved = er.resolve_professor_ex(intent.professor_name)
+                 if resolved.value and resolved.confidence >= 0.6:
+                     intent.professor_name = resolved.value
++                if eval_trace is not None:
++                    eval_trace["resolved_entities"]["professor"] = {
++                        "input": before_professor_name,
++                        "value": resolved.value,
++                        "confidence": resolved.confidence,
++                        "ambiguous": resolved.ambiguous,
++                        "candidates": resolved.candidates[:5],
++                    }
+ 
+                 ambiguity_warning = resolved.warning if resolved.ambiguous else None
+ 
+@@ -721,23 +1220,45 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+ 
+                 if ambiguity_warning:
+                     timings["resolve_ms"] = int((time.time() - t0) * 1000)
++                    if eval_trace is not None:
++                        eval_trace["sufficiency"] = {"passed": False, "reasons": ["ambiguous_professor_surname"]}
++                        eval_trace["latency_ms"] = dict(timings)
+                     return _clarification_response(
+                         ambiguity_warning,
+                         intent.route,
+                         warnings,
+                         timings,
+                         "ambiguous_professor_surname",
++                        eval_trace,
+                     )
+             if intent.subject and intent.course_no:
++                before_course = {"subject": intent.subject, "course_no": intent.course_no}
+                 intent.subject, intent.course_no = er.resolve_course_code(
+                     intent.subject, intent.course_no
+                 )
++                if eval_trace is not None:
++                    eval_trace["resolved_entities"]["course"] = {
++                        "input": before_course,
++                        "value": {"subject": intent.subject, "course_no": intent.course_no},
++                    }
+             # If no professor name was extracted but the question likely names one, scan it
+             if not intent.professor_name and intent.route == "professor_profile":
+                 resolved_prof, _ = er.resolve_question_entities(question)
+                 if resolved_prof:
+                     intent.professor_name = resolved_prof
+         route = intent.route
++        if (
++            len(getattr(intent, "requested_courses", None) or []) >= 2
++            and (
++                "course_comparison" in (getattr(intent, "capabilities", None) or [])
++                or "compare" in question.lower()
++                or "differ" in question.lower()
++                or "versus" in question.lower()
++                or " vs " in f" {question.lower()} "
++            )
++        ):
++            route = "course_profile"
++            intent.route = "course_profile"
+         logger.info(
+             "plan route=%s conf=%.2f caps=%s subj=%s course=%s prof=%s sort=%s",
+             route, intent.confidence, ",".join(intent.capabilities) or "-",
+@@ -748,23 +1269,60 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+         from app.features.router import route_question
+         route = route_question(question)
+     timings["resolve_ms"] = int((time.time() - t0) * 1000)
++    if eval_trace is not None:
++        eval_trace["parsed_intent"] = _safe_plan_dict(intent)
++        eval_trace["latency_ms"] = dict(timings)
++
++    if intent is not None and getattr(intent, "needs_clarification", False):
++        if eval_trace is not None:
++            approved_evidence, _ = _canonical_evidence(route, intent, [], {})
++            eval_trace["sufficiency"] = {"passed": False, "status": "clarification_required", "reasons": ["deterministic_professor_ambiguity"]}
++            eval_trace["retrieval"]["route"] = route
++            eval_trace["retrieval"]["not_run_reason"] = "clarification_required"
++            eval_trace["retrieval"]["approved_candidates"] = approved_evidence
++            eval_trace["approved_candidates"] = approved_evidence
++            eval_trace["evidence_ids"] = [item["stable_id"] for item in approved_evidence]
++            eval_trace["retrieved_ids"] = [item["stable_id"] for item in approved_evidence]
++            eval_trace["ranking"] = {
++                "method": "deterministic",
++                "ordered_ids": [item["stable_id"] for item in approved_evidence],
++                "scores": {},
++            }
++            eval_trace["answer_type"] = "clarification_required"
++            eval_trace["latency_ms"] = dict(timings)
++        return _clarification_response(
++            intent.clarifying_question or "Which professor or course did you mean?",
++            route,
++            warnings,
++            timings,
++            "deterministic_professor_ambiguity",
++            eval_trace,
++        )
+ 
+     if _ambiguous_professor_shorthand(question, intent, er=STATE.get("entity_resolver")):
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {"passed": False, "reasons": ["ambiguous_professor_shorthand"]}
++            eval_trace["latency_ms"] = dict(timings)
+         return _clarification_response(
+             "Which professor did you mean? Please provide the full name or department, and we can compare the available course, schedule, or grade data.",
+             route,
+             warnings,
+             timings,
+             "ambiguous_professor_shorthand",
++            eval_trace,
+         )
+ 
+     if _missing_user_major_context(question, intent, body):
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {"passed": False, "reasons": ["missing_major_context"]}
++            eval_trace["latency_ms"] = dict(timings)
+         return _clarification_response(
+             "Which major should we check? We need your major or a specific requirement list before we can identify required courses that fit your constraints.",
+             route,
+             warnings,
+             timings,
+             "missing_major_context",
++            eval_trace,
+         )
+ 
+     # ── Stage 3: sufficiency gate ──────────────────────────────────────────────
+@@ -773,14 +1331,25 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+     if intent is not None:
+         gate = check_plan(intent, indexes=STATE.get("indexes"))
+         warnings.extend(gate.warnings)
++        if eval_trace is not None:
++            eval_trace["sufficiency"] = {
++                "passed": bool(gate.sufficient),
++                "reasons": list(gate.warnings or []) + ([gate.clarification] if gate.clarification else []),
++            }
+         if not gate.sufficient:
+             honest = gate.answer_override or gate.clarification
++            if eval_trace is not None:
++                eval_trace["latency_ms"] = dict(timings)
++                eval_trace["retrieval"]["route"] = route
++                eval_trace["retrieval"]["not_run_reason"] = "sufficiency_gate"
++                eval_trace["answer_type"] = "insufficient_data"
++                eval_trace["final_response"] = {"route": route, "answer": honest}
+             return ChatResponse(
+                 answer=honest,
+                 route=route,
+                 warnings=warnings,
+                 tables=[], charts=[],
+-                metadata={"honest_no_data": bool(gate.answer_override), "timings_ms": timings},
++                metadata={"honest_no_data": bool(gate.answer_override), "timings_ms": timings, **({"eval_trace": eval_trace} if eval_trace is not None else {})},
+                 schedule_actions=[],
+             )
+ 
+@@ -788,6 +1357,17 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+     t0 = time.time()
+     try:
+         answer, tables, charts, metadata = _dispatch_route(route, question, body, intent, df, llm, vector_store)
++        if eval_trace is not None:
++            semantic_routes = {"general_rag", "natural_filter"}
++            retrieval_info = _retrieval_trace(vector_store) if route in semantic_routes else {}
++            eval_trace["retrieved_candidates"] = retrieval_info.get("retrieved_candidates") or retrieval_info.get("candidates") or []
++            eval_trace["reranked_candidates"] = retrieval_info.get("reranked_candidates") or retrieval_info.get("selected") or []
++            eval_trace["analytics"] = {
++                "route": route,
++                "metadata_keys": sorted(list((metadata or {}).keys())),
++                "table_titles": [getattr(t, "title", None) or (t.get("title") if isinstance(t, dict) else "") for t in (tables or [])],
++                "chart_titles": [getattr(c, "title", None) or (c.get("title") if isinstance(c, dict) else "") for c in (charts or [])],
++            }
+ 
+         # ── Secondary route fan-out ──────────────────────────────────────────
+         # A question can span two intents ("who teaches CS 3114 and what's their
+@@ -813,6 +1393,8 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+         logger.error("Chat error for question %r: %s\n%s", question, exc, traceback.format_exc())
+         raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
+     timings["handler_ms"] = int((time.time() - t0) * 1000)
++    if eval_trace is not None:
++        eval_trace["latency_ms"] = dict(timings)
+ 
+     metadata.update({
+         "use_recency": body.use_recency,
+@@ -827,6 +1409,64 @@ def _run_chat_pipeline(body: ChatRequest, question: str) -> ChatResponse:
+     )
+ 
+     answer = sanitize_answer(answer) or answer
++    if eval_trace is not None:
++        approved_evidence, rejected_evidence_ids = _canonical_evidence(route, intent, tables, metadata)
++        rejected_candidates = []
++        for code, reason in zip(eval_trace.get("excluded_candidates") or [], eval_trace.get("exclusion_reasons") or []):
++            rejected_candidates.append({
++                "stable_id": f"REJECTED:{code}",
++                "entity_type": "course",
++                "subject": str(code).split()[0] if " " in str(code) else None,
++                "course_number": str(code).split()[1] if " " in str(code) else None,
++                "professor_name": None,
++                "source": "entity_resolver",
++                "evidence_role": reason or "rejected",
++                "approval_status": "rejected",
++            })
++        eval_trace["retrieval"] = {
++            "route": route,
++            "queries": [question],
++            "raw_candidates": eval_trace.get("retrieved_candidates") or [],
++            "approved_candidates": approved_evidence,
++            "rejected_candidates": rejected_candidates,
++        }
++        eval_trace["approved_candidates"] = approved_evidence
++        eval_trace["evidence_ids"] = [item["stable_id"] for item in approved_evidence]
++        eval_trace["retrieved_ids"] = [item["stable_id"] for item in approved_evidence]
++        semantic_ranking = retrieval_info.get("ranking") if route in {"general_rag", "natural_filter"} else None
++        if semantic_ranking:
++            eval_trace["ranking"] = {
++                **semantic_ranking,
++                "ordered_ids": semantic_ranking.get("selected_ids") or semantic_ranking.get("output_order") or [],
++                "scores": semantic_ranking.get("cross_encoder_scores") or {},
++            }
++        else:
++            eval_trace["ranking"] = {
++                "method": "deterministic",
++                "model": None,
++                "enabled": False,
++                "input_ids": [item["stable_id"] for item in approved_evidence],
++                "input_rrf_order": [item["stable_id"] for item in approved_evidence],
++                "cross_encoder_scores": {},
++                "output_order": [item["stable_id"] for item in approved_evidence],
++                "selected_ids": [item["stable_id"] for item in approved_evidence],
++                "ordered_ids": [item["stable_id"] for item in approved_evidence],
++                "scores": {},
++                "fallback_used": False,
++                "fallback_reason": None,
++                "latency_ms": 0,
++            }
++        eval_trace["answer_type"] = _answer_type_for_route(route, metadata)
++        eval_trace["structured_payload"] = {
++            "tables": _safe_table_preview(tables),
++            "charts_count": len(charts or []),
++            "metadata": {
++                k: v for k, v in (metadata or {}).items()
++                if k not in {"eval_trace"} and not any(secret in k.lower() for secret in ("key", "token", "secret", "password"))
++            },
++        }
++        eval_trace["final_response"] = {"route": route, "answer": answer, "warnings": warnings}
++        metadata["eval_trace"] = eval_trace
+ 
+     return ChatResponse(
+         answer=answer,
+diff --git a/chatbot/app/models.py b/chatbot/app/models.py
+index 4ce7168..ec2ed7d 100644
+--- a/chatbot/app/models.py
++++ b/chatbot/app/models.py
+@@ -14,6 +14,8 @@ class ChatRequest(BaseModel):
+     top_n: int = Field(default=10, ge=1, le=25)
+     user_profile: dict | None = None
+     history: list[ChatMessage] = Field(default_factory=list)  # prior turns, newest last
++    eval_mode: bool = False
++    eval_case_id: str | None = Field(default=None, max_length=120)
+ 
+ 
+ class TableSpec(BaseModel):
+diff --git a/chatbot/app/rag/observability.py b/chatbot/app/rag/observability.py
+index 78d82ce..ebe4f20 100644
+--- a/chatbot/app/rag/observability.py
++++ b/chatbot/app/rag/observability.py
+@@ -56,6 +56,7 @@ class RetrievalDebugInfo:
+     n_selected: int               # chunks sent to LLM
+     candidates: list[ChunkDebugInfo] = field(default_factory=list)
+     timing_ms: dict[str, float] = field(default_factory=dict)  # stage → ms
++    ranking: dict = field(default_factory=dict)
+ 
+     def to_dict(self) -> dict:
+         return {
+@@ -67,6 +68,7 @@ class RetrievalDebugInfo:
+             "n_candidates": self.n_candidates,
+             "n_selected": self.n_selected,
+             "timing_ms": self.timing_ms,
++            "ranking": self.ranking,
+             "candidates": [
+                 {
+                     "content": c.content[:200] + "..." if len(c.content) > 200 else c.content,
+@@ -133,6 +135,7 @@ def build_debug_info(
+     embedding_provider: str,
+     reranker_provider: str,
+     timing: dict[str, float],
++    ranking: dict | None = None,
+ ) -> RetrievalDebugInfo:
+     """Construct a RetrievalDebugInfo from pipeline outputs."""
+     selected_ids = {r.id for r in selected}
+@@ -162,4 +165,5 @@ def build_debug_info(
+         n_selected=len(selected),
+         candidates=chunk_infos,
+         timing_ms=timing,
++        ranking=ranking or {},
+     )
+diff --git a/chatbot/app/rag/pipeline.py b/chatbot/app/rag/pipeline.py
+index 52fe5b1..0380f52 100644
+--- a/chatbot/app/rag/pipeline.py
++++ b/chatbot/app/rag/pipeline.py
+@@ -127,7 +127,8 @@ class RAGPipeline:
+         if not candidates:
+             logger.debug("[pipeline] No candidates retrieved for: %r", question[:60])
+             self._last_debug_info = build_debug_info(
+-                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing
++                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing,
++                ranking=self._reranker.last_ranking_trace,
+             )
+             return ""
+ 
+@@ -140,6 +141,7 @@ class RAGPipeline:
+         self._last_debug_info = build_debug_info(
+             rewritten, candidates, selected,
+             self._embedder.provider, self._reranker.provider, timing,
++            ranking=self._reranker.last_ranking_trace,
+         )
+ 
+         if self._debug_mode or logger.isEnabledFor(logging.DEBUG):
+@@ -181,7 +183,8 @@ class RAGPipeline:
+ 
+         if not candidates:
+             self._last_debug_info = build_debug_info(
+-                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing
++                rewritten, [], [], self._embedder.provider, self._reranker.provider, timing,
++                ranking=self._reranker.last_ranking_trace,
+             )
+             return "", []
+ 
+@@ -192,6 +195,7 @@ class RAGPipeline:
+         self._last_debug_info = build_debug_info(
+             rewritten, candidates, selected,
+             self._embedder.provider, self._reranker.provider, timing,
++            ranking=self._reranker.last_ranking_trace,
+         )
+ 
+         if self._debug_mode or logger.isEnabledFor(logging.DEBUG):
+diff --git a/chatbot/app/rag/reranker.py b/chatbot/app/rag/reranker.py
+index 7311dea..5bd1cc5 100644
+--- a/chatbot/app/rag/reranker.py
++++ b/chatbot/app/rag/reranker.py
+@@ -1,54 +1,181 @@
+ """
+ app/rag/reranker.py
+ 
+-Two-stage reranking for retrieved chunks:
++Feature-flagged reranking for retrieved chunks.
+ 
+-  Stage 1 (retrieval): Hybrid search returns top-K candidates (default 20).
+-  Stage 2 (rerank): Reranker selects top-N most relevant chunks (default 5).
+-
+-Provider priority:
+-  1. Cohere Rerank API    (needs COHERE_API_KEY — free tier: 1,000 calls/month)
+-  2. Cross-encoder model  (local, sentence-transformers — already in venv)
+-  3. Score passthrough    (no reranking, use combined_score from retrieval)
+-
+-Why rerank?
+-  Retrieval scores (cosine similarity, BM25) measure surface similarity.
+-  A cross-encoder reads both the query and each candidate together and
+-  assigns a true relevance score, dramatically improving top-N precision.
+-
+-  For Darvis: "which CS 3114 prof is hardest?" → retrieval may surface
+-  CS 3114 course catalog docs ahead of grade docs. The reranker knows
+-  that grade data (GPA, F rate) is more relevant to "hardest" than the
+-  course title/credits blurb.
++Default behavior remains RRF passthrough: sort the initial hybrid-retrieval
++candidate pool by `combined_score` and select top-k. When explicitly enabled,
++the local cross-encoder reranker may reorder that same input pool, but it never
++adds candidates and falls back to the original RRF order on any load/inference
++problem.
+ """
+ 
+ from __future__ import annotations
+ 
+ import logging
+-from typing import TYPE_CHECKING
++import math
++import time
++from dataclasses import replace
++from typing import Any, TYPE_CHECKING
+ 
+ if TYPE_CHECKING:
+     from app.rag.retriever import RetrievalResult
+ 
+ logger = logging.getLogger("darvis.reranker")
+ 
+-_CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
++DEFAULT_CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-TinyBERT-L2-v2"
++
++_GRADE_QUERY_SIGNALS = (
++    "easy", "easiest", "hard", "hardest", "brutal", "tough", "avoid",
++    "gpa", "grade", "grades", "outcome", "outcomes", "a rate", "f rate",
++    "withdraw", "workload", "difficulty", "professor", "instructor",
++)
++
++
++def _clean(value: Any) -> str:
++    if value is None:
++        return ""
++    text = str(value).strip()
++    if not text or text.lower() in {"none", "null", "nan", "n/a"}:
++        return ""
++    return text
++
++
++def candidate_stable_id(candidate: "RetrievalResult") -> str:
++    source_id = _clean(getattr(candidate, "source_id", ""))
++    if source_id:
++        return source_id
++    return str(getattr(candidate, "id", ""))
++
++
++def query_mentions_grade_context(query: str) -> bool:
++    q = (query or "").lower()
++    return any(signal in q for signal in _GRADE_QUERY_SIGNALS)
++
++
++def canonical_candidate_text(candidate: "RetrievalResult", query: str = "") -> str:
++    """
++    Build a compact reranker input string from trusted chunk metadata.
++
++    General topical course recommendations avoid grade-outcome fields so the
++    cross-encoder ranks semantic fit instead of "easy A" artifacts. Grade and
++    professor fields are included for queries that explicitly ask for outcomes,
++    difficulty, or instructor comparison.
++    """
++    meta = getattr(candidate, "metadata", None) or {}
++    source_type = _clean(getattr(candidate, "source_type", ""))
++    content = _clean(getattr(candidate, "content", ""))
++    include_grade_context = query_mentions_grade_context(query)
++    parts: list[str] = []
++
++    subject = _clean(meta.get("subject"))
++    course_number = _clean(meta.get("course_number"))
++    title = _clean(meta.get("title") or meta.get("course_title"))
++    description = _clean(meta.get("description"))
++    topics = _clean(meta.get("topics") or meta.get("pathways"))
++    credits = _clean(meta.get("credits"))
++    prereqs = _clean(meta.get("prerequisites"))
++    instructor = _clean(meta.get("instructor") or meta.get("name") or meta.get("professor"))
++
++    if source_type == "course" or subject or course_number or title:
++        if subject and course_number:
++            parts.append(f"Course: {subject} {course_number}")
++        if title:
++            parts.append(f"Title: {title}")
++        if subject:
++            parts.append(f"Subject: {subject}")
++        if description:
++            parts.append(f"Description: {description}")
++        if topics:
++            parts.append(f"Topics: {topics}")
++        if course_number and course_number[:1].isdigit():
++            parts.append(f"Level: {course_number[0]}000")
++        if credits:
++            parts.append(f"Credits: {credits}")
++        if prereqs:
++            parts.append(f"Prerequisites: {prereqs}")
++
++    if source_type in {"grade", "instructor", "section"} or include_grade_context:
++        if instructor:
++            parts.append(f"Professor: {instructor}")
++        if subject and course_number:
++            parts.append(f"Course taught: {subject} {course_number}")
++        if include_grade_context:
++            avg_gpa = _clean(meta.get("avg_gpa") or meta.get("gpa"))
++            sample = _clean(meta.get("sample_size") or meta.get("total_students") or meta.get("graded_enrollment"))
++            rating_count = _clean(meta.get("rmp_count") or meta.get("rating_count"))
++            difficulty = _clean(meta.get("rmp_difficulty") or meta.get("difficulty"))
++            if avg_gpa:
++                parts.append(f"Average GPA: {avg_gpa}")
++            if sample:
++                parts.append(f"Student sample size: {sample}")
++            if rating_count:
++                parts.append(f"Rating count: {rating_count}")
++            if difficulty:
++                parts.append(f"Difficulty: {difficulty}")
++
++    if not parts and content:
++        parts.append(content)
++    elif content and content not in " ".join(parts):
++        parts.append(f"Context: {content}")
++
++    return "\n".join(part for part in parts if _clean(part))
++
++
++def normalized_reranker_query(
++    query: str,
++    user_profile: dict[str, Any] | None = None,
++    intent: str | None = None,
++    constraints: list[str] | None = None,
++) -> str:
++    parts = [f"User request: {_clean(query)}"]
++    if intent:
++        parts.append(f"Intent: {_clean(intent)}")
++    profile = user_profile or {}
++    major = _clean(profile.get("major"))
++    minor = _clean(profile.get("minor"))
++    interests = profile.get("interests") or []
++    if major:
++        parts.append(f"Major: {major}")
++    if minor:
++        parts.append(f"Minor: {minor}")
++    if interests:
++        clean_interests = [_clean(item) for item in interests]
++        clean_interests = [item for item in clean_interests if item]
++        if clean_interests:
++            parts.append(f"Interests: {', '.join(clean_interests[:8])}")
++    if constraints:
++        clean_constraints = [_clean(item) for item in constraints]
++        clean_constraints = [item for item in clean_constraints if item]
++        if clean_constraints:
++            parts.append(f"Constraints: {'; '.join(clean_constraints[:8])}")
++    return "\n".join(parts)
+ 
+ 
+ class Reranker:
+     """
+-    Reranks a list of RetrievalResult objects against the original query.
+-    Falls back gracefully through provider tiers.
++    Reranks RetrievalResult objects against the query.
++
++    The local cross-encoder is loaded lazily on first use and cached on this
++    instance. Any failure, including non-finite model scores, records fallback
++    metadata and preserves original RRF ordering.
+     """
+ 
+     def __init__(self, settings=None):
+         from app.config import get_settings
+         cfg = settings or get_settings()
+ 
+-        self._top_k: int = getattr(cfg, "rag_top_k_rerank", 5)
++        self._top_k: int = getattr(cfg, "rag_rerank_top_k", getattr(cfg, "rag_top_k_rerank", 5))
+         self._provider: str = "passthrough"
++        self._configured_provider: str = "passthrough"
+         self._cohere_client = None
+         self._cross_encoder = None
++        self._local_model_name: str = getattr(cfg, "rag_local_reranker_model", DEFAULT_CROSS_ENCODER_MODEL)
++        self._local_device: str = getattr(cfg, "rag_local_reranker_device", "cpu") or "cpu"
++        self._batch_size: int = max(1, int(getattr(cfg, "rag_rerank_batch_size", 16) or 16))
++        self._timeout_ms: int = max(0, int(getattr(cfg, "rag_rerank_timeout_ms", 0) or 0))
++        self._last_ranking_trace: dict[str, Any] = self._empty_trace("rrf_passthrough", enabled=False)
++        self._last_all_scores: dict[str, float] = {}
+ 
+         cohere_key = getattr(cfg, "cohere_api_key", "")
+         if cohere_key:
+@@ -56,78 +183,123 @@ class Reranker:
+             if client:
+                 self._cohere_client = client
+                 self._provider = "cohere"
++                self._configured_provider = "cohere"
+                 logger.info("[reranker] Provider: Cohere Rerank")
+ 
+-        # Local cross-encoder disabled by default — avoids loading ~85 MB
+-        # sentence-transformers model on Render free tier (512 MB RAM limit).
+-        # Set RAG_ENABLE_LOCAL_RERANKER=true locally or on a paid-tier deployment.
+         if self._provider == "passthrough":
+             enable_local = getattr(cfg, "rag_enable_local_reranker", False)
+             if enable_local:
+-                ce = self._init_cross_encoder()
+-                if ce:
+-                    self._cross_encoder = ce
+-                    self._provider = "cross_encoder"
+-                    logger.info("[reranker] Provider: cross-encoder %s (local)", _CROSS_ENCODER_MODEL)
++                self._provider = "cross_encoder"
++                self._configured_provider = "cross_encoder"
++                logger.info("[reranker] Provider: local cross-encoder %s (lazy)", self._local_model_name)
+             else:
+                 logger.info("[reranker] Local cross-encoder skipped (RAG_ENABLE_LOCAL_RERANKER=false)")
+ 
+         if self._provider == "passthrough":
+             logger.info("[reranker] Provider: passthrough (sorted by retrieval score)")
+ 
+-    # ── Provider initializers ──────────────────────────────────────────────────
+-
+-    def _init_cohere(self, api_key: str):
+-        try:
+-            import cohere
+-            return cohere.Client(api_key=api_key)
+-        except ImportError:
+-            logger.debug("[reranker] cohere package not installed")
+-            return None
+-
+-    def _init_cross_encoder(self):
+-        try:
+-            from sentence_transformers import CrossEncoder
+-            return CrossEncoder(_CROSS_ENCODER_MODEL, max_length=512)
+-        except ImportError:
+-            logger.debug("[reranker] sentence-transformers not installed")
+-            return None
+-        except Exception as exc:
+-            logger.warning("[reranker] cross-encoder load failed: %s", exc)
+-            return None
+-
+-    # ── Public API ─────────────────────────────────────────────────────────────
+-
+     @property
+     def provider(self) -> str:
+         return self._provider
+ 
++    @property
++    def configured_provider(self) -> str:
++        return self._configured_provider
++
++    @property
++    def last_ranking_trace(self) -> dict[str, Any]:
++        return dict(self._last_ranking_trace)
++
+     def rerank(
+         self,
+         query: str,
+         candidates: list["RetrievalResult"],
+         top_k: int | None = None,
++        user_profile: dict[str, Any] | None = None,
++        intent: str | None = None,
+     ) -> list["RetrievalResult"]:
+-        """
+-        Rerank `candidates` by relevance to `query` and return the top_k best.
+-        Attaches `rerank_score` to each result for observability.
+-        Falls back to score passthrough if the reranker is unavailable.
+-        """
+         if not candidates:
++            self._last_all_scores = {}
++            self._last_ranking_trace = self._empty_trace(self._method_name(), enabled=self._provider != "passthrough")
+             return []
+-        k = top_k or self._top_k
++
++        k = min(top_k or self._top_k, len(candidates))
++        rerank_query = normalized_reranker_query(query, user_profile=user_profile, intent=intent)
++        start = time.perf_counter()
+ 
+         try:
+             if self._provider == "cohere":
+-                return self._rerank_cohere(query, candidates, k)
++                selected = self._rerank_cohere(rerank_query, candidates, k)
++                self._record_trace(
++                    method="cohere",
++                    model="rerank-english-v3.0",
++                    enabled=True,
++                    candidates=candidates,
++                    selected=selected,
++                    latency_ms=(time.perf_counter() - start) * 1000,
++                )
++                return selected
+             if self._provider == "cross_encoder":
+-                return self._rerank_cross_encoder(query, candidates, k)
++                selected = self._rerank_cross_encoder(rerank_query, candidates, k)
++                self._record_trace(
++                    method="local_cross_encoder",
++                    model=self._local_model_name,
++                    enabled=True,
++                    candidates=candidates,
++                    selected=selected,
++                    latency_ms=(time.perf_counter() - start) * 1000,
++                )
++                return selected
+         except Exception as exc:
++            reason = f"{type(exc).__name__}: {exc}"
+             logger.error("[reranker] rerank() failed (%s): %s — using passthrough", self._provider, exc)
++            selected = self._passthrough(candidates, k)
++            self._record_trace(
++                method=self._method_name(),
++                model=self._local_model_name if self._provider == "cross_encoder" else None,
++                enabled=self._provider != "passthrough",
++                candidates=candidates,
++                selected=selected,
++                latency_ms=(time.perf_counter() - start) * 1000,
++                fallback_used=True,
++                fallback_reason=reason,
++            )
++            return selected
+ 
+-        return self._passthrough(candidates, k)
++        selected = self._passthrough(candidates, k)
++        self._record_trace(
++            method="rrf_passthrough",
++            model=None,
++            enabled=False,
++            candidates=candidates,
++            selected=selected,
++            latency_ms=(time.perf_counter() - start) * 1000,
++        )
++        return selected
+ 
+-    # ── Provider implementations ───────────────────────────────────────────────
++    def _init_cohere(self, api_key: str):
++        try:
++            import cohere
++            return cohere.Client(api_key=api_key)
++        except ImportError:
++            logger.debug("[reranker] cohere package not installed")
++            return None
++
++    def _load_cross_encoder(self):
++        if self._cross_encoder is not None:
++            return self._cross_encoder
++        try:
++            from sentence_transformers import CrossEncoder
++            self._cross_encoder = CrossEncoder(
++                self._local_model_name,
++                max_length=512,
++                device=self._local_device,
++            )
++            return self._cross_encoder
++        except ImportError as exc:
++            raise RuntimeError("sentence-transformers not installed") from exc
++        except Exception as exc:
++            raise RuntimeError(f"cross-encoder load failed: {exc}") from exc
+ 
+     def _rerank_cohere(
+         self,
+@@ -135,8 +307,7 @@ class Reranker:
+         candidates: list["RetrievalResult"],
+         top_k: int,
+     ) -> list["RetrievalResult"]:
+-        import cohere
+-        documents = [c.content for c in candidates]
++        documents = [canonical_candidate_text(c, query) for c in candidates]
+         response = self._cohere_client.rerank(
+             model="rerank-english-v3.0",
+             query=query,
+@@ -145,8 +316,7 @@ class Reranker:
+         )
+         results = []
+         for item in response.results:
+-            r = candidates[item.index]
+-            r.rerank_score = float(item.relevance_score)
++            r = replace(candidates[item.index], rerank_score=float(item.relevance_score))
+             results.append(r)
+         return results
+ 
+@@ -156,23 +326,84 @@ class Reranker:
+         candidates: list["RetrievalResult"],
+         top_k: int,
+     ) -> list["RetrievalResult"]:
+-        pairs = [(query, c.content) for c in candidates]
+-        scores = self._cross_encoder.predict(pairs)
+-        for c, s in zip(candidates, scores):
+-            c.rerank_score = float(s)
+-        ranked = sorted(candidates, key=lambda x: x.rerank_score or 0.0, reverse=True)
+-        return ranked[:top_k]
++        model = self._load_cross_encoder()
++        texts = [canonical_candidate_text(c, query) for c in candidates]
++        pairs = [(query, text) for text in texts]
++        predict_kwargs = {"batch_size": self._batch_size} if self._batch_size else {}
++        scores = model.predict(pairs, **predict_kwargs)
++        scored: list[tuple[int, "RetrievalResult"]] = []
++        all_scores: dict[str, float] = {}
++        for idx, (candidate, score) in enumerate(zip(candidates, scores)):
++            value = float(score)
++            if not math.isfinite(value):
++                raise RuntimeError("cross-encoder produced non-finite score")
++            scored_candidate = replace(candidate, rerank_score=value)
++            scored.append((idx, scored_candidate))
++            all_scores[candidate_stable_id(candidate)] = value
++        ranked = sorted(scored, key=lambda item: (-(item[1].rerank_score or 0.0), item[0]))
++        self._last_all_scores = all_scores
++        return [item[1] for item in ranked[:top_k]]
+ 
+     def _passthrough(
+         self,
+         candidates: list["RetrievalResult"],
+         top_k: int,
+     ) -> list["RetrievalResult"]:
+-        sorted_by_combined = sorted(
+-            candidates,
+-            key=lambda x: x.combined_score,
+-            reverse=True,
+-        )
+-        for r in sorted_by_combined[:top_k]:
+-            r.rerank_score = r.combined_score
+-        return sorted_by_combined[:top_k]
++        scored = [
++            (idx, replace(candidate, rerank_score=candidate.combined_score))
++            for idx, candidate in enumerate(candidates)
++        ]
++        ranked = sorted(scored, key=lambda item: (-item[1].combined_score, item[0]))
++        self._last_all_scores = {}
++        return [item[1] for item in ranked[:top_k]]
++
++    def _method_name(self) -> str:
++        if self._provider == "cross_encoder":
++            return "local_cross_encoder"
++        if self._provider == "cohere":
++            return "cohere"
++        return "rrf_passthrough"
++
++    def _empty_trace(self, method: str, enabled: bool) -> dict[str, Any]:
++        return {
++            "method": method,
++            "model": self._local_model_name if method == "local_cross_encoder" else None,
++            "enabled": enabled,
++            "input_ids": [],
++            "input_rrf_order": [],
++            "cross_encoder_scores": {},
++            "output_order": [],
++            "selected_ids": [],
++            "fallback_used": False,
++            "fallback_reason": None,
++            "latency_ms": 0.0,
++        }
++
++    def _record_trace(
++        self,
++        method: str,
++        model: str | None,
++        enabled: bool,
++        candidates: list["RetrievalResult"],
++        selected: list["RetrievalResult"],
++        latency_ms: float,
++        fallback_used: bool = False,
++        fallback_reason: str | None = None,
++    ) -> None:
++        input_ids = [candidate_stable_id(c) for c in candidates]
++        output_ids = [candidate_stable_id(c) for c in selected]
++        scores = dict(self._last_all_scores) if method == "local_cross_encoder" and not fallback_used else {}
++        trace = {
++            "method": "rrf_passthrough" if fallback_used and method == "rrf_passthrough" else method,
++            "model": model,
++            "enabled": enabled,
++            "input_ids": input_ids,
++            "input_rrf_order": input_ids,
++            "cross_encoder_scores": scores if method == "local_cross_encoder" and not fallback_used else {},
++            "output_order": output_ids,
++            "selected_ids": output_ids,
++            "fallback_used": fallback_used,
++            "fallback_reason": fallback_reason,
++            "latency_ms": round(latency_ms, 1),
++        }
++        self._last_ranking_trace = trace
+diff --git a/chatbot/app/safety/entity_resolver.py b/chatbot/app/safety/entity_resolver.py
+index 0188d76..a7b6020 100644
+--- a/chatbot/app/safety/entity_resolver.py
++++ b/chatbot/app/safety/entity_resolver.py
+@@ -96,6 +96,19 @@ class ResolvedEntity:
+     candidates: list[str] = field(default_factory=list)   # other plausible matches
+     ambiguous: bool = False             # multiple equally-plausible matches
+     warning: str | None = None          # human-readable note for low confidence
++    status: str = "resolved"
++
++
++@dataclass
++class CourseResolution:
++    raw_text: str
++    normalized_code: str
++    subject: str
++    course_number: str
++    status: str = "resolved"            # resolved | unknown | ambiguous | missing | rejected
++    confidence: float = 1.0
++    source: str = "exact_pattern_and_catalog_validation"
++    reason: str | None = None
+ 
+ 
+ class EntityResolver:
+@@ -120,6 +133,7 @@ class EntityResolver:
+         self._by_last: dict[str, list[str]] = {}         # last name → [canonical names]
+         self._last_names: list[str] = []                 # unique last names for fuzzy
+         self._course_codes: set[tuple[str, str]] = set() # (SUBJ, NUM)
++        self._course_instructors: dict[tuple[str, str], set[str]] = {}
+         self._known_subjects: set[str] = set()
+         self._title_to_code: dict[str, tuple[str, str]] = {}  # normalized title → (SUBJ, NUM)
+         self._titles: list[str] = []
+@@ -165,6 +179,12 @@ class EntityResolver:
+             cols = ["Subject", "Course No."] + (["Course Title"] if "Course Title" in grades_df.columns else [])
+             for row in grades_df[cols].drop_duplicates().itertuples(index=False):
+                 _add_course(row[0], row[1], row[2] if len(row) > 2 else "")
++            if "Instructor" in grades_df.columns:
++                for rec in grades_df[["Subject", "Course No.", "Instructor"]].dropna().to_dict("records"):
++                    key = (str(rec.get("Subject")).strip().upper(), str(rec.get("Course No.")).strip())
++                    inst = str(rec.get("Instructor") or "").strip()
++                    if key[0] and key[1] and inst:
++                        self._course_instructors.setdefault(key, set()).add(inst)
+         if courses_df is not None and not courses_df.empty:
+             for rec in courses_df.to_dict("records"):
+                 _add_course(rec.get("subject"), rec.get("course_number"), rec.get("title") or "")
+@@ -176,6 +196,13 @@ class EntityResolver:
+ 
+     # ── Professors ─────────────────────────────────────────────────────────────
+ 
++    def surname_candidates(self, name: str) -> list[str]:
++        """Return verified instructors sharing a bare surname."""
++        parts = _norm(name or "").split()
++        if len(parts) != 1:
++            return []
++        return list(self._by_last.get(parts[0], []))
++
+     def resolve_professor_ex(self, name: str) -> ResolvedEntity:
+         """Structured professor resolution: exact → last-name → fuzzy."""
+         if not name or not self._professor_names:
+@@ -265,6 +292,27 @@ class EntityResolver:
+         res = self.resolve_professor_ex(name)
+         return res.value if res.value and res.confidence >= _PROF_CUTOFF * 0.8 else name
+ 
++    def resolve_professors_for_course(self, name: str, subject: str | None, course_no: str | None) -> ResolvedEntity:
++        """Resolve a professor and verify association with the requested course."""
++        resolved = self.resolve_professor_ex(name)
++        if resolved.ambiguous:
++            resolved.warning = resolved.warning or "ambiguous_professor"
++            return resolved
++        if not resolved.value or resolved.confidence < 0.6:
++            return ResolvedEntity(value=None, confidence=0.0, warning="unknown_professor", status="unknown_professor")
++        if subject and course_no:
++            key = (str(subject).strip().upper(), str(course_no).strip())
++            instructors = self._course_instructors.get(key, set())
++            if instructors and resolved.value not in instructors:
++                return ResolvedEntity(
++                    value=resolved.value,
++                    confidence=resolved.confidence,
++                    candidates=sorted(instructors)[:8],
++                    warning="professor_course_mismatch",
++                    status="professor_course_mismatch",
++                )
++        return resolved
++
+     # ── Courses ────────────────────────────────────────────────────────────────
+ 
+     def resolve_course_ref(self, text: str) -> ResolvedEntity:
+@@ -278,7 +326,7 @@ class EntityResolver:
+         t = str(text).strip()
+ 
+         # Code formats: CS 1114 / cs1114 / CS-1114
+-        m = re.search(r"\b([A-Za-z]{2,5})\s*-?\s*(\d{4})\b", t)
++        m = re.search(r"\b([A-Za-z]{2,5})[\s-]*(\d{4})\b", t)
+         if m:
+             subj, num = m.group(1).upper(), m.group(2)
+             if (subj, num) in self._course_codes:
+@@ -310,6 +358,67 @@ class EntityResolver:
+ 
+         return ResolvedEntity(confidence=0.0)
+ 
++    def resolve_course_references(self, text: str, default_subject: str | None = None) -> list[CourseResolution]:
++        """Deterministically parse and validate all explicit course references in text.
++
++        This is intentionally pattern/catalog based. Vector similarity is not a
++        resolver for explicit course codes.
++        """
++        if not text:
++            return []
++        raw = str(text)
++        default = self._infer_default_subject(raw, default_subject)
++        explicit_spans: list[tuple[int, int]] = []
++        out: list[CourseResolution] = []
++        approved: set[tuple[str, str]] = set()
++        rejected: set[tuple[str, str]] = set()
++        last_subject: str | None = default
++
++        def add(raw_text: str, subj: str, num: str, start: int, end: int, bare: bool = False) -> None:
++            nonlocal last_subject
++            subj = str(subj or "").strip().upper()
++            num = str(num or "").strip()
++            fixed = self._fix_subject(subj) if subj not in self._known_subjects else subj
++            if fixed:
++                subj = fixed
++            code = (subj, num)
++            normalized = f"{subj} {num}".strip()
++            reason = self._course_rejection_reason(raw, start, end)
++            if reason:
++                if code not in rejected:
++                    out.append(CourseResolution(raw_text, normalized, subj, num, "rejected", 1.0, reason=reason))
++                    rejected.add(code)
++                return
++            status = "resolved" if code in self._course_codes else "unknown"
++            confidence = 1.0 if status == "resolved" else 0.3
++            if status == "resolved":
++                last_subject = subj
++                if code in approved:
++                    return
++                approved.add(code)
++            out.append(CourseResolution(raw_text, normalized, subj, num, status, confidence))
++
++        for match in re.finditer(r"\b([A-Za-z]{2,5})[\s-]*(\d{4})\b(?![-\s]?level)", raw):
++            subj, num = match.group(1), match.group(2)
++            if subj.lower() in {"and", "for", "not"}:
++                continue
++            explicit_spans.append(match.span())
++            add(match.group(0), subj, num, match.start(), match.end())
++
++        for match in re.finditer(r"\b(\d{4})\b(?![-\s]?level)", raw):
++            start, end = match.span()
++            if any(s <= start and end <= e for s, e in explicit_spans):
++                continue
++            num = match.group(1)
++            if 2017 <= int(num) <= 2035:
++                continue
++            subj = last_subject or default
++            if not subj:
++                continue
++            add(match.group(0), subj, num, start, end, bare=True)
++
++        return out
++
+     def resolve_course_code(self, subject: str, course_no: str) -> tuple[str, str]:
+         """Back-compat API: normalize and validate; never fabricates codes."""
+         if not subject or not course_no:
+@@ -338,6 +447,27 @@ class EntityResolver:
+             return hits[0][0]
+         return None
+ 
++    def _infer_default_subject(self, text: str, explicit_default: str | None = None) -> str | None:
++        if explicit_default:
++            return str(explicit_default).strip().upper()
++        norm = _norm(text)
++        for alias, code in SUBJECT_ALIASES.items():
++            if re.search(rf"\b{re.escape(alias)}\b", norm):
++                return code
++        if re.search(r"\bcs\b|\bcomputer science\b", norm):
++            return "CS"
++        return None
++
++    def _course_rejection_reason(self, text: str, start: int, end: int) -> str | None:
++        sentence_start = max(text.rfind(".", 0, start), text.rfind("?", 0, start), text.rfind("!", 0, start)) + 1
++        before = text[sentence_start:start].lower()
++        local = text[max(0, start - 40):end].lower()
++        if re.search(r"\bnot\s+$", before) or re.search(r"\bnot\s+[a-z]{2,5}\s*-?\s*\d{4}", local):
++            return "injected_entity_rejected"
++        if "pretend" in before or "instead of" in before or "rather than" in before:
++            return "injected_entity_rejected"
++        return None
++
+     # ── Free-text scan (back-compat) ──────────────────────────────────────────
+ 
+     _STOPWORDS = {
+diff --git a/chatbot/tests/test_rag_refactor.py b/chatbot/tests/test_rag_refactor.py
+index 15348f9..be0bcf8 100644
+--- a/chatbot/tests/test_rag_refactor.py
++++ b/chatbot/tests/test_rag_refactor.py
+@@ -16,7 +16,7 @@ from app.rag.query_planner import QueryPlanner, _repair_json
+ from app.safety.entity_resolver import EntityResolver
+ from app.data.indexes import DataIndexes
+ from app.rag.verifier import check_plan, missing_data_answer
+-from app.features.course_profile import handle_course_profile
++from app.features.course_profile import handle_course_profile, _is_course_comparison_question
+ from app.features.natural_filter import handle_natural_filter
+ from app.features.section_lookup import handle_section_lookup
+ from app.features.schedule_builder import (
+@@ -908,3 +908,7 @@ def test_retrieval_debug_disabled_by_default():
+         main.settings.rag_debug_mode = old_debug
+ 
+     assert response.status_code == 404
++
++
++def test_course_comparison_detection_accepts_differ_wording():
++    assert _is_course_comparison_question("How do CS 2505 and CS 2506 differ?")
+diff --git a/outputs/rag_qa_workbook/rag_llm_fallback_qa_test_workbook_completed.xlsx b/outputs/rag_qa_workbook/rag_llm_fallback_qa_test_workbook_completed.xlsx
+index 71d47b4..d94b913 100644
+Binary files a/outputs/rag_qa_workbook/rag_llm_fallback_qa_test_workbook_completed.xlsx and b/outputs/rag_qa_workbook/rag_llm_fallback_qa_test_workbook_completed.xlsx differ
+diff --git a/outputs/rag_qa_workbook/~$rag_llm_fallback_qa_test_workbook_completed.xlsx b/outputs/rag_qa_workbook/~$rag_llm_fallback_qa_test_workbook_completed.xlsx
+deleted file mode 100644
+index 1298945..0000000
+Binary files a/outputs/rag_qa_workbook/~$rag_llm_fallback_qa_test_workbook_completed.xlsx and /dev/null differ

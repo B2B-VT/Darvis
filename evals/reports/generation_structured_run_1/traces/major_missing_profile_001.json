@@ -1,0 +1,36 @@
+{
+  "case_id": "major_missing_profile_001",
+  "query": "What classes do I still need for my major?",
+  "parsed_intent": {
+    "route": "general_rag"
+  },
+  "resolved_entities": {},
+  "retrieval": {
+    "route": "general_rag",
+    "queries": [],
+    "raw_candidates": [],
+    "approved_candidates": [],
+    "rejected_candidates": [],
+    "not_run_reason": "generation_only_fixed_fixture"
+  },
+  "approved_candidates": [],
+  "evidence_ids": [],
+  "retrieved_ids": [],
+  "ranking": {
+    "method": "generation_only_fixed_fixture",
+    "ordered_ids": [],
+    "selected_ids": [],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "sufficiency": {
+    "passed": null,
+    "reasons": []
+  },
+  "answer_type": "clarification_required",
+  "structured_payload": {},
+  "final_response": {
+    "route": "general_rag",
+    "answer": "Could you tell me your declared major (and any minor, if applicable) so I can identify the remaining required courses for you?"
+  }
+}

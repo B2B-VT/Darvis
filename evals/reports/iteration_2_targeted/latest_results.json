@@ -1,0 +1,176 @@
+[
+  {
+    "id": "prof_ambiguous_systems_001",
+    "status": "fail",
+    "score": 0.6667,
+    "metrics": {
+      "intent_accuracy": 1.0,
+      "entity_resolution_accuracy": 0.0,
+      "retrieval_precision_at_5": 1.0,
+      "retrieval_recall_at_5": null,
+      "retrieval_ndcg_at_5": 1.0,
+      "mean_reciprocal_rank": null,
+      "prohibited_candidate_rate": 0.0,
+      "exact_entity_match_rate": 0.0,
+      "calculation_correctness": null,
+      "sufficiency_behavior": 1.0,
+      "grounding": 0.0,
+      "unsupported_claim_rate": 1.0,
+      "response_schema_compliance": 1.0,
+      "answer_type_accuracy": 1.0,
+      "format_compliance_rate": 1.0,
+      "latency_ms": 29.3,
+      "model_cost": null,
+      "token_cost": null
+    },
+    "blockers": [
+      "unsupported_entities:CS 3204,CS 3214"
+    ],
+    "retrieved": [
+      "CS 3214",
+      "CS 3204"
+    ],
+    "case": {
+      "id": "prof_ambiguous_systems_001",
+      "query": "I want a chill prof for systems.",
+      "user_profile": {
+        "major": "Computer Science",
+        "minor": null,
+        "interests": [
+          "systems"
+        ]
+      },
+      "expected_intent": "clarification_required",
+      "expected_entities": {
+        "subjects": [
+          "CS"
+        ],
+        "topics": [
+          "systems"
+        ],
+        "course_numbers": [],
+        "instructors": []
+      },
+      "must_retrieve": [],
+      "acceptable_retrieve": [
+        "CS 3214",
+        "CS 3204"
+      ],
+      "must_not_retrieve": [],
+      "relevance": {
+        "CS 3214": 2,
+        "CS 3204": 2
+      },
+      "must_include_in_answer": [
+        "which",
+        "course"
+      ],
+      "must_not_include_in_answer": [],
+      "expected_answer_type": "clarification_required",
+      "expected_format": "clarifying question",
+      "required_table_columns": [],
+      "forbidden_behavior": [
+        "fabricated_professor_recommendation"
+      ],
+      "notes": "Required case 5.",
+      "_dataset": "professor_queries.jsonl",
+      "_line": 3
+    },
+    "response": {
+      "answer": "Which systems course do you mean: CS 3214, CS 3204, or another systems course?",
+      "route": "general_rag",
+      "warnings": [
+        "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+        "Recommendations are based on historical grade data only."
+      ],
+      "tables": [],
+      "charts": [],
+      "metadata": {
+        "needs_clarification": true,
+        "clarification_reason": "deterministic_professor_ambiguity",
+        "fallback_used": false,
+        "timings_ms": {
+          "plan_ms": 2,
+          "resolve_ms": 0
+        },
+        "eval_trace": {
+          "case_id": "prof_ambiguous_systems_001",
+          "query": "I want a chill prof for systems.",
+          "parsed_intent": {
+            "wants_professors": null,
+            "sort_goal": "highest_gpa",
+            "open_seats_only": false,
+            "level_high": null,
+            "subject_filter": null,
+            "min_students": 30,
+            "clarifying_question": "Which systems course do you mean: CS 3214, CS 3204, or another systems course?",
+            "min_gpa": null,
+            "requested_courses": [],
+            "route": "general_rag",
+            "needs_clarification": true,
+            "time_start": null,
+            "display_n": null,
+            "min_terms": null,
+            "course_no": null,
+            "excluded_days": [],
+            "min_rmp": null,
+            "level_low": null,
+            "subject": null,
+            "capabilities": [
+              "instructor_lookup",
+              "unsupported_or_missing_data"
+            ],
+            "professor_name": null,
+            "major_query": null,
+            "missing_data_field": null,
+            "secondary_routes": [],
+            "confidence": 1.0,
+            "time_end": null,
+            "target_credits": null
+          },
+          "resolved_entities": {},
+          "retrieval": {
+            "route": "general_rag",
+            "queries": [],
+            "raw_candidates": [],
+            "approved_candidates": [],
+            "rejected_candidates": [],
+            "not_run_reason": "clarification_required"
+          },
+          "evidence_ids": [],
+          "ranking": {
+            "method": "",
+            "ordered_ids": [],
+            "scores": {}
+          },
+          "retrieved_candidates": [],
+          "retrieved_ids": [],
+          "reranked_candidates": [],
+          "approved_candidates": [],
+          "excluded_candidates": [],
+          "exclusion_reasons": [],
+          "analytics": {},
+          "sufficiency": {
+            "passed": false,
+            "status": "clarification_required",
+            "reasons": [
+              "deterministic_professor_ambiguity"
+            ]
+          },
+          "answer_type": "clarification_required",
+          "structured_payload": {},
+          "final_response": {
+            "route": "general_rag",
+            "answer": "Which systems course do you mean: CS 3214, CS 3204, or another systems course?"
+          },
+          "latency_ms": {
+            "plan_ms": 2,
+            "resolve_ms": 0
+          },
+          "errors": []
+        }
+      },
+      "schedule_actions": []
+    }
+  }
+]

@@ -1,0 +1,260 @@
+{
+  "case_id": "prof_ambiguous_systems_001",
+  "query": "I want a chill prof for systems.",
+  "parsed_intent": {
+    "capabilities": [
+      "general_question"
+    ],
+    "subject_filter": null,
+    "course_no": null,
+    "min_students": 30,
+    "min_terms": null,
+    "sort_goal": "highest_gpa",
+    "excluded_days": [],
+    "level_high": null,
+    "confidence": 0.45,
+    "target_credits": null,
+    "display_n": null,
+    "missing_data_field": null,
+    "level_low": null,
+    "professor_name": null,
+    "clarifying_question": null,
+    "route": "general_rag",
+    "needs_clarification": false,
+    "min_gpa": null,
+    "time_start": null,
+    "subject": null,
+    "min_rmp": null,
+    "time_end": null,
+    "major_query": null,
+    "secondary_routes": [],
+    "requested_courses": [],
+    "open_seats_only": false,
+    "wants_professors": null
+  },
+  "resolved_entities": {},
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for BIT 3514 (Systems Analysis) taught by John Russell. Average GPA: 3.88. A/A- rate: 77.75%. F rate: 0.0%. Total students taught: 80. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "bit-3514-john_russell",
+      "vector_score": 0.6625,
+      "keyword_score": 0.0,
+      "combined_score": 0.6625,
+      "rerank_score": 0.6625,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 3514 (Systems Analysis) taught by Philip Romero-Masters. Average GPA: 2.74. A/A- rate: 34.83%. F rate: 5.39%. Total students taught: 429. Total withdrawals: 16. Sections taught: 8 t...",
+      "source_type": "grade",
+      "source_id": "bit-3514-philip_romero-masters",
+      "vector_score": 0.661,
+      "keyword_score": 0.0,
+      "combined_score": 0.661,
+      "rerank_score": 0.661,
+      "selected": true
+    },
+    {
+      "content": "Grade data for BIT 3514 (Systems Analysis) taught by David Tegarden. Average GPA: 3.01. A/A- rate: 16.3%. F rate: 1.29%. Total students taught: 734. Total withdrawals: 12. Sections taught: 16 terms. G...",
+      "source_type": "grade",
+      "source_id": "bit-3514-david_tegarden",
+      "vector_score": 0.6452,
+      "keyword_score": 0.0,
+      "combined_score": 0.6452,
+      "rerank_score": 0.6452,
+      "selected": true
+    },
+    {
+      "content": "Grade data for ISE 6614 (Human Computer Systems) taught by Nathan Lau. Average GPA: 3.79. A/A- rate: 30.0%. F rate: 0.0%. Total students taught: 10. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "ise-6614-nathan_lau",
+      "vector_score": 0.6387,
+      "keyword_score": 0.0,
+      "combined_score": 0.6387,
+      "rerank_score": 0.6387,
+      "selected": true
+    },
+    {
+      "content": "Grade data for STS 3284 (Technology and Disability) taught by Earle. Average GPA: 3.96. A/A- rate: 94.87%. F rate: 0.0%. Total students taught: 36. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "sts-3284-earle",
+      "vector_score": 0.6295,
+      "keyword_score": 0.0,
+      "combined_score": 0.6295,
+      "rerank_score": 0.6295,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 3224 (Advanced Calculus) taught by Daniel Orr. Average GPA: 2.82. A/A- rate: 25.0%. F rate: 0.0%. Total students taught: 8. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-3224-daniel_orr",
+      "vector_score": 0.6292,
+      "keyword_score": 0.0,
+      "combined_score": 0.6292,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5485 (Numer Analy and Softw) taught by Adrian Sandu. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5485-adrian_sandu",
+      "vector_score": 0.6278,
+      "keyword_score": 0.0,
+      "combined_score": 0.6278,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6204 (Advanced Topics in Systems) taught by Hasan. Average GPA: 3.71. A rate: 51.65%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-6204-hasan",
+      "vector_score": 0.6223,
+      "keyword_score": 0.0,
+      "combined_score": 0.6223,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for IDS 3204 (Topics in Prof Development) taught by Sharone Tomer. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 10. Total withdrawals: 2. Sections taught: 1 ter...",
+      "source_type": "grade",
+      "source_id": "ids-3204-sharone_tomer",
+      "vector_score": 0.6192,
+      "keyword_score": 0.0,
+      "combined_score": 0.6192,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for BIT 3444 (Adv Bus Comp and App) taught by Joey Mccord. Average GPA: 2.67. A/A- rate: 35.0%. F rate: 20.0%. Total students taught: 36. Total withdrawals: 2. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "bit-3444-joey_mccord",
+      "vector_score": 0.6188,
+      "keyword_score": 0.0,
+      "combined_score": 0.6188,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 5126 (Abstract Algebra) taught by Travis Morrison. Average GPA: 3.3. A/A- rate: 63.35%. F rate: 0.0%. Total students taught: 11. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "math-5126-travis_morrison",
+      "vector_score": 0.6188,
+      "keyword_score": 0.0,
+      "combined_score": 0.6188,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6704 (TS: Software Support Dist Syst) taught by Eli  Tilevich. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 14. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6704-eli__tilevich",
+      "vector_score": 0.6186,
+      "keyword_score": 0.0,
+      "combined_score": 0.6186,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4224 (Linux Kernel Programming) taught by Min. Average GPA: 3.21. A/A- rate: 56.9%. F rate: 10.87%. Total students taught: 50. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4224-min",
+      "vector_score": 0.6183,
+      "keyword_score": 0.0,
+      "combined_score": 0.6183,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 5125 (Abstract Algebra) taught by Travis Morrison. Average GPA: 3.62. A/A- rate: 61.25%. F rate: 0.0%. Total students taught: 18. Total withdrawals: 1. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "math-5125-travis_morrison",
+      "vector_score": 0.6176,
+      "keyword_score": 0.0,
+      "combined_score": 0.6176,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 6404 (Adv Topics Math S/W) taught by Adrian Sandu. Average GPA: 3.96. A/A- rate: 87.5%. F rate: 0.0%. Total students taught: 23. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6404-adrian_sandu",
+      "vector_score": 0.6174,
+      "keyword_score": 0.0,
+      "combined_score": 0.6174,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for ISE 5154 (Human Systems Integration) taught by Nathan Lau. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 17. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "ise-5154-nathan_lau",
+      "vector_score": 0.617,
+      "keyword_score": 0.0,
+      "combined_score": 0.617,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5264 (Adv Linux Kernel Programming) taught by Min. Average GPA: 3.53. A/A- rate: 50.15%. F rate: 0.0%. Total students taught: 28. Total withdrawals: 1. Sections taught: 4 terms. Grad...",
+      "source_type": "grade",
+      "source_id": "cs-5264-min",
+      "vector_score": 0.6168,
+      "keyword_score": 0.0,
+      "combined_score": 0.6168,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 2104 (Intro to Problem Solving in CS) taught by Andrey Esakia. Average GPA: 3.63. A/A- rate: 56.1%. F rate: 1.07%. Total students taught: 276. Total withdrawals: 4. Sections taught: ...",
+      "source_type": "grade",
+      "source_id": "cs-2104-andrey_esakia",
+      "vector_score": 0.6167,
+      "keyword_score": 0.0,
+      "combined_score": 0.6167,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "general_rag",
+    "metadata_keys": [],
+    "table_titles": [],
+    "chart_titles": []
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [],
+    "charts_count": 0,
+    "metadata": {
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 5004,
+        "resolve_ms": 0,
+        "handler_ms": 5959
+      },
+      "confidence": 0.45
+    }
+  },
+  "final_response": {
+    "route": "general_rag",
+    "answer": "John Russell gives the most “chill” outcomes in Systems Analysis: a 77.75% A/A‑ rate and a 3.88 average GPA across 80 students.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 5004,
+    "resolve_ms": 0,
+    "handler_ms": 5959
+  },
+  "errors": []
+}

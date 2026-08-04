@@ -1,0 +1,396 @@
+{
+  "case_id": "prof_rec_typo_cs2114_001",
+  "query": "Who is the best proffesor for cs 2114?",
+  "parsed_intent": {
+    "target_credits": null,
+    "subject": "CS",
+    "open_seats_only": false,
+    "route": "course_profile",
+    "needs_clarification": false,
+    "secondary_routes": [],
+    "capabilities": [
+      "course_lookup",
+      "instructor_comparison",
+      "grade_distribution"
+    ],
+    "requested_courses": [
+      [
+        "CS",
+        "2114"
+      ]
+    ],
+    "subject_filter": null,
+    "sort_goal": "highest_gpa",
+    "confidence": 0.99,
+    "major_query": null,
+    "clarifying_question": null,
+    "missing_data_field": null,
+    "min_students": 30,
+    "excluded_days": [],
+    "min_rmp": null,
+    "course_no": "2114",
+    "display_n": null,
+    "professor_name": null,
+    "level_low": null,
+    "level_high": null,
+    "time_start": null,
+    "min_gpa": null,
+    "min_terms": null,
+    "time_end": null,
+    "wants_professors": true
+  },
+  "resolved_entities": {
+    "course": {
+      "input": {
+        "subject": "CS",
+        "course_no": "2114"
+      },
+      "value": {
+        "subject": "CS",
+        "course_no": "2114"
+      }
+    }
+  },
+  "retrieved_candidates": [
+    {
+      "content": "Grade data for CS 5485 (Numer Analy and Softw) taught by Adrian Sandu. Average GPA: 4.0. A/A- rate: 100.0%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5485-adrian_sandu",
+      "vector_score": 0.6601,
+      "keyword_score": 0.0,
+      "combined_score": 0.6601,
+      "rerank_score": 0.6601,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 5485 (Numer Analy and Softw) taught by Sandu. Average GPA: 4.0. A rate: 100.0%. F rate: 0.0%. Average enrollment: 6 students.",
+      "source_type": "grade",
+      "source_id": "cs-5485-sandu",
+      "vector_score": 0.6384,
+      "keyword_score": 0.0,
+      "combined_score": 0.6384,
+      "rerank_score": 0.6384,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 5226 (Real Analysis) taught by Sun. Average GPA: 3.9. A/A- rate: 66.7%. F rate: 0.0%. Total students taught: 6. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-5226-sun",
+      "vector_score": 0.6357,
+      "keyword_score": 0.0,
+      "combined_score": 0.6357,
+      "rerank_score": 0.6357,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 5225 (Real Analysis) taught by Sun. Average GPA: 3.42. A/A- rate: 36.35%. F rate: 0.0%. Total students taught: 54. Sections taught: 4 terms.",
+      "source_type": "grade",
+      "source_id": "math-5225-sun",
+      "vector_score": 0.6355,
+      "keyword_score": 0.0,
+      "combined_score": 0.6355,
+      "rerank_score": 0.6355,
+      "selected": true
+    },
+    {
+      "content": "Grade data for MATH 3224 (Advanced Calculus) taught by Daniel Orr. Average GPA: 2.82. A/A- rate: 25.0%. F rate: 0.0%. Total students taught: 8. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "math-3224-daniel_orr",
+      "vector_score": 0.6345,
+      "keyword_score": 0.0,
+      "combined_score": 0.6345,
+      "rerank_score": 0.6345,
+      "selected": true
+    },
+    {
+      "content": "Grade data for CS 6404 (Adv Topics Math S/W) taught by Adrian Sandu. Average GPA: 3.96. A/A- rate: 87.5%. F rate: 0.0%. Total students taught: 23. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-6404-adrian_sandu",
+      "vector_score": 0.6328,
+      "keyword_score": 0.0,
+      "combined_score": 0.6328,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for MATH 1225 (Calculus of a Single Variable) taught by Sun. Average GPA: 2.79. A/A- rate: 14.15%. F rate: 9.4%. Total students taught: 43. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "math-1225-sun",
+      "vector_score": 0.6321,
+      "keyword_score": 0.0,
+      "combined_score": 0.6321,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5486 (Numer Analy and Softw) taught by Alexey Onufriev. Average GPA: 3.67. A/A- rate: 71.4%. F rate: 0.0%. Total students taught: 7. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5486-alexey_onufriev",
+      "vector_score": 0.6321,
+      "keyword_score": 0.0,
+      "combined_score": 0.6321,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Sandu. Average GPA: 3.77. A rate: 62.35%. F rate: 0.0%. Average enrollment: 16 students.",
+      "source_type": "grade",
+      "source_id": "cs-5234-sandu",
+      "vector_score": 0.6305,
+      "keyword_score": 0.0,
+      "combined_score": 0.6305,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4254 (Network Arch Prog) taught by Shaddi Hasan. Average GPA: 3.29. A/A- rate: 21.7%. F rate: 0.0%. Total students taught: 105. Total withdrawals: 2. Sections taught: 3 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4254-shaddi_hasan",
+      "vector_score": 0.6302,
+      "keyword_score": 0.0,
+      "combined_score": 0.6302,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4254 (Network Arch Prog) taught by Bimal Viswanath. Average GPA: 3.31. A/A- rate: 24.0%. F rate: 0.0%. Total students taught: 25. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4254-bimal_viswanath",
+      "vector_score": 0.6301,
+      "keyword_score": 0.0,
+      "combined_score": 0.6301,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 4254 (Network Arch Prog) taught by Richards. Average GPA: 3.93. A/A- rate: 76.7%. F rate: 0.0%. Total students taught: 30. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-4254-richards",
+      "vector_score": 0.6296,
+      "keyword_score": 0.0,
+      "combined_score": 0.6296,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5805 (Machine Learning) taught by Debswapna Bhattacharya. Average GPA: 3.92. A/A- rate: 93.9%. F rate: 0.0%. Total students taught: 49. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5805-debswapna_bhattacharya",
+      "vector_score": 0.6285,
+      "keyword_score": 0.0,
+      "combined_score": 0.6285,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5914 (Emerging Topics in CS) taught by Dan Williams. Average GPA: 3.81. A/A- rate: 81.0%. F rate: 0.0%. Total students taught: 21. Sections taught: 1 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5914-dan_williams",
+      "vector_score": 0.6283,
+      "keyword_score": 0.0,
+      "combined_score": 0.6283,
+      "rerank_score": null,
+      "selected": false
+    },
+    {
+      "content": "Grade data for CS 5234 (Advanced Parallel Computation) taught by Adrian Sandu. Average GPA: 3.77. A/A- rate: 62.35%. F rate: 0.0%. Total students taught: 32. Sections taught: 2 terms.",
+      "source_type": "grade",
+      "source_id": "cs-5234-adrian_sandu",
+      "vector_score": 0.6259,
+      "keyword_score": 0.0,
+      "combined_score": 0.6259,
+      "rerank_score": null,
+      "selected": false
+    }
+  ],
+  "reranked_candidates": [],
+  "excluded_candidates": [],
+  "exclusion_reasons": [],
+  "analytics": {
+    "route": "course_profile",
+    "metadata_keys": [
+      "course_no",
+      "subject"
+    ],
+    "table_titles": [
+      "Professor Summary",
+      "Fall 2026 Sections"
+    ],
+    "chart_titles": [
+      "Average GPA by Professor for CS 2114",
+      "A/A- Rate vs F Rate for CS 2114",
+      "Sample Size by Professor for CS 2114"
+    ]
+  },
+  "sufficiency": {
+    "passed": true,
+    "reasons": []
+  },
+  "structured_payload": {
+    "tables": [
+      {
+        "title": "Professor Summary",
+        "columns": [
+          "Instructor",
+          "Avg GPA",
+          "Avg A Range (%)",
+          "Avg F Rate (%)",
+          "Total Students",
+          "Terms Taught",
+          "Total Withdraws",
+          "Latest Year",
+          "Confidence Label"
+        ],
+        "rows": [
+          {
+            "Instructor": "Andrey Esakia",
+            "Avg GPA": 3.24,
+            "Avg A Range (%)": 49.8,
+            "Avg F Rate (%)": 3.1,
+            "Total Students": 229,
+            "Terms Taught": 1,
+            "Total Withdraws": 3,
+            "Latest Year": 2022,
+            "Confidence Label": "Medium"
+          },
+          {
+            "Instructor": "Donekal Chandrashekar",
+            "Avg GPA": 3.175,
+            "Avg A Range (%)": 48.97,
+            "Avg F Rate (%)": 2.65,
+            "Total Students": 375,
+            "Terms Taught": 4,
+            "Total Withdraws": 19,
+            "Latest Year": 2025,
+            "Confidence Label": "High"
+          },
+          {
+            "Instructor": "Derek Haqq",
+            "Avg GPA": 3.117,
+            "Avg A Range (%)": 40.9,
+            "Avg F Rate (%)": 2.53,
+            "Total Students": 1158,
+            "Terms Taught": 7,
+            "Total Withdraws": 38,
+            "Latest Year": 2023,
+            "Confidence Label": "High"
+          }
+        ]
+      },
+      {
+        "title": "Fall 2026 Sections",
+        "columns": [
+          "Instructor",
+          "Days",
+          "Time",
+          "Location",
+          "Open Seats",
+          "Capacity",
+          "CRN"
+        ],
+        "rows": [
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83524"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "TueThu",
+            "Time": "11:00 AM",
+            "Location": "SQUIR AUD",
+            "Open Seats": 14,
+            "Capacity": 27,
+            "CRN": "83526"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83527"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83528"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 25,
+            "Capacity": 25,
+            "CRN": "83529"
+          },
+          {
+            "Instructor": "Sehrish Nizamani",
+            "Days": "MonWed",
+            "Time": "12:20 PM",
+            "Location": "NCB 320",
+            "Open Seats": 1,
+            "Capacity": 30,
+            "CRN": "83530"
+          },
+          {
+            "Instructor": "TBA",
+            "Days": "TueThu",
+            "Time": "3:30 PM",
+            "Location": "SURGE 104A",
+            "Open Seats": 0,
+            "Capacity": 0,
+            "CRN": "83531"
+          },
+          {
+            "Instructor": "DH Smith IV",
+            "Days": "MonWed",
+            "Time": "10:10 AM",
+            "Location": "SURGE 104D",
+            "Open Seats": 2,
+            "Capacity": 25,
+            "CRN": "83532"
+          }
+        ]
+      }
+    ],
+    "charts_count": 3,
+    "metadata": {
+      "subject": "CS",
+      "course_no": "2114",
+      "use_recency": true,
+      "min_students": 30,
+      "top_n": 10,
+      "timings_ms": {
+        "plan_ms": 995,
+        "resolve_ms": 2,
+        "handler_ms": 149
+      },
+      "confidence": 0.99
+    }
+  },
+  "final_response": {
+    "route": "course_profile",
+    "answer": "For CS 2114, Andrey Esakia has the strongest grade outcomes in the dataset — 3.24 average GPA and a 49.8% A/A− rate across 229 students over 1 term (Medium confidence). Donekal Chandrashekar is worth considering too, averaging 3.17 GPA (High confidence). Grade distributions show you outcome patterns, not what the class actually feels like to sit through.",
+    "warnings": [
+      "Grade distributions do not fully measure teaching quality, workload, exam difficulty, or student experience.",
+      "Recommendations are based on historical grade data only."
+    ]
+  },
+  "latency_ms": {
+    "plan_ms": 995,
+    "resolve_ms": 2,
+    "handler_ms": 149
+  },
+  "errors": []
+}

@@ -56,6 +56,7 @@ class RetrievalDebugInfo:
     n_selected: int               # chunks sent to LLM
     candidates: list[ChunkDebugInfo] = field(default_factory=list)
     timing_ms: dict[str, float] = field(default_factory=dict)  # stage → ms
+    ranking: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -67,6 +68,7 @@ class RetrievalDebugInfo:
             "n_candidates": self.n_candidates,
             "n_selected": self.n_selected,
             "timing_ms": self.timing_ms,
+            "ranking": self.ranking,
             "candidates": [
                 {
                     "content": c.content[:200] + "..." if len(c.content) > 200 else c.content,
@@ -133,6 +135,7 @@ def build_debug_info(
     embedding_provider: str,
     reranker_provider: str,
     timing: dict[str, float],
+    ranking: dict | None = None,
 ) -> RetrievalDebugInfo:
     """Construct a RetrievalDebugInfo from pipeline outputs."""
     selected_ids = {r.id for r in selected}
@@ -162,4 +165,5 @@ def build_debug_info(
         n_selected=len(selected),
         candidates=chunk_infos,
         timing_ms=timing,
+        ranking=ranking or {},
     )
