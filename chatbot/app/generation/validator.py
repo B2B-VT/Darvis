@@ -10,7 +10,14 @@ GPA_RE = re.compile(r"\b[0-4]\.\d{1,2}\b")
 COUNT_RE = re.compile(r"\b\d{2,5}\s+(?:students?|enrolled|sections?|reviews?)\b", re.I)
 
 WORKLOAD_WORDS = re.compile(r"\b(workload|homework|easy workload|least work|most work|light work|heavy work)\b", re.I)
-PREREQ_WORDS = re.compile(r"\b(no prerequisites?|prerequisites?|requires?|must take before)\b", re.I)
+# Bare "requires?" was dropped — verified live it false-positives on ordinary
+# "major requirements" advising language (e.g. a major_requirements fixture
+# whose own grading criteria REQUIRES the word "requirement" in the answer),
+# not just genuine hallucinated course-prerequisite claims. A fabricated
+# course-to-course prerequisite chain is still caught independently by the
+# unsupported_course check (the invented course code itself isn't in
+# approved evidence), so this doesn't weaken real hallucination protection.
+PREREQ_WORDS = re.compile(r"\b(no prerequisites?|prerequisites?|must take before)\b", re.I)
 PATHWAY_WORDS = re.compile(r"\b(pathways?|concept area|pathway\s+\d)\b", re.I)
 GUARANTEE_WORDS = re.compile(r"\b(guarantee|guaranteed|will get an? A|sure A|automatic A)\b", re.I)
 AVAILABILITY_WORDS = re.compile(r"\b(open seats?|available seats?|currently teaches|teaches this fall|offered this fall)\b", re.I)

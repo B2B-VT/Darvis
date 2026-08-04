@@ -3,12 +3,15 @@ import json
 import pytest
 from pydantic import ValidationError
 
+from app.generation.model_types import GenerationResult
 from app.generation.schemas import CourseRecommendationResponse, parse_structured_response
 from app.generation.structured_generator import StructuredGenerationAdapter
 from app.generation.validator import validate_structured_output
 
 
-class FakeLLM:
+class FakeGenerationClient:
+    """Implements the GenerationClient protocol for tests."""
+
     def __init__(self, outputs):
         self.outputs = list(outputs)
         self.history = []
@@ -19,7 +22,7 @@ class FakeLLM:
     def call_history(self):
         return list(self.history)
 
-    def answer_raw(self, prompt, max_tokens=900):
+    def generate_json(self, *, prompt, model, max_tokens, reasoning_effort=None):
         self.history.append({
             "provider": "fake",
             "model": "fake-model",
@@ -32,7 +35,15 @@ class FakeLLM:
             "input_tokens": None,
             "output_tokens": None,
         })
-        return self.outputs.pop(0) if self.outputs else None
+        raw = self.outputs.pop(0) if self.outputs else None
+        return GenerationResult(
+            raw_text=raw,
+            provider="fake",
+            model="fake-model",
+            input_tokens=None,
+            output_tokens=None,
+            latency_ms=1,
+        )
 
 
 def fixture(answer_type="course_recommendation"):
@@ -163,7 +174,7 @@ def test_successful_repair():
         }],
         "limitations": [],
     })
-    adapter = StructuredGenerationAdapter(llm=FakeLLM([bad, good]))
+    adapter = StructuredGenerationAdapter(FakeGenerationClient([bad, good]))
     result = adapter.generate(fixture())
     assert result["validation"]["valid"]
     assert result["repair"]["repair_attempted"]
@@ -172,7 +183,7 @@ def test_successful_repair():
 
 def test_failed_repair_uses_safe_fallback_and_only_two_calls():
     bad = "{not json"
-    adapter = StructuredGenerationAdapter(llm=FakeLLM([bad, bad, bad]))
+    adapter = StructuredGenerationAdapter(FakeGenerationClient([bad, bad, bad]))
     result = adapter.generate(fixture())
     assert result["validation"]["valid"]
     assert result["validation"]["safe_fallback"]
