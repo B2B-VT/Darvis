@@ -33,7 +33,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       items: [
         {
           q: "What is Darvis?",
-          a: "Darvis is a Virginia Tech course-planning tool for students across majors. Browse historical grade distributions, compare instructors, explore course metadata, build your semester schedule, and ask Cyrus questions about courses, requirements, and planning tradeoffs.",
+          a: "Darvis is a course-planning tool. Browse historical grade distributions for any course or instructor, build your semester schedule, and ask Cyrus questions about grade outcomes.",
         },
         {
           q: "Where does the grade data come from?",
@@ -66,7 +66,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
         },
         {
           q: "A course I'm looking for isn't showing up. Why?",
-          a: "Darvis covers imported Virginia Tech subjects across majors, but some courses may still be missing if they have no available grade rows, changed numbers, limited recent offerings, special topics formats, or incomplete catalog/timetable data. Try searching by subject, course number, title, or description.",
+          a: "Darvis covers imported subjects across majors, but some courses may still be missing if they have no available grade rows, changed numbers, limited recent offerings, special topics formats, or incomplete catalog/timetable data. Try searching by subject, course number, title, or description.",
         },
       ],
     },
@@ -152,7 +152,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
           <div style={{ flexShrink: 0, width: 3, alignSelf: "stretch", background: "#861F41", borderRadius: 2 }} />
           <p style={{ margin: 0, fontSize: 13, color: text, lineHeight: 1.65 }}>
             <strong style={{ color: head }}>Not affiliated with Virginia Tech.</strong>{" "}
-            Darvis is an independent project for students across majors. It is not affiliated with, endorsed by, or officially connected to Virginia Tech or any other university. Grade data comes from publicly available institutional records.
+            Darvis is an independent project for students across majors. It is not affiliated with, endorsed by, or officially connected to any university. Grade data comes from publicly available institutional records.
           </p>
         </div>
       </div>
