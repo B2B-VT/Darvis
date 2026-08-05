@@ -111,8 +111,8 @@ export function CampusBackground({ darkMode }) {
 const FAQ_ITEMS = [
   { q: "Is Darvis free to use?", a: "Yes, completely free. Grade data, professor ratings, the schedule builder, and Cyrus are all included with every account." },
   { q: "Where does the grade data come from?", a: "Grade distributions are sourced from Virginia Tech's University Data Commons (UDC) — the same public records VT releases each semester. We parse, structure, and make them searchable." },
-  { q: "How current is the course data?", a: "Schedule sections are current for Fall 2026 (term 202609). Grade history covers 2001 to Spring 2025 for CS, with additional departments being added." },
-  { q: "What can Cyrus actually do?", a: "Ask Cyrus anything — \"Which professor grades easiest in CS 3114?\", \"What's the average GPA for MATH 2224?\", or \"Add CS 3114 with Hamouda to my schedule.\" Cyrus answers in plain English backed by real grade data." },
+  { q: "How current is the course data?", a: "Schedule sections are current for Fall 2026. Grade history covers all subjects across recent academic years." },
+  { q: "What can Cyrus actually do?", a: "Ask Cyrus about courses, instructors, major requirements, prerequisites, Pathways, open sections, and schedule tradeoffs across majors — for example, \"What's the average GPA for MATH 2224?\", \"Which BIT electives have strong outcomes?\", or \"Build a schedule around my major requirements.\" Cyrus answers in plain English backed by Darvis data." },
   { q: "Is this affiliated with Virginia Tech?", a: "No. Darvis is an independent student-built tool using publicly available data. We are not officially affiliated with Virginia Tech or any other institution." },
 ];
 

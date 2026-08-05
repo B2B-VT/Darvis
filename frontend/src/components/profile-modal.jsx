@@ -236,7 +236,7 @@ export default function ProfileModal({ onClose, darkMode = true }) {
         {step === "welcome" && (
           <div style={{ padding: "48px 40px", textAlign: "center" }}>
             <div style={{ marginBottom: 20 }}>
-              <img src={darkMode ? "/logo.svg" : "/logo-light.svg"} alt="Darvis" style={{ width: 60, height: 60 }} />
+              <img src="/darvis-logo.png" alt="Darvis" style={{ width: 60, height: 60, borderRadius: 14, objectFit: "cover" }} />
             </div>
             <div style={{
               fontSize: 10, fontWeight: 700, color: "#861F41",

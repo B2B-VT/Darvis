@@ -4,16 +4,12 @@ import { useUser, useClerk } from "@clerk/clerk-react";
 import { palette, ACCENT, SANS, MONO } from "../theme.jsx";
 
 const SIDEBAR_W   = 220;
-const SIDEBAR_COL = 52;  // collapsed icon-only width
+const SIDEBAR_COL = 64;  // collapsed icon-only width
 
-// ── Collapse chevron ──────────────────────────────────────────────────────────
-const CollapseIcon = ({ collapsed }) => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-    {collapsed
-      ? <><line x1="3" y1="7" x2="11" y2="7"/><polyline points="7,3 11,7 7,11"/></>
-      : <><line x1="3" y1="7" x2="11" y2="7"/><polyline points="7,3 3,7 7,11"/></>
-    }
+// ── Sidebar panel icon ────────────────────────────────────────────────────────
+const CollapseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M14.63384375 1.36615625H1.36615625C0.69999375 1.366125 0.16 1.90614375 0.16 2.57230625v10.8553875c0 0.66615625 0.53999375 1.20618125 1.20615625 1.20615h13.2676875c0.66611875 -0.000025 1.20615625 -0.54003125 1.20615625 -1.20615V2.57230625c0 -0.6661375 -0.5400125 -1.20615 -1.20615625 -1.20615ZM1.36615625 2.57230625h3.01538125v10.8553875H1.36615625Zm13.2676875 10.8553875H5.58769375V2.57230625h9.04615v10.8553875Z" />
   </svg>
 );
 
@@ -47,6 +43,12 @@ const Icons = {
   forums: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+  ),
+  profile: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 21a8 8 0 0 1 16 0"/>
     </svg>
   ),
   sun: (
@@ -84,10 +86,26 @@ const Icons = {
   ),
 };
 
+function RailIcon({ children }) {
+  return (
+    <span style={{
+      width: 24,
+      height: 24,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      {children}
+    </span>
+  );
+}
+
 // ── Sidebar nav item ──────────────────────────────────────────────────────────
-function SidebarItem({ label, icon, active, darkMode, badge, onClick, collapsed }) {
+function SidebarItem({ id, label, icon, active, darkMode, badge, onClick, collapsed, onTooltip, onHideTooltip }) {
   const p = palette(darkMode);
   const [hovered, setHovered] = useState(false);
+  const collapsedColor = darkMode ? "rgba(255,255,255,0.92)" : "rgba(26,18,15,0.78)";
+  const collapsedHoverBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.08)";
 
   const activeStyle = darkMode ? {
     background: "linear-gradient(135deg, rgba(134,31,65,0.28) 0%, rgba(134,31,65,0.10) 100%)",
@@ -112,30 +130,68 @@ function SidebarItem({ label, icon, active, darkMode, badge, onClick, collapsed 
     border: "1px solid rgba(255,255,255,0.75)",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.90), 0 1px 6px rgba(0,0,0,0.04)",
   };
+  const collapsedBase = collapsed
+    ? {
+        background: active || hovered ? collapsedHoverBg : "transparent",
+        border: "1px solid transparent",
+        boxShadow: "none",
+      }
+    : null;
 
   return (
     <button
       onClick={onClick}
-      title={collapsed ? label : undefined}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      aria-label={label}
+      onMouseEnter={e => {
+        setHovered(true);
+        if (collapsed) onTooltip?.(label, e, "right", <RailIcon name={id}>{icon}</RailIcon>);
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        onHideTooltip?.();
+      }}
       style={{
-        width: "100%",
+        width: collapsed ? 44 : "100%",
+        height: collapsed ? 44 : "auto",
+        margin: collapsed ? "0 auto 3px" : "0 0 3px",
+        position: "static",
+        transform: "none",
         display: "flex", alignItems: "center",
         gap: collapsed ? 0 : 10,
-        padding: collapsed ? "7px 0" : "7px 10px",
+        padding: collapsed ? 0 : "7px 10px",
         justifyContent: collapsed ? "center" : "flex-start",
-        marginBottom: 3,
-        ...(active ? activeStyle : hovered ? hoverStyle : { background: "transparent", border: "1px solid transparent", boxShadow: "none" }),
+        ...(collapsedBase || (active ? activeStyle : hovered ? hoverStyle : { background: "transparent", border: "1px solid transparent", boxShadow: "none" })),
         borderRadius: 10, cursor: "pointer",
-        color: active ? (darkMode ? "#fff" : ACCENT) : (hovered ? p.text : p.textSub),
+        color: collapsed
+          ? collapsedColor
+          : active
+          ? (darkMode ? "#fff" : ACCENT)
+          : hovered
+          ? (darkMode ? "rgba(255,255,255,0.92)" : p.text)
+          : (darkMode ? "rgba(255,255,255,0.76)" : p.textSub),
         fontFamily: SANS, fontWeight: active ? 600 : 500, fontSize: 13.5,
         textAlign: "left",
         transition: "background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, padding 0.20s",
       }}
     >
-      <span style={{ flexShrink: 0, opacity: active ? 1 : hovered ? 0.90 : 0.70, display: "flex", transition: "opacity 0.15s" }}>{icon}</span>
-      {!collapsed && <span style={{ flex: 1 }}>{label}</span>}
+      <span style={{
+        width: collapsed ? 24 : "auto",
+        height: collapsed ? 24 : "auto",
+        flexShrink: 0,
+        opacity: collapsed ? 1 : active ? 1 : hovered ? 0.90 : 0.70,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "opacity 0.15s",
+      }}>{collapsed ? <RailIcon name={id}>{icon}</RailIcon> : icon}</span>
+      <span style={{
+        flex: 1,
+        opacity: collapsed ? 0 : 1,
+        maxWidth: collapsed ? 0 : 140,
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        transition: "opacity 0.14s ease, max-width 0.22s cubic-bezier(0.16,1,0.3,1)",
+      }}>{label}</span>
       {!collapsed && badge > 0 && (
         <span style={{
           background: active ? ACCENT : darkMode ? "rgba(134,31,65,0.55)" : "rgba(134,31,65,0.18)",
@@ -143,9 +199,50 @@ function SidebarItem({ label, icon, active, darkMode, badge, onClick, collapsed 
           borderRadius: 999, padding: "1px 7px",
           fontSize: 10.5, fontWeight: 700, fontFamily: MONO, flexShrink: 0,
           border: `1px solid ${active ? "transparent" : "rgba(134,31,65,0.30)"}`,
+          overflow: "hidden",
+          transition: "opacity 0.14s ease, max-width 0.22s cubic-bezier(0.16,1,0.3,1)",
         }}>{badge}</span>
       )}
     </button>
+  );
+}
+
+function RailTooltip({ tooltip, darkMode }) {
+  if (!tooltip) return null;
+  return (
+    <>
+      <div style={{
+        position: "fixed",
+        left: tooltip.x,
+        top: tooltip.y,
+        transform: tooltip.side === "left" ? "translate(-100%, -50%)" : "translateY(-50%)",
+        zIndex: 1000,
+        pointerEvents: "none",
+        padding: "9px 11px",
+        borderRadius: 10,
+        background: darkMode ? "rgba(28,28,28,0.98)" : "rgba(26,18,15,0.96)",
+        color: "#fff",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.24)",
+        fontFamily: SANS,
+        fontSize: 12.5,
+        fontWeight: 600,
+        lineHeight: 1,
+        whiteSpace: "nowrap",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        animation: "dvTooltipIn 0.12s ease-out both",
+      }}>
+        {tooltip.icon && <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>{tooltip.icon}</span>}
+        {tooltip.label}
+      </div>
+      <style>{`
+        @keyframes dvTooltipIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -159,6 +256,7 @@ export default function AppShell({
   const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed]   = useState(false);
+  const [railTooltip, setRailTooltip] = useState(null);
   const p = palette(darkMode);
 
   const sidebarW = collapsed ? SIDEBAR_COL : SIDEBAR_W;
@@ -172,8 +270,8 @@ export default function AppShell({
   useEffect(() => { setDrawerOpen(false); }, [page]);
 
   const navItems = [
-    { id: "search",      label: "Courses",    icon: Icons.courses     },
     { id: "instructors", label: "Instructors", icon: Icons.instructors },
+    { id: "search",      label: "Courses",    icon: Icons.courses     },
     { id: "schedule",    label: "Schedule",   icon: Icons.schedule, badge: isSignedIn ? (schedule?.length || 0) : 0 },
     { id: "chatbot",     label: "Cyrus", icon: Icons.chatbot     },
     { id: "forums",      label: "Forums",     icon: Icons.forums      },
@@ -183,6 +281,21 @@ export default function AppShell({
   const initials    = ([user?.firstName, user?.lastName].filter(Boolean).map(n => n[0]).join("") || user?.username?.[0] || "?").toUpperCase();
 
   const sidebarBorder = darkMode ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.65)";
+  const sidebarText = darkMode ? "rgba(255,255,255,0.92)" : p.text;
+  const sidebarSubText = darkMode ? "rgba(255,255,255,0.76)" : p.textSub;
+  const collapsedIconColor = darkMode ? "rgba(255,255,255,0.92)" : "rgba(26,18,15,0.78)";
+  const collapsedIconHoverBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.08)";
+  const showRailTooltip = (label, event, side = "right", icon = null) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setRailTooltip({
+      label,
+      side,
+      icon,
+      x: side === "left" ? rect.left - 10 : rect.right + 10,
+      y: rect.top + rect.height / 2,
+    });
+  };
+  const hideRailTooltip = () => setRailTooltip(null);
 
   const asideCss = darkMode ? {
     background: "rgba(8,5,4,0.22)",
@@ -228,57 +341,70 @@ export default function AppShell({
       {/* All content sits above sheen */}
       <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative", zIndex: 1, overflow: "hidden" }}>
 
-      {/* Title bar */}
-      <div style={{
-        height: 52, display: "flex", alignItems: "center",
-        padding: collapsed ? "0 0 0 14px" : "0 10px 0 18px",
-        gap: collapsed ? 0 : 10, flexShrink: 0,
-        borderBottom: `1px solid ${sidebarBorder}`,
-        justifyContent: collapsed ? "center" : "flex-start",
-      }}>
-        {!collapsed && (
-          <button onClick={() => setPage("landing")} style={{
-            flex: 1, background: "none", border: "none", cursor: "pointer", padding: 0,
-            fontFamily: SANS, fontWeight: 600, fontSize: 13,
-            color: p.textMute, letterSpacing: "-0.2px", textAlign: "left",
-          }}>Darvis</button>
-        )}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          style={{
-            background: "none", border: "none", cursor: "pointer", padding: 4,
-            color: p.textFaint, display: "flex", borderRadius: 6,
-            transition: "color 0.12s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = p.textSub}
-          onMouseLeave={e => e.currentTarget.style.color = p.textFaint}
-        >
-          <CollapseIcon collapsed={collapsed} />
-        </button>
-      </div>
-
-      {/* App icon / logo */}
+      {/* Brand / collapse control */}
       {collapsed ? (
-        <button onClick={() => setPage("landing")} title="Home" style={{
-          padding: "12px 0", display: "flex", justifyContent: "center",
-          flexShrink: 0, background: "none", border: "none", cursor: "pointer", width: "100%",
-        }}>
-          <img src="/darvis-logo.png" alt="Darvis" style={{ width: 28, height: 28, borderRadius: 7, objectFit: "cover" }} />
+        <button
+        onClick={() => { hideRailTooltip(); setCollapsed(false); }}
+        aria-label="Expand sidebar"
+        onMouseEnter={e => {
+          showRailTooltip("Expand sidebar", e, "right", <img src="/darvis-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} />);
+          e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+        }}
+        onMouseLeave={e => {
+          hideRailTooltip();
+          e.currentTarget.style.background = "transparent";
+        }}
+        style={{
+          width: 44, height: 44, padding: 0, margin: "14px auto 12px",
+          position: "static", transform: "none",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, background: "none", border: "none", cursor: "pointer", borderRadius: 12,
+          transition: "background 0.12s",
+        }}
+        >
+          <img src="/darvis-logo.png" alt="Darvis" style={{ width: 34, height: 34, borderRadius: 9, objectFit: "cover" }} />
         </button>
       ) : (
-        <button onClick={() => setPage("landing")} style={{
-          padding: "16px 14px 10px", display: "flex", alignItems: "center", gap: 10,
-          flexShrink: 0, background: "none", border: "none", cursor: "pointer", width: "100%", textAlign: "left",
+        <div style={{
+          padding: "14px 12px 12px 14px",
+          display: "flex", alignItems: "center", gap: 10,
+          flexShrink: 0, width: "100%", boxSizing: "border-box",
         }}>
-          <img src="/darvis-logo.png" alt="Darvis" style={{
-            width: 42, height: 42, borderRadius: 10, objectFit: "cover",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.22)", flexShrink: 0,
-          }} />
-          <div>
-            <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 14.5, color: p.text, letterSpacing: "-0.3px" }}>Darvis</div>
-          </div>
-        </button>
+          <button onClick={() => setPage("landing")} title="Home" style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex", alignItems: "center", gap: 10,
+            background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left",
+          }}>
+            <img src="/darvis-logo.png" alt="Darvis" style={{
+              width: 38, height: 38, borderRadius: 10, objectFit: "cover",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.20)", flexShrink: 0,
+            }} />
+            <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 15, color: sidebarText, letterSpacing: "-0.3px" }}>Darvis</div>
+          </button>
+          <button
+            onClick={() => setCollapsed(true)}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+            style={{
+              background: "transparent",
+              color: sidebarSubText,
+              border: "none",
+              borderRadius: 8,
+              width: 34,
+              height: 34,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "color 0.12s, background 0.12s", flexShrink: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.07)" : p.cardHover}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <CollapseIcon />
+          </button>
+        </div>
       )}
 
       {/* Nav label */}
@@ -291,13 +417,22 @@ export default function AppShell({
       )}
 
       {/* Nav items */}
-      <nav style={{ flex: 1, padding: collapsed ? "0 6px" : "0 8px", overflowY: "auto" }}>
+      <nav style={{
+        flex: 1,
+        padding: collapsed ? "0" : "0 8px",
+        overflowY: "auto",
+        display: collapsed ? "flex" : "block",
+        flexDirection: collapsed ? "column" : undefined,
+        alignItems: collapsed ? "center" : undefined,
+      }}>
         {navItems.map(item => (
           <SidebarItem
             key={item.id} {...item}
             active={page === item.id}
             darkMode={darkMode}
             collapsed={collapsed}
+            onTooltip={showRailTooltip}
+            onHideTooltip={hideRailTooltip}
             onClick={() => setPage(item.id)}
           />
         ))}
@@ -312,17 +447,28 @@ export default function AppShell({
       }} />
 
       {/* User section */}
-      <div style={{ padding: collapsed ? "10px 6px 12px" : "10px 8px 12px", flexShrink: 0 }}>
+      <div style={{
+        padding: collapsed ? "10px 0 14px" : "10px 8px 12px",
+        flexShrink: 0,
+        display: collapsed ? "flex" : "block",
+        flexDirection: collapsed ? "column" : undefined,
+        alignItems: collapsed ? "center" : undefined,
+      }}>
         {isSignedIn ? (
           <>
             {/* Profile */}
             <button
               onClick={() => setPage("profile")}
-              title={collapsed ? displayName : undefined}
+              aria-label="Profile"
               style={{
-                width: "100%", display: "flex", alignItems: "center",
+                width: collapsed ? 44 : "100%",
+                height: collapsed ? 44 : "auto",
+                margin: collapsed ? "0 auto 8px" : "0 0 8px",
+                position: "static",
+                transform: "none",
+                display: "flex", alignItems: "center",
                 gap: collapsed ? 0 : 10,
-                padding: collapsed ? "8px 0" : "8px 10px",
+                padding: collapsed ? 0 : "8px 10px",
                 justifyContent: collapsed ? "center" : "flex-start",
                 marginBottom: 8,
                 background: page === "profile"
@@ -331,13 +477,22 @@ export default function AppShell({
                 border: page === "profile"
                   ? `1px solid ${darkMode ? "rgba(134,31,65,0.35)" : "rgba(134,31,65,0.20)"}`
                   : "1px solid transparent",
+                color: collapsed ? collapsedIconColor : p.text,
                 borderRadius: 8, cursor: "pointer", fontFamily: SANS, textAlign: "left",
                 transition: "background 0.12s",
               }}
-              onMouseEnter={e => { if (page !== "profile") e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)"; }}
-              onMouseLeave={e => { if (page !== "profile") e.currentTarget.style.background = "transparent"; }}
+              onMouseEnter={e => {
+                if (collapsed) showRailTooltip("Profile", e, "right", Icons.profile);
+                if (page !== "profile") e.currentTarget.style.background = darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
+              }}
+              onMouseLeave={e => {
+                hideRailTooltip();
+                if (page !== "profile") e.currentTarget.style.background = "transparent";
+              }}
             >
-              {user?.imageUrl
+              {collapsed
+                ? <RailIcon name="profile">{Icons.profile}</RailIcon>
+                : user?.imageUrl
                 ? <img src={user.imageUrl} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                 : <div style={{
                     width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
@@ -348,28 +503,39 @@ export default function AppShell({
               }
               {!collapsed && (
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 12.5, color: p.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+                  <div style={{ fontWeight: 600, fontSize: 12.5, color: sidebarText, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
                 </div>
               )}
             </button>
 
             {/* Theme + sign out */}
             {collapsed ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
                 {[
                   { title: darkMode ? "Light mode" : "Dark mode", icon: darkMode ? Icons.sun : Icons.moon, action: () => setDarkMode(m => !m) },
                   { title: "Sign out", icon: Icons.signout, action: () => signOut() },
                 ].map(({ title, icon, action }) => (
-                  <button key={title} onClick={action} title={title} style={{
-                    background: darkMode ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.50)",
-                    border: darkMode ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(255,255,255,0.70)",
-                    boxShadow: darkMode ? "inset 0 1px 0 rgba(255,255,255,0.07)" : "inset 0 1px 0 rgba(255,255,255,0.90)",
-                    borderRadius: 8, padding: 6, cursor: "pointer", color: p.textMute, display: "flex",
+                  <button
+                  key={title}
+                  onClick={action}
+                  aria-label={title}
+                  onMouseEnter={e => { showRailTooltip(title, e, "right", <RailIcon name={title.includes("mode") ? (darkMode ? "sun" : "moon") : "signout"}>{icon}</RailIcon>); e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.14)" : "rgba(26,18,15,0.12)"; e.currentTarget.style.color = darkMode ? "#fff" : "rgba(26,18,15,0.92)"; e.currentTarget.style.background = collapsedIconHoverBg; }}
+                  onMouseLeave={e => { hideRailTooltip(); e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.color = collapsedIconColor; e.currentTarget.style.background = "transparent"; }}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    margin: "0 auto",
+                    position: "static",
+                    transform: "none",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "transparent",
+                    border: "1px solid transparent",
+                    boxShadow: "none",
+                    borderRadius: 8, padding: 6, cursor: "pointer", color: collapsedIconColor, display: "flex",
                     transition: "all 0.15s",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(134,31,65,0.40)"; e.currentTarget.style.color = ACCENT; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.70)"; e.currentTarget.style.color = p.textMute; }}
-                  >{icon}</button>
+                  ><RailIcon name={title.includes("mode") ? (darkMode ? "sun" : "moon") : "signout"}>{icon}</RailIcon></button>
                 ))}
               </div>
             ) : (
@@ -384,11 +550,11 @@ export default function AppShell({
                     border: darkMode ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(255,255,255,0.70)",
                     boxShadow: darkMode ? "inset 0 1px 0 rgba(255,255,255,0.07)" : "inset 0 1px 0 rgba(255,255,255,0.90)",
                     borderRadius: 8, cursor: "pointer",
-                    color: p.textMute, fontSize: 11, fontFamily: SANS, fontWeight: 500,
+                    color: sidebarSubText, fontSize: 11, fontFamily: SANS, fontWeight: 500,
                     transition: "all 0.15s",
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.color = danger ? ACCENT : p.text;
+                    e.currentTarget.style.color = darkMode ? "#fff" : (danger ? ACCENT : p.text);
                     e.currentTarget.style.borderColor = danger ? "rgba(134,31,65,0.40)" : (darkMode ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.90)");
                     e.currentTarget.style.background = danger ? "rgba(134,31,65,0.08)" : (darkMode ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.70)");
                   }}
@@ -406,18 +572,32 @@ export default function AppShell({
           /* Not signed in */
           <button
             onClick={onSignIn}
+            aria-label="Sign In"
+            onMouseEnter={e => {
+              if (collapsed) showRailTooltip("Sign In", e, "right", <RailIcon name="signin">{Icons.signin}</RailIcon>);
+              if (collapsed) e.currentTarget.style.background = collapsedIconHoverBg;
+            }}
+            onMouseLeave={e => {
+              hideRailTooltip();
+              if (collapsed) e.currentTarget.style.background = "transparent";
+            }}
             style={{
-              width: "100%", display: "flex", alignItems: "center",
+              width: collapsed ? 44 : "100%",
+              height: collapsed ? 44 : "auto",
+              margin: collapsed ? "0 auto" : 0,
+              position: "static",
+              transform: "none",
+              display: "flex", alignItems: "center",
               gap: collapsed ? 0 : 8,
-              padding: collapsed ? "8px 0" : "9px 12px",
+              padding: collapsed ? 0 : "9px 12px",
               justifyContent: collapsed ? "center" : "flex-start",
               background: "linear-gradient(135deg,#861F41,#a52856)",
               border: "none", borderRadius: 9, cursor: "pointer",
               color: "#fff", fontFamily: SANS, fontWeight: 600, fontSize: 13,
+              ...(collapsed ? { background: "transparent", border: "1px solid transparent" } : {}),
             }}
-            title={collapsed ? "Sign In" : undefined}
           >
-            {Icons.signin}
+            {collapsed ? <RailIcon name="signin">{Icons.signin}</RailIcon> : Icons.signin}
             {!collapsed && <span>Sign In</span>}
           </button>
         )}
@@ -460,14 +640,15 @@ export default function AppShell({
         <aside style={{
           position: "fixed", top: 0, left: 0, bottom: 0,
           width: sidebarW, zIndex: 100,
-          transition: "width 0.2s cubic-bezier(0.22,1,0.36,1)",
+          transition: "width 0.28s cubic-bezier(0.16,1,0.3,1)",
           ...asideCss,
         }}>
           <SidebarContent />
         </aside>
+        <RailTooltip tooltip={railTooltip} darkMode={darkMode} />
         <div style={{
           marginLeft: sidebarW,
-          transition: "margin-left 0.2s cubic-bezier(0.22,1,0.36,1)",
+          transition: "margin-left 0.28s cubic-bezier(0.16,1,0.3,1)",
         }}>
           {children}
         </div>
@@ -481,12 +662,13 @@ export default function AppShell({
       <div style={{ display: "flex", height: "100vh", overflow: "hidden", position: "relative", zIndex: 1 }}>
         <aside style={{
           width: sidebarW, flexShrink: 0, height: "100vh",
-          transition: "width 0.2s cubic-bezier(0.22,1,0.36,1)",
+          transition: "width 0.28s cubic-bezier(0.16,1,0.3,1)",
           position: "relative", zIndex: 10,
           ...asideCss,
         }}>
           <SidebarContent />
         </aside>
+        <RailTooltip tooltip={railTooltip} darkMode={darkMode} />
         <main key={page} style={{
           flex: 1, minHeight: 0,
           overflowY: page === "chatbot" ? "hidden" : "auto",

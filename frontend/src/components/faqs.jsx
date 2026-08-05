@@ -37,11 +37,11 @@ export default function FaqsPage({ darkMode = true, setPage }) {
         },
         {
           q: "Where does the grade data come from?",
-          a: "Grade data comes from publicly available university data sources, which publish official grade distributions by course, section, instructor, and semester.",
+          a: "Grade distributions come from Virginia Tech's University Data Commons (UDC), which publishes public grade records by course, section, instructor, and semester. Darvis parses, normalizes, and makes those records searchable.",
         },
         {
           q: "How often is the data updated?",
-          a: "Grade data is updated once per semester after official records are published. The site shows the most recent batch available at the time of the last update.",
+          a: "Grade data is updated after new official UDC records are available. Fall 2026 schedule sections are refreshed from Banner data on a recurring basis, so section and seat information can be useful for planning but should still be verified in official registration systems before enrollment.",
         },
         {
           q: "Is this an official university product?",
@@ -58,7 +58,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
         },
         {
           q: "Can I use this to pick the 'easiest' professor?",
-          a: "The tool shows grade outcomes, not teaching quality. A professor with a high A rate might run a rigorous course or have an easy grading policy. The data alone can't tell you which. Use it alongside course reviews and your own goals.",
+          a: "Darvis can show grade outcomes and instructor comparisons, but grade data is not the same as teaching quality, workload, or fit. A high A rate might reflect many things: grading policy, student mix, course format, or small sample size. Use Darvis alongside official advising, course descriptions, reviews, and your own goals.",
         },
         {
           q: "Why does a professor show different numbers across semesters?",
@@ -66,7 +66,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
         },
         {
           q: "A course I'm looking for isn't showing up. Why?",
-          a: "Darvis has grade data for the subjects that have been imported so far. Not all subjects are in the database yet. If your course isn't showing up, it hasn't been added. More subjects are being added each semester.",
+          a: "Darvis covers imported subjects across majors, but some courses may still be missing if they have no available grade rows, changed numbers, limited recent offerings, special topics formats, or incomplete catalog/timetable data. Try searching by subject, course number, title, or description.",
         },
       ],
     },
@@ -75,11 +75,11 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       items: [
         {
           q: "What can Cyrus actually do?",
-          a: "Cyrus can answer questions about grade distributions: which instructor for a specific course has stronger historical grade outcomes, how a course's A rate has trended over recent semesters, which sections have higher F or withdrawal rates, and similar quantitative questions based on the grade data.",
+          a: "Cyrus can answer questions across majors about grade distributions, instructor comparisons, course descriptions, prerequisites, Pathways, major requirements, Fall 2026 sections, open seats, and schedule-building constraints. It can also explain when Darvis does not have enough data to answer honestly.",
         },
         {
-          q: "Why can't Cyrus tell me about workload or teaching style?",
-          a: "Cyrus only has grade distribution numbers. It has no data on teaching style, exam difficulty, workload, attendance policies, or student reviews. For those, check the Forums page or Rate My Professor.",
+          q: "Can Cyrus tell me about workload or teaching style?",
+          a: "Cyrus can reference available structured data, public professor-rating context, Echo reviews where available, and forum-style student feedback, but it should not invent workload, curve policies, attendance rules, or teaching-style claims when Darvis does not have evidence. Treat those answers as planning support, not official advising.",
         },
         {
           q: "Cyrus gave me an answer with numbers — how reliable is it?",
@@ -96,11 +96,11 @@ export default function FaqsPage({ darkMode = true, setPage }) {
       items: [
         {
           q: "How does the Schedule Builder work?",
-          a: "Browse or search for courses, then add sections to your schedule. The builder shows time conflicts and lets you compare options side by side. Your schedule is saved in your browser and persists across visits on the same device.",
+          a: "Browse or search for Fall 2026 sections, then add them to your schedule. The builder shows time conflicts, selected CRNs, instructors, locations, seats, and course combinations so you can compare options across any major.",
         },
         {
-          q: "Does the Schedule Builder show live seat availability?",
-          a: "Not yet. Real-time seat counts are on the roadmap. For now, treat the sections as a planning reference and check your registrar's site for final enrollment.",
+          q: "Does the Schedule Builder show seat availability?",
+          a: "Darvis shows seat and enrollment data from the current Fall 2026 timetable refresh, but it is not the official registration system and may lag behind Banner. Always confirm final availability, restrictions, prerequisites, and enrollment status in official university tools.",
         },
       ],
     },
@@ -152,7 +152,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
           <div style={{ flexShrink: 0, width: 3, alignSelf: "stretch", background: "#861F41", borderRadius: 2 }} />
           <p style={{ margin: 0, fontSize: 13, color: text, lineHeight: 1.65 }}>
             <strong style={{ color: head }}>Not affiliated with Virginia Tech.</strong>{" "}
-            Darvis is an independent project. It is not affiliated with, endorsed by, or officially connected to Virginia Tech or any other university. Grade data comes from publicly available institutional records.
+            Darvis is an independent project for students across majors. It is not affiliated with, endorsed by, or officially connected to any university. Grade data comes from publicly available institutional records.
           </p>
         </div>
       </div>
