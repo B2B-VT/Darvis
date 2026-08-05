@@ -188,6 +188,7 @@ export default function App() {
   // schedule is now an array of full section objects {crn, subject, courseNumber, days, startTime, ...}
   const addSection    = sec => { if (!schedule.some(s => s.crn === sec.crn)) setSchedule(prev => [...prev, sec]); };
   const removeSection = crn => setSchedule(prev => prev.filter(s => s.crn !== crn));
+  const clearSchedule = () => setSchedule([]);
 
   const openCourse = (course, initialTab = "description") => {
     setSelectedCourseTab(initialTab);
@@ -220,6 +221,7 @@ export default function App() {
         <ChatbotPage
           darkMode={darkMode}
           addSection={addSection}
+          clearSchedule={clearSchedule}
           setPage={navigateTo}
           userProfile={user?.unsafeMetadata || null}
         />

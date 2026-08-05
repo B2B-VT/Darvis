@@ -741,8 +741,14 @@ function parseSseEvents(buffer) {
   return { events, rest };
 }
 
-function applyScheduleActions(data, addSection, setPage) {
+function applyScheduleActions(data, addSection, setPage, clearSchedule) {
+  // schedule_actions is only ever populated by handle_schedule_builder, and
+  // that handler always returns a complete, self-contained schedule built
+  // from scratch — never an incremental single-course addition. Without
+  // clearing first, asking for a new schedule after not liking the last one
+  // stacked the new courses on top of the old ones instead of replacing them.
   if (data?.schedule_actions?.length > 0 && addSection) {
+    clearSchedule?.();
     data.schedule_actions.forEach(sec => addSection(sec));
     setTimeout(() => setPage?.("schedule"), 1200);
   }
@@ -1437,7 +1443,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 }
 
 // ── Main chatbot page ─────────────────────────────────────────────
-function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
+function CyrusApp({ darkMode, addSection, clearSchedule, setPage, userProfile }) {
   const { user } = useUser();
   const [sessions,          setSessions]         = useState(() => loadSessions());
   const [projects,          setProjects]         = useState(() => loadProjects());
@@ -1748,7 +1754,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
       }
 
       clearTimeout(timeoutId);
-      applyScheduleActions(finalData, addSection, setPage);
+      applyScheduleActions(finalData, addSection, setPage, clearSchedule);
 
       const botMsg = { ...buildBotMessage(finalData), _id: botMessageId };
       const final = [...withUser, botMsg];
@@ -1791,7 +1797,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
 	      setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, loading, useRecency, minStudents, topN, messages, currentSessionId, addSection, setPage, userProfile]);
+  }, [input, attachments, loading, useRecency, minStudents, topN, messages, currentSessionId, addSection, clearSchedule, setPage, userProfile]);
 
   const retry = useCallback(async (question, botMsgIdx) => {
     if (loading) return;
@@ -1883,7 +1889,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
       }
 
       clearTimeout(timeoutId);
-      applyScheduleActions(finalData, addSection, setPage);
+      applyScheduleActions(finalData, addSection, setPage, clearSchedule);
       const botMsg = { ...buildBotMessage(finalData), _id: botMessageId };
       const final = messages.map((m, i) => i === botMsgIdx ? botMsg : m);
       setMessages(final);
@@ -1916,7 +1922,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
 	      setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-	  }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, setPage, userProfile]);
+	  }, [loading, messages, currentSessionId, useRecency, minStudents, topN, addSection, clearSchedule, setPage, userProfile]);
 
   const stopCyrus = useCallback(() => {
     if (!activeControllerRef.current) return;
@@ -2040,7 +2046,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
       }
 
       clearTimeout(timeoutId);
-      applyScheduleActions(finalData, addSection, setPage);
+      applyScheduleActions(finalData, addSection, setPage, clearSchedule);
       const final = [...withUser, { ...buildBotMessage(finalData), _id: botMessageId }];
       setMessages(final);
       setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: final } : s));
@@ -2071,7 +2077,7 @@ function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [loading, editingIndex, editDraft, messages, currentSessionId, useRecency, minStudents, topN, userProfile, addSection, setPage]);
+  }, [loading, editingIndex, editDraft, messages, currentSessionId, useRecency, minStudents, topN, userProfile, addSection, clearSchedule, setPage]);
 
   const sendFeedback = (index, rating, reason = "") => {
     const target = messages[index];
