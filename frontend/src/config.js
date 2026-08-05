@@ -16,3 +16,9 @@ export const DARVIS_CONFIG = {
       : "https://chat-bot-6dpo.onrender.com/chat"
   ),
 };
+
+// Cyrus early-access gate — flip to true + redeploy to open Cyrus to
+// everyone. Until then, only these emails (lowercase) see the real chat UI;
+// everyone else sees CyrusLockedScreen (see chatbot.jsx).
+export const CYRUS_PUBLIC_LAUNCHED = false;
+export const CYRUS_ALLOWLIST = ["pujanpatel8@gmail.com", "kbpatel2006@gmail.com"];
