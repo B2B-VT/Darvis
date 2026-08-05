@@ -826,6 +826,33 @@ def handle_schedule_builder(
     for sec in filtered:
         by_course[f"{sec['subject']} {sec['course_number']}"].append(sec)
 
+    # "Make a different one" — history was previously received but never
+    # read anywhere in this function, so a regeneration request produced the
+    # identical schedule whenever the extracted constraints happened to
+    # resolve the same way between turns. Detect the signal and exclude the
+    # course codes from the most recent prior schedule so the greedy picker
+    # below is forced to pick something else instead of silently repeating.
+    regenerate_signal = bool(re.search(
+        r"\b(different|another one|instead|something else|not (?:this|that) one|"
+        r"don'?t like (?:this|that)|change it up|try again|other options?)\b",
+        question.lower(),
+    ))
+    if regenerate_signal and history:
+        avoid_codes: set[str] = set()
+        for msg in reversed(history[-6:]):
+            content = getattr(msg, "content", None) if not isinstance(msg, dict) else msg.get("content")
+            role = getattr(msg, "role", None) if not isinstance(msg, dict) else msg.get("role")
+            if role != "assistant" or not content:
+                continue
+            avoid_codes.update(
+                f"{subj.upper()} {num}"
+                for subj, num in re.findall(r"\b([A-Za-z]{2,5})\s+(\d{4})\b", content)
+            )
+            if avoid_codes:
+                break  # only the immediately-preceding schedule, not every prior turn
+        if avoid_codes:
+            by_course = {code: secs for code, secs in by_course.items() if code not in avoid_codes}
+
     # Score each section: instructor GPA (if known) then open seats
     def _score(s: dict) -> tuple:
         gpa = _inst_gpa(s)
@@ -1118,6 +1145,27 @@ def handle_schedule_builder(
         caveats.append(
             "Couldn't include: " + "; ".join(dropped_requested) + "."
         )
+
+    # A chosen course that's neither a required/Pathways course for the major
+    # nor in the major's preferred-subject list means nothing in-major fit
+    # the OTHER stated constraints (days/time/GPA/RMP) for that credit slot —
+    # verified live: the ranking already prefers major/required courses when
+    # available, so this only fires on a genuine fallback. Say so instead of
+    # presenting it as an unremarkable pick.
+    if major and schedule:
+        off_major = []
+        for s in schedule:
+            subj = s["subject"].upper()
+            course_key = re.sub(r"\s+", "", f"{s['subject']}{s['course_number']}").lower()
+            is_required = course_key in required_course_codes
+            in_major = subject_rank.get(subj, len(preferred_subjects)) < len(preferred_subjects)
+            if not is_required and not in_major:
+                off_major.append(f"{s['subject']} {s['course_number']}")
+        if off_major:
+            caveats.append(
+                f"Couldn't find a {major}-related section fitting your other constraints for "
+                f"{', '.join(off_major)}, so I included it from outside your usual subjects instead."
+            )
 
     if caveats:
         answer += " Note: " + " ".join(caveats)

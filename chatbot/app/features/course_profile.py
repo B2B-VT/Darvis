@@ -434,7 +434,22 @@ def handle_course_profile(
     # tables (course_profile + section_lookup) the user has to
     # cross-reference themselves. Mirrors natural_filter.py's existing
     # rank-then-filter pattern for the same compound-question shape.
-    qualifying_instructors = time_constrained_instructors(sections_df, question)
+    #
+    # Scoped to THIS course's own sections before checking — passing the
+    # full sections_df would qualify an instructor who teaches something
+    # else after noon but not this course, which is not what "teaches
+    # CS 1114 after noon" means. Verified live: without this scoping, an
+    # instructor with no Fall 2026 CS 1114 section at all could still be
+    # named as satisfying the time constraint.
+    course_sections_df = (
+        sections_df[
+            (sections_df["subject"].astype(str).str.upper() == (subject or "").upper())
+            & (sections_df["course_number"].astype(str).str.strip() == str(course_no or "").strip())
+        ]
+        if sections_df is not None and not sections_df.empty and subject and course_no
+        else sections_df
+    )
+    qualifying_instructors = time_constrained_instructors(course_sections_df, question)
     time_data_unavailable = qualifying_instructors is not None and not qualifying_instructors
     if qualifying_instructors and not result_all.empty and "Instructor" in result_all.columns:
         result_all = result_all[
@@ -524,6 +539,44 @@ def handle_course_profile(
         answer = _course_overview_answer(result_display, subject, course_no, description, title, sections_df, credits=credits)
     else:
         answer = course_answer(question, result_display, subject, course_no, sort_ascending=sort_ascending)
+
+    # A compound question ("highest A rate AND teaches after noon") is only
+    # actually answered if the response confirms the second half — naming a
+    # top instructor by their grade stats alone doesn't prove their section
+    # meets the time constraint the user also asked about. Filtering result
+    # by time (above) makes the RANKING correct; this makes the ANSWER TEXT
+    # say so explicitly instead of leaving it implicit.
+    if qualifying_instructors is not None and not result_display.empty:
+        from app.features.schedule_builder import parse_time_constraints
+        start_limit, end_limit = parse_time_constraints(question)
+        top_instructor = result_display.iloc[0].get("Instructor")
+        if top_instructor and sections_df is not None and not sections_df.empty and "start_time" in sections_df.columns:
+            last = str(top_instructor).strip().split()[-1].lower()
+            match = sections_df[
+                (sections_df["subject"].astype(str).str.upper() == (subject or "").upper())
+                & (sections_df["course_number"].astype(str).str.strip() == str(course_no).strip())
+                & (sections_df["instructor"].astype(str).str.strip().str.split().str[-1].str.lower() == last)
+                & sections_df["start_time"].notna()
+                & (sections_df["start_time"] >= start_limit)
+                & (sections_df["end_time"] <= end_limit)
+            ]
+            if not match.empty:
+                sec = match.iloc[0]
+                _DAY_MAP = {"M": "Mon", "T": "Tue", "W": "Wed", "R": "Thu", "F": "Fri"}
+                days = sec.get("days")
+                days_str = "".join(_DAY_MAP.get(d, d) for d in days) if isinstance(days, list) and days else "TBA"
+
+                def _fmt12(t):
+                    try:
+                        h, m = int(t.split(":")[0]), int(t.split(":")[1])
+                        return f"{h % 12 or 12}:{m:02d} {'AM' if h < 12 else 'PM'}"
+                    except Exception:
+                        return t or "TBA"
+
+                answer += (
+                    f" {top_instructor}'s Fall 2026 section meets {days_str} "
+                    f"{_fmt12(sec.get('start_time'))}–{_fmt12(sec.get('end_time'))}, which fits your time window."
+                )
 
     charts = [
         bar_chart(f"Average GPA by Professor for {subject or ''} {course_no}".strip(), result_display.sort_values("Avg GPA", ascending=True), "Avg GPA", "Instructor", "Recency-weighted when requested."),
