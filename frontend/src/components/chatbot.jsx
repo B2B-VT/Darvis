@@ -1167,25 +1167,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
               style={{
                 width: 44,
                 height: 44,
-                margin: "0 auto",
-            <button
-              onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
-              aria-label="Expand Cyrus sidebar"
-              onMouseEnter={e => {
-                showRailTooltip("Expand sidebar", e, <CyrusRailIcon><img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} /></CyrusRailIcon>);
-                e.currentTarget.style.background = c.hover;
-              }}
-              onMouseLeave={e => {
-                hideRailTooltip();
-                e.currentTarget.style.background = "transparent";
-              }}
-              style={{
-                width: 44,
-                height: 44,
-                padding: 0,
                 margin: 0,
-                border: "none",
-                background: "transparent",
                 borderRadius: 12,
                 overflow: "hidden",
               }}
