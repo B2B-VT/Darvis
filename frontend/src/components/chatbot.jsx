@@ -6,6 +6,7 @@ import { DARVIS_CONFIG, CYRUS_PUBLIC_LAUNCHED, CYRUS_ALLOWLIST } from "../config
 import { API } from "../api.js";
 import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE, PageHeader } from "../theme.jsx";
 import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
+import CyrusLogo from "./cyrus-logo.jsx";
 
 Chart.register(...registerables);
 
@@ -1159,6 +1160,14 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
           flexShrink: 0,
         }}>
           {collapsed && !isMobile ? (
+            <CyrusLogo
+              ariaLabel="Cyrus home"
+              onActivate={() => { hideRailTooltip(); onToggleCollapse?.(); }}
+              size={36}
+              style={{
+                width: 44,
+                height: 44,
+                margin: "0 auto",
             <button
               onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
               aria-label="Expand Cyrus sidebar"
@@ -1178,19 +1187,9 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                 border: "none",
                 background: "transparent",
                 borderRadius: 12,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
                 overflow: "hidden",
               }}
-            >
-              <img
-                src="/cyrus-logo.png"
-                alt="Cyrus"
-                style={{ width: 36, height: 36, borderRadius: 9, objectFit: "cover", display: "block" }}
-              />
-            </button>
+            />
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
               <div style={{ color: c.text, fontSize: 21, fontWeight: 700, letterSpacing: -0.3 }}>
