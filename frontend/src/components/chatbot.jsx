@@ -6,6 +6,7 @@ import { DARVIS_CONFIG } from "../config.js";
 import { API } from "../api.js";
 import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE } from "../theme.jsx";
 import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
+import CyrusLogo from "./cyrus-logo.jsx";
 
 Chart.register(...registerables);
 
@@ -1142,38 +1143,18 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
           flexShrink: 0,
         }}>
           {collapsed && !isMobile ? (
-            <button
-              onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
-              aria-label="Expand Cyrus sidebar"
-              onMouseEnter={e => {
-                showRailTooltip("Expand sidebar", e, <img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} />);
-                e.currentTarget.style.background = c.hover;
-              }}
-              onMouseLeave={e => {
-                hideRailTooltip();
-                e.currentTarget.style.background = "transparent";
-              }}
+            <CyrusLogo
+              ariaLabel="Cyrus home"
+              onActivate={() => { hideRailTooltip(); onToggleCollapse?.(); }}
+              size={36}
               style={{
                 width: 44,
                 height: 44,
-                padding: 0,
                 margin: "0 auto",
-                border: "none",
-                background: "transparent",
                 borderRadius: 12,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
                 overflow: "hidden",
               }}
-            >
-              <img
-                src="/cyrus-logo.png"
-                alt="Cyrus"
-                style={{ width: 36, height: 36, borderRadius: 9, objectFit: "cover", display: "block" }}
-              />
-            </button>
+            />
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
               <div style={{ color: c.text, fontSize: 21, fontWeight: 700, letterSpacing: -0.3 }}>
