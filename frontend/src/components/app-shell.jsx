@@ -380,7 +380,6 @@ export default function AppShell({
               width: 38, height: 38, borderRadius: 10, objectFit: "cover",
               boxShadow: "0 2px 10px rgba(0,0,0,0.20)", flexShrink: 0,
             }} />
-            <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 15, color: sidebarText, letterSpacing: "-0.3px" }}>Darvis</div>
           </button>
           <button
             onClick={() => setCollapsed(true)}
