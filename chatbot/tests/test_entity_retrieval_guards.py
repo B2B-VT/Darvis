@@ -268,6 +268,23 @@ def test_garbled_professor_question_routes_to_course_profile(short_surname_grade
     assert plan.missing_data_field is None
 
 
+def test_course_only_prerouter_plan_sets_sort_goal(guard_grades_df, guard_courses_df):
+    # "which professor has the highest A rate" for a resolved course, no
+    # name — this hits _deterministic_professor_plan's `if approved:`
+    # branch, which previously never set sort_goal at all (always fell
+    # back to the QueryPlan default "highest_gpa"), so course_profile's
+    # sort-by-metric fix couldn't actually engage on this real routing path.
+    resolver = EntityResolver(guard_grades_df, guard_courses_df)
+    plan, _ = _deterministic_professor_plan(
+        "For CS 2114, which professor has the highest A rate?",
+        type("Body", (), {"history": []})(),
+        er=resolver,
+    )
+    assert plan is not None
+    assert plan.route == "course_profile"
+    assert plan.sort_goal == "highest_a_rate"
+
+
 def test_invented_named_professor_still_reports_unknown(guard_grades_df, guard_courses_df):
     # Guardrail against overcorrecting: a genuinely name-shaped candidate for
     # an unknown professor ("Jane Hokie", no stopwords) must still be

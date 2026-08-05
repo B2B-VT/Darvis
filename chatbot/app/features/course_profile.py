@@ -7,6 +7,7 @@ from app.utils.charts import table_spec, bar_chart, scatter_chart
 from app.config import get_settings
 from app.features.templated_answers import course_answer
 from app.features.router import smart_display_n
+from app.features.natural_filter import time_constrained_instructors
 
 COURSE_COLS = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "Total Withdraws", "Latest Year", "Confidence Label"]
 COURSE_COLS_RMP = ["Instructor", "Avg GPA", "Avg A Range (%)", "Avg F Rate (%)", "Total Students", "Terms Taught", "RMP Rating", "Confidence Label"]
@@ -403,17 +404,42 @@ def handle_course_profile(
             indexes,
         )
 
-    # Use intent sort goal for result ordering. Also check question keywords directly —
-    # intent extraction can miss sort_goal when the question has unrecognized tokens,
-    # so the keyword check is a safety net for cases like "wwich prof is hardest".
+    # Use intent sort goal for result ordering AND which metric to rank by —
+    # previously this only ever sorted by GPA regardless of sort_goal, so
+    # "which professor has the highest A rate" silently answered with the
+    # highest-GPA instructor instead. Also check question keywords directly —
+    # intent extraction can miss sort_goal when the question has unrecognized
+    # tokens, so the keyword check is a safety net for cases like "wwich prof
+    # is hardest".
     _q = question.lower()
     _hardest_kws = {"hardest", "hard", "brutal", "tough", "avoid", "worst", "bad", "difficult"}
-    sort_ascending = (
-        (intent is not None and intent.sort_goal in ("lowest_gpa", "highest_f_rate"))
-        or any(w in _q for w in _hardest_kws)
-    )
+    sort_goal = (intent.sort_goal if intent is not None else None) or "highest_gpa"
+    if any(w in _q for w in _hardest_kws) and sort_goal not in ("highest_f_rate", "lowest_f_rate"):
+        sort_goal = "lowest_gpa"
+    _SORT_COLUMNS = {
+        "highest_gpa":    ("Avg GPA", False),
+        "lowest_gpa":     ("Avg GPA", True),
+        "highest_a_rate": ("Avg A Range (%)", False),
+        "highest_f_rate": ("Avg F Rate (%)", False),
+        "lowest_f_rate":  ("Avg F Rate (%)", True),
+    }
+    sort_column, sort_ascending = _SORT_COLUMNS.get(sort_goal, ("Avg GPA", False))
 
     result_all = course_profile(df, subject, course_no, min_students, use_recency)
+
+    # A time-of-day constraint ("teaches after noon") filters the ranked
+    # instructor list down to those with a qualifying Fall 2026 section,
+    # applied BEFORE top_n slicing — so the ranking and the time filter
+    # actually combine into one answer instead of being two independent
+    # tables (course_profile + section_lookup) the user has to
+    # cross-reference themselves. Mirrors natural_filter.py's existing
+    # rank-then-filter pattern for the same compound-question shape.
+    qualifying_instructors = time_constrained_instructors(sections_df, question)
+    time_data_unavailable = qualifying_instructors is not None and not qualifying_instructors
+    if qualifying_instructors and not result_all.empty and "Instructor" in result_all.columns:
+        result_all = result_all[
+            result_all["Instructor"].astype(str).str.strip().str.split().str[-1].str.lower().isin(qualifying_instructors)
+        ]
 
     description = ""
     title = ""
@@ -424,18 +450,25 @@ def handle_course_profile(
         title = indexes.course_titles.get(key, "") or ""
         credits = indexes.course_credits.get(key)
 
-    if sort_ascending and not result_all.empty and "Avg GPA" in result_all.columns:
-        # For "hardest/worst" queries: sort ALL instructors by ascending GPA first so the
-        # actual worst instructor is included, then take top_n. Without this, .head(top_n)
-        # on the best-first default sort would exclude the worst instructors entirely.
+    if not result_all.empty and sort_column in result_all.columns:
+        # Sort ALL instructors by the requested metric first so the actual
+        # top/bottom instructor is included, then take top_n. Without this,
+        # .head(top_n) on the default sort could exclude the one being asked for.
         result = result_all.sort_values(
-            ["Avg GPA", "Total Students"], ascending=[True, False]
+            [sort_column, "Total Students"], ascending=[sort_ascending, False]
         ).head(top_n)
     else:
         result = result_all.head(top_n)
 
     if result.empty:
-        if description:
+        if time_data_unavailable:
+            answer = "I couldn't check Fall 2026 section times right now — try the Schedule page directly."
+        elif qualifying_instructors is not None:
+            answer = (
+                "None of the instructors with grade data for this course also teach a Fall 2026 section "
+                "in that time window. Try relaxing the time constraint or checking the Schedule page."
+            )
+        elif description:
             answer = (
                 f"{subject} {course_no} — {description} "
                 "Darvis doesn't have enough grade data for that course with the current filters."
@@ -469,11 +502,14 @@ def handle_course_profile(
         table_text = result_display[cols].to_string(index=False)
 
     # Annotate the table so the LLM knows what "position 1" means.
-    # Without this, the LLM assumes the top row = best professor regardless of sort direction.
+    # Without this, the LLM assumes the top row = best professor regardless of sort direction
+    # or metric — this must name the actual sort_column, not hardcode "GPA", since the
+    # metric being ranked by now varies (GPA / A rate / F rate) with sort_goal.
+    _metric_label = {"Avg GPA": "GPA", "Avg A Range (%)": "A rate", "Avg F Rate (%)": "F rate"}.get(sort_column, "GPA")
     if sort_ascending:
-        table_text += "\n[Sorted: lowest GPA first — professor at top has WORST grade outcomes (hardest)]"
+        table_text += f"\n[Sorted: lowest {_metric_label} first — professor at top has WORST outcomes by this metric]"
     else:
-        table_text += "\n[Sorted: highest GPA first — professor at top has BEST grade outcomes]"
+        table_text += f"\n[Sorted: highest {_metric_label} first — professor at top has BEST outcomes by this metric]"
 
     # Skip vector retrieval — the analytics table already contains everything
     # needed for a course question. Retrieval here added 100-500ms plus an

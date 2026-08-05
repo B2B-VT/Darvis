@@ -81,6 +81,7 @@ IMPORTANT RULES:
 - min_rmp: an RMP floor ("professors rated 4+", "RMP above 3.5") → the number.
 - open_seats_only: true if they ask for open/available seats only.
 - target_credits: "19 credits" → 19.
+- requested_major: a major/degree program stated IN THE QUESTION for a schedule_builder request, e.g. "build a schedule for a biology student" → "Biology", "schedule for a mechanical engineering major" → "Mechanical Engineering". This is about what's stated in the question text, NOT the user's stored profile — leave null if the question doesn't name one.
 - requested_courses: explicit course codes as [["CS","1114"],["MATH","1225"]]. "cs1114 and math1225" → [["CS","1114"],["MATH","1225"]].
 - needs_clarification: true ONLY if the question is impossible to act on without more info (e.g. bare "which professor?" with no course anywhere in it). Prefer false — assume sensibly and note assumptions.
 - wants_professors: true when the user wants professor-level results ("which professors have the best GPA?"), null or false for course-level results.
@@ -110,6 +111,7 @@ Return this JSON shape (omit fields that don't apply):
   "excluded_days": [],
   "min_rmp": null,
   "target_credits": null,
+  "requested_major": null,
   "open_seats_only": false,
   "display_n": null,
   "missing_data_field": null,
@@ -283,6 +285,20 @@ class QueryPlanner:
         return "highest_gpa"
 
     @staticmethod
+    def _extract_requested_major(question: str) -> str | None:
+        """A major stated inline in the question itself ("build a schedule
+        for a biology student", "schedule for a mechanical engineering
+        major") — distinct from the user's stored Clerk profile major, which
+        schedule_builder.py falls back to only when this is None."""
+        m = re.search(
+            r"\bfor\s+(?:a|an)\s+([a-z][a-z\s]{1,40}?)\s+(?:student|major)\b",
+            question, re.I,
+        )
+        if not m:
+            return None
+        return m.group(1).strip().title()
+
+    @staticmethod
     def _time_bounds(question: str) -> tuple[str | None, str | None]:
         # Negation-aware, mirroring schedule_builder.py's parse_time_constraints:
         # "no classes after 5pm" -> end limit, "no classes before 10am" ->
@@ -391,6 +407,7 @@ class QueryPlanner:
                 time_start=time_start,
                 time_end=time_end,
                 sort_goal=self._sort_goal(question),
+                requested_major=self._extract_requested_major(question),
             )
 
         if any(w in q for w in ("requirement", "requirements", "graduate", "graduation", "degree", "major")):

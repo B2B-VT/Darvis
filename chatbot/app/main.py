@@ -723,6 +723,7 @@ def _deterministic_professor_plan(question: str, body: ChatRequest, er=None):
             subject=subject,
             course_no=course_no,
             requested_courses=[[r.subject, r.course_number] for r in approved],
+            sort_goal=QueryPlanner._sort_goal(question),
         ), rejected
 
     return None

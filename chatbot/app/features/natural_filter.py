@@ -194,7 +194,7 @@ def _topic_course_answer(question: str, recs: pd.DataFrame) -> str:
     return "\n\n".join(parts)
 
 
-def _time_constrained_instructors(sections_df, question: str) -> set[str] | None:
+def time_constrained_instructors(sections_df, question: str) -> set[str] | None:
     """
     Returns the set of lowercase instructor last names teaching at least one
     section within the question's stated time window, or None if the
@@ -289,7 +289,7 @@ def handle_natural_filter(
         wants_professors=wants_professors,
     )
 
-    qualifying_instructors = _time_constrained_instructors(sections_df, question)
+    qualifying_instructors = time_constrained_instructors(sections_df, question)
     if qualifying_instructors is not None and "Instructor" in result.columns:
         if not qualifying_instructors:
             return (

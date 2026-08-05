@@ -564,8 +564,13 @@ def handle_schedule_builder(
 
     # Profile data
     profile         = user_profile or {}
-    major           = profile.get("major", "")
-    minor           = profile.get("minor", "")
+    # An explicit major stated in the question ("for a biology student")
+    # overrides the user's stored Clerk profile major — a question asking
+    # about a different major than the signed-in user's own profile should
+    # build for the major it actually asked about, not the profile default.
+    requested_major = getattr(intent, "requested_major", None) if intent is not None else None
+    major           = requested_major or profile.get("major", "")
+    minor           = profile.get("minor", "") if not requested_major else ""
     interests       = [i.lower() for i in (profile.get("interests") or [])]
     courses_taken   = {
         re.sub(r"\s+", "", c).lower()

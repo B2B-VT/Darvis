@@ -122,6 +122,12 @@ class QueryPlan(BaseModel):
     time_start: str | None = None
     time_end: str | None = None
     subject_filter: str | None = None
+    # A major/degree program stated in the question itself, e.g. "build a
+    # schedule for a biology student" -> "Biology". Distinct from major_query
+    # (major_requirements route) and from the user's stored Clerk profile
+    # major — schedule_builder.py prefers this over the profile when set,
+    # since an explicit in-question major overrides a stored default.
+    requested_major: str | None = None
     requested_courses: list = Field(default_factory=list)
     excluded_days: list[str] = Field(default_factory=list)
     min_rmp: float | None = None
