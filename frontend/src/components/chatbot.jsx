@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
-import { DARVIS_CONFIG } from "../config.js";
+import { DARVIS_CONFIG, CYRUS_PUBLIC_LAUNCHED, CYRUS_ALLOWLIST } from "../config.js";
 import { API } from "../api.js";
-import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE } from "../theme.jsx";
+import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE, PageHeader } from "../theme.jsx";
 import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
 
 Chart.register(...registerables);
@@ -1456,7 +1456,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 }
 
 // ── Main chatbot page ─────────────────────────────────────────────
-export default function ChatbotPage({ darkMode, addSection, setPage, userProfile }) {
+function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
   const { user } = useUser();
   const [sessions,          setSessions]         = useState(() => loadSessions());
   const [projects,          setProjects]         = useState(() => loadProjects());
@@ -2895,4 +2895,45 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       `}</style>
     </div>
   );
+}
+
+function CyrusLockedScreen({ darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        background: p.bg,
+        fontFamily: SANS,
+      }}
+    >
+      <div
+        style={{
+          ...glassCard(darkMode),
+          maxWidth: 440,
+          width: "100%",
+          padding: "40px 32px",
+          borderRadius: RADIUS.lg,
+        }}
+      >
+        <PageHeader
+          dark={darkMode}
+          kicker="Cyrus"
+          title="Private testing right now"
+          sub="Cyrus is being tested with a small group before it opens up to everyone. Public access is coming soon — check back shortly."
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function ChatbotPage(props) {
+  const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+  const hasAccess = CYRUS_PUBLIC_LAUNCHED || CYRUS_ALLOWLIST.includes(email);
+  return hasAccess ? <CyrusApp {...props} /> : <CyrusLockedScreen darkMode={props.darkMode} />;
 }
