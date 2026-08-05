@@ -203,6 +203,23 @@ class EntityResolver:
             return []
         return list(self._by_last.get(parts[0], []))
 
+    def _is_stopword_phrase(self, parts: list[str]) -> bool:
+        """True when a multi-word candidate is a sentence fragment, not a
+        name attempt (contains an ordinary English stopword). Single words
+        are never flagged here — a real short surname entered on its own
+        ("He", "An") must still reach the exact-match tiers."""
+        return len(parts) > 1 and any(p in self._STOPWORDS for p in parts)
+
+    def is_plausible_name(self, text: str) -> bool:
+        """Best-effort check for whether `text` looks like a name attempt
+        rather than a regex-captured sentence fragment. Intended for callers
+        deciding whether to even treat an extracted candidate (e.g. from a
+        "professor <words>" regex) as a name before resolving it — so a
+        garbled capture like "has the" is discarded rather than reaching
+        resolve_professor_ex/resolve_professors_for_course at all."""
+        parts = _norm(text or "").split()
+        return bool(parts) and not self._is_stopword_phrase(parts)
+
     def resolve_professor_ex(self, name: str) -> ResolvedEntity:
         """Structured professor resolution: exact → last-name → fuzzy."""
         if not name or not self._professor_names:
@@ -215,6 +232,22 @@ class EntityResolver:
 
         parts = nname.split()
         last = parts[-1] if parts else nname
+
+        # A MULTI-WORD candidate containing an ordinary English stopword
+        # ("with an", "has the") is a sentence fragment, not a name —
+        # resolving it against the surname index treats coincidental
+        # short-surname collisions ("an", "he") as confident/ambiguous
+        # matches. Reject the whole candidate before any lookup tier runs.
+        # This has recurred multiple times as narrow single-name patches
+        # (see "verified live" comments in this file and in main.py) — this
+        # check is the shared chokepoint fix instead of another one-off.
+        # Scoped to len(parts) > 1: a real short surname entered on its own
+        # ("He", "An") is a single word that happens to also be a stopword
+        # (VT genuinely has instructors named "An"/"He"/"Or") — a lone word
+        # matching a real DB surname is a DB-verified fact, not a guess, so
+        # single-word candidates must still reach the exact-match tiers.
+        if self._is_stopword_phrase(parts):
+            return ResolvedEntity(value=None, confidence=0.0)
 
         # 1. Exact normalized full-name match
         exact = self._by_norm_name.get(nname)
@@ -253,8 +286,13 @@ class EntityResolver:
                         + ", ".join(owners[:4]),
             )
 
-        # 3. Fuzzy match on last names (typos)
-        hits = _best_matches(last, self._last_names, limit=3)
+        # 3. Fuzzy match on last names (typos). Requires a minimum candidate
+        # length — fuzz.ratio is a length-unaware character-alignment score,
+        # so a very short fragment ("the", "las") only needs a couple of
+        # matched characters to clear a flat cutoff against an unrelated
+        # short real surname ("He"). A typo of a real name essentially never
+        # collapses to under 4 characters, so this costs no real matches.
+        hits = _best_matches(last, self._last_names, limit=3) if len(last) >= 4 else []
         if hits and hits[0][1] >= _PROF_CUTOFF:
             matched_last, score = hits[0]
             owners = self._by_last.get(matched_last, [])
@@ -487,17 +525,27 @@ class EntityResolver:
 
     # ── Free-text scan (back-compat) ──────────────────────────────────────────
 
+    # Single source of truth for "this word can't be part of a name" — this
+    # used to be four separate, unsynced lists (this set, _NON_PERSON_TOKENS
+    # above, main.py's _PROF_SHORTHAND_STOPWORDS, and router.py's inline
+    # `stop` set), none of which were consulted by resolve_professor_ex, the
+    # one function that actually commits to a match. Merged here.
     _STOPWORDS = {
         "which", "what", "who", "how", "the", "for", "in", "is", "are",
         "best", "worst", "good", "bad", "hard", "easy", "this", "that",
         "grade", "grades", "class", "course", "courses", "gpa", "rate",
         "prof", "professor", "instructor", "cs", "ece", "math", "take",
         "hardest", "easiest", "toughest", "harder", "easier", "tougher",
+        "highest", "lowest",
         "better", "worse", "brutal", "difficult", "top", "great",
         "terrible", "awful", "strongest", "weakest", "teaching", "teaches",
-        "semester", "fall", "spring", "should", "schedule", "classes",
+        "teach", "semester", "fall", "spring", "should", "schedule", "classes",
         "homework", "workload", "work", "least", "most", "gives", "give",
         "assigns", "assignment", "assignments",
+        # merged from main.py's _PROF_SHORTHAND_STOPWORDS
+        "has", "have", "with", "and", "or", "a", "an", "smth",
+        # merged from features/router.py's extract_professor_name_from_profile_question
+        "tell", "me", "about", "show", "at", "of", "any", "get",
     }
 
     def resolve_question_entities(self, question: str) -> tuple[str | None, str | None]:

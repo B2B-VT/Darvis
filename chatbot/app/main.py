@@ -636,6 +636,15 @@ def _deterministic_professor_plan(question: str, body: ChatRequest, er=None):
     approved = [r for r in refs if r.status == "resolved"]
     rejected = [r for r in refs if r.status == "rejected"]
     name_candidate = _professor_name_candidate(question)
+    # _professor_name_candidate's regex greedily captures up to two words
+    # after "professor" with no validation they look like a name — e.g.
+    # "which professor has the highest A rate" captures "has the". Discard
+    # candidates that aren't name-shaped so this falls through to the
+    # `if approved:` branch below (course-scoped ranking) instead of forcing
+    # a professor_profile "missing professor" response. A single garbled
+    # word or a genuine two-word name ("Jane Hokie") both pass through.
+    if name_candidate and not er.is_plausible_name(name_candidate):
+        name_candidate = None
 
     if "systems" in q and not approved:
         return QueryPlan(

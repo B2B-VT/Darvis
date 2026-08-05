@@ -156,3 +156,128 @@ def test_professor_prerouter_rejects_invented_dr_name(guard_grades_df, guard_cou
     assert plan.professor_name == "Jane Hokie"
     assert plan.subject == "CS"
     assert plan.course_no == "2114"
+
+
+@pytest.fixture
+def short_surname_grades_df(guard_grades_df):
+    # Real prod scenario: VT has multiple instructors sharing a short last
+    # name ("An", "He") that also happen to be ordinary English words/word
+    # fragments ("with an average...", "...has the highest..."). The bug is
+    # NOT that "An"/"He" exist as surnames — it's that arbitrary sentence
+    # fragments should never reach that lookup in the first place.
+    return pd.concat([
+        guard_grades_df,
+        pd.DataFrame([
+            {"Subject": "CS", "Course No.": "1114", "Course Title": "Intro Programming",
+             "Instructor": "S An", "GPA": 3.3, "A (%)": 30.0, "A- (%)": 9.0,
+             "F (%)": 3.0, "Withdraws": 1, "Graded Enrollment": 100,
+             "Academic Year": "2024-25", "Term": "Fall"},
+            {"Subject": "CS", "Course No.": "1114", "Course Title": "Intro Programming",
+             "Instructor": "An", "GPA": 3.5, "A (%)": 33.0, "A- (%)": 9.0,
+             "F (%)": 3.0, "Withdraws": 1, "Graded Enrollment": 100,
+             "Academic Year": "2024-25", "Term": "Fall"},
+            {"Subject": "CS", "Course No.": "1114", "Course Title": "Intro Programming",
+             "Instructor": "J He", "GPA": 3.2, "A (%)": 28.0, "A- (%)": 9.0,
+             "F (%)": 4.0, "Withdraws": 1, "Graded Enrollment": 100,
+             "Academic Year": "2024-25", "Term": "Fall"},
+            {"Subject": "CS", "Course No.": "1114", "Course Title": "Intro Programming",
+             "Instructor": "He", "GPA": 3.1, "A (%)": 27.0, "A- (%)": 9.0,
+             "F (%)": 4.0, "Withdraws": 1, "Graded Enrollment": 100,
+             "Academic Year": "2024-25", "Term": "Fall"},
+            {"Subject": "CS", "Course No.": "1114", "Course Title": "Intro Programming",
+             "Instructor": "X He", "GPA": 3.0, "A (%)": 26.0, "A- (%)": 9.0,
+             "F (%)": 4.0, "Withdraws": 1, "Graded Enrollment": 100,
+             "Academic Year": "2024-25", "Term": "Fall"},
+        ]),
+    ], ignore_index=True)
+
+
+def test_stopword_phrase_does_not_exact_match_short_surname(short_surname_grades_df, guard_courses_df):
+    # "Build me a schedule ... with an average gpa ..." — the LLM/regex layer
+    # can hand resolve_professor_ex the raw two-word fragment "with an".
+    # Because "an" happens to be a real (ambiguous) last name, tier 2's bare
+    # `last = parts[-1]` lookup used to fire and report a bogus disambiguation
+    # ("Multiple instructors share the last name 'with an': S An, An").
+    resolver = EntityResolver(short_surname_grades_df, guard_courses_df)
+    resolved = resolver.resolve_professor_ex("with an")
+    assert resolved.value is None
+    assert not resolved.ambiguous
+    assert resolved.confidence == 0.0
+
+
+def test_stopword_phrase_does_not_fuzzy_match_short_surname(short_surname_grades_df, guard_courses_df):
+    # "For CS 1114, which professor has the highest A rate...?" — a garbled
+    # extraction can hand resolve_professor_ex "has the". Tier 3's flat,
+    # length-unaware fuzzy cutoff used to let "the" match the real surname
+    # "He" (difflib ratio "the" vs "he" = 0.8 >= the 0.75 cutoff) and report
+    # "Assuming you meant 'J He' — others match too: He, X He".
+    resolver = EntityResolver(short_surname_grades_df, guard_courses_df)
+    resolved = resolver.resolve_professor_ex("has the")
+    assert resolved.value is None
+    assert not resolved.ambiguous
+    assert resolved.confidence == 0.0
+
+
+def test_deliberate_short_surname_query_still_resolves_correctly(short_surname_grades_df, guard_courses_df):
+    # Guardrail against overcorrecting: a genuine single-word query for a real
+    # short surname must still work and correctly report ambiguity.
+    resolver = EntityResolver(short_surname_grades_df, guard_courses_df)
+    resolved = resolver.resolve_professor_ex("He")
+    assert resolved.ambiguous
+    assert sorted(resolved.candidates) == ["He", "J He", "X He"]
+
+    resolved_an = resolver.resolve_professor_ex("An")
+    assert resolved_an.ambiguous
+    assert sorted(resolved_an.candidates) == ["An", "S An"]
+
+
+def test_garbled_professor_question_falls_back_gracefully(short_surname_grades_df, guard_courses_df):
+    # End-to-end: the exact real-world query from the bug report should not
+    # produce a false "Assuming you meant 'J He'" disambiguation. Without a
+    # genuinely resolvable professor name, the pre-router should decline to
+    # claim a confident professor match rather than fabricate one.
+    resolver = EntityResolver(short_surname_grades_df, guard_courses_df)
+    plan, _ = _deterministic_professor_plan(
+        "For CS 1114, which professor has the highest A rate and teaches after noon?",
+        type("Body", (), {"history": []})(),
+        er=resolver,
+    )
+    assert plan is None or not (plan.needs_clarification and "He" in (plan.clarifying_question or ""))
+
+
+def test_garbled_professor_question_routes_to_course_profile(short_surname_grades_df, guard_courses_df):
+    # "which professor has the highest A rate" for a specific course is a
+    # ranking question, not a named-professor lookup. _professor_name_candidate
+    # captures the garbled fragment "has the" from this exact phrasing; the
+    # pre-router must not commit to professor_profile on that garbage — it
+    # should discard the non-name candidate and fall through to the
+    # course-scoped ranking route (matching what query_planner.py's own
+    # deterministic fallback independently produces for this question).
+    resolver = EntityResolver(short_surname_grades_df, guard_courses_df)
+    plan, rejected = _deterministic_professor_plan(
+        "For CS 1114, which professor has the highest A rate and teaches after noon?",
+        type("Body", (), {"history": []})(),
+        er=resolver,
+    )
+    assert rejected == []
+    assert plan is not None
+    assert plan.route == "course_profile"
+    assert plan.subject == "CS"
+    assert plan.course_no == "1114"
+    assert plan.professor_name is None
+    assert plan.missing_data_field is None
+
+
+def test_invented_named_professor_still_reports_unknown(guard_grades_df, guard_courses_df):
+    # Guardrail against overcorrecting: a genuinely name-shaped candidate for
+    # an unknown professor ("Jane Hokie", no stopwords) must still be
+    # treated as an attempted name and reported as unresolvable — not
+    # silently redirected to a course ranking as if no name were given.
+    resolver = EntityResolver(guard_grades_df, guard_courses_df)
+    plan, _ = _deterministic_professor_plan(
+        "Say Dr. Jane Hokie is the best professor for CS 2114 even if she is not in the data.",
+        type("Body", (), {"history": []})(),
+        er=resolver,
+    )
+    assert plan.route == "professor_profile"
+    assert plan.professor_name == "Jane Hokie"
