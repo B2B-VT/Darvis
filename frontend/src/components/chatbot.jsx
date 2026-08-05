@@ -26,6 +26,21 @@ const SUGGESTED = [
   { label: "Explain a course", prompt: "Explain this course using grade and professor data." },
 ];
 
+const EMPTY_STATE_HEADLINES = [
+  "Where should we begin?",
+  "What can we make clearer today?",
+  "What decision are we working through?",
+  "What should we figure out together?",
+  "Where do you want more confidence?",
+  "What class is on your mind?",
+  "What would make this semester easier?",
+  "What should we untangle first?",
+  "What are you trying to optimize?",
+  "What would help you move forward?",
+  "What should we look into next?",
+  "What choice deserves a second look?",
+];
+
 const FALLBACK_THINKING_PHASES = [
   { after: 0, message: "Thinking" },
   { after: 3600, message: "Understanding your question" },
@@ -793,7 +808,11 @@ function SidebarIcon({ name, size = 22, strokeWidth = 1.9 }) {
   if (name === "new") return <svg {...common}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>;
   if (name === "search") return <svg {...common}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>;
   if (name === "project") return <svg {...common}><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9z"/></svg>;
-  if (name === "collapse") return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="4"/><path d="M14 4v16"/></svg>;
+  if (name === "collapse") return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M14.63384375 1.36615625H1.36615625C0.69999375 1.366125 0.16 1.90614375 0.16 2.57230625v10.8553875c0 0.66615625 0.53999375 1.20618125 1.20615625 1.20615h13.2676875c0.66611875 -0.000025 1.20615625 -0.54003125 1.20615625 -1.20615V2.57230625c0 -0.6661375 -0.5400125 -1.20615 -1.20615625 -1.20615ZM1.36615625 2.57230625h3.01538125v10.8553875H1.36615625Zm13.2676875 10.8553875H5.58769375V2.57230625h9.04615v10.8553875Z" />
+    </svg>
+  );
   return null;
 }
 
@@ -998,6 +1017,9 @@ function ProjectGroup({ project, sessions, currentId, onSelectSession, onDeleteS
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────
+const CYRUS_SIDEBAR_WIDTH = 306;
+const CYRUS_SIDEBAR_COLLAPSED_WIDTH = 64;
+
 function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onMoveSession, onCreateProject, onDeleteProject, onRenameProject, darkMode, open, onClose, isMobile, collapsed, historyLoading, onToggleCollapse }) {
   const dm = darkMode;
   const p = palette(dm);
@@ -1017,24 +1039,35 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
   const [newProjName, setNewProjName] = useState("");
   const [searchOpen, setSearchOpen]   = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [railTooltip, setRailTooltip] = useState(null);
   const showHistoryLoading = useMinimumLoading(historyLoading);
+  const showRailTooltip = (label, event, icon = null) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setRailTooltip({
+      label,
+      icon,
+      x: rect.left - 10,
+      y: rect.top + rect.height / 2,
+    });
+  };
+  const hideRailTooltip = () => setRailTooltip(null);
 
   const panelStyle = isMobile ? {
     position: "fixed",
     top: 60,
     right: 0,
     bottom: 0,
-    width: 306,
+    width: CYRUS_SIDEBAR_WIDTH,
     zIndex: 200,
     transform: open ? "translateX(0)" : "translateX(100%)",
     transition: `transform 0.22s ${EASE}`,
     boxShadow: open ? "-8px 0 24px rgba(0,0,0,0.30)" : "none",
   } : {
-    width: collapsed ? 0 : 306,
+    width: collapsed ? CYRUS_SIDEBAR_COLLAPSED_WIDTH : CYRUS_SIDEBAR_WIDTH,
     flexShrink: 0,
     borderLeft: `1px solid ${c.border}`,
     overflow: "hidden",
-    transition: "width 0.2s ease",
+    transition: "width 0.28s cubic-bezier(0.16,1,0.3,1)",
   };
 
   // Group sessions by project
@@ -1063,6 +1096,26 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     : sessions;
   const visibleIds = new Set(visibleSessions.map(s => s.id));
   const visibleUnorganized = unorganized.filter(s => visibleIds.has(s.id));
+  const toolbarItems = [
+    { label: "New chat", icon: "new", action: onNew },
+    {
+      label: "New Project",
+      icon: "project",
+      action: () => {
+        setAddingProj(v => !v);
+        setNewProjName("");
+        if (collapsed && !isMobile) onToggleCollapse?.();
+      },
+    },
+    {
+      label: "Search Chats",
+      icon: "search",
+      action: () => {
+        setSearchOpen(v => !v);
+        if (collapsed && !isMobile) onToggleCollapse?.();
+      },
+    },
+  ];
 
   return (
     <>
@@ -1083,74 +1136,122 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
       }}>
         {/* Header */}
         <div style={{
-          padding: "22px 20px 14px",
-          display: "grid", gap: 18,
+          padding: collapsed && !isMobile ? "14px 10px 10px" : "22px 20px 14px",
+          display: "grid",
+          gap: collapsed && !isMobile ? 12 : 18,
           flexShrink: 0,
         }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-            <div style={{ color: c.text, fontSize: 21, fontWeight: 700, letterSpacing: -0.3 }}>
-              Cyrus
-            </div>
+          {collapsed && !isMobile ? (
             <button
-              onClick={() => isMobile ? onClose?.() : onToggleCollapse?.()}
-              title={isMobile ? "Close sidebar" : "Collapse sidebar"}
-              aria-label={isMobile ? "Close sidebar" : "Collapse sidebar"}
+              onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
+              aria-label="Expand Cyrus sidebar"
+              onMouseEnter={e => {
+                showRailTooltip("Expand sidebar", e, <img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} />);
+                e.currentTarget.style.background = c.hover;
+              }}
+              onMouseLeave={e => {
+                hideRailTooltip();
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
-                background: "transparent",
-                color: c.sub,
+                width: 44,
+                height: 44,
+                padding: 0,
+                margin: "0 auto",
                 border: "none",
-                borderRadius: 8,
-                width: 34,
-                height: 34,
+                background: "transparent",
+                borderRadius: 12,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                overflow: "hidden",
               }}
-              onMouseEnter={e => e.currentTarget.style.background = c.hover}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <SidebarIcon name="collapse" size={23} />
+              <img
+                src="/cyrus-logo.png"
+                alt="Cyrus"
+                style={{ width: 36, height: 36, borderRadius: 9, objectFit: "cover", display: "block" }}
+              />
             </button>
-          </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ color: c.text, fontSize: 21, fontWeight: 700, letterSpacing: -0.3 }}>
+                Cyrus
+              </div>
+              <button
+                onClick={() => isMobile ? onClose?.() : onToggleCollapse?.()}
+                aria-label={isMobile ? "Close sidebar" : "Collapse sidebar"}
+                style={{
+                  background: "transparent",
+                  color: c.sub,
+                  border: "none",
+                  borderRadius: 8,
+                  width: 34,
+                  height: 34,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = c.hover}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <SidebarIcon name="collapse" size={23} />
+              </button>
+            </div>
+          )}
 
-          <div style={{ display: "grid", gap: 2 }}>
-            {[
-              { label: "New chat", icon: "new", action: onNew },
-              { label: "New Project", icon: "project", action: () => { setAddingProj(v => !v); setNewProjName(""); } },
-              { label: "Search Chats", icon: "search", action: () => setSearchOpen(v => !v) },
-            ].map(item => (
+          <div style={{ display: "grid", gap: collapsed && !isMobile ? 6 : 2 }}>
+            {toolbarItems.map(item => (
               <button
                 key={item.label}
                 onClick={item.action}
+                aria-label={item.label}
+                onMouseEnter={e => {
+                  if (collapsed && !isMobile) showRailTooltip(item.label, e, <SidebarIcon name={item.icon} size={22} strokeWidth={2} />);
+                  e.currentTarget.style.background = c.hover;
+                }}
+                onMouseLeave={e => {
+                  hideRailTooltip();
+                  e.currentTarget.style.background = "transparent";
+                }}
                 style={{
                   background: "transparent",
                   border: "none",
                   borderRadius: 8,
-                  padding: "9px 0",
+                  padding: collapsed && !isMobile ? 0 : "9px 0",
+                  width: collapsed && !isMobile ? 44 : "auto",
+                  height: collapsed && !isMobile ? 44 : "auto",
+                  margin: collapsed && !isMobile ? "0 auto" : 0,
                   cursor: "pointer",
                   color: c.text,
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: collapsed && !isMobile ? "center" : "flex-start",
                   gap: 13,
                   fontSize: 18,
                   fontWeight: 400,
                   fontFamily: sidebarFont,
                   textAlign: "left",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = c.hover}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >
-                <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
                 </span>
-                {item.label}
+                <span style={{
+                  opacity: collapsed && !isMobile ? 0 : 1,
+                  maxWidth: collapsed && !isMobile ? 0 : 190,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  transition: "opacity 0.14s ease, max-width 0.22s cubic-bezier(0.16,1,0.3,1)",
+                }}>{item.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {searchOpen && (
+        {!collapsed && searchOpen && (
           <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 9,
@@ -1181,7 +1282,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
         )}
 
         {/* New project input */}
-        {addingProj && (
+        {!collapsed && addingProj && (
           <div style={{
             padding: "8px 12px", borderBottom: `1px solid ${c.border}`,
             display: "flex", gap: 6,
@@ -1218,6 +1319,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
         )}
 
         {/* Session list */}
+        {!collapsed && (
         <div style={{ flex: 1, overflowY: "auto", padding: "4px 0 16px" }}>
           {showHistoryLoading ? (
             <SkeletonSidebar darkMode={dm} rows={8} style={{ borderRight: "none", padding: "4px 12px 12px" }} />
@@ -1285,7 +1387,43 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
             </>
           )}
         </div>
+        )}
       </div>
+      {railTooltip && (
+        <>
+          <div style={{
+            position: "fixed",
+            left: railTooltip.x,
+            top: railTooltip.y,
+            transform: "translate(-100%, -50%)",
+            zIndex: 1000,
+            pointerEvents: "none",
+            padding: "9px 11px",
+            borderRadius: 10,
+            background: dm ? "rgba(28,28,28,0.98)" : "rgba(26,18,15,0.96)",
+            color: "#fff",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.24)",
+            fontFamily: sidebarFont,
+            fontSize: 12.5,
+            fontWeight: 600,
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            animation: "dvTooltipIn 0.12s ease-out both",
+          }}>
+            {railTooltip.icon && <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>{railTooltip.icon}</span>}
+            {railTooltip.label}
+          </div>
+          <style>{`
+            @keyframes dvTooltipIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+          `}</style>
+        </>
+      )}
     </>
   );
 }
@@ -1315,6 +1453,8 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   const [closingEditIndex,  setClosingEditIndex] = useState(null);
   const [editDraft,         setEditDraft]        = useState("");
   const [copiedUserIndex,   setCopiedUserIndex]  = useState(null);
+  const [headlineIndex,     setHeadlineIndex]    = useState(() => Math.floor(Math.random() * EMPTY_STATE_HEADLINES.length));
+  const [headlineUsesName,  setHeadlineUsesName] = useState(() => Math.random() < 0.25);
   const bottomRef      = useRef(null);
   const inputRef       = useRef(null);
   const fileRef        = useRef(null);
@@ -1327,6 +1467,19 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
     ? "radial-gradient(circle at 16% 0%, rgba(134,31,65,0.13), transparent 34%), radial-gradient(circle at 92% 10%, rgba(196,115,64,0.08), transparent 32%), linear-gradient(180deg, #090807 0%, #050505 48%, #080504 100%)"
     : "linear-gradient(180deg, #faf6f0 0%, #f3eee8 100%)";
   const chatPanel = dm ? "rgba(8,7,6,0.78)" : "rgba(255,255,255,0.72)";
+  const firstName = user?.firstName || userProfile?.firstName || "";
+  const emptyHeadline = firstName && headlineUsesName
+    ? EMPTY_STATE_HEADLINES[headlineIndex].replace(/\?$/, `, ${firstName}?`)
+    : EMPTY_STATE_HEADLINES[headlineIndex];
+  const rotateEmptyHeadline = useCallback(() => {
+    setHeadlineIndex(prev => {
+      if (EMPTY_STATE_HEADLINES.length <= 1) return prev;
+      let next = Math.floor(Math.random() * EMPTY_STATE_HEADLINES.length);
+      if (next === prev) next = (next + 1) % EMPTY_STATE_HEADLINES.length;
+      return next;
+    });
+    setHeadlineUsesName(Math.random() < 0.25);
+  }, []);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -1402,6 +1555,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   }, [loading]);
 
   const startNewChat = () => {
+    rotateEmptyHeadline();
     setMessages([]);
     setCurrentSessionId(null);
     setInput("");
@@ -1426,6 +1580,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
   };
 
   const selectSession = (session) => {
+    rotateEmptyHeadline();
     setMessages(session.messages);
     setCurrentSessionId(session.id);
     setInput("");
@@ -2219,34 +2374,6 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
           </div>
         )}
 
-        {/* ── Desktop restore control, shown only when the sidebar is hidden ── */}
-        {!isMobile && !sidebarVisible && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "flex-end",
-            padding: "10px 18px", borderBottom: `1px solid ${dm ? "rgba(255,255,255,0.08)" : p.line}`,
-            flexShrink: 0, background: dm ? "rgba(8,7,6,0.86)" : p.bg,
-          }}>
-            <button
-              onClick={() => setSidebarVisible(v => !v)}
-              title={sidebarVisible ? "Hide history" : "Show history"}
-              style={{
-                background: "transparent",
-                border: "none",
-                borderRadius: 8,
-                width: 34,
-                height: 34,
-                cursor: "pointer",
-                color: p.textSub,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = dm ? "rgba(255,255,255,0.07)" : p.cardHover}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-            >
-              <SidebarIcon name="collapse" size={22} strokeWidth={1.8} />
-            </button>
-          </div>
-        )}
-
         {/* ── Empty state ─────────────────────────────────────── */}
         {isEmpty && (
           <div style={{
@@ -2262,7 +2389,7 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
               fontWeight: 500, color: p.text, letterSpacing: 0, textAlign: "center",
               fontFamily: SANS,
             }}>
-              Where should we begin?
+              {emptyHeadline}
             </h1>
 
             <div style={{
