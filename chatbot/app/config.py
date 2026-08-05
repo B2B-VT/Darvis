@@ -115,6 +115,25 @@ class Settings(BaseSettings):
     # Enable /docs only locally
     show_docs: bool = Field(default=False, alias="SHOW_DOCS")
 
+    # ── Cyrus OpenAI multi-model generation (Luna/Terra/Sol) ────────────────────
+    # openai_api_key (above) is reused for these clients. Model IDs are read
+    # from env with no hardcoded default — a forced-tier request with a missing
+    # ID must fail clearly rather than silently guessing a model name.
+    openai_luna_model: str = Field(default="", alias="OPENAI_LUNA_MODEL")
+    openai_terra_model: str = Field(default="", alias="OPENAI_TERRA_MODEL")
+    openai_sol_model: str = Field(default="", alias="OPENAI_SOL_MODEL")
+
+    openai_luna_reasoning_effort: str = Field(default="", alias="OPENAI_LUNA_REASONING_EFFORT")
+    openai_terra_reasoning_effort: str = Field(default="", alias="OPENAI_TERRA_REASONING_EFFORT")
+    openai_sol_reasoning_effort: str = Field(default="", alias="OPENAI_SOL_REASONING_EFFORT")
+
+    # Master switch. False means StructuredGenerationAdapter behaves exactly as
+    # before this feature existed (single GemmaAnswerClient path, no tiers).
+    cyrus_model_routing_enabled: bool = Field(default=False, alias="CYRUS_MODEL_ROUTING_ENABLED")
+    cyrus_default_model_tier: str = Field(default="terra", alias="CYRUS_DEFAULT_MODEL_TIER")
+    cyrus_model_escalation_enabled: bool = Field(default=True, alias="CYRUS_MODEL_ESCALATION_ENABLED")
+    cyrus_model_max_escalations: int = Field(default=2, alias="CYRUS_MODEL_MAX_ESCALATIONS")
+
     class Config:
         env_file = ".env"
         populate_by_name = True

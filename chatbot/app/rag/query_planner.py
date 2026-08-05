@@ -284,18 +284,37 @@ class QueryPlanner:
 
     @staticmethod
     def _time_bounds(question: str) -> tuple[str | None, str | None]:
+        # Negation-aware, mirroring schedule_builder.py's parse_time_constraints:
+        # "no classes after 5pm" -> end limit, "no classes before 10am" ->
+        # start limit. The un-negated "after"/"before" checks below only
+        # apply when there's no negating word ("no"/"avoid"/etc) — verified
+        # live that a negation-blind numeric-only version of this function
+        # inverted "no classes before noon" into an end limit instead of a
+        # start limit. Also recognizes word-based tokens ("noon", "midnight",
+        # bare "12"), not just numeric am/pm times.
         q = question.lower()
         start, end = None, None
         if re.search(r"\b(?:no|avoid|without|skip)\s+(?:any\s+)?8\s*ams?\b", q):
             start = "09:00"
         if re.search(r"\b(?:only\s+morning|morning\s+classes\s+only|mornings\s+only)\b", q):
             end = "12:00"
-        m = re.search(r"\bafter\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b", q)
-        if m:
-            start = _coerce_simple_ampm(m)
-        m = re.search(r"\bbefore\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b", q)
-        if m:
-            end = _coerce_simple_ampm(m)
+
+        neg = r"(?:no|nothing|not|avoid|without|don'?t)"
+        time_pat = r"(?:(\d{1,2})(?::(\d{2}))?\s*(am|pm)|(noon|midnight|12))"
+
+        neg_after  = re.search(neg + r"\b[^.?!]{0,40}?\bafter\s*" + time_pat, q)
+        neg_before = re.search(neg + r"\b[^.?!]{0,40}?\bbefore\s*" + time_pat, q)
+        after  = re.search(r"\bafter\s*" + time_pat, q)
+        before = re.search(r"\bbefore\s*" + time_pat, q)
+
+        if neg_after:
+            end = _coerce_simple_ampm(neg_after)
+        elif after:
+            start = _coerce_simple_ampm(after)
+        if neg_before:
+            start = _coerce_simple_ampm(neg_before)
+        elif before and not neg_after:
+            end = _coerce_simple_ampm(before)
         return start, end
 
     def _deterministic_fallback_plan(self, question: str) -> QueryPlan | None:
@@ -409,7 +428,14 @@ class QueryPlanner:
                 sort_goal=self._sort_goal(question),
             )
 
-        if any(w in q for w in ("highest", "lowest", "easiest", "hardest", "best", "worst", "elective", "gpa")):
+        # "what does GPA mean" / "explain historical GPA" / "define A rate" are
+        # definitional questions, not ranking requests — verified live that the
+        # bare "gpa" keyword match below misrouted them to natural_filter,
+        # returning an unrelated ranking instead of an explanation.
+        is_definitional = bool(re.search(r"\b(mean|meaning|explain|defin\w*)\b", q))
+        if not is_definitional and any(
+            w in q for w in ("highest", "lowest", "easiest", "hardest", "best", "worst", "elective", "gpa")
+        ):
             subject_filter = _extract_subject_hint(question)
             level_low, level_high = _extract_level_hint(question)
             return QueryPlan(
@@ -443,7 +469,13 @@ class QueryPlanner:
         )
 
 
+_TIME_WORD_TO_24H = {"noon": "12:00", "midnight": "00:00", "12": "12:00"}
+
+
 def _coerce_simple_ampm(match) -> str | None:
+    word = match.group(4) if match.lastindex and match.lastindex >= 4 else None
+    if word:
+        return _TIME_WORD_TO_24H[word]
     h = int(match.group(1))
     minute = int(match.group(2) or 0)
     ampm = match.group(3)
@@ -542,5 +574,11 @@ def _looks_like_topic_course_recommendation(q: str) -> bool:
     # substring checks below would otherwise misfire on "for" inside "before"/
     # "format"/"perform" etc., so this whole function uses \b word boundaries.
     if re.search(r"\b(before|after|between|only|conflict|overlap)\b", q):
+        return False
+    # "does this class count for my major" / "will this count toward my degree"
+    # aren't topic recommendations even though they contain "for" — verified
+    # live that the bare "for" match below misrouted major-requirement
+    # questions to natural_filter instead of major_requirements.
+    if re.search(r"\b(major|degree|requirement|requirements|graduate|graduation)\b", q):
         return False
     return bool(re.search(r"\b(good|recommend|suggest|about|related to|for)\b", q))

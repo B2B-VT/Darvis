@@ -104,6 +104,8 @@ function RailIcon({ children }) {
 function SidebarItem({ id, label, icon, active, darkMode, badge, onClick, collapsed, onTooltip, onHideTooltip }) {
   const p = palette(darkMode);
   const [hovered, setHovered] = useState(false);
+  const collapsedColor = darkMode ? "rgba(255,255,255,0.92)" : "rgba(26,18,15,0.78)";
+  const collapsedHoverBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.08)";
 
   const activeStyle = darkMode ? {
     background: "linear-gradient(135deg, rgba(134,31,65,0.28) 0%, rgba(134,31,65,0.10) 100%)",
@@ -130,7 +132,7 @@ function SidebarItem({ id, label, icon, active, darkMode, badge, onClick, collap
   };
   const collapsedBase = collapsed
     ? {
-        background: active || hovered ? "rgba(255,255,255,0.10)" : "transparent",
+        background: active || hovered ? collapsedHoverBg : "transparent",
         border: "1px solid transparent",
         boxShadow: "none",
       }
@@ -161,7 +163,7 @@ function SidebarItem({ id, label, icon, active, darkMode, badge, onClick, collap
         ...(collapsedBase || (active ? activeStyle : hovered ? hoverStyle : { background: "transparent", border: "1px solid transparent", boxShadow: "none" })),
         borderRadius: 10, cursor: "pointer",
         color: collapsed
-          ? "rgba(255,255,255,0.92)"
+          ? collapsedColor
           : active
           ? (darkMode ? "#fff" : ACCENT)
           : hovered
@@ -281,6 +283,8 @@ export default function AppShell({
   const sidebarBorder = darkMode ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.65)";
   const sidebarText = darkMode ? "rgba(255,255,255,0.92)" : p.text;
   const sidebarSubText = darkMode ? "rgba(255,255,255,0.76)" : p.textSub;
+  const collapsedIconColor = darkMode ? "rgba(255,255,255,0.92)" : "rgba(26,18,15,0.78)";
+  const collapsedIconHoverBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(26,18,15,0.08)";
   const showRailTooltip = (label, event, side = "right", icon = null) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setRailTooltip({
@@ -473,7 +477,7 @@ export default function AppShell({
                 border: page === "profile"
                   ? `1px solid ${darkMode ? "rgba(134,31,65,0.35)" : "rgba(134,31,65,0.20)"}`
                   : "1px solid transparent",
-                color: collapsed ? "rgba(255,255,255,0.92)" : p.text,
+                color: collapsed ? collapsedIconColor : p.text,
                 borderRadius: 8, cursor: "pointer", fontFamily: SANS, textAlign: "left",
                 transition: "background 0.12s",
               }}
@@ -515,8 +519,8 @@ export default function AppShell({
                   key={title}
                   onClick={action}
                   aria-label={title}
-                  onMouseEnter={e => { showRailTooltip(title, e, "right", <RailIcon name={title.includes("mode") ? (darkMode ? "sun" : "moon") : "signout"}>{icon}</RailIcon>); e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(255,255,255,0.10)"; }}
-                  onMouseLeave={e => { hideRailTooltip(); e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.92)"; e.currentTarget.style.background = "transparent"; }}
+                  onMouseEnter={e => { showRailTooltip(title, e, "right", <RailIcon name={title.includes("mode") ? (darkMode ? "sun" : "moon") : "signout"}>{icon}</RailIcon>); e.currentTarget.style.borderColor = darkMode ? "rgba(255,255,255,0.14)" : "rgba(26,18,15,0.12)"; e.currentTarget.style.color = darkMode ? "#fff" : "rgba(26,18,15,0.92)"; e.currentTarget.style.background = collapsedIconHoverBg; }}
+                  onMouseLeave={e => { hideRailTooltip(); e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.color = collapsedIconColor; e.currentTarget.style.background = "transparent"; }}
                   style={{
                     width: 44,
                     height: 44,
@@ -528,7 +532,7 @@ export default function AppShell({
                     background: "transparent",
                     border: "1px solid transparent",
                     boxShadow: "none",
-                    borderRadius: 8, padding: 6, cursor: "pointer", color: "rgba(255,255,255,0.92)", display: "flex",
+                    borderRadius: 8, padding: 6, cursor: "pointer", color: collapsedIconColor, display: "flex",
                     transition: "all 0.15s",
                   }}
                   ><RailIcon name={title.includes("mode") ? (darkMode ? "sun" : "moon") : "signout"}>{icon}</RailIcon></button>
@@ -571,7 +575,7 @@ export default function AppShell({
             aria-label="Sign In"
             onMouseEnter={e => {
               if (collapsed) showRailTooltip("Sign In", e, "right", <RailIcon name="signin">{Icons.signin}</RailIcon>);
-              if (collapsed) e.currentTarget.style.background = "rgba(255,255,255,0.10)";
+              if (collapsed) e.currentTarget.style.background = collapsedIconHoverBg;
             }}
             onMouseLeave={e => {
               hideRailTooltip();

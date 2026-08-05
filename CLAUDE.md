@@ -6,16 +6,22 @@ Darvis is a live Virginia Tech academic intelligence platform at darvis.tech. St
 
 ```
 Darvis/
-├── frontend/               React 18 + Vite — deployed on Vercel
+├── frontend/               React 19 + Vite — deployed on Vercel
 ├── chatbot/                FastAPI chatbot backend — deployed on Render
 ├── backend/                Node.js data scripts (scrapers, importers) — not a server
+├── evals/                  "Cyrus" JSONL eval harness (RAG retrieval QA, reranker A/B, LLM-judge grading) — sibling to chatbot/tests/, imported by it via a sys.path hack in chatbot/conftest.py
+├── docs/                   CYRUS_*.md audit/implementation-plan trail for the chatbot generation-quality initiative — not linked from any CLAUDE.md/AGENTS.md/README
+├── outputs/                Eval run artifacts (e.g. rag_qa_workbook/)
+├── tools/                  One-off diagnostics (e.g. diagnose_cross_encoder.py)
+├── CHATBOT_AUDIT_REPORT.md Standalone chatbot reliability/hallucination-risk audit (not cross-linked elsewhere)
 ├── .github/workflows/      CI — update-timetable.yml (authenticated Banner scrape every 4h)
+├── AGENTS.md               Codex-agent equivalent of this file — near-identical sibling, keep both in sync when editing
 └── CLAUDE.md
 ```
 
 ## Frontend
 
-React 18 built with Vite (`@vitejs/plugin-react`). Auth via `@clerk/clerk-react`, Supabase via `@supabase/supabase-js`, charts via `chart.js` — all npm packages. Styles are CSS-in-JS inline objects — no Tailwind, no CSS modules.
+React 19 built with Vite (`@vitejs/plugin-react`). Auth via `@clerk/clerk-react`, Supabase via `@supabase/supabase-js`, charts via `chart.js` — all npm packages. `pdfjs-dist` + `jszip` exist solely to support LinkedIn-PDF profile import in `profile-page.jsx`. Styles are CSS-in-JS inline objects — no Tailwind, no CSS modules.
 
 **Run locally:**
 ```bash
@@ -47,10 +53,10 @@ npm run dev        # http://localhost:5173
 | `schedule.jsx` | Schedule builder (Fall 2026 sections) |
 | `chatbot.jsx` | AI chat interface → `POST /chat` |
 | `forums.jsx` | Community forum (empty — no users yet) |
-| `profile-page.jsx` | User profile (Clerk user data) |
+| `profile-page.jsx` | Full LinkedIn-style profile (posts, experience, education) + client-side LinkedIn "Save to PDF" import parser (`pdfjs-dist`) that pre-fills profile fields |
 | `profile-modal.jsx` | Profile edit modal |
 | `nav-auth.jsx` | Top nav with Clerk sign-in/out |
-| `auth-gate.jsx` | Wraps all auth-required pages |
+| `auth-gate.jsx` | Dead code — `AuthGate` is imported nowhere. Real auth-gating is a `PROTECTED` page-name Set + `navigateTo()` in `App.jsx`, which redirects to landing and opens `auth-modal.jsx` |
 | `auth-modal.jsx` | Sign-in prompt modal |
 | `faqs.jsx` | FAQ page |
 | `legal-page.jsx` | Legal/policy page |
@@ -62,7 +68,7 @@ npm run dev        # http://localhost:5173
 
 ## Chat-bot
 
-FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Plans each question with an LLM-only `QueryPlanner` (`app/rag/query_planner.py`) — no keyword-router fallback; low confidence or LLM failure returns a clarification request instead of guessing — resolves professor/course names with a fuzzy `EntityResolver`, runs a sufficiency gate before dispatch, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`.
+FastAPI backend in Python. Loads all data from Supabase at startup into Pandas DataFrames. Plans each question with `QueryPlanner` (`app/rag/query_planner.py`): primarily LLM-driven, but on low confidence or LLM failure it falls through to `_deterministic_fallback_plan()` — a real ~130-line keyword/regex router that assigns actual routes/params — before finally returning a bare clarification request only for a small explicit ambiguous-phrase set. (Older docs described this as "no keyword-router fallback" — that's inaccurate; the deterministic fallback is intentional, added per `CHATBOT_AUDIT_REPORT.md`.) Then resolves professor/course names with a fuzzy `EntityResolver`, runs a sufficiency gate before dispatch, runs analytics, generates a templated or LLM answer, and returns JSON with `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`. The real `_run_chat_pipeline()` also runs a rule-based safety classifier (`app/safety/refusals.py`) before planning, and a separate deterministic-professor pre-planner that can bypass the LLM entirely when the question looks professor-shaped.
 
 **Run locally:**
 ```bash
@@ -71,10 +77,11 @@ source .venv/bin/activate
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
-**Tests:** pytest suite in `chatbot/tests/` (intent extractor, planner critic, retrieval eval, normalization):
+**Tests:** pytest suite in `chatbot/tests/` — 13 files (intent extractor, planner critic, retrieval eval, normalization, plus generation/model-router, reranker, safety-refusals, RAG-refactor, Cyrus eval-grader tests):
 ```bash
 cd chatbot && python -m pytest tests/
 ```
+A second, separate QA surface — `evals/` at the repo root (the "Cyrus" JSONL eval harness: `evals/run.py`, `evals/graders/`, `evals/datasets/`) — is load-bearing for some of the tests above (`chatbot/conftest.py` adds the repo root to `sys.path` specifically so `chatbot/tests/test_cyrus_eval_graders.py` etc. can import it). See `evals/README.md`.
 
 **Other dirs:** `chatbot/scripts/` — embedding builders (`build_embeddings.py`, `rebuild_embeddings.py`, `embed_grades.py`), `sync_redis_index.py` (Supabase `embeddings` → Redis index), `scrape_curriculum.py`. `chatbot/migrations/` — SQL migrations.
 
@@ -182,8 +189,8 @@ Row counts verified live 2026-07-01:
 - `courses.avg_gpa` still null for 1,121 of 6,589 courses (no grade rows for those courses).
 
 **Medium priority:**
-- Feedback collection: `POST /feedback` endpoint exists in chatbot (writes to `feedback` table). Frontend thumbs up/down UI still needs to be wired up.
 - `grade_embeddings` table is dead (0 rows, unused). Can be dropped.
+- `chatbot/app/generation/` — a fully built, unit-tested OpenAI multi-tier (Luna/Terra/Sol) structured-generation system with cost-first routing (commit `794f27a`) — is NOT imported by `chatbot/app/main.py` and stays inert: `CYRUS_MODEL_ROUTING_ENABLED=false` in `chatbot/.env`. Production `/chat` still runs exclusively on Groq via `GemmaAnswerClient`. Wire it in or remove the flag when ready — see `docs/CYRUS_OPENAI_MODEL_ROUTING_IMPLEMENTATION_PLAN.md`.
 
 **Low priority:**
 - Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.

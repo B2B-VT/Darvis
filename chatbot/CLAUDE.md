@@ -1,6 +1,6 @@
 # Darvis chatbot — Claude Code context
 
-FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, plans each question with an LLM-only `QueryPlanner` (no keyword-router fallback — low confidence or LLM failure returns a clarification request instead), runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer.
+FastAPI chatbot backend for darvis.tech. Deployed on Render. Loads all data from Supabase at startup, plans each question with `QueryPlanner` (primarily LLM-driven, but falls through to a real ~130-line deterministic keyword/regex router — `_deterministic_fallback_plan()` — on low confidence/LLM failure before ever returning a bare clarification request), runs Pandas analytics, and returns structured JSON with an LLM-generated or templated answer. The real request pipeline (`_run_chat_pipeline()` in `main.py`, ~450 lines) has more gates than this one-liner implies — see Request flow below.
 
 ## Run locally
 
@@ -36,16 +36,26 @@ SHOW_DOCS=true             # local only — enables /docs
 
 Run `python -m scripts.sync_redis_index` after seeding/rebuilding Supabase `embeddings`, or any time Redis comes up cold — it reads Supabase and (re)builds the Redis index that retrieval actually queries.
 
+`.env.example` actually defines ~40 vars, not just the ones above — the rest are the Cyrus/OpenAI generation-routing and local-reranker groups (`OPENAI_API_KEY`, `OPENAI_LUNA_MODEL`/`OPENAI_TERRA_MODEL`/`OPENAI_SOL_MODEL` + reasoning-effort fields, `CYRUS_DEFAULT_MODEL_TIER`, `CYRUS_MODEL_ROUTING_ENABLED` (default `false`), `CYRUS_MODEL_ESCALATION_ENABLED`, `CYRUS_MODEL_MAX_ESCALATIONS`, `RAG_ENABLE_LOCAL_RERANKER`, `RAG_TOP_K_RERANK`, `RAG_RERANK_BATCH_SIZE`, etc., plus `RAG_DEBUG_MODE` and `DEV_FEEDBACK_TOKEN` — see `app/config.py` and `.env.example` for the full set).
+
 ## File map
 
 ```
 app/
-├── main.py                 App factory, lifespan loader, intent+entity wiring, all routes (/chat, /feedback, /health, search, /retrieval/debug)
-├── config.py               Pydantic settings from env
+├── main.py                 App factory, lifespan loader, STATE global (the real DI container), all 10 routes, _run_chat_pipeline()
+├── config.py               Pydantic settings from env (~40 vars total — see Env vars note above)
 ├── models.py               ChatRequest, ChatResponse, ChatMessage, TableSpec, ChartSpec, SearchItem, FeedbackRequest
+├── generation/              NOT imported by main.py — inert unless CYRUS_MODEL_ROUTING_ENABLED=true (default false)
+│   ├── model_router.py     Deterministic Luna/Terra/Sol tier router (cost-first)
+│   ├── model_types.py      ModelTier enum (LUNA/TERRA/SOL)
+│   ├── providers.py        Per-tier OpenAI pricing table
+│   ├── structured_generator.py  Tiered generation entry point — currently eval-only, not wired to /chat
+│   ├── schemas.py, validator.py
+│   └── (see docs/CYRUS_OPENAI_MODEL_ROUTING_IMPLEMENTATION_PLAN.md at repo root)
 ├── data/
 │   ├── loader.py           Supabase batch fetchers — grades, RMP/instructors, courses, requirements, Fall 2026 sections
 │   ├── analytics.py        Core Pandas logic — course_profile, professor_profile, natural_filter, detect_natural_params
+│   ├── indexes.py          DataIndexes — precomputed O(1) instructor-GPA/course-stat/section lookups, built in lifespan(), passed into every handler
 │   └── recency.py          Recency weighting for recent semesters
 ├── features/
 │   ├── router.py           Keyword router + smart_display_n + extract_professor_name_from_profile_question
@@ -59,7 +69,8 @@ app/
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
 │   ├── gemma_client.py     Groq client, `openai/gpt-oss-120b` by default (legacy filename) — 30s timeout, returns None on failure
-│   ├── query_planner.py    QueryPlanner — sole LLM-only planning/routing stage; replaces the old IntentExtractor + hardcoded section-signal override. No keyword fallback: low confidence/timeout/malformed JSON returns a clarification-request plan
+│   ├── query_planner.py    QueryPlanner — primary LLM planning/routing stage; replaces the old IntentExtractor + hardcoded section-signal override. On low confidence/timeout/malformed JSON, falls through to _deterministic_fallback_plan() (real keyword/regex router) before a bare clarification-request plan
+│   ├── planner_models.py   QueryPlan Pydantic model — imported by query_planner.py and main.py
 │   ├── intent_extractor.py Dead code — superseded by query_planner.py, no longer imported by main.py
 │   ├── verifier.py         check_plan() — sufficiency gate; short-circuits with an honest "we don't have that" answer for known data gaps before handler dispatch
 │   ├── query_rewriter.py   LLM query rewriting for retrieval
@@ -78,6 +89,7 @@ app/
 ├── safety/
 │   ├── guardrails.py       SYSTEM_GUARDRAIL, normalize_question (whitespace/quote cleanup — LLM handles typos), sanitize_answer
 │   ├── entity_resolver.py  Fuzzy-matches professor names + course codes after intent extraction
+│   ├── refusals.py         classify_safety/refusal_answer — rule-based safety classifier, run as the FIRST gate in the chat pipeline (blocks system-prompt/secret extraction, private student records, destructive DB requests)
 │   └── privacy.py          PII detection — returns warning if sensitive terms detected
 └── utils/
     └── charts.py           table_spec, bar_chart, scatter_chart dict builders
@@ -91,19 +103,27 @@ app/
 | `POST` | `/feedback` | 30/min per IP | Log thumbs up (rating=1) or thumbs down (rating=-1) |
 | `GET` | `/courses/search` | 60/min per IP | Typeahead course search |
 | `GET` | `/professors/search` | 60/min per IP | Typeahead professor search |
-| `POST` | `/retrieval/debug` | 30/min per IP | Runs the retrieval pipeline and returns candidate/scoring/timing telemetry |
+| `POST` | `/retrieval/debug` | 30/min per IP | Runs the retrieval pipeline and returns candidate/scoring/timing telemetry — 404s unless `RAG_DEBUG_MODE=true` |
 | `GET` | `/health` | none | Loaded row counts (grades, instructors, sections, courses, requirements) + vector store size |
+| `GET` | `/ping` | none | No-auth Render healthcheck keepalive |
+| `GET` | `/rmp/reviews` | 30/min per IP | Live proxy to RateMyProfessors' GraphQL API for review excerpts |
+| `POST` | `/chat/stream` | 10/min per IP | Server-Sent-Events streaming variant of `/chat` |
+| `GET` | `/feedback/recent` | 20/min per IP | Internal feedback review — gated by `X-Darvis-Dev-Token` header vs. `DEV_FEEDBACK_TOKEN` |
 
 ## Request flow
 
 ```
-POST /chat
+POST /chat  (real pipeline is _run_chat_pipeline() in main.py, ~450 lines — this is the shape, not the full detail)
+  → classify_safety (safety/refusals.py)           # FIRST gate — blocks system-prompt/secret extraction, private records, destructive requests
   → normalize_question (guardrails.py)             # whitespace/quote cleanup (LLM handles typos)
-  → QueryPlanner.plan (query_planner.py)           # LLM-only → structured QueryPlan (route + params); no keyword fallback — low confidence/failure returns a clarification-request plan
+  → prompt-injection / workload / curve-question short-circuits
+  → deterministic-professor pre-planner (bypasses LLM via EntityResolver directly) OR QueryPlanner.plan (query_planner.py)
+                                                     # primarily LLM → structured QueryPlan; on low confidence/failure falls through to _deterministic_fallback_plan() (real keyword router), then general_rag
   → EntityResolver (entity_resolver.py)            # fuzzy-correct professor/course names
   → check_plan (verifier.py)                       # sufficiency gate — short-circuits known data gaps before dispatch
-  → handler (features/*.py)                        # analytics + LLM or template answer; optional secondary-route fan-out
-  → ChatResponse                                   # answer, tables, charts, warnings, schedule_actions
+  → handler (features/*.py)                        # analytics + LLM or template answer; optional secondary-route fan-out via _SECONDARY_ROUTE_PAIRS (failures swallowed, never break primary)
+  → sanitize_answer (guardrails.py)
+  → ChatResponse                                   # answer, tables, charts, warnings, schedule_actions (+ eval_trace if body.eval_mode is set, for the evals/ harness)
 
 POST /feedback
   → FeedbackRequest validation           # question, answer, route, rating (1 or -1)
@@ -113,7 +133,7 @@ POST /feedback
 
 ## Routes
 
-Route strings come from `QueryPlanner` (LLM-only, `query_planner.py`) — no keyword-router fallback. `plan.secondary_routes` can fan out to a second handler for allowed route pairs (e.g. `course_profile` + `section_lookup`); a secondary-route failure never breaks the primary answer.
+Route strings come from `QueryPlanner` (`query_planner.py`) — primarily LLM, with a real deterministic keyword-router fallback (`_deterministic_fallback_plan()`) on low confidence/failure. `plan.secondary_routes` can fan out to a second handler for allowed route pairs (e.g. `course_profile` + `section_lookup`); a secondary-route failure never breaks the primary answer.
 
 | Route | Triggered when | Handler |
 |-------|---------------|---------|

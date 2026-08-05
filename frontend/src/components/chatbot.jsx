@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
-import { DARVIS_CONFIG } from "../config.js";
+import { DARVIS_CONFIG, CYRUS_PUBLIC_LAUNCHED, CYRUS_ALLOWLIST } from "../config.js";
 import { API } from "../api.js";
-import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE } from "../theme.jsx";
+import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE, PageHeader } from "../theme.jsx";
 import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
 import CyrusLogo from "./cyrus-logo.jsx";
 
@@ -817,6 +817,21 @@ function SidebarIcon({ name, size = 22, strokeWidth = 1.9 }) {
   return null;
 }
 
+function CyrusRailIcon({ children }) {
+  return (
+    <span style={{
+      width: 24,
+      height: 24,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}>
+      {children}
+    </span>
+  );
+}
+
 // ── Session list item ─────────────────────────────────────────────
 function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c, indent }) {
   const [hov, setHov]       = useState(false);
@@ -1137,8 +1152,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
       }}>
         {/* Header */}
         <div style={{
-          padding: collapsed && !isMobile ? "14px 10px 10px" : "22px 20px 14px",
-          display: "grid",
+          padding: collapsed && !isMobile ? "14px 0 10px" : "22px 20px 14px",
+          display: collapsed && !isMobile ? "flex" : "grid",
+          flexDirection: collapsed && !isMobile ? "column" : undefined,
+          alignItems: collapsed && !isMobile ? "center" : undefined,
           gap: collapsed && !isMobile ? 12 : 18,
           flexShrink: 0,
         }}>
@@ -1151,6 +1168,24 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                 width: 44,
                 height: 44,
                 margin: "0 auto",
+            <button
+              onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
+              aria-label="Expand Cyrus sidebar"
+              onMouseEnter={e => {
+                showRailTooltip("Expand sidebar", e, <CyrusRailIcon><img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} /></CyrusRailIcon>);
+                e.currentTarget.style.background = c.hover;
+              }}
+              onMouseLeave={e => {
+                hideRailTooltip();
+                e.currentTarget.style.background = "transparent";
+              }}
+              style={{
+                width: 44,
+                height: 44,
+                padding: 0,
+                margin: 0,
+                border: "none",
+                background: "transparent",
                 borderRadius: 12,
                 overflow: "hidden",
               }}
@@ -1183,14 +1218,20 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
             </div>
           )}
 
-          <div style={{ display: "grid", gap: collapsed && !isMobile ? 6 : 2 }}>
+          <div style={{
+            display: collapsed && !isMobile ? "flex" : "grid",
+            flexDirection: collapsed && !isMobile ? "column" : undefined,
+            alignItems: collapsed && !isMobile ? "center" : undefined,
+            gap: collapsed && !isMobile ? 6 : 2,
+            width: collapsed && !isMobile ? "100%" : undefined,
+          }}>
             {toolbarItems.map(item => (
               <button
                 key={item.label}
                 onClick={item.action}
                 aria-label={item.label}
                 onMouseEnter={e => {
-                  if (collapsed && !isMobile) showRailTooltip(item.label, e, <SidebarIcon name={item.icon} size={22} strokeWidth={2} />);
+                  if (collapsed && !isMobile) showRailTooltip(item.label, e, <CyrusRailIcon><SidebarIcon name={item.icon} size={22} strokeWidth={2} /></CyrusRailIcon>);
                   e.currentTarget.style.background = c.hover;
                 }}
                 onMouseLeave={e => {
@@ -1204,7 +1245,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                   padding: collapsed && !isMobile ? 0 : "9px 0",
                   width: collapsed && !isMobile ? 44 : "auto",
                   height: collapsed && !isMobile ? 44 : "auto",
-                  margin: collapsed && !isMobile ? "0 auto" : 0,
+                  margin: collapsed && !isMobile ? 0 : 0,
                   cursor: "pointer",
                   color: c.text,
                   display: "flex",
@@ -1217,9 +1258,13 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                   textAlign: "left",
                 }}
               >
-                <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
-                </span>
+                {collapsed && !isMobile ? (
+                  <CyrusRailIcon><SidebarIcon name={item.icon} size={24} strokeWidth={2} /></CyrusRailIcon>
+                ) : (
+                  <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
+                  </span>
+                )}
                 <span style={{
                   opacity: collapsed && !isMobile ? 0 : 1,
                   maxWidth: collapsed && !isMobile ? 0 : 190,
@@ -1410,7 +1455,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 }
 
 // ── Main chatbot page ─────────────────────────────────────────────
-export default function ChatbotPage({ darkMode, addSection, setPage, userProfile }) {
+function CyrusApp({ darkMode, addSection, setPage, userProfile }) {
   const { user } = useUser();
   const [sessions,          setSessions]         = useState(() => loadSessions());
   const [projects,          setProjects]         = useState(() => loadProjects());
@@ -2849,4 +2894,45 @@ export default function ChatbotPage({ darkMode, addSection, setPage, userProfile
       `}</style>
     </div>
   );
+}
+
+function CyrusLockedScreen({ darkMode }) {
+  const p = palette(darkMode);
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        background: p.bg,
+        fontFamily: SANS,
+      }}
+    >
+      <div
+        style={{
+          ...glassCard(darkMode),
+          maxWidth: 440,
+          width: "100%",
+          padding: "40px 32px",
+          borderRadius: RADIUS.lg,
+        }}
+      >
+        <PageHeader
+          dark={darkMode}
+          kicker="Cyrus"
+          title="Private testing right now"
+          sub="Cyrus is being tested with a small group before it opens up to everyone. Public access is coming soon — check back shortly."
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function ChatbotPage(props) {
+  const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+  const hasAccess = CYRUS_PUBLIC_LAUNCHED || CYRUS_ALLOWLIST.includes(email);
+  return hasAccess ? <CyrusApp {...props} /> : <CyrusLockedScreen darkMode={props.darkMode} />;
 }
