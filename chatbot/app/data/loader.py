@@ -301,6 +301,51 @@ def load_requirements_from_supabase() -> pd.DataFrame:
     return df
 
 
+def load_roadmap_from_supabase() -> pd.DataFrame:
+    """
+    Fetches all rows from `roadmap_courses` — the VT registrar checksheet
+    "plan of study" data (scripts/scrape_checksheets.py), which preserves
+    year+semester per course, unlike major_requirements. Returns a
+    DataFrame with major_name, catalog_year, year_number, semester,
+    course_code, course_title, credits, sort_order. Coverage is partial —
+    some checksheet PDFs use a non-standard font encoding the scraper can't
+    read (see scrape_checksheets.py's docstring); callers must not assume
+    every major has roadmap data and should fall back gracefully when empty.
+    """
+    client = _supabase_client()
+    BATCH = 1000
+    offset = 0
+    all_rows: list[dict] = []
+
+    print("Loading roadmap courses from Supabase...")
+    while True:
+        try:
+            result = (
+                client.table("roadmap_courses")
+                .select("major_name, catalog_year, year_number, semester, course_code, course_title, credits, sort_order")
+                .order("major_name")
+                .order("sort_order")
+                .range(offset, offset + BATCH - 1)
+                .execute()
+            )
+            rows = result.data or []
+        except Exception as exc:
+            print(f"  Warning: could not load roadmap courses — {exc}")
+            return pd.DataFrame()
+
+        all_rows.extend(rows)
+        if len(rows) < BATCH:
+            break
+        offset += BATCH
+
+    if not all_rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_rows)
+    print(f"Loaded {len(df):,} roadmap course rows from Supabase.")
+    return df
+
+
 # ── Search helpers (used by /professors/search and /courses/search) ─
 # These work on the in-memory DataFrame loaded at startup — no extra
 # Supabase calls needed at query time.

@@ -482,6 +482,31 @@ def _is_virtual(sec: dict) -> bool:
 
 # ── Main handler ──────────────────────────────────────────────────────────────
 
+_YEAR_LEVEL_WORDS = {
+    "freshman": 1, "first year": 1, "first-year": 1, "1st year": 1,
+    "sophomore": 2, "second year": 2, "2nd year": 2,
+    "junior": 3, "third year": 3, "3rd year": 3,
+    "senior": 4, "fourth year": 4, "4th year": 4,
+    "fifth year": 5, "5th year": 5, "super senior": 5,
+}
+_ROADMAP_CLARIFYING_QUESTION = (
+    "What year are you — freshman, sophomore, junior, or senior? "
+    "That'll help me pull the right courses from your major's roadmap."
+)
+
+
+def _extract_year_level(text: str) -> int | None:
+    t = (text or "").lower()
+    for word, num in _YEAR_LEVEL_WORDS.items():
+        if re.search(rf"\b{re.escape(word)}\b", t):
+            return num
+    return None
+
+
+def _msg_field(msg, field: str) -> str:
+    return msg.get(field) if isinstance(msg, dict) else getattr(msg, field, "") or ""
+
+
 def handle_schedule_builder(
     question: str,
     user_profile: dict | None = None,
@@ -491,9 +516,33 @@ def handle_schedule_builder(
     sections_df=None,
     rmp_df=None,
     indexes=None,
+    roadmap_df=None,
 ) -> tuple[str, list, list, dict]:
     settings = get_settings()
     client   = create_client(settings.supabase_url, settings.supabase_key)
+
+    # Year-clarification follow-up: if this message is JUST a class-year
+    # answer ("sophomore", "I'm a junior") and the immediately preceding
+    # assistant turn was this handler's own roadmap-year question, recover
+    # the original scheduling request from history and parse THAT instead of
+    # the bare year answer, carrying the newly-provided year forward via
+    # user_profile so every existing constraint (credits/days/time/GPA) gets
+    # freshly re-derived from the real request rather than lost.
+    answered_year = _extract_year_level(question)
+    if answered_year and history:
+        last_assistant_idx = next(
+            (i for i in range(len(history) - 1, -1, -1) if _msg_field(history[i], "role") == "assistant"),
+            None,
+        )
+        if last_assistant_idx is not None and _ROADMAP_CLARIFYING_QUESTION.lower() in _msg_field(history[last_assistant_idx], "content").lower():
+            prior_user = next(
+                (history[j] for j in range(last_assistant_idx - 1, -1, -1) if _msg_field(history[j], "role") == "user"),
+                None,
+            )
+            recovered_question = _msg_field(prior_user, "content") if prior_user else ""
+            if recovered_question:
+                question = recovered_question
+                user_profile = {**(user_profile or {}), "year": answered_year}
 
     # "Can I take X at 9:30 MWF and Y at 9:00 MWF?" asks whether two SPECIFIC,
     # user-stated sections conflict — not a request to build a fresh schedule.
@@ -627,6 +676,60 @@ def handle_schedule_builder(
                 }
         except Exception:
             pass  # Catalog table may not be populated yet; fall back gracefully
+
+    # ── Roadmap-specific courses for the student's major + year ────────────────
+    # required_course_codes above is "required somewhere in the degree" with no
+    # timing; roadmap_courses (VT registrar checksheet data) says specifically
+    # which courses belong in THIS year+semester. When both major and a known
+    # student year are available, roadmap-sourced codes are folded into the
+    # same required_course_codes set (Tier 0 in _relevance_score below) since
+    # they're a strictly more specific, more authoritative signal than the
+    # generic required list -- not a new ranking tier, just better input to
+    # the ranking mechanism that already exists and is already verified
+    # correct. Coverage is partial (some checksheet PDFs can't be parsed yet --
+    # see scrape_checksheets.py); when there's no roadmap match, this is a
+    # silent no-op and behavior is unchanged from before this feature existed.
+    student_year = _extract_year_level(question) or profile.get("year")
+    major_roadmap_rows = None
+    if major and roadmap_df is not None and not roadmap_df.empty:
+        major_lower = major.lower().strip()
+        major_key = major_lower.split(" — ")[0].split("(")[0].strip()
+        if major_key:
+            major_roadmap_rows = roadmap_df[
+                roadmap_df["major_name"].astype(str).str.lower().str.contains(
+                    re.escape(major_key), na=False, regex=True,
+                )
+            ]
+            if major_roadmap_rows.empty:
+                major_roadmap_rows = None
+
+    if major_roadmap_rows is not None and student_year:
+        try:
+            student_year_num = int(student_year)
+        except (TypeError, ValueError):
+            student_year_num = None
+        if student_year_num:
+            roadmap_slice = major_roadmap_rows[
+                (major_roadmap_rows["year_number"] == student_year_num)
+                & (major_roadmap_rows["semester"] == "Fall")
+                & major_roadmap_rows["course_code"].notna()
+            ]
+            roadmap_codes = {
+                re.sub(r"\s+", "", str(c)).lower()
+                for c in roadmap_slice["course_code"].dropna().unique()
+            }
+            required_course_codes |= roadmap_codes
+    elif major_roadmap_rows is not None and not student_year:
+        # We have real roadmap data for this major but don't know which
+        # year to pull from — ask instead of silently falling back to the
+        # generic (less precise) subject-preference behavior. Only fires
+        # when roadmap data actually exists for the major; majors without
+        # roadmap coverage keep today's existing behavior unchanged.
+        return (
+            _ROADMAP_CLARIFYING_QUESTION,
+            [], [],
+            {"needs_clarification": True, "clarification_reason": "missing_year_for_roadmap"},
+        )
 
     # ── Fetch sections for the current term ───────────────────────────────────
     # Prefer the startup-loaded sections DataFrame (all rows, no PostgREST cap).

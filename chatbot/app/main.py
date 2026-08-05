@@ -24,7 +24,7 @@ from app.models import ChatRequest, ChatResponse, FeedbackRequest, SearchItem
 from app.data.loader import (
     load_from_supabase, load_rmp_from_supabase,
     load_courses_from_supabase, load_requirements_from_supabase,
-    load_sections_from_supabase,
+    load_sections_from_supabase, load_roadmap_from_supabase,
     search_courses, search_professors,
 )
 from app.rag.vector_store import GradeVectorStore
@@ -69,6 +69,7 @@ STATE = {
     "rmp_df": None,
     "courses_df": None,
     "requirements_df": None,
+    "roadmap_df": None,
     "sections_df": None,
     "vector_store": None,
     "llm": None,
@@ -91,6 +92,9 @@ async def lifespan(app: FastAPI):
 
     print("Loading major requirements...")
     requirements_df = load_requirements_from_supabase()
+
+    print("Loading roadmap courses...")
+    roadmap_df = load_roadmap_from_supabase()
 
     print("Loading Fall 2026 sections...")
     sections_df = load_sections_from_supabase()
@@ -129,6 +133,7 @@ async def lifespan(app: FastAPI):
     STATE["rmp_df"] = rmp_df
     STATE["courses_df"] = courses_df
     STATE["requirements_df"] = requirements_df
+    STATE["roadmap_df"] = roadmap_df
     STATE["sections_df"] = sections_df
     STATE["vector_store"] = vector_store
     STATE["llm"] = llm
@@ -448,6 +453,7 @@ def _dispatch_route(route: str, question: str, body: ChatRequest, intent, df, ll
             sections_df=STATE.get("sections_df"),
             rmp_df=STATE.get("rmp_df"),
             indexes=STATE.get("indexes"),
+            roadmap_df=STATE.get("roadmap_df"),
         )
     elif route == "out_of_scope":
         return out_of_scope_response(), [], [], {}
