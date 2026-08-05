@@ -29,6 +29,10 @@ backend/data/canonical/
 *.swp
 *.swo
 
+# Agent workspaces
+.worktrees/
+.superpowers/
+
 # Logs
 *.log
 npm-debug.log*
