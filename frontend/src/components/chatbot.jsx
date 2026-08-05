@@ -816,6 +816,21 @@ function SidebarIcon({ name, size = 22, strokeWidth = 1.9 }) {
   return null;
 }
 
+function CyrusRailIcon({ children }) {
+  return (
+    <span style={{
+      width: 24,
+      height: 24,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}>
+      {children}
+    </span>
+  );
+}
+
 // ── Session list item ─────────────────────────────────────────────
 function SessionItem({ session, active, onSelect, onDelete, onMove, projects, c, indent }) {
   const [hov, setHov]       = useState(false);
@@ -1136,8 +1151,10 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
       }}>
         {/* Header */}
         <div style={{
-          padding: collapsed && !isMobile ? "14px 10px 10px" : "22px 20px 14px",
-          display: "grid",
+          padding: collapsed && !isMobile ? "14px 0 10px" : "22px 20px 14px",
+          display: collapsed && !isMobile ? "flex" : "grid",
+          flexDirection: collapsed && !isMobile ? "column" : undefined,
+          alignItems: collapsed && !isMobile ? "center" : undefined,
           gap: collapsed && !isMobile ? 12 : 18,
           flexShrink: 0,
         }}>
@@ -1146,7 +1163,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
               onClick={() => { hideRailTooltip(); onToggleCollapse?.(); }}
               aria-label="Expand Cyrus sidebar"
               onMouseEnter={e => {
-                showRailTooltip("Expand sidebar", e, <img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} />);
+                showRailTooltip("Expand sidebar", e, <CyrusRailIcon><img src="/cyrus-logo.png" alt="" style={{ width: 18, height: 18, borderRadius: 5, objectFit: "cover" }} /></CyrusRailIcon>);
                 e.currentTarget.style.background = c.hover;
               }}
               onMouseLeave={e => {
@@ -1157,7 +1174,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                 width: 44,
                 height: 44,
                 padding: 0,
-                margin: "0 auto",
+                margin: 0,
                 border: "none",
                 background: "transparent",
                 borderRadius: 12,
@@ -1202,14 +1219,20 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
             </div>
           )}
 
-          <div style={{ display: "grid", gap: collapsed && !isMobile ? 6 : 2 }}>
+          <div style={{
+            display: collapsed && !isMobile ? "flex" : "grid",
+            flexDirection: collapsed && !isMobile ? "column" : undefined,
+            alignItems: collapsed && !isMobile ? "center" : undefined,
+            gap: collapsed && !isMobile ? 6 : 2,
+            width: collapsed && !isMobile ? "100%" : undefined,
+          }}>
             {toolbarItems.map(item => (
               <button
                 key={item.label}
                 onClick={item.action}
                 aria-label={item.label}
                 onMouseEnter={e => {
-                  if (collapsed && !isMobile) showRailTooltip(item.label, e, <SidebarIcon name={item.icon} size={22} strokeWidth={2} />);
+                  if (collapsed && !isMobile) showRailTooltip(item.label, e, <CyrusRailIcon><SidebarIcon name={item.icon} size={22} strokeWidth={2} /></CyrusRailIcon>);
                   e.currentTarget.style.background = c.hover;
                 }}
                 onMouseLeave={e => {
@@ -1223,7 +1246,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                   padding: collapsed && !isMobile ? 0 : "9px 0",
                   width: collapsed && !isMobile ? 44 : "auto",
                   height: collapsed && !isMobile ? 44 : "auto",
-                  margin: collapsed && !isMobile ? "0 auto" : 0,
+                  margin: collapsed && !isMobile ? 0 : 0,
                   cursor: "pointer",
                   color: c.text,
                   display: "flex",
@@ -1236,9 +1259,13 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
                   textAlign: "left",
                 }}
               >
-                <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
-                </span>
+                {collapsed && !isMobile ? (
+                  <CyrusRailIcon><SidebarIcon name={item.icon} size={24} strokeWidth={2} /></CyrusRailIcon>
+                ) : (
+                  <span style={{ width: 26, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <SidebarIcon name={item.icon} size={24} strokeWidth={2} />
+                  </span>
+                )}
                 <span style={{
                   opacity: collapsed && !isMobile ? 0 : 1,
                   maxWidth: collapsed && !isMobile ? 0 : 190,
