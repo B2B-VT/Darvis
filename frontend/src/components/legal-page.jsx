@@ -5,6 +5,14 @@ const CONTACT_EMAIL = "darvis.b2b@gmail.com";
 
 const PRIVACY_SECTIONS = [
   {
+    heading: "Scope and Current Product",
+    body: [
+      "This Privacy Policy applies to Darvis at darvis.tech, the Darvis frontend, the Cyrus chatbot backend, Echo reviews, forums, profile features, saved schedules, saved conversations, feedback tools, and related support communications.",
+      "As of the Last Updated date, public landing and legal pages can be viewed without signing in. Product features such as course browsing, schedule building, Cyrus chat, forums, profile tools, saved conversations, and Echo review submission generally require Clerk authentication or early-access approval.",
+      "Darvis is not a school official, university contractor, registrar, advisor, or education-record system. It does not intentionally collect official education records from Virginia Tech or another school.",
+    ],
+  },
+  {
     heading: "University Independence",
     body: [
       "Darvis is an independent student-focused course-planning tool. Unless expressly stated otherwise, Darvis is not affiliated with, endorsed by, operated by, sponsored by, or controlled by Virginia Tech or any university department.",
@@ -15,12 +23,14 @@ const PRIVACY_SECTIONS = [
     heading: "Information We Collect",
     body: [
       "Darvis collects only the information reasonably needed to operate, secure, improve, and provide the service.",
-      "Information required to use a feature depends on the feature. Public course browsing may require little or no account information. Account-based features may require authentication information, account identifiers, email address, profile details, saved schedules, selected courses, schedule preferences, chat history, support messages, feedback, or other information you choose to provide.",
-      "You may choose to provide a name or email address for waitlist, account, support, feedback, course interests, selected classes, saved schedules, schedule preferences, profile fields, product suggestions, survey responses, AI-assisted planning questions, and account preferences.",
+      "Information required to use a feature depends on the feature. Darvis may collect authentication information, account identifiers, email address, name, profile photo, username, profile details, profile visibility settings, saved schedules, selected courses and CRNs, schedule preferences, saved conversations, chat history, support messages, Echo reviews, forum posts and replies, feedback ratings, feedback reasons, product suggestions, or other information you choose to provide.",
+      "Profile information may include major, minor, academic year, entry term, GPA if you choose to provide it, expected graduation term, interests, courses taken, bio, location, headline, hobbies, links, experience, education, banner selections, onboarding status, and other account preferences stored through Clerk metadata.",
       "If you use Echo, Darvis's internal professor and course review service, Darvis may collect review text, quality ratings, difficulty ratings, course context, optional grade received, selected review tags, attendance/textbook/retake indicators, display name, account identifier, timestamps, moderation status, and security metadata needed to publish, moderate, aggregate, and protect reviews.",
+      "If you use forums or profile activity features, Darvis may collect post titles, post bodies, categories, replies, display names or anonymous labels, profile activity posts, headlines, images or image URLs, links, timestamps, and account identifiers needed to publish, display, moderate, and delete content.",
+      "If you use the chatbot feedback buttons, Darvis may collect the related question, answer, route, thumbs up/down rating, optional feedback reason, timestamp, and limited technical metadata so Darvis can evaluate and improve answer quality.",
       "Darvis does not require students to provide a student ID, PID, transcript, GPA, academic standing, disability status, medical information, financial information, immigration status, passwords, or official university credentials to use core planning features.",
-      "If Darvis later offers optional upload, transcript autofill, resume review, attachment, marketplace, class chat, social feed, or public profile features, Darvis may collect the information you choose to submit through those features. Those features may involve additional notices, consent prompts, visibility controls, or deletion controls.",
-      "Darvis may collect limited technical and usage information such as browser type, device type, operating system, approximate region, IP address and server logs where needed, pages visited, features used, timestamps, error logs, latency, referral source, cookie, session, or local storage information.",
+      "The current chatbot interface can attach file names to a prompt and may keep attachment previews in local browser state as part of the visible conversation, but the backend request model currently accepts text prompts rather than uploaded file contents. If Darvis later processes uploaded file contents, transcripts, resumes, images, or attachments server-side, Darvis will update this Policy or provide feature-specific notice before launch.",
+      "Darvis may collect limited technical and usage information such as browser type, device type, operating system, approximate region, IP address, user agent, pages or API routes requested, features used, timestamps, error logs, latency, referral source, cookie, session, local storage, and rate-limit or abuse-prevention information.",
       "Darvis may collect limited aggregated, anonymous, or de-identified course-planning metadata such as subject area, course number, request type, route selected, success or failure status, error type, aggregate course search counts, waitlist conversion metrics, feature usage trends, and whether sensitive information may have been detected.",
     ],
   },
@@ -28,7 +38,8 @@ const PRIVACY_SECTIONS = [
     heading: "Raw Query and Prompt Storage",
     body: [
       "Darvis does not use full raw AI prompts as routine analytics records by default. Darvis may process prompts, questions, retrieved course context, and related metadata to provide a response, prevent abuse, detect technical errors, debug failures, maintain security, and improve reliability.",
-      "If you use account-based chat history, saved planning history, chat memory, or similar features, Darvis may store conversation content, titles, timestamps, generated answers, tables, charts, warnings, and related context so that the feature works. Users should treat saved conversations as account data and should not include unnecessary sensitive information.",
+      "If you use account-based chat history, saved planning history, or similar features, Darvis may store conversation content, titles, timestamps, generated answers, tables, charts, warnings, feedback state, project or folder assignment, and related context in Supabase and local browser storage so that the feature works across sessions.",
+      "When Cyrus answers a question, the frontend may send the current prompt, up to several recent prior conversation turns, selected chat settings, and optional profile context such as major or schedule preferences to the backend. The backend may forward relevant prompt, history, retrieved academic context, and structured planning context to model or retrieval providers as needed to answer the request.",
       "Course-planning questions can reveal sensitive academic or personal context, including concerns about grades, graduation timing, accessibility needs, health, work schedules, family responsibilities, academic performance, or personal circumstances. Darvis is designed to limit routine analytics reliance on raw prompt text and to use aggregated, de-identified, or structured metadata where practical.",
       "Darvis may allow users to delete saved conversations or request deletion of account-associated chat history. Deletion may not immediately remove all backup copies, security logs, abuse-prevention records, or de-identified analytics that no longer identify a user.",
     ],
@@ -71,14 +82,16 @@ const PRIVACY_SECTIONS = [
   {
     heading: "Cookies and Similar Technologies",
     body: [
-      "Darvis may use cookies, local storage, session storage, pixels, or similar technologies to keep users signed in, maintain session state, remember interface preferences, improve performance, understand aggregate usage, support analytics and error monitoring, and protect against abuse or security risks.",
-      "Users may be able to disable cookies through browser settings, but some features may not work correctly if cookies or local storage are disabled.",
+      "Darvis and its providers may use cookies, local storage, session storage, or similar technologies to keep users signed in, maintain session state, remember interface preferences, save local schedule and chat state, improve performance, support authentication, and protect against abuse or security risks.",
+      "The Darvis frontend currently uses local storage for page state, theme preference, schedule state, and local chat/project history. Clerk may use cookies or similar technologies for authentication. Darvis does not currently include a separate third-party advertising tracker in the frontend codebase.",
+      "Users may be able to disable cookies or clear local storage through browser settings, but some features may not work correctly and locally saved information may be lost.",
     ],
   },
   {
     heading: "Third-Party Services and Data Sources",
     body: [
-      "Darvis may use third-party services for website hosting, databases, authentication, analytics, email delivery, error monitoring, AI model access, vector or search infrastructure, file storage, security, abuse prevention, and payment processing if paid features are later offered.",
+      "Darvis currently uses or may use third-party services for website hosting, backend hosting, databases, authentication, analytics, email delivery, error monitoring, AI model access, vector or search infrastructure, file storage, security, abuse prevention, and payment processing if paid features are later offered.",
+      "Current product infrastructure includes Vercel for frontend hosting, Render for the chatbot backend, Supabase for database and storage-related services, Clerk for authentication and account management, Groq for LLM responses, Redis/redisvl infrastructure for retrieval, RateMyProfessors for public professor-review excerpts, GitHub Actions for authenticated timetable scraping and deployment automation, and Virginia Tech or public catalog/timetable/grade-distribution sources for academic data. Depending on environment configuration, Darvis retrieval or evaluation tooling may also use OpenAI embeddings, Google embeddings, Cohere reranking, or local model libraries.",
       "These providers may process limited information on Darvis's behalf as service providers or processors. Darvis limits provider access to what is reasonably needed for the service and does not authorize providers to use student personal information for their own independent advertising, resale, unrelated profiling, or model training unless separately disclosed and permitted.",
       "Darvis may link to external websites, including official university pages, course catalogs, registration systems, professor/course resources, public datasets, or third-party review sources. Darvis is not responsible for the privacy practices, accuracy, availability, or content of external websites.",
       "Darvis may use information from public, permitted, licensed, user-submitted, or third-party sources. Some data may be incomplete, outdated, limited by sample size, or unavailable for certain courses, instructors, terms, or departments.",
@@ -89,8 +102,9 @@ const PRIVACY_SECTIONS = [
     body: [
       "Darvis keeps personal information only as long as reasonably necessary for the purpose it was collected, unless a longer period is required for legal, security, fraud-prevention, or operational reasons.",
       "Account information is generally retained while the account remains active. Saved schedules, saved preferences, saved profile fields, and saved chat history are generally retained until the user deletes them, the account is deleted, the feature is discontinued, or retention is no longer reasonably necessary.",
-      "Waitlist information may be retained while access is managed and for a reasonable period afterward. Support messages may be retained long enough to resolve the request, maintain business records, and protect the service. Security logs, fraud-prevention records, rate-limit logs, and abuse-prevention records may be retained for a limited period needed to detect, investigate, or prevent misuse.",
-      "Uploaded files, transcripts, resumes, attachments, or similar materials, if supported, should be retained only for the feature purpose disclosed at upload and then deleted, de-identified, or converted into user-controlled saved data when no longer needed.",
+      "Echo reviews, forum posts, replies, and profile activity posts may remain available until deleted by the user, removed by Darvis, hidden through moderation, the account is deleted and applicable law requires deletion, or the feature is discontinued. Published public content may remain in backups, cached copies, moderation records, or aggregate statistics for a limited period.",
+      "Waitlist information may be retained while access is managed and for a reasonable period afterward. Feedback submissions, support messages, and product-quality records may be retained long enough to evaluate the service, resolve the request, maintain business records, and protect the service. Security logs, fraud-prevention records, rate-limit logs, and abuse-prevention records may be retained for a limited period needed to detect, investigate, or prevent misuse.",
+      "Uploaded files, transcripts, resumes, attachments, or similar materials, if supported in the future, should be retained only for the feature purpose disclosed at upload and then deleted, de-identified, or converted into user-controlled saved data when no longer needed.",
       "Anonymous, aggregated, or de-identified metadata may be retained to improve reliability, performance, product quality, and academic planning features. Darvis will delete, de-identify, or aggregate personal information when it is no longer reasonably needed.",
     ],
   },
@@ -99,7 +113,8 @@ const PRIVACY_SECTIONS = [
     body: [
       "Depending on where you live and which laws apply, you may have rights to access, correct, delete, export, limit use of, opt out of certain processing of, withdraw consent for, appeal decisions about, or avoid discrimination for exercising rights related to personal information.",
       "To make a privacy request, email darvis.b2b@gmail.com with Access, Correction, Deletion, Export, Opt Out, Appeal, or Privacy Request in the subject line. Darvis may need to verify your identity, account ownership, or authority before completing certain requests.",
-      "Users may also be able to delete certain saved schedules, chats, profile fields, posts, or account information directly in the product when those controls are available. Darvis will make reasonable efforts to honor applicable privacy requests, but some information may be retained where needed for security, fraud prevention, legal compliance, dispute resolution, backups, or de-identified analytics.",
+      "Virginia residents may have rights under the Virginia Consumer Data Protection Act if Darvis meets the law's applicability thresholds, including rights to access, correct, delete, obtain a portable copy of certain personal data, and opt out of targeted advertising, sale of personal data, or certain profiling. Darvis does not sell personal data or use personal data for targeted advertising as those practices are currently understood in the product.",
+      "Users may also be able to delete certain saved schedules, chats, profile fields, posts, Echo reviews, or account information directly in the product when those controls are available. Darvis will make reasonable efforts to honor applicable privacy requests, but some information may be retained where needed for security, fraud prevention, legal compliance, dispute resolution, backups, public-content integrity, moderation records, or de-identified analytics.",
     ],
   },
   {
@@ -132,8 +147,10 @@ const PRIVACY_SECTIONS = [
     body: [
       "Darvis may offer public profiles, forums, class chat, course discussions, ratings, reviews, social feed posts, marketplace listings, or similar user-generated content features. Information posted through those features may be visible to other Darvis users or the public depending on the feature settings.",
       "Echo reviews are intended to be visible to other Darvis users and may be displayed on professor or course pages with the reviewer's chosen display name or account-derived display name, unless Darvis later provides more restrictive visibility controls.",
+      "Forum posts and profile activity posts may be publicly readable or visible to other Darvis users depending on the feature. Forum users may choose an anonymous display label in the interface, but Darvis may still store the account identifier needed for moderation, security, and owner deletion.",
       "Users should not post private information about themselves or others, including student IDs, grades, transcripts, schedules, health information, contact details, or private messages, unless they intentionally want that information visible in the relevant audience.",
-      "Darvis may moderate, remove, limit, or preserve user content where needed for safety, policy enforcement, legal compliance, abuse prevention, or dispute resolution. Deleted public content may persist in backups, cached copies, screenshots, quoted replies, moderation logs, or records needed to protect the service.",
+      "Darvis may moderate, remove, limit, or preserve user content where needed for safety, policy enforcement, legal compliance, abuse prevention, or dispute resolution. To report abusive, unlawful, privacy-invasive, infringing, or non-consensual intimate image or video content, contact darvis.b2b@gmail.com with enough detail for Darvis to identify the content and review the request.",
+      "Deleted or removed public content may persist in backups, cached copies, screenshots, quoted replies, moderation logs, or records needed to protect the service, but Darvis will make reasonable efforts to remove content from Darvis-controlled surfaces when removal is required by law or platform policy.",
     ],
   },
   {
@@ -147,8 +164,8 @@ const PRIVACY_SECTIONS = [
   {
     heading: "Children and Minors",
     body: [
-      "Darvis is intended for college students and users who are at least 13 years old. Darvis does not knowingly collect personal information from children under 13.",
-      "Users under 18 should use Darvis only with appropriate permission from a parent or guardian or where otherwise legally permitted.",
+      "Darvis is intended for college students, prospective college students, and users who are at least 13 years old. Darvis is not directed to children under 13 and does not knowingly collect personal information from children under 13.",
+      "If Darvis learns that it has collected personal information from a child under 13 without legally sufficient consent, Darvis will take reasonable steps to delete that information or obtain required consent. Users under 18 should use Darvis only with appropriate permission from a parent or guardian or where otherwise legally permitted.",
     ],
   },
   {
@@ -172,7 +189,7 @@ const TERMS_SECTIONS = [
   {
     heading: "What Darvis Is",
     body: [
-      "Darvis is a student-focused course-planning and schedule-building platform. It helps users explore grade distributions, historical course data, professor and course insights, timetable-style information, course metadata, visual schedule-building tools, AI-assisted explanations, and student-facing planning context where available.",
+      "Darvis is a student-focused course-planning and schedule-building platform. It helps users explore grade distributions, historical course data, professor and course insights, timetable-style information, course descriptions, prerequisites, Pathways metadata, visual schedule-building tools, AI-assisted explanations, Echo reviews, forums, saved conversations, and student-facing planning context where available.",
       "Darvis is intended to support academic planning. Darvis does not make official academic, registration, advising, or degree decisions.",
     ],
   },
@@ -195,7 +212,7 @@ const TERMS_SECTIONS = [
     heading: "Eligibility, Accounts, Waitlist, and Access",
     body: [
       "Darvis is intended for users who are at least 13 years old. If you are under 18, you may use Darvis only if legally permitted and, where required, with permission from a parent or guardian.",
-      "Some features may require registration. If you create an account, join a waitlist, or submit access information, you agree to provide accurate information and keep login credentials secure.",
+      "Most current product features require registration or early-access approval through Clerk. If you create an account, join a waitlist, or submit access information, you agree to provide accurate information and keep login credentials secure.",
       "Darvis may restrict, suspend, terminate, approve, deny, prioritize, limit, or revoke access, waitlist participation, or early-access participation at its discretion if misuse, abuse, fraud, security risk, unauthorized access, or violation of these Terms is detected.",
     ],
   },
@@ -203,7 +220,7 @@ const TERMS_SECTIONS = [
     heading: "Acceptable Use",
     body: [
       "You agree to use Darvis only for lawful academic planning and related personal use.",
-      "You agree not to harass, defame, threaten, target, submit harmful content, post another person's private information, re-identify de-identified information, scrape or extract Darvis data without permission, bypass access controls or rate limits, disrupt the platform, upload malware, attack Darvis systems, make misleading claims about people or courses, use Darvis for unauthorized commercial resale, competitive extraction, database creation, model training, or misrepresent Darvis as an official university system.",
+      "You agree not to harass, defame, threaten, target, submit harmful content, post another person's private information, re-identify de-identified information, scrape or extract Darvis data without permission, bypass access controls or rate limits, disrupt the platform, upload malware, attack Darvis systems, make misleading claims about people or courses, manipulate ratings or reviews, use Darvis for unauthorized commercial resale, competitive extraction, database creation, model training, or misrepresent Darvis as an official university system.",
       "Darvis may remove content, restrict access, suspend accounts, or take other action if it believes these rules have been violated.",
     ],
   },
@@ -230,7 +247,8 @@ const TERMS_SECTIONS = [
     body: [
       "Darvis may use artificial intelligence to explain course-planning information, summarize available evidence, and help users compare options.",
       "AI-generated responses may contain mistakes, omissions, outdated information, unsupported assumptions, or incorrect interpretations. Structured facts are retrieved or computed from available data sources where possible, but no AI system is perfect.",
-      "AI-assisted course or professor recommendations may be based on limited historical grade data, selected filters, and later user-submitted Echo data if that feature is enabled. These recommendations do not measure every factor that may matter, including teaching style, workload, fit, availability, accessibility, schedule conflicts, prerequisites, advising requirements, or changes in future course delivery.",
+      "AI-assisted course or professor recommendations may be based on limited historical grade data, selected filters, saved schedule or profile context if provided, current-term section data, catalog metadata, RateMyProfessors data, and user-submitted Echo data where available. These recommendations do not measure every factor that may matter, including teaching style, workload, fit, availability, accessibility, schedule conflicts, prerequisites, advising requirements, or changes in future course delivery.",
+      "Darvis may send prompts, recent conversation context, retrieved academic context, and structured planning context to third-party AI, embedding, or reranking providers as needed to operate Cyrus. Users are responsible for avoiding unnecessary sensitive information in prompts.",
       "AI responses are planning support only. They are not academic instructions, professional advising, official university guidance, legal advice, financial advice, medical advice, or guarantees.",
       "Users should verify recommendations with official university systems, academic advisors, course catalogs, syllabi, current section listings, instructor information, and their own research before making enrollment decisions.",
       "Users should not submit sensitive personal information, official student records, passwords, API keys, health information, financial information, or private credentials into AI features unless Darvis expressly asks for that information for a specific feature and explains the related privacy controls.",
@@ -242,6 +260,8 @@ const TERMS_SECTIONS = [
       "Darvis may rely on historical grade distributions, course metadata, timetable-style data, professor/course information, student-facing review sources, public information, third-party sources, and discussion-based context.",
       "Historical grade distributions can show past outcomes, sample sizes, and trends, but do not measure teaching quality, workload, fairness, course difficulty, instructor personality, or whether a particular student will succeed.",
       "Timetable and schedule information may change frequently. Open seats, times, instructor assignments, locations, modalities, restrictions, prerequisites, and registration rules may change without Darvis immediately reflecting the update.",
+      "Darvis may use authenticated automation to refresh timetable information that is visible to authenticated university users or otherwise permitted to be accessed. Darvis is not responsible for university system outages, changed access rules, expired credentials, scraping failures, or delayed timetable updates.",
+      "Course descriptions, prerequisites, Pathways codes, major requirements, and other catalog information may be scraped, imported, cached, transformed, or summarized from public catalog pages and may lag behind official university updates.",
       "Student reviews and discussion-based sources are subjective and may be biased, outdated, incomplete, exaggerated, inaccurate, or based on limited personal experience.",
     ],
   },
@@ -252,13 +272,24 @@ const TERMS_SECTIONS = [
       "If Darvis offers public profiles, forums, class chat, course discussions, ratings, reviews, social feeds, marketplace listings, or similar features, content submitted through those features may be visible to other Darvis users or the public depending on the feature settings. Do not submit private information about yourself or others unless you intend to share it with that audience.",
       "You may not submit content that reveals another person's private information, impersonates another person, targets a student, instructor, staff member, or department in a harmful way, or creates legal, safety, privacy, or academic integrity risk.",
       "By submitting an Echo review, you grant Darvis permission to display, store, moderate, analyze, summarize, and use that review and its structured rating fields to operate Echo, calculate aggregate review statistics, improve Darvis planning features, and enforce platform integrity.",
+      "By submitting forum posts, replies, profile activity posts, images or image URLs, links, display names, or similar public content, you grant Darvis permission to display, store, moderate, remove, analyze, and distribute that content within Darvis features. Choosing an anonymous display label does not prevent Darvis from storing account identifiers for safety, moderation, security, and deletion controls.",
+      "By using chatbot feedback buttons, you grant Darvis permission to store and review the related question, answer, route, rating, and optional reason for product-quality, safety, debugging, and evaluation purposes.",
       "By submitting feedback, suggestions, bug reports, ideas, or product requests, you grant Darvis permission to use, copy, modify, analyze, and incorporate that feedback to improve the product without owing compensation.",
+    ],
+  },
+  {
+    heading: "Abuse Reports and Takedown Requests",
+    body: [
+      "Darvis may review and remove forums, profile content, Echo reviews, links, image URLs, images, or other user content that appears abusive, unlawful, infringing, defamatory, privacy-invasive, sexually explicit, exploitative, threatening, harassing, spammy, impersonating another person, or otherwise inconsistent with these Terms.",
+      "To submit an abuse, privacy, copyright, impersonation, harassment, or takedown report, email darvis.b2b@gmail.com with Abuse Report or Takedown Request in the subject line, the URL or location of the content, a description of the concern, and contact information Darvis can use to follow up. Darvis may request additional information reasonably needed to verify and process the report.",
+      "Non-consensual intimate images or videos are prohibited. If Darvis is a covered platform under applicable law, including Section 3 of the Take It Down Act effective May 19, 2026, Darvis will maintain a reporting process for valid removal requests and will remove covered content and known identical copies from Darvis-controlled surfaces within the legally required timeframe.",
+      "Darvis may preserve limited records of reports, removed content, account identifiers, timestamps, and moderation decisions where needed for safety, legal compliance, repeat-abuse prevention, appeals, or dispute resolution.",
     ],
   },
   {
     heading: "Uploads, Transcripts, Attachments, and Resume Tools",
     body: [
-      "Darvis may offer optional upload-based features such as transcript autofill, attachment analysis, resume review, or document parsing. These features are optional unless Darvis clearly states otherwise.",
+      "The current chatbot interface may let users attach file names or local previews to visible chat messages, but the backend does not currently accept uploaded file contents through the chat request model. Darvis may offer optional upload-based features such as transcript autofill, attachment analysis, resume review, or document parsing in the future. These features are optional unless Darvis clearly states otherwise.",
       "By uploading a file, transcript, resume, image, document, or attachment, you represent that you have the right to provide it and authorize Darvis and its service providers to process it for the requested feature, security screening, abuse prevention, technical reliability, and related support.",
       "Do not upload official student records, transcripts, resumes, IDs, medical information, financial information, immigration documents, passwords, or private credentials unless the feature specifically asks for that information and you understand the applicable privacy notice.",
       "Darvis may reject, limit, remove, or disable uploads that appear unsafe, abusive, unauthorized, infringing, sensitive beyond the feature purpose, or inconsistent with these Terms.",
@@ -267,16 +298,16 @@ const TERMS_SECTIONS = [
   {
     heading: "Saved History, Memory, Profiles, and Visibility Controls",
     body: [
-      "Darvis may allow users to save schedules, planning preferences, chat history, chat memory, profile fields, posts, comments, ratings, reviews, or other account-based content. You are responsible for reviewing what you save or publish.",
+      "Darvis may allow users to save schedules, planning preferences, chat history, profile fields, posts, comments, ratings, reviews, projects or folders, feedback state, or other account-based content. You are responsible for reviewing what you save or publish.",
       "If a feature includes visibility controls, you are responsible for choosing the appropriate setting. Darvis may use reasonable defaults, but Darvis is not responsible for information you intentionally make visible to other users or the public.",
       "Echo reviews are treated as published student-facing content unless Darvis provides a more restrictive setting for that review. Removing a review from public display may not immediately remove backup copies, moderation records, abuse-prevention records, or de-identified aggregate statistics.",
-      "If Darvis offers chat memory or personalized planning context, the feature is designed to improve future responses, but it may also affect what Cyrus remembers or uses later. Users should delete or disable memory items they do not want used for future planning.",
+      "Saved conversations and local chat history may be used as recent context when you continue, retry, or edit a Cyrus conversation. Users should delete conversation items they do not want used for future planning context.",
     ],
   },
   {
     heading: "Marketplace, Payments, and External Transactions",
     body: [
-      "If Darvis later offers marketplace, paid, premium, or transaction-based features, additional terms, fees, refund rules, safety rules, payment processor disclosures, and eligibility requirements may apply.",
+      "Darvis does not currently operate a payment, marketplace, or transaction feature in the reviewed codebase. If Darvis later offers marketplace, paid, premium, or transaction-based features, additional terms, fees, refund rules, safety rules, payment processor disclosures, and eligibility requirements may apply.",
       "Darvis may use third-party payment, fraud prevention, identity, delivery, or marketplace service providers to support those features. Users should not use Darvis marketplace features to exchange prohibited, unsafe, fraudulent, infringing, or unlawful goods, services, files, credentials, assignments, or academic work.",
     ],
   },
@@ -421,8 +452,8 @@ export default function LegalPage({ type = "privacy", darkMode = true, setPage }
           fontFamily: MONO,
           fontSize: 11,
         }}>
-          <span style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "5px 10px" }}>Effective Date: June 30, 2026</span>
-          <span style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "5px 10px" }}>Last Updated: June 30, 2026</span>
+          <span style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "5px 10px" }}>Effective Date: August 5, 2026</span>
+          <span style={{ border: `1px solid ${p.line}`, borderRadius: RADIUS.pill, padding: "5px 10px" }}>Last Updated: August 5, 2026</span>
         </div>
         <p style={{
           margin: "0 0 34px",
