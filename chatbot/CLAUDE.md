@@ -53,7 +53,7 @@ app/
 │   ├── schemas.py, validator.py
 │   └── (see docs/CYRUS_OPENAI_MODEL_ROUTING_IMPLEMENTATION_PLAN.md at repo root)
 ├── data/
-│   ├── loader.py           Supabase batch fetchers — grades, RMP/instructors, courses, requirements, Fall 2026 sections
+│   ├── loader.py           Supabase batch fetchers — grades, RMP/instructors, courses, requirements, Fall 2026 sections, `load_roadmap_from_supabase()` → `STATE["roadmap_df"]` (roadmap_courses table)
 │   ├── analytics.py        Core Pandas logic — course_profile, professor_profile, natural_filter, detect_natural_params
 │   ├── indexes.py          DataIndexes — precomputed O(1) instructor-GPA/course-stat/section lookups, built in lifespan(), passed into every handler
 │   └── recency.py          Recency weighting for recent semesters
@@ -64,7 +64,7 @@ app/
 │   ├── natural_filter.py   Handler for filter/ranking questions ("highest GPA", "worst F rate")
 │   ├── general_chat.py     Catch-all — tries natural_filter first, then LLM
 │   ├── major_requirements.py Handler for graduation/degree requirement questions
-│   ├── schedule_builder.py Handler for "build me a schedule" requests
+│   ├── schedule_builder.py Handler for "build me a schedule" requests; folds VT registrar checksheet data (roadmap_df, keyed on major + student year) into Tier-0 required-course ranking when both are known — asks inline for year if missing and recovers the original request from history on the follow-up (roadmap-aware scheduling, commit `d40e915`)
 │   ├── section_lookup.py   Handler for Fall 2026 timetable questions ("who is teaching CS 1114?", times/days/seats/location) — uses startup-loaded sections_df, falls back to live Supabase query
 │   └── templated_answers.py Template fallbacks when LLM is unavailable
 ├── rag/
@@ -177,8 +177,9 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 | `major_requirements` | `load_requirements_from_supabase()` | Major requirement answers |
 | `sections` | `load_sections_from_supabase()` at startup (term from `CURRENT_TERM` in config.py, default 202609) | Section lookups, course/professor profiles, schedule building. 10,663 rows, auto-refreshed every 4h by GitHub Actions; `schedule_builder.py` still queries `majors`/`major_requirements` live |
 | `embeddings` | Source of truth; synced into Redis by `scripts/sync_redis_index.py` | Semantic search. Retrieval queries Redis at runtime, not this table directly. Redis index verified at 36,210 vectors via `/health` on 2026-07-31 (local + production) — embeddings have been rebuilt since the stale 4,576-row snapshot; see Known issues #1 |
-| `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers |
+| `feedback` | Written to via `POST /feedback` | Thumbs up/down ratings on chatbot answers; `reason` column added `migrations/004_feedback_reason.sql` (2026-08-01) |
 | `echo_reviews` | Added by `migrations/003_echo_reviews.sql` (2026-07-05) | Read/written by `frontend/src/api.js`; served by chatbot `GET /rmp/reviews` |
+| `roadmap_courses` | Added by `migrations/005_roadmap_courses.sql` (commit `d40e915`, 2026-08-07) | `major_name`/`year_number`/`semester`/`course_code` scraped from VT registrar checksheet PDFs via `scripts/scrape_checksheets.py`; loaded by `load_roadmap_from_supabase()`, feeds `schedule_builder.py` |
 
 ## Known issues
 
@@ -194,7 +195,9 @@ Column names in the DataFrame use the original VT UDC CSV headers (e.g., `"Cours
 
 4. **`grade_embeddings` table** — 0 rows, not referenced anywhere. Drop it when convenient.
 
-5. **Two professor tables** — `instructors` (3,834 rows, 1,982 with RMP ratings) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Consolidate later.
+5. **`scripts/scrape_checksheets.py` deps missing from `requirements.txt`** — depends on `pdfplumber`, `beautifulsoup4`, `lxml`; none are pinned in `chatbot/requirements.txt`, must be installed manually per the script's own docstring. Coverage is partial by design — some colleges' checksheet PDFs use non-extractable font encoding.
+
+6. **Two professor tables** — `instructors` (3,834 rows, 1,982 with RMP ratings) is read by both the frontend `api.js` and the chatbot. The legacy `professors` table (65 rows) is only written by `backend/scripts/import_rmp.js`, never read. Consolidate later.
 
 ## What not to break
 
