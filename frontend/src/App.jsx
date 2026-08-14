@@ -186,7 +186,13 @@ export default function App() {
   };
 
   // schedule is now an array of full section objects {crn, subject, courseNumber, days, startTime, ...}
-  const addSection    = sec => { if (!schedule.some(s => s.crn === sec.crn)) setSchedule(prev => [...prev, sec]); };
+  // Functional update only -- must not read the `schedule` closure var, since
+  // applyScheduleActions() calls clearSchedule() then addSection() repeatedly
+  // in one synchronous batch; `schedule` stays stale until the next render, so
+  // a stale-read dedupe guard here silently drops every section whose crn
+  // matches the pre-clear schedule (previously this could zero out an entire
+  // rebuilt schedule when the new crns overlapped the old ones).
+  const addSection    = sec => setSchedule(prev => (prev.some(s => s.crn === sec.crn) ? prev : [...prev, sec]));
   const removeSection = crn => setSchedule(prev => prev.filter(s => s.crn !== crn));
   const clearSchedule = () => setSchedule([]);
 

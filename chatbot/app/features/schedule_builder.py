@@ -507,6 +507,17 @@ def _msg_field(msg, field: str) -> str:
     return msg.get(field) if isinstance(msg, dict) else getattr(msg, field, "") or ""
 
 
+def _resolve_student_year(question: str, profile: dict) -> int | None:
+    """Resolve the student's year level to an int from either free-text
+    phrasing or the profile-page year dropdown -- both go through
+    _extract_year_level so a profile value like "Sophomore" normalizes to
+    2 instead of leaking through as a non-numeric string, which used to
+    silently break both the roadmap fold-in and the "ask for year"
+    clarification check (a truthy non-int string skipped both branches).
+    """
+    return _extract_year_level(question) or _extract_year_level(str(profile.get("year") or ""))
+
+
 def handle_schedule_builder(
     question: str,
     user_profile: dict | None = None,
@@ -689,7 +700,7 @@ def handle_schedule_builder(
     # correct. Coverage is partial (some checksheet PDFs can't be parsed yet --
     # see scrape_checksheets.py); when there's no roadmap match, this is a
     # silent no-op and behavior is unchanged from before this feature existed.
-    student_year = _extract_year_level(question) or profile.get("year")
+    student_year = _resolve_student_year(question, profile)
     major_roadmap_rows = None
     if major and roadmap_df is not None and not roadmap_df.empty:
         major_lower = major.lower().strip()
