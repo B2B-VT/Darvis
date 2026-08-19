@@ -201,6 +201,14 @@ Row counts verified live 2026-07-01:
 **Low priority:**
 - Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.
 - `rmp_tags` is empty for all 1,982 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
+- `README.md` is stale and contradicts this file: it claims React 18 (actual: React 19), "Claude Haiku (Anthropic API)" for the chatbot (actual: Groq `openai/gpt-oss-120b`), and a `.env` step naming `ANTHROPIC_API_KEY`. Its "Pending work" list is also done: embeddings were rebuilt (36,210 Redis vectors), the thumbs up/down UI is wired to `POST /feedback` in `chatbot.jsx`, and `courses.pathways` is populated for 751 courses and filtered on in `api.js`. Treat AGENTS.md/CLAUDE.md as source of truth until README is refreshed.
+
+## Git and PR conventions
+
+- **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`. Older history predates the convention and uses plain sentence-case subjects; new work should follow it.
+- **Branches:** `codex/<topic>` for agent-driven work (`codex/UI-fixes`, `codex/landing-earth-scene`, `codex/cyrus-testing`). `main` is the default and the deploy branch — every push to `main` auto-deploys the frontend (Vercel) and chatbot (Render), so never push unfinished work to `main`.
+- **Merges:** GitHub PRs into `main`, merged with merge commits (not squash) — remote is `B2B-VT/Darvis`.
+- **Design docs:** larger initiatives land a dated spec + plan pair in `docs/superpowers/specs/` and `docs/superpowers/plans/` before implementation.
 
 ## Deployment
 
