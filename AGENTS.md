@@ -201,7 +201,7 @@ Row counts verified live 2026-07-01:
 **Low priority:**
 - Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.
 - `rmp_tags` is empty for all 1,982 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
-- `README.md` is stale and contradicts this file: it claims React 18 (actual: React 19), "Claude Haiku (Anthropic API)" for the chatbot (actual: Groq `openai/gpt-oss-120b`), and a `.env` step naming `ANTHROPIC_API_KEY`. Its "Pending work" list is also done: embeddings were rebuilt (36,210 Redis vectors), the thumbs up/down UI is wired to `POST /feedback` in `chatbot.jsx`, and `courses.pathways` is populated for 751 courses and filtered on in `api.js`. Treat AGENTS.md/CLAUDE.md as source of truth until README is refreshed.
+- `README.md` was rewritten 2026-08-25 to match this file (stack, env vars, data counts, pending work). It restates the same facts for a public audience — when the stack or pending-work list changes here, update README too.
 
 ## Git and PR conventions
 
