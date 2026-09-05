@@ -333,6 +333,29 @@ const STORY_FEATURES = [
   ["04", "Ask Cyrus", "An academic assistant that answers in plain English, backed by the data."],
 ];
 
+// Unpinned phone sections have no scroll runway to map progress onto, so the
+// scroll-linked animations would sit at 0 the whole time they are on screen.
+// Play the same 0->1 sweep once, when the section scrolls into view.
+function playOnReveal(el, apply, ms = 900) {
+  if (!el) return () => {};
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    apply(1);
+    return () => {};
+  }
+  let raf = null, start = null, fired = false;
+  const step = now => {
+    if (start === null) start = now;
+    const k = Math.min((now - start) / ms, 1);
+    apply(1 - Math.pow(1 - k, 3));
+    if (k < 1) raf = requestAnimationFrame(step);
+  };
+  const obs = new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !fired) { fired = true; obs.disconnect(); raf = requestAnimationFrame(step); }
+  }, { threshold: 0.25 });
+  obs.observe(el);
+  return () => { obs.disconnect(); if (raf) cancelAnimationFrame(raf); };
+}
+
 function ScrollStory({ dark, t, isMobile, pad }) {
   const wrapRef = useRef(null);
   const lineRef = useRef(null);
@@ -342,6 +365,12 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   const dots = [{ x: 20, y: 150 }, { x: 200, y: 104 }, { x: 400, y: 56 }, { x: 580, y: 30 }];
 
   useEffect(() => {
+    if (isMobile) {
+      return playOnReveal(wrapRef.current, drawP => {
+        setActive(Math.min(Math.floor(drawP * 4), 3));
+        if (lineRef.current) lineRef.current.style.strokeDashoffset = String(720 * (1 - drawP));
+      }, 1100);
+    }
     let raf = null;
     const onScroll = () => {
       if (raf) return;
@@ -360,14 +389,15 @@ function ScrollStory({ dark, t, isMobile, pad }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
-  }, []);
+  }, [isMobile]);
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "165vh" : "280vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "auto" : "280vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100dvh",
+        position: isMobile ? "static" : "sticky", top: 0,
+        minHeight: isMobile ? 0 : "100dvh",
         display: "flex", alignItems: "center",
-        padding: pad, boxSizing: "border-box",
+        padding: isMobile ? "52px 22px" : pad, boxSizing: "border-box",
       }}>
         <div style={{
           maxWidth: 1150, margin: "0 auto", width: "100%",
@@ -1178,6 +1208,14 @@ function ChatSection({ dark, t, isMobile, pad }) {
   const [stage, setStage] = useState(-1);
 
   useEffect(() => {
+    if (isMobile) {
+      return playOnReveal(wrapRef.current, p => {
+        if (p <= 0.001) { setStage(-1); return; }
+        const a = Math.min(Math.floor(p * 3), 2);
+        const sub2 = p * 3 - a;
+        setStage(a * 3 + (sub2 < 0.2 ? 0 : sub2 < 0.5 ? 1 : 2));
+      }, 1800);
+    }
     let raf = null;
     const onScroll = () => {
       if (raf) return;
@@ -1198,7 +1236,7 @@ function ChatSection({ dark, t, isMobile, pad }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
-  }, []);
+  }, [isMobile]);
 
   const started = stage >= 0;
   const active = started ? Math.floor(stage / 3) : 0;
@@ -1225,11 +1263,13 @@ function ChatSection({ dark, t, isMobile, pad }) {
   );
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "165vh" : "280vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "auto" : "280vh", position: "relative" }}>
     <div style={{
-      position: "sticky", top: 0, minHeight: "100dvh",
+      position: isMobile ? "static" : "sticky", top: 0,
+      minHeight: isMobile ? 0 : "100dvh",
       display: "flex", alignItems: "center",
-      maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
+      maxWidth: 1150, margin: "0 auto",
+      padding: isMobile ? "52px 22px" : pad, boxSizing: "border-box",
     }}>
       {!isMobile && (
         <div aria-hidden="true" style={{ position: "absolute", top: "8%", left: "46%", animation: "lpFloat 5.2s ease-in-out 0.5s infinite", pointerEvents: "none" }}>
@@ -1469,6 +1509,7 @@ function DataViz({ dark, t, isMobile, pad }) {
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       apply(1); return;
     }
+    if (isMobile) return playOnReveal(wrapRef.current, apply, 1400);
     let raf = null;
     const onScroll = () => {
       if (raf) return;
@@ -1485,16 +1526,18 @@ function DataViz({ dark, t, isMobile, pad }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
-  }, []);
+  }, [isMobile]);
 
   const faint = dark ? "rgba(244,239,233,0.10)" : "rgba(26,18,15,0.10)";
   const axis = dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)";
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "140vh" : "240vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "auto" : "240vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100dvh",
-        display: "flex", alignItems: "center", padding: pad, boxSizing: "border-box",
+        position: isMobile ? "static" : "sticky", top: 0,
+        minHeight: isMobile ? 0 : "100dvh",
+        display: "flex", alignItems: "center",
+        padding: isMobile ? "52px 22px" : pad, boxSizing: "border-box",
       }}>
         <div style={{ maxWidth: 1150, margin: "0 auto", width: "100%" }}>
           <div style={{ textAlign: "center", marginBottom: isMobile ? 30 : 48 }}>
