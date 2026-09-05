@@ -1,6 +1,6 @@
 // FAQs page
 import { useState, useEffect } from "react";
-import { SANS, SERIF, MONO, ACCENT, palette, RADIUS } from "../theme.jsx";
+import { SANS, SERIF, MONO, ACCENT, palette, RADIUS, useIsMobile } from "../theme.jsx";
 
 export default function FaqsPage({ darkMode = true, setPage }) {
   const p       = palette(darkMode);
@@ -18,14 +18,8 @@ export default function FaqsPage({ darkMode = true, setPage }) {
   const plusBg  = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
   const [open, setOpen] = useState(null);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const toggle = i => setOpen(open === i ? null : i);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
 
   const sections = [
     {
@@ -120,7 +114,7 @@ export default function FaqsPage({ darkMode = true, setPage }) {
   ];
 
   return (
-    <div style={{ background: bg, minHeight: "100vh", color: text, fontFamily: SANS, paddingBottom: 80, transition: "background 0.3s, color 0.3s" }}>
+    <div style={{ background: bg, minHeight: "100dvh", color: text, fontFamily: SANS, paddingBottom: 80, transition: "background 0.3s, color 0.3s" }}>
 
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${border}`, padding: isMobile ? "32px 0 24px" : "48px 0 40px" }}>

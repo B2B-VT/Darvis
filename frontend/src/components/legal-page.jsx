@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SANS, SERIF, MONO, ACCENT, palette, RADIUS } from "../theme.jsx";
+import { SANS, SERIF, MONO, ACCENT, palette, RADIUS, useIsMobile } from "../theme.jsx";
 
 const CONTACT_EMAIL = "darvis.b2b@gmail.com";
 
@@ -375,19 +375,13 @@ const DOCS = {
 };
 
 export default function LegalPage({ type = "privacy", darkMode = true, setPage }) {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 760);
+  const isMobile = useIsMobile();
   const p = palette(darkMode);
   const doc = DOCS[type] || DOCS.privacy;
 
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 760);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
   return (
     <main style={{
-      minHeight: "100vh",
+      minHeight: "100dvh",
       fontFamily: SANS,
       color: p.text,
       padding: isMobile ? "36px 18px 72px" : "72px 48px 108px",

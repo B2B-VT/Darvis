@@ -1,7 +1,10 @@
 // macOS Big Sur–style sidebar shell — used for all pages including landing
 import { useState, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
-import { palette, ACCENT, SANS, MONO } from "../theme.jsx";
+import {
+  palette, ACCENT, SANS, MONO,
+  useIsMobile, safeArea, TAP, MOBILE_HEADER_H, MOBILE_NAV_H,
+} from "../theme.jsx";
 
 const SIDEBAR_W   = 220;
 const SIDEBAR_COL = 64;  // collapsed icon-only width
@@ -253,7 +256,7 @@ export default function AppShell({
 }) {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed]   = useState(false);
   const [railTooltip, setRailTooltip] = useState(null);
@@ -261,13 +264,26 @@ export default function AppShell({
 
   const sidebarW = collapsed ? SIDEBAR_COL : SIDEBAR_W;
 
-  useEffect(() => {
-    const fn = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
-  }, []);
-
   useEffect(() => { setDrawerOpen(false); }, [page]);
+
+  // Leaving the phone layout must not strand an open drawer over the desktop UI.
+  useEffect(() => { if (!isMobile) setDrawerOpen(false); }, [isMobile]);
+
+  // Lock the page behind the drawer so the body doesn't scroll under the sheet.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [drawerOpen]);
+
+  // Escape closes the drawer — required escape route for an overlay (Apple HIG).
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = e => { if (e.key === "Escape") setDrawerOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
 
   const navItems = [
     { id: "instructors", label: "Instructors", icon: Icons.instructors },
@@ -609,28 +625,215 @@ export default function AppShell({
   const MobileHeader = () => (
     <div style={{
       position: "sticky", top: 0, zIndex: 150,
-      height: 52, display: "flex", alignItems: "center", padding: "0 16px", gap: 12,
+      // Height grows by the status-bar inset so the bar never sits under the notch.
+      height: safeArea.top(MOBILE_HEADER_H),
+      paddingTop: safeArea.top(),
+      display: "flex", alignItems: "center",
+      paddingLeft: safeArea.left(12), paddingRight: safeArea.right(12),
+      gap: 6,
       background: darkMode ? "rgba(14,11,10,0.90)" : "rgba(246,243,240,0.92)",
       backdropFilter: "blur(20px) saturate(1.8)", WebkitBackdropFilter: "blur(20px) saturate(1.8)",
       borderBottom: `1px solid ${sidebarBorder}`, boxSizing: "border-box",
     }}>
-      <button onClick={() => setDrawerOpen(o => !o)} style={{ background: "none", border: "none", cursor: "pointer", color: p.textSub, padding: 4, display: "flex", borderRadius: 6 }}>
+      <button
+        onClick={() => setDrawerOpen(o => !o)}
+        aria-label={drawerOpen ? "Close menu" : "Open menu"}
+        aria-expanded={drawerOpen}
+        style={{
+          background: "none", border: "none", cursor: "pointer", color: p.textSub,
+          width: TAP, height: TAP, flexShrink: 0, borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
         {Icons.hamburger}
       </button>
-      <button onClick={() => setPage("landing")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: 0 }}>
-        <img src="/darvis-logo.png" alt="Darvis" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "cover" }} />
-        <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 15, color: p.text, letterSpacing: "-0.3px" }}>Darvis</span>
+      <button
+        onClick={() => setPage("landing")}
+        aria-label="Darvis home"
+        style={{
+          background: "none", border: "none", cursor: "pointer", display: "flex",
+          alignItems: "center", gap: 8, padding: "0 4px", height: TAP, minWidth: 0,
+        }}
+      >
+        <img src="/darvis-logo.png" alt="" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+        <span style={{
+          fontFamily: SANS, fontWeight: 700, fontSize: 15, color: p.text, letterSpacing: "-0.3px",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>Darvis</span>
       </button>
       <div style={{ flex: 1 }} />
       {isSignedIn
-        ? (user?.imageUrl
-            ? <img src={user.imageUrl} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
-            : <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#6b1833,#861F41,#b03060)", color: "#fff", fontWeight: 700, fontSize: 10, fontFamily: SANS, display: "flex", alignItems: "center", justifyContent: "center" }}>{initials}</div>
-          )
-        : <button onClick={onSignIn} style={{ background: "#861F41", border: "none", borderRadius: 7, padding: "5px 12px", color: "#fff", fontFamily: SANS, fontWeight: 600, fontSize: 12, cursor: "pointer" }}>Sign In</button>
+        ? (
+          <button
+            onClick={() => setPage("profile")}
+            aria-label="Profile"
+            style={{
+              background: "none", border: "none", cursor: "pointer", padding: 0,
+              width: TAP, height: TAP, flexShrink: 0, borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {user?.imageUrl
+              ? <img src={user.imageUrl} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
+              : <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#6b1833,#861F41,#b03060)", color: "#fff", fontWeight: 700, fontSize: 11, fontFamily: SANS, display: "flex", alignItems: "center", justifyContent: "center" }}>{initials}</div>
+            }
+          </button>
+        )
+        : <button onClick={onSignIn} style={{
+            background: "#861F41", border: "none", borderRadius: 8, padding: "0 14px",
+            height: 36, minHeight: 36, color: "#fff", fontFamily: SANS, fontWeight: 600,
+            fontSize: 13, cursor: "pointer", flexShrink: 0,
+          }}>Sign In</button>
       }
     </div>
   );
+
+  // ── Mobile drawer ─────────────────────────────────────────────────────────
+  // The hamburger used to toggle `drawerOpen` with nothing listening, so it was
+  // a dead control and Forums/Profile/theme/sign-out had no mobile entry point
+  // at all (the bottom bar only carries four top-level destinations).
+  const MobileDrawer = () => {
+    const drawerItems = [
+      ...navItems,
+      ...(isSignedIn ? [{ id: "profile", label: "Profile", icon: Icons.profile }] : []),
+      { id: "faqs", label: "FAQs", icon: Icons.forums },
+    ];
+    return (
+      <>
+        <div
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden="true"
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            // 50% scrim — enough to isolate the sheet from the page behind it.
+            background: "rgba(0,0,0,0.50)",
+            backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
+            opacity: drawerOpen ? 1 : 0,
+            pointerEvents: drawerOpen ? "auto" : "none",
+            transition: "opacity 0.24s cubic-bezier(0.22,1,0.36,1)",
+          }}
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          style={{
+            position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 201,
+            width: "min(84vw, 300px)",
+            display: "flex", flexDirection: "column",
+            paddingTop: safeArea.top(), paddingBottom: safeArea.bottom(),
+            paddingLeft: safeArea.left(),
+            background: darkMode ? "rgba(12,9,8,0.98)" : "rgba(250,247,243,0.99)",
+            borderRight: `1px solid ${sidebarBorder}`,
+            boxShadow: drawerOpen ? "12px 0 40px rgba(0,0,0,0.35)" : "none",
+            // Slide from the edge it belongs to; exit is quicker than enter.
+            transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
+            transition: drawerOpen
+              ? "transform 0.28s cubic-bezier(0.22,1,0.36,1)"
+              : "transform 0.19s cubic-bezier(0.4,0,1,1)",
+            visibility: drawerOpen ? "visible" : "hidden",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 12px 10px 16px" }}>
+            <img src="/darvis-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 9, objectFit: "cover" }} />
+            <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 16, color: p.text, flex: 1 }}>Darvis</span>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close menu"
+              style={{
+                width: TAP, height: TAP, background: "none", border: "none", cursor: "pointer",
+                color: p.textSub, fontSize: 22, lineHeight: 1, borderRadius: 10,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >×</button>
+          </div>
+
+          <div style={{ height: 1, background: p.lineSoft, margin: "0 16px 8px" }} />
+
+          <nav style={{ flex: 1, overflowY: "auto", padding: "0 10px" }}>
+            {drawerItems.map(item => {
+              const active = page === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setPage(item.id); setDrawerOpen(false); }}
+                  aria-current={active ? "page" : undefined}
+                  style={{
+                    width: "100%", minHeight: TAP + 4,
+                    display: "flex", alignItems: "center", gap: 13,
+                    padding: "0 12px", marginBottom: 3,
+                    background: active
+                      ? (darkMode ? "rgba(134,31,65,0.24)" : "rgba(134,31,65,0.10)")
+                      : "transparent",
+                    border: active
+                      ? `1px solid ${darkMode ? "rgba(134,31,65,0.40)" : "rgba(134,31,65,0.24)"}`
+                      : "1px solid transparent",
+                    borderRadius: 11, cursor: "pointer", textAlign: "left",
+                    color: active ? (darkMode ? "#fff" : ACCENT) : p.textSub,
+                    fontFamily: SANS, fontWeight: active ? 650 : 500, fontSize: 15,
+                  }}
+                >
+                  <span style={{ display: "flex", flexShrink: 0, opacity: active ? 1 : 0.7 }}>{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badge > 0 && (
+                    <span style={{
+                      background: active ? ACCENT : (darkMode ? "rgba(134,31,65,0.55)" : "rgba(134,31,65,0.16)"),
+                      color: active ? "#fff" : ACCENT,
+                      borderRadius: 999, padding: "2px 8px",
+                      fontSize: 11, fontWeight: 700, fontFamily: MONO,
+                    }}>{item.badge}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div style={{ padding: "10px 16px 14px", borderTop: `1px solid ${p.lineSoft}`, display: "flex", gap: 8 }}>
+            <button
+              onClick={() => setDarkMode(m => !m)}
+              style={{
+                flex: 1, minHeight: TAP, display: "flex", alignItems: "center",
+                justifyContent: "center", gap: 7, borderRadius: 10, cursor: "pointer",
+                background: darkMode ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.70)",
+                border: `1px solid ${p.line}`, color: p.textSub,
+                fontFamily: SANS, fontSize: 13, fontWeight: 550,
+              }}
+            >
+              {darkMode ? Icons.sun : Icons.moon}
+              <span>{darkMode ? "Light" : "Dark"}</span>
+            </button>
+            {isSignedIn ? (
+              <button
+                onClick={() => { setDrawerOpen(false); signOut(); }}
+                style={{
+                  flex: 1, minHeight: TAP, display: "flex", alignItems: "center",
+                  justifyContent: "center", gap: 7, borderRadius: 10, cursor: "pointer",
+                  background: "rgba(134,31,65,0.10)",
+                  border: "1px solid rgba(134,31,65,0.30)", color: ACCENT,
+                  fontFamily: SANS, fontSize: 13, fontWeight: 600,
+                }}
+              >
+                {Icons.signout}<span>Sign out</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => { setDrawerOpen(false); onSignIn(); }}
+                style={{
+                  flex: 1, minHeight: TAP, display: "flex", alignItems: "center",
+                  justifyContent: "center", gap: 7, borderRadius: 10, cursor: "pointer",
+                  background: "linear-gradient(135deg,#861F41,#a52856)",
+                  border: "none", color: "#fff",
+                  fontFamily: SANS, fontSize: 13, fontWeight: 600,
+                }}
+              >
+                {Icons.signin}<span>Sign In</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  };
 
   // ── Landing page: position:fixed sidebar so window.scroll still works ────
   if (page === "landing" && !isMobile) {
@@ -658,9 +861,9 @@ export default function AppShell({
   // ── Desktop (non-landing) ────────────────────────────────────────────────
   if (!isMobile) {
     return (
-      <div style={{ display: "flex", height: "100vh", overflow: "hidden", position: "relative", zIndex: 1 }}>
+      <div style={{ display: "flex", height: "100dvh", overflow: "hidden", position: "relative", zIndex: 1 }}>
         <aside style={{
-          width: sidebarW, flexShrink: 0, height: "100vh",
+          width: sidebarW, flexShrink: 0, height: "100dvh",
           transition: "width 0.28s cubic-bezier(0.16,1,0.3,1)",
           position: "relative", zIndex: 10,
           ...asideCss,
@@ -692,43 +895,58 @@ export default function AppShell({
     <>
       <div style={{
         display: "flex", flexDirection: "column", position: "relative", zIndex: 1,
-        ...(page === "chatbot" ? { height: "100vh", overflow: "hidden" } : { minHeight: "100vh" }),
+        // dvh tracks the shrinking/growing URL bar; 100vh overflows by its height
+        // on iOS Safari and pushes the composer below the fold in chat.
+        ...(page === "chatbot" ? { height: "100dvh", overflow: "hidden" } : { minHeight: "100dvh" }),
       }}>
         <MobileHeader />
         <main key={page} style={{
           flex: 1, position: "relative",
           animation: "dvPageIn 0.38s cubic-bezier(0.22,1,0.36,1) both",
           overflowX: "hidden",
-          paddingBottom: page === "chatbot" ? 0 : 62,
+          // Clear the fixed tab bar *and* the home-indicator strip beneath it,
+          // otherwise the last row of every list sits under the nav.
+          paddingBottom: page === "chatbot" ? 0 : safeArea.bottom(MOBILE_NAV_H),
           ...(page === "chatbot" ? { display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" } : {}),
         }}>
           {children}
         </main>
       </div>
 
+      <MobileDrawer />
+
       {/* Bottom navigation bar */}
-      <nav style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-        height: 62,
-        background: darkMode ? "rgba(10,7,6,0.90)" : "rgba(250,248,246,0.94)",
-        backdropFilter: "blur(30px) saturate(1.8)",
-        WebkitBackdropFilter: "blur(30px) saturate(1.8)",
-        borderTop: darkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.09)",
-        display: "flex", alignItems: "stretch",
-        boxShadow: darkMode ? "0 -4px 30px rgba(0,0,0,0.45)" : "0 -2px 20px rgba(0,0,0,0.06)",
-      }}>
+      <nav
+        aria-label="Primary"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+          height: safeArea.bottom(MOBILE_NAV_H),
+          paddingBottom: safeArea.bottom(),
+          background: darkMode ? "rgba(10,7,6,0.90)" : "rgba(250,248,246,0.94)",
+          backdropFilter: "blur(30px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(30px) saturate(1.8)",
+          borderTop: darkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.09)",
+          display: "flex", alignItems: "stretch",
+          boxShadow: darkMode ? "0 -4px 30px rgba(0,0,0,0.45)" : "0 -2px 20px rgba(0,0,0,0.06)",
+        }}
+      >
         {bottomNavItems.map(item => {
           const isActive = page === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setPage(item.id)}
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
               style={{
                 flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                justifyContent: "center", gap: 3, padding: "6px 0 8px",
+                justifyContent: "center", gap: 3, padding: "6px 2px 8px",
+                minHeight: MOBILE_NAV_H,
                 background: "none", border: "none", cursor: "pointer",
                 color: isActive ? ACCENT : p.textMute,
-                fontFamily: SANS, fontSize: 9.5, fontWeight: isActive ? 700 : 500,
+                // 9.5px labels sat under the 11px legibility floor on a phone.
+                fontFamily: SANS, fontSize: 10.5, fontWeight: isActive ? 700 : 500,
+                letterSpacing: "-0.1px",
                 transition: "color 0.15s",
                 borderTop: `2px solid ${isActive ? ACCENT : "transparent"}`,
               }}

@@ -274,7 +274,7 @@ export default function App() {
   return (
     <div style={{
       background: p.bg,
-      minHeight: "100vh",
+      minHeight: "100dvh",
       fontFamily: SANS,
       transition: "background 0.45s",
     }}>

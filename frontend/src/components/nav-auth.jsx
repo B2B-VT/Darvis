@@ -1,7 +1,7 @@
 // Nav — floating glass capsule with sliding active indicator
 import { useState, useEffect, useRef } from "react";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser, useClerk } from "@clerk/clerk-react";
-import { palette, ACCENT, ACCENT_HOVER, SANS, MONO, EASE } from "../theme.jsx";
+import { palette, ACCENT, ACCENT_HOVER, SANS, MONO, EASE, useIsMobile } from "../theme.jsx";
 
 // StarRating stays here since courses.jsx and dashboard-prof.jsx import it
 export function StarRating({ rating, max = 5, size = 14 }) {
@@ -30,7 +30,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
   const { signOut } = useClerk();
   const { user } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 900);
+  const isMobile = useIsMobile(900);
   const [scrolled, setScrolled] = useState(false);
 
   // Sliding indicator
@@ -39,12 +39,6 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
   const [pill, setPill] = useState(null); // { left, width }
 
   const p = palette(darkMode);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 900);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);

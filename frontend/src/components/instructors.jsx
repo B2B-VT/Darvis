@@ -7,6 +7,7 @@ import { StarRating } from "./nav-auth.jsx";
 import {
   MONO, SERIF, SANS, ACCENT, EASE,
   palette, glassCard, glassInput, RADIUS, SHADOW,
+  useIsMobile,
 } from "../theme.jsx";
 import { Skeleton, SkeletonProfessorCard, useMinimumLoading } from "./skeletons.jsx";
 
@@ -158,19 +159,13 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
   const [departmentOpen, setDepartmentOpen] = useState(false);
   const [rmpOnly, setRmpOnly] = useState(false);
   const [sortBy, setSortBy] = useState("name");
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+  const isMobile = useIsMobile();
   const [instructorCourseMap, setInstructorCourseMap] = useState({});
   const searchRef = useRef(null);
   const departmentRef = useRef(null);
   const dm = darkMode;
   const p = palette(dm);
   const showLoading = useMinimumLoading(loading);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 640);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -272,7 +267,7 @@ export default function InstructorsPage({ darkMode, onProfClick }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: SANS }}>
+    <div style={{ minHeight: "100dvh", fontFamily: SANS }}>
       {/* Hero header */}
       <header style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "36px 16px 24px" : "72px 64px 36px", boxSizing: "border-box", borderBottom: `1px solid ${p.line}` }}>
         <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", color: ACCENT, textTransform: "uppercase" }}>Faculty</span>

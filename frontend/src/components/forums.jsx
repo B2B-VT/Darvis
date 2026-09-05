@@ -1,5 +1,6 @@
 // Forums — fully connected to Supabase
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useIsMobile, safeArea } from "../theme.jsx";
 import { useUser } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
 import { BookIcon, UserIcon, CalendarIcon, GraduationCapIcon, LightbulbIcon, BellIcon } from "./icons.jsx";
@@ -24,6 +25,7 @@ function timeAgo(ts) {
 
 // ── New Post Modal ────────────────────────────────────────────────
 function NewPostModal({ onClose, onSubmit, saving, darkMode, defaultCategory = "", currentUser }) {
+  const isMobileModal = useIsMobile();
   const [title,     setTitle]     = useState("");
   const [body,      setBody]      = useState("");
   const [category,  setCategory]  = useState(defaultCategory);
@@ -59,7 +61,9 @@ function NewPostModal({ onClose, onSubmit, saving, darkMode, defaultCategory = "
       style={{
         position: "fixed", inset: 0, zIndex: 900,
         background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+        display: "flex", alignItems: "center", justifyContent: "center", overflowY: "auto",
+        paddingTop: safeArea.top(16), paddingBottom: safeArea.bottom(16),
+        paddingLeft: safeArea.left(14), paddingRight: safeArea.right(14),
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -67,10 +71,10 @@ function NewPostModal({ onClose, onSubmit, saving, darkMode, defaultCategory = "
       <div style={{
         background: bg, border: `1.5px solid ${border}`,
         borderRadius: 20, width: "100%", maxWidth: 560,
-        padding: window.innerWidth < 768 ? "24px 20px 20px" : "36px 36px 32px",
+        padding: isMobileModal ? "24px 18px 20px" : "36px 36px 32px",
         boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
         position: "relative",
-        maxHeight: "90vh", overflowY: "auto",
+        maxHeight: "min(90dvh, calc(100dvh - 24px))", overflowY: "auto",
       }}>
         <button onClick={onClose} style={{
           position: "absolute", top: 14, right: 16,
@@ -248,9 +252,9 @@ function PostThread({ post, onBack, darkMode, currentUser }) {
     }
   };
 
-  const [isMobileThread] = useState(() => window.innerWidth < 768);
+  const isMobileThread = useIsMobile();
   return (
-    <div style={{ background: bg, minHeight: "calc(100vh - 60px)", fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80 }}>
+    <div style={{ background: bg, minHeight: "calc(100dvh - 60px)", fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80 }}>
       <div style={{ maxWidth: 760, margin: "0 auto", padding: isMobileThread ? "24px 16px 0" : "40px 48px 0" }}>
 
         {/* Back */}
@@ -444,9 +448,9 @@ function CategoryView({ category, onBack, onOpenPost, onNewPost, darkMode, curre
     }
   };
 
-  const [isMobileCat] = useState(() => window.innerWidth < 768);
+  const isMobileCat = useIsMobile();
   return (
-    <div style={{ background: bg, minHeight: "calc(100vh - 60px)", fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80 }}>
+    <div style={{ background: bg, minHeight: "calc(100dvh - 60px)", fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80 }}>
       <div style={{ maxWidth: 760, margin: "0 auto", padding: isMobileCat ? "24px 16px 0" : "40px 48px 0" }}>
 
         <button onClick={onBack} style={{
@@ -561,12 +565,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
   const [saving,        setSaving]       = useState(false);
   const showLoadingIndex = useMinimumLoading(loadingIndex);
 
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
+  const isMobile = useIsMobile();
 
   const dm = darkMode;
   const bg      = "transparent";
@@ -667,7 +666,7 @@ export default function ForumsPage({ darkMode = true, setPage }) {
 
   // ── Index view ──────────────────────────────────────────────────
   return (
-    <div style={{ background: bg, minHeight: "100vh", color: text, fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80, transition: "background 0.3s" }}>
+    <div style={{ background: bg, minHeight: "100dvh", color: text, fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 80, transition: "background 0.3s" }}>
 
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${border}`, padding: isMobile ? "28px 0 24px" : "48px 0 40px" }}>

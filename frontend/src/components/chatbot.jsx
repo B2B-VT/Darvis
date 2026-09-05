@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { Chart, registerables } from "chart.js";
 import { DARVIS_CONFIG, CYRUS_PUBLIC_LAUNCHED, CYRUS_ALLOWLIST } from "../config.js";
 import { API } from "../api.js";
-import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE, PageHeader } from "../theme.jsx";
+import { MONO, SANS, ACCENT, COPPER, palette, glassCard, RADIUS, SHADOW, EASE, PageHeader, useIsMobile } from "../theme.jsx";
 import { SkeletonSidebar, useMinimumLoading } from "./skeletons.jsx";
 import CyrusLogo from "./cyrus-logo.jsx";
 
@@ -1457,7 +1457,7 @@ function CyrusApp({ darkMode, addSection, clearSchedule, setPage, userProfile })
   const [minStudents,       setMinStudents]      = useState(30);
   const [topN,              setTopN]             = useState(10);
   const [showSettings,      setShowSettings]     = useState(false);
-  const [isMobile,          setIsMobile]         = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [sidebarOpen,       setSidebarOpen]      = useState(false);
   const [sidebarVisible,    setSidebarVisible]   = useState(true);
   const [attachments,       setAttachments]      = useState([]);
@@ -1493,12 +1493,6 @@ function CyrusApp({ darkMode, addSection, clearSchedule, setPage, userProfile })
       return next;
     });
     setHeadlineUsesName(Math.random() < 0.25);
-  }, []);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
   }, []);
 
   // Loaded once for the input's course/professor autocomplete + spell-correct.
@@ -2889,7 +2883,7 @@ function CyrusLockedScreen({ darkMode }) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

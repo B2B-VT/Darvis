@@ -1,5 +1,6 @@
 // Auth modal — overlay shown when a non-signed-in user clicks a protected page
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { useIsMobile, safeArea, TAP } from "../theme.jsx";
 
 const PAGE_LABELS = {
   search:   "Browse Courses",
@@ -9,6 +10,7 @@ const PAGE_LABELS = {
 };
 
 export default function AuthModal({ page, onClose, darkMode = true }) {
+  const isMobile = useIsMobile();
   return (
     <div
       style={{
@@ -16,8 +18,14 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         background: "rgba(0,0,0,0.72)",
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "24px",
+        display: "flex",
+        // A landscape phone is ~375px tall; centering with no scroll put the
+        // buttons off-screen with no way to reach them.
+        alignItems: "center", justifyContent: "center",
+        overflowY: "auto",
+        paddingTop: safeArea.top(isMobile ? 16 : 24),
+        paddingBottom: safeArea.bottom(isMobile ? 16 : 24),
+        paddingLeft: safeArea.left(16), paddingRight: safeArea.right(16),
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -25,9 +33,11 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
       <div style={{
         background: "#0f0d14",
         border: "1.5px solid rgba(255,255,255,0.1)",
-        borderRadius: 22,
+        borderRadius: isMobile ? 18 : 22,
         width: "100%", maxWidth: 420,
-        padding: "44px 40px 40px",
+        // 40px side padding leaves ~250px of usable width on a 375px screen.
+        padding: isMobile ? "36px 22px 28px" : "44px 40px 40px",
+        margin: "auto",
         textAlign: "center",
         boxShadow: "0 32px 80px rgba(0,0,0,0.7)",
         position: "relative",
@@ -35,11 +45,14 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         {/* Close */}
         <button
           onClick={onClose}
+          aria-label="Close"
           style={{
-            position: "absolute", top: 14, right: 16,
+            position: "absolute", top: 6, right: 6,
+            width: TAP, height: TAP,
+            display: "flex", alignItems: "center", justifyContent: "center",
             background: "none", border: "none", cursor: "pointer",
             color: "rgba(255,255,255,0.28)", fontSize: 22, lineHeight: 1,
-            padding: "4px 6px", borderRadius: 6,
+            borderRadius: 10,
             transition: "color 0.15s",
           }}
           onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}

@@ -6,6 +6,7 @@ import { StarRating } from "./nav-auth.jsx";
 import {
   MONO, SERIF, SANS, ACCENT, EASE,
   palette, glassCard, glassInput, RADIUS, SHADOW,
+  useIsMobile,
 } from "../theme.jsx";
 import { Skeleton, SkeletonCourseCard, SkeletonProfessorCard, SkeletonTable, useMinimumLoading } from "./skeletons.jsx";
 
@@ -111,6 +112,7 @@ export function GradeGrid({ dist, darkMode }) {
 // ── Section Row ───────────────────────────────────────────────────
 function SectionRow({ section, onAdd, onRemove, inSchedule, onProfClick, rmpMap, darkMode }) {
   const p = palette(darkMode);
+  const isMobile = useIsMobile();
   const full    = section.seats > 0 ? section.enrolled >= section.seats : false;
   const virtual = isVirtual(section);
   const instrName = section.instructor || 'Staff';
@@ -122,7 +124,17 @@ function SectionRow({ section, onAdd, onRemove, inSchedule, onProfClick, rmpMap,
     : null;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "70px 1fr 140px 100px 100px 90px", gap: 12, padding: "12px 16px", alignItems: "center", borderBottom: `1px solid ${p.lineSoft}`, fontSize: 13, fontFamily: SANS }}>
+    <div style={{
+      display: "grid",
+      // The six fixed columns need ~620px. On a phone the same six cells reflow
+      // into three two-up rows — CRN/instructor, time/location, seats/action —
+      // which reads as a card without duplicating any markup.
+      gridTemplateColumns: isMobile ? "1fr auto" : "70px 1fr 140px 100px 100px 90px",
+      gap: isMobile ? "6px 12px" : 12,
+      padding: isMobile ? "14px 16px" : "12px 16px",
+      alignItems: isMobile ? "start" : "center",
+      borderBottom: `1px solid ${p.lineSoft}`, fontSize: 13, fontFamily: SANS,
+    }}>
       <div style={{ fontFamily: MONO, fontWeight: 600, color: ACCENT, fontSize: 11 }}>{section.crn}</div>
       <div>
         {profObj ? (
@@ -1169,16 +1181,10 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
   const [echoError, setEchoError] = useState("");
   const [showEchoForm, setShowEchoForm] = useState(false);
   const INSTR_LIMIT = 10;
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 700);
+  const isMobile = useIsMobile();
   const showDetailLoading = useMinimumLoading(detailLoading);
   const showSectionsLoading = useMinimumLoading(sectionsLoading);
   const showDescriptionLoading = useMinimumLoading(descriptionLoading);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 700);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
 
   useEffect(() => {
     setDetailLoading(true); setDetail(null); setTab(initialTab); setShowAllInstructors(false); setSelectedGradeInstructorId("all");
@@ -1295,7 +1301,7 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: isMobile ? "0" : "40px 24px", overflowY: "auto", backdropFilter: "blur(4px)" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: dm ? "#0f0f0f" : "#ffffff", border: `1px solid ${p.line}`, borderRadius: isMobile ? `${RADIUS.xl}px ${RADIUS.xl}px 0 0` : RADIUS.xl, boxShadow: SHADOW.xl, width: "100%", maxWidth: 1040, fontFamily: SANS, marginBottom: 40, marginTop: isMobile ? "auto" : 0, ...(isMobile ? { position: "absolute", bottom: 0, left: 0, right: 0, marginBottom: 0, maxHeight: "92vh", overflowY: "auto" } : {}) }}>
+      <div style={{ background: dm ? "#0f0f0f" : "#ffffff", border: `1px solid ${p.line}`, borderRadius: isMobile ? `${RADIUS.xl}px ${RADIUS.xl}px 0 0` : RADIUS.xl, boxShadow: SHADOW.xl, width: "100%", maxWidth: 1040, fontFamily: SANS, marginBottom: 40, marginTop: isMobile ? "auto" : 0, ...(isMobile ? { position: "absolute", bottom: 0, left: 0, right: 0, marginBottom: 0, maxHeight: "92dvh", overflowY: "auto" } : {}) }}>
 
         {isMobile && (
           <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
@@ -1548,7 +1554,9 @@ export function CourseDetail({ course, darkMode, schedule, onAdd, onRemove, onCl
         {/* Sections */}
         {tab === 'sections' && (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "70px 1fr 140px 100px 100px 90px", gap: 12, padding: "10px 16px", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textMute, textTransform: "uppercase", letterSpacing: "1px", borderBottom: `1px solid ${p.line}` }}>
+            {/* Column labels only make sense against the six-column desktop
+                grid; the phone layout reflows to two columns instead. */}
+            <div style={{ display: isMobile ? "none" : "grid", gridTemplateColumns: "70px 1fr 140px 100px 100px 90px", gap: 12, padding: "10px 16px", fontFamily: MONO, fontSize: 10, fontWeight: 600, color: p.textMute, textTransform: "uppercase", letterSpacing: "1px", borderBottom: `1px solid ${p.line}` }}>
               <div>CRN</div><div>Instructor</div><div>Time</div><div>Location</div><div>Seats</div><div></div>
             </div>
             {showSectionsLoading ? (
@@ -1899,7 +1907,7 @@ function FilterPanel({ subjects, selectedSubjects, setSelectedSubjects, sortMode
   });
 
   return (
-    <div style={{ fontFamily: SANS, ...(isMobile ? {} : { position: "sticky", top: 80, maxHeight: "calc(100vh - 120px)", overflowY: "auto" }), paddingRight: 8 }}>
+    <div style={{ fontFamily: SANS, ...(isMobile ? {} : { position: "sticky", top: 80, maxHeight: "calc(100dvh - 120px)", overflowY: "auto" }), paddingRight: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingBottom: 14 }}>
         <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: ACCENT, letterSpacing: "1.5px", textTransform: "uppercase" }}>Filters</span>
         {hasActive && (
@@ -1967,7 +1975,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const [gpaOnly, setGpaOnly]           = useState(false);
   const [fallOnly, setFallOnly]         = useState(false);
   const [pathwaysFilter, setPathwaysFilter] = useState([]);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   const [courses, setCourses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -1983,11 +1991,6 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const dm = darkMode;
   const p = palette(dm);
 
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
   useEffect(() => { API.getSubjects().then(setSubjects).catch(console.error); }, []);
   useEffect(() => { API.getCourses({}).then(setCoursePool).catch(() => {}); }, []);
   useEffect(() => {
@@ -2056,7 +2059,7 @@ export default function CourseSearch({ darkMode, schedule, onCourseClick, onProf
   const activeFilters = selSubjects.length + creditsFilter.length + (gpaOnly ? 1 : 0) + (fallOnly ? 1 : 0) + pathwaysFilter.length;
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: SANS }}>
+    <div style={{ minHeight: "100dvh", fontFamily: SANS }}>
       <header style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "36px 16px 24px" : "72px 64px 36px", boxSizing: "border-box", borderBottom: `1px solid ${p.line}` }}>
         <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", color: ACCENT, textTransform: "uppercase" }}>Course Catalog</span>
         <h1 style={{ margin: "18px 0 14px", fontSize: "clamp(42px, 5.5vw, 78px)", fontWeight: 400, fontFamily: SERIF, color: p.text, letterSpacing: "-1px", lineHeight: 1.02 }}>

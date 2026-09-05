@@ -7,7 +7,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).href;
 import { API } from "../api.js";
-import { glassCard, palette, ACCENT, SANS, SERIF, MONO, RADIUS, SHADOW } from "../theme.jsx";
+import { glassCard, palette, ACCENT, SANS, SERIF, MONO, RADIUS, SHADOW, useIsMobile } from "../theme.jsx";
 import { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonCard, SkeletonText, useMinimumLoading } from "./skeletons.jsx";
 
 // ── Constants ─────────────────────────────────────────────────────
@@ -479,6 +479,7 @@ function PostCard({ post, dm, onDelete }) {
 // ── Post composer ─────────────────────────────────────────────────
 function PostComposer({ user, dm, onPost }) {
   const p = palette(dm);
+  const isMobile = useIsMobile();
   const [open, setOpen]        = useState(false);
   const [content, setContent]  = useState("");
   const [type, setType]        = useState("general");
@@ -526,7 +527,7 @@ function PostComposer({ user, dm, onPost }) {
             placeholder="What are you working on? Share a project, paper, experience, or update…"
             rows={4} style={{ ...IS, resize: "vertical", lineHeight: 1.6, padding: "12px 14px" }}
           />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: p.textSub, marginBottom: 4, fontFamily: SANS }}>Image URL (optional)</div>
               <input value={imageUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://…" style={IS} />
@@ -554,7 +555,7 @@ function PostComposer({ user, dm, onPost }) {
 
 function ProfileSkeleton({ darkMode, isMobile }) {
   return (
-    <div aria-busy="true" style={{ minHeight: "calc(100vh - 60px)", padding: isMobile ? "16px" : "24px 32px 72px", maxWidth: 1180, margin: "0 auto" }}>
+    <div aria-busy="true" style={{ minHeight: "calc(100dvh - 60px)", padding: isMobile ? "16px" : "24px 32px 72px", maxWidth: 1180, margin: "0 auto" }}>
       <SkeletonCard darkMode={darkMode} style={{ padding: 0, overflow: "hidden", borderRadius: 10, marginBottom: 16 }}>
         <Skeleton darkMode={darkMode} height={isMobile ? 120 : 190} radius={0} />
         <div style={{ padding: "0 22px 22px" }}>
@@ -649,6 +650,7 @@ function SidebarCard({ dm, title, children }) {
 // ── Edit modal ────────────────────────────────────────────────────
 function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInImport }) {
   const p = palette(dm);
+  const isMobile = useIsMobile();
   const IS = { width: "100%", padding: "10px 14px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", border: `1.5px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 10, color: p.text, fontSize: 14, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
   const LS = { fontSize: 11, fontWeight: 700, color: p.textSub, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 6, display: "block" };
   const SL = ({ children }) => <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "1.4px", textTransform: "uppercase", color: ACCENT, marginTop: 20, marginBottom: 12, paddingTop: 16, borderTop: `1px solid ${dm ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}` }}>{children}</div>;
@@ -665,7 +667,7 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ ...glassCard(dm), borderRadius: 20, width: "100%", maxWidth: 680, maxHeight: "90vh", overflowY: "auto", padding: "32px", fontFamily: SANS }}>
+      <div style={{ ...glassCard(dm), borderRadius: 20, width: "100%", maxWidth: 680, maxHeight: "min(90dvh, calc(100dvh - 24px))", overflowY: "auto", padding: isMobile ? "22px 18px" : "32px", fontFamily: SANS }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: p.text }}>Edit Profile</h2>
           <button onClick={onClose} style={{ background: dm ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", border: "none", borderRadius: 8, width: 34, height: 34, cursor: "pointer", fontSize: 16, color: p.textSub }}>✕</button>
@@ -678,11 +680,11 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <SL>Identity</SL>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>First name</label><input value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="First name" style={IS} onFocus={onF} onBlur={onB} /></div>
             <div><label style={LS}>Last name</label><input value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Last name" style={IS} onFocus={onF} onBlur={onB} /></div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>Username</label><input value={form.username} onChange={e => set("username", e.target.value)} placeholder="@username" style={IS} onFocus={onF} onBlur={onB} /></div>
             <div><label style={LS}>Location</label><input value={form.location} onChange={e => set("location", e.target.value)} placeholder="e.g. Blacksburg, VA" style={IS} onFocus={onF} onBlur={onB} /></div>
           </div>
@@ -699,14 +701,14 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
           </div>
 
           <SL>Links</SL>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>LinkedIn URL</label><input value={form.linkedIn} onChange={e => set("linkedIn", e.target.value)} placeholder="linkedin.com/in/…" style={IS} onFocus={onF} onBlur={onB} /></div>
             <div><label style={LS}>GitHub URL</label><input value={form.github} onChange={e => set("github", e.target.value)} placeholder="github.com/…" style={IS} onFocus={onF} onBlur={onB} /></div>
           </div>
           <div><label style={LS}>Personal website</label><input value={form.website} onChange={e => set("website", e.target.value)} placeholder="yoursite.com" style={IS} onFocus={onF} onBlur={onB} /></div>
 
           <SL>Academic</SL>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div>
               <label style={LS}>Major</label>
               <input list="majors-modal" value={form.major} onChange={e => set("major", e.target.value)} placeholder="e.g. Computer Science" style={IS} onFocus={onF} onBlur={onB} />
@@ -714,7 +716,7 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
             </div>
             <div><label style={LS}>Minor</label><input value={form.minor} onChange={e => set("minor", e.target.value)} placeholder="e.g. Mathematics" style={IS} onFocus={onF} onBlur={onB} /></div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>Year</label>
               <select value={form.year} onChange={e => set("year", e.target.value)} style={{ ...IS, appearance: "none", cursor: "pointer" }} onFocus={onF} onBlur={onB}>
                 <option value="" disabled>Select year</option>
@@ -726,7 +728,7 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
                 {TERMS.map(t => <option key={t} value={t} style={{ color: "black", background: "white" }}>{t}</option>)}
               </select></div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <div><label style={LS}>Cumulative GPA</label><input type="number" min="0" max="4" step="0.01" value={form.gpa} onChange={e => set("gpa", e.target.value)} placeholder="e.g. 3.72" style={IS} onFocus={onF} onBlur={onB} /></div>
             <div><label style={LS}>Expected Graduation</label>
               <select value={form.gradTerm} onChange={e => set("gradTerm", e.target.value)} style={{ ...IS, appearance: "none", cursor: "pointer" }} onFocus={onF} onBlur={onB}>
@@ -742,11 +744,11 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
                 <span style={{ fontSize: 12, fontWeight: 700, color: p.textSub }}>Position {i + 1}</span>
                 <button onClick={() => delExp(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: 13, padding: 0, fontFamily: SANS }}>Remove</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
                 <div><label style={LS}>Company</label><input value={exp.company} onChange={e => updExp(i, "company", e.target.value)} placeholder="Google" style={IS} onFocus={onF} onBlur={onB} /></div>
                 <div><label style={LS}>Title</label><input value={exp.title} onChange={e => updExp(i, "title", e.target.value)} placeholder="SWE Intern" style={IS} onFocus={onF} onBlur={onB} /></div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 10 }}>
                 <div><label style={LS}>Start</label><input value={exp.startDate} onChange={e => updExp(i, "startDate", e.target.value)} placeholder="Jun 2025" style={IS} onFocus={onF} onBlur={onB} /></div>
                 <div><label style={LS}>End</label><input value={exp.endDate} onChange={e => updExp(i, "endDate", e.target.value)} placeholder="Aug 2025" disabled={exp.current} style={{ ...IS, opacity: exp.current ? 0.5 : 1 }} onFocus={onF} onBlur={onB} /></div>
                 <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>
@@ -771,11 +773,11 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
                 <button onClick={() => delEdu(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: 13, padding: 0, fontFamily: SANS }}>Remove</button>
               </div>
               <div><label style={LS}>School</label><input value={edu.school} onChange={e => updEdu(i, "school", e.target.value)} placeholder="Virginia Tech" style={IS} onFocus={onF} onBlur={onB} /></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
                 <div><label style={LS}>Degree</label><input value={edu.degree} onChange={e => updEdu(i, "degree", e.target.value)} placeholder="B.S." style={IS} onFocus={onF} onBlur={onB} /></div>
                 <div><label style={LS}>Field of Study</label><input value={edu.field} onChange={e => updEdu(i, "field", e.target.value)} placeholder="Computer Science" style={IS} onFocus={onF} onBlur={onB} /></div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
                 <div><label style={LS}>Start Year</label><input value={edu.startYear} onChange={e => updEdu(i, "startYear", e.target.value)} placeholder="2023" style={IS} onFocus={onF} onBlur={onB} /></div>
                 <div><label style={LS}>End Year</label><input value={edu.endYear} onChange={e => updEdu(i, "endYear", e.target.value)} placeholder="2027" style={IS} onFocus={onF} onBlur={onB} /></div>
               </div>
@@ -809,11 +811,12 @@ function EditModal({ dm, onClose, onSave, saving, error, form, set, onLinkedInIm
 
 function InlineSectionEditor({ section, dm, form, set, onSave, onCancel, saving, error }) {
   const p = palette(dm);
+  const isMobile = useIsMobile();
   const IS = { width: "100%", padding: "9px 12px", background: dm ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.035)", border: `1px solid ${dm ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 9, color: p.text, fontSize: 13, fontFamily: SANS, outline: "none", boxSizing: "border-box" };
   const LS = { fontSize: 10, fontWeight: 800, color: p.textSub, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 5, display: "block" };
   const panel = { display: "grid", gap: 12, padding: 14, borderRadius: 12, background: dm ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.03)", border: `1px solid ${p.line}` };
-  const row2 = { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 };
-  const row3 = { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 };
+  const row2 = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 10 };
+  const row3 = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 10 };
   const addExp = () => set("experience", [...(form.experience || []), { company: "", title: "", location: "", startDate: "", endDate: "", current: false, description: "" }]);
   const updExp = (i, k, v) => set("experience", form.experience.map((e, idx) => idx === i ? { ...e, [k]: v } : e));
   const delExp = i => set("experience", form.experience.filter((_, idx) => idx !== i));
@@ -927,18 +930,12 @@ export default function ProfilePage({ darkMode }) {
   const [editingSection, setEditingSection] = useState("");
   const [saving, setSaving]               = useState(false);
   const [error, setError]                 = useState("");
-  const [isMobile, setIsMobile]           = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [bannerEditing, setBannerEditing] = useState(false);
   const [bannerSaving, setBannerSaving]   = useState(false);
   const [posts, setPosts]                 = useState([]);
   const [postsLoading, setPostsLoading]   = useState(false);
   const [postsError, setPostsError]       = useState("");
-
-  useEffect(() => {
-    const h = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, []);
 
   useEffect(() => {
     if (!bannerEditing) return;
@@ -1053,7 +1050,7 @@ export default function ProfilePage({ darkMode }) {
   if (!isLoaded) return <ProfileSkeleton darkMode={dm} isMobile={isMobile} />;
   if (!user) {
     return (
-      <div style={{ minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: SANS }}>
+      <div style={{ minHeight: "calc(100dvh - 60px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: SANS }}>
         <SkeletonCard darkMode={dm} style={{ maxWidth: 420, textAlign: "center" }}>
           <div style={{ color: p.text, fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Profile unavailable</div>
           <div style={{ color: p.textSub, fontSize: 14 }}>Sign in again to view your Darvis profile.</div>
@@ -1094,7 +1091,7 @@ export default function ProfilePage({ darkMode }) {
   };
 
   return (
-    <div style={{ minHeight: "calc(100vh - 60px)", fontFamily: SANS, padding: isMobile ? "14px 12px 80px" : "24px 28px 88px", background: dm ? "#000" : "#f3f2ef", color: p.text, transition: "background 0.24s ease, color 0.24s ease" }}>
+    <div style={{ minHeight: "calc(100dvh - 60px)", fontFamily: SANS, padding: isMobile ? "14px 12px 80px" : "24px 28px 88px", background: dm ? "#000" : "#f3f2ef", color: p.text, transition: "background 0.24s ease, color 0.24s ease" }}>
       <div style={{ maxWidth: 1160, margin: "0 auto" }}>
 
         <section style={{

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 import { API } from "../api.js";
-import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, glassCard, RADIUS } from "../theme.jsx";
+import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, glassCard, RADIUS, useIsMobile } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -363,9 +363,9 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   }, []);
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "165vh" : "280vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100vh",
+        position: "sticky", top: 0, minHeight: "100dvh",
         display: "flex", alignItems: "center",
         padding: pad, boxSizing: "border-box",
       }}>
@@ -1225,9 +1225,9 @@ function ChatSection({ dark, t, isMobile, pad }) {
   );
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "165vh" : "280vh", position: "relative" }}>
     <div style={{
-      position: "sticky", top: 0, minHeight: "100vh",
+      position: "sticky", top: 0, minHeight: "100dvh",
       display: "flex", alignItems: "center",
       maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
     }}>
@@ -1491,9 +1491,9 @@ function DataViz({ dark, t, isMobile, pad }) {
   const axis = dark ? "rgba(244,239,233,0.35)" : "rgba(26,18,15,0.35)";
 
   return (
-    <section ref={wrapRef} style={{ height: isMobile ? "200vh" : "240vh", position: "relative" }}>
+    <section ref={wrapRef} style={{ height: isMobile ? "140vh" : "240vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100vh",
+        position: "sticky", top: 0, minHeight: "100dvh",
         display: "flex", alignItems: "center", padding: pad, boxSizing: "border-box",
       }}>
         <div style={{ maxWidth: 1150, margin: "0 auto", width: "100%" }}>
@@ -1593,13 +1593,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
   const t = palette(darkMode);
   const statsRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
+  const isMobile = useIsMobile();
 
   injectStyles("lp-v7", LP_CSS);
 
@@ -1673,7 +1667,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
 
       {/* ── HERO (treated campus photo · parallax · HUD) ─────────────────────── */}
       <section style={{
-        minHeight: "calc(100vh - 80px)",
+        minHeight: "calc(100dvh - 80px)",
         position: "relative",
         display: "flex", flexDirection: "column", justifyContent: "center",
       }}>
@@ -1742,7 +1736,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       </section>
 
       {/* ── DATA MARQUEES — counter-scrolling course + instructor streams ────── */}
-      <section style={{ paddingTop: isMobile ? 44 : 68, paddingBottom: isMobile ? 38 : 58, position: "relative" }}>
+      <section style={{ paddingTop: isMobile ? 36 : 68, paddingBottom: isMobile ? 30 : 58, position: "relative" }}>
         <Reveal style={{ textAlign: "center", marginBottom: isMobile ? 22 : 28, padding: pad }}>
           <h2 style={{
             fontFamily: SERIF, fontWeight: 400, margin: 0,
@@ -1763,7 +1757,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       <section ref={statsRef} style={{
         maxWidth: 1150, margin: "0 auto", position: "relative",
         padding: pad, boxSizing: "border-box",
-        paddingTop: isMobile ? 38 : 54, paddingBottom: isMobile ? 56 : 90,
+        paddingTop: isMobile ? 34 : 54, paddingBottom: isMobile ? 40 : 90,
       }}>
         {!isMobile && <TopoLines dark={darkMode} />}
         <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 36 : 0 }}>
@@ -1794,8 +1788,8 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       {/* ── SHOWCASE ──────────────────────────────────────────────────────────── */}
       <section style={{
         padding: pad, boxSizing: "border-box",
-        paddingTop: isMobile ? 48 : 72,
-        paddingBottom: isMobile ? 72 : 120, position: "relative",
+        paddingTop: isMobile ? 40 : 72,
+        paddingBottom: isMobile ? 48 : 120, position: "relative",
       }}>
         <SectionBackdrop dark={darkMode} id="lp-grid-sc" />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1150, margin: "0 auto" }}>
@@ -1822,7 +1816,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       {/* ── MANIFESTO / CTA ───────────────────────────────────────────────────── */}
       <section style={{
         borderTop: `1px solid ${t.lineSoft}`,
-        padding: isMobile ? "88px 22px" : "150px 64px",
+        padding: isMobile ? "56px 22px" : "150px 64px",
         textAlign: "center", position: "relative",
       }}>
         <SectionBackdrop dark={darkMode} id="lp-grid-cta" />
@@ -1864,7 +1858,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────────── */}
-      <section style={{ padding: isMobile ? "64px 22px" : "96px 64px", borderTop: `1px solid ${t.lineSoft}` }}>
+      <section style={{ padding: isMobile ? "44px 22px" : "96px 64px", borderTop: `1px solid ${t.lineSoft}` }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <Reveal style={{ textAlign: "center", marginBottom: 40 }}>
             <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: "1.8px", color: ACCENT, textTransform: "uppercase", display: "block", marginBottom: 12 }}>FAQ</span>
@@ -1881,7 +1875,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
       </section>
 
       {/* ── FOOTER (carries the former About page) ────────────────────────────── */}
-      <footer style={{ borderTop: `1px solid ${t.lineSoft}`, padding: isMobile ? "48px 22px 26px" : "72px 64px 30px" }}>
+      <footer style={{ borderTop: `1px solid ${t.lineSoft}`, padding: isMobile ? "36px 22px 24px" : "72px 64px 30px" }}>
         <div style={{
           maxWidth: 1150, margin: "0 auto",
           display: "grid",

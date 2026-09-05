@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { db } from "../supabase.js";
+import { useIsMobile, safeArea } from "../theme.jsx";
 
 const VT_MAJORS = [
   "Aerospace Engineering", "Agriculture", "Animal & Poultry Sciences",
@@ -131,6 +132,7 @@ function TagInput({ tags, onChange, placeholder, suggestions = [] }) {
 
 export default function ProfileModal({ onClose, darkMode = true }) {
   const { user } = useUser();
+  const isMobile = useIsMobile();
   const [step, setStep] = useState("welcome"); // "welcome" | "form"
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -221,20 +223,27 @@ export default function ProfileModal({ onClose, darkMode = true }) {
       backdropFilter: "blur(8px)",
       display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      padding: "24px",
+      overflowY: "auto",
+      paddingTop: safeArea.top(isMobile ? 12 : 24),
+      paddingBottom: safeArea.bottom(isMobile ? 12 : 24),
+      paddingLeft: safeArea.left(isMobile ? 12 : 24),
+      paddingRight: safeArea.right(isMobile ? 12 : 24),
     }}>
       <div style={{
         background: "#0f0d14",
         border: "1.5px solid rgba(255,255,255,0.1)",
-        borderRadius: 20,
+        borderRadius: isMobile ? 16 : 20,
         width: "100%", maxWidth: step === "form" ? 560 : 440,
-        maxHeight: "90vh", overflowY: "auto",
+        // dvh keeps the sheet inside the visible area when the iOS keyboard
+        // opens over a focused field; vh does not shrink for it.
+        maxHeight: isMobile ? "calc(100dvh - 24px)" : "90dvh",
+        overflowY: "auto", margin: "auto",
         boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
       }}>
 
         {/* ── Welcome step ── */}
         {step === "welcome" && (
-          <div style={{ padding: "48px 40px", textAlign: "center" }}>
+          <div style={{ padding: isMobile ? "36px 22px 30px" : "48px 40px", textAlign: "center" }}>
             <div style={{ marginBottom: 20 }}>
               <img src="/darvis-logo.png" alt="Darvis" style={{ width: 60, height: 60, borderRadius: 14, objectFit: "cover" }} />
             </div>
@@ -292,7 +301,7 @@ export default function ProfileModal({ onClose, darkMode = true }) {
 
         {/* ── Profile form step ── */}
         {step === "form" && (
-          <div style={{ padding: "36px 36px 32px" }}>
+          <div style={{ padding: isMobile ? "26px 18px 24px" : "36px 36px 32px" }}>
             {/* Header */}
             <div style={{ marginBottom: 28 }}>
               <div style={{
@@ -313,7 +322,7 @@ export default function ProfileModal({ onClose, darkMode = true }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
               {/* Major + Year row */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
                 <div>
                   <label style={labelStyle}>Major</label>
                   <input
