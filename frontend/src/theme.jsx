@@ -255,10 +255,18 @@ body, body * {
 /* ── Mobile foundations ───────────────────────────────────────────────────── */
 
 /* A single overflowing child used to make the whole page scroll sideways.
-   Clamp at the root so one wide table can never break the page. */
+   Clamp at the root so one wide table can never break the page.
+
+   NOTE: overflow-x:hidden here would be a trap — the spec makes the other
+   axis compute to 'auto', turning the root into a scroll container. That
+   silently kills window scroll events and the scroll-linked animations on
+   the landing page. 'clip' clamps the same overflow without creating a
+   scroll container. */
 html, body {
-  overflow-x: hidden;
   max-width: 100%;
+}
+body {
+  overflow-x: clip;
 }
 
 /* Stop iOS from re-flowing type when the device is rotated to landscape. */
