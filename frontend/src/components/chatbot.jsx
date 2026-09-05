@@ -1068,7 +1068,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
     setRailTooltip({
       label,
       icon,
-      x: rect.left - 10,
+      x: rect.right + 10,
       y: rect.top + rect.height / 2,
     });
   };
@@ -1076,18 +1076,19 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
 
   const panelStyle = isMobile ? {
     position: "fixed",
-    top: 60,
-    right: 0,
+    top: 0,
+    left: 0,
     bottom: 0,
     width: CYRUS_SIDEBAR_WIDTH,
     zIndex: 200,
-    transform: open ? "translateX(0)" : "translateX(100%)",
+    transform: open ? "translateX(0)" : "translateX(-100%)",
     transition: `transform 0.22s ${EASE}`,
-    boxShadow: open ? "-8px 0 24px rgba(0,0,0,0.30)" : "none",
+    boxShadow: open ? "8px 0 24px rgba(0,0,0,0.30)" : "none",
   } : {
     width: collapsed ? CYRUS_SIDEBAR_COLLAPSED_WIDTH : CYRUS_SIDEBAR_WIDTH,
+    order: 0,
     flexShrink: 0,
-    borderLeft: `1px solid ${c.border}`,
+    borderRight: `1px solid ${c.border}`,
     overflow: "hidden",
     transition: "width 0.28s cubic-bezier(0.16,1,0.3,1)",
   };
@@ -1145,7 +1146,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
       {isMobile && open && (
         <div
           onClick={onClose}
-          style={{ position: "fixed", inset: 0, top: 60, background: "rgba(0,0,0,0.40)", zIndex: 199 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.40)", zIndex: 199 }}
         />
       )}
 
@@ -1409,7 +1410,7 @@ function Sidebar({ sessions, projects, currentId, onSelect, onNew, onDelete, onM
             position: "fixed",
             left: railTooltip.x,
             top: railTooltip.y,
-            transform: "translate(-100%, -50%)",
+            transform: "translateY(-50%)",
             zIndex: 1000,
             pointerEvents: "none",
             padding: "9px 11px",
@@ -2349,7 +2350,7 @@ function CyrusApp({ darkMode, addSection, clearSchedule, setPage, userProfile })
     }}>
 
       {/* ── Chat area ───────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0, background: chatPanel }}>
+      <div style={{ order: 1, flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0, background: chatPanel }}>
 
         {/* Mobile top bar */}
         {isMobile && (
@@ -2904,8 +2905,8 @@ function CyrusLockedScreen({ darkMode }) {
         <PageHeader
           dark={darkMode}
           kicker="Cyrus"
-          title="Private testing right now"
-          sub="Cyrus is being tested with a small group before it opens up to everyone. Public access is coming soon — check back shortly."
+          title="Cyrus is still private"
+          sub="The rest of Darvis is live. Cyrus is the only feature still being tested with a small group before broader access opens."
         />
       </div>
     </div>
