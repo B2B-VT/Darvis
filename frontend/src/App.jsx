@@ -16,13 +16,31 @@ import ProfileModal from "./components/profile-modal.jsx";
 import ProfilePage from "./components/profile-page.jsx";
 import InstructorsPage from "./components/instructors.jsx";
 import LegalPage from "./components/legal-page.jsx";
+import LockedProductPage from "./components/locked-product.jsx";
 import { palette, SANS, AmbientBackdrop, GrainOverlay, injectGlobalStyles } from "./theme.jsx";
 import { LoadingShell } from "./components/skeletons.jsx";
 
 injectGlobalStyles();
 
-// Pages that require authentication
-const PROTECTED = new Set(["search", "schedule", "chatbot", "forums", "instructors"]);
+// Cyrus is still in private testing. The core Darvis pages are launched and
+// can open without the old invite gate; individual write actions still ask
+// users to sign in where needed.
+const PROTECTED = new Set(["chatbot"]);
+
+const UPCOMING_PRODUCTS = {
+  kairo: {
+    name: "Kairo",
+    logo: "/kairo-logo.png",
+  },
+  ruvo: {
+    name: "Ruvo",
+    logo: "/ruvo-logo.png",
+  },
+  watchlist: {
+    name: "Watchlist",
+    logo: "/watchlist-logo.png",
+  },
+};
 
 const pageToPath = page => {
   if (page === "privacy") return "/privacy";
@@ -95,7 +113,6 @@ export default function App() {
         API.saveSchedule(lastUserIdRef.current, lastScheduleRef.current).catch(() => {});
       }
       lastUserIdRef.current = null;
-      setSchedule([]);
       setScheduleLoading(false);
       scheduleInitialized.current = false;
     }
@@ -115,6 +132,7 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pendingPage, setPendingPage] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [lockedProduct, setLockedProduct] = useState(null);
 
   // Persist schedule and theme
   useEffect(() => {
@@ -176,6 +194,10 @@ export default function App() {
   // Intercepts navigation — shows auth modal instead of navigating if page is protected.
   // Also pushes to browser history so the back button works within the app.
   const navigateTo = (newPage) => {
+    if (UPCOMING_PRODUCTS[newPage]) {
+      setLockedProduct(newPage);
+      return;
+    }
     if (PROTECTED.has(newPage) && !isSignedIn) {
       setPendingPage(newPage);
       setShowAuthModal(true);
@@ -326,6 +348,15 @@ export default function App() {
           darkMode={darkMode}
           page={pendingPage}
           onClose={() => { setShowAuthModal(false); setPendingPage(null); }}
+        />
+      )}
+
+      {lockedProduct && (
+        <LockedProductPage
+          darkMode={darkMode}
+          name={UPCOMING_PRODUCTS[lockedProduct].name}
+          logo={UPCOMING_PRODUCTS[lockedProduct].logo}
+          onClose={() => setLockedProduct(null)}
         />
       )}
     </div>

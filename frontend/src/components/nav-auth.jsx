@@ -266,7 +266,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = "rgba(134,31,65,0.08)"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.6)"; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(134,31,65,0.35)"; }}
-                  >Join waitlist</button>
+                  >Create account</button>
                 </SignUpButton>
                 <SignInButton mode="modal">
                   <button style={{
@@ -413,7 +413,7 @@ export default function Nav({ page, setPage, schedule, darkMode = true, setDarkM
                 border: "1px solid rgba(134,31,65,0.35)",
                 borderRadius: 999, padding: "10px", fontWeight: 600, fontSize: 14,
                 cursor: "pointer", fontFamily: SANS,
-              }}>Join waitlist</button>
+              }}>Create account</button>
             </SignUpButton>
             <SignInButton mode="modal">
               <button style={{

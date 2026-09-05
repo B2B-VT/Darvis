@@ -242,16 +242,19 @@ export function SkeletonForumList({ darkMode, rows = 5 }) {
 }
 
 export function SkeletonLandingDashboard({ darkMode }) {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   return (
-    <div aria-busy="true" style={{ minHeight: "100dvh", padding: "72px 64px", fontFamily: SANS }}>
-      <Skeleton darkMode={darkMode} width="min(680px, 72%)" height={92} radius={14} style={{ marginBottom: 24 }} />
-      <SkeletonText darkMode={darkMode} lines={2} widths={["420px", "320px"]} lineHeight={16} style={{ marginBottom: 34 }} />
-      <div style={{ display: "flex", gap: 12, marginBottom: 68 }}>
+    <div aria-busy="true" style={{ minHeight: "100dvh", padding: isMobile ? "126px 22px 48px" : "148px 64px 72px", fontFamily: SANS, boxSizing: "border-box" }}>
+      <div style={{ maxWidth: 1150, margin: "0 auto" }}>
+      <Skeleton darkMode={darkMode} width={isMobile ? "100%" : "min(680px, 72%)"} height={isMobile ? 68 : 92} radius={14} style={{ marginBottom: 24 }} />
+      <SkeletonText darkMode={darkMode} lines={2} widths={isMobile ? ["88%", "64%"] : ["420px", "320px"]} lineHeight={16} style={{ marginBottom: 34 }} />
+      <div style={{ display: "flex", gap: 12, marginBottom: 58 }}>
         <SkeletonButton darkMode={darkMode} width={160} height={48} />
         <SkeletonButton darkMode={darkMode} width={132} height={48} />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
         {[0, 1, 2].map(i => <SkeletonCard key={i} darkMode={darkMode} height={160} />)}
+      </div>
       </div>
     </div>
   );
@@ -277,12 +280,51 @@ export function SkeletonSearchResults({ darkMode, rows = 6 }) {
 
 export function LoadingShell({ darkMode }) {
   const p = palette(darkMode);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 860;
   return (
     <div aria-busy="true" style={{ minHeight: "100dvh", background: p.bg, fontFamily: SANS }}>
-      <div style={{ display: "flex" }}>
-        <SkeletonSidebar darkMode={darkMode} rows={6} style={{ width: 304, height: "100dvh", flexShrink: 0 }} />
-        <SkeletonLandingDashboard darkMode={darkMode} />
-      </div>
+      <header style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 220,
+        height: 76,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: isMobile ? "10px 12px" : "0 24px",
+        boxSizing: "border-box",
+        background: darkMode ? "rgba(5,5,5,0.92)" : "rgba(255,255,255,0.88)",
+        borderBottom: `1px solid ${darkMode ? "rgba(255,255,255,0.08)" : "rgba(26,18,15,0.08)"}`,
+        boxShadow: darkMode ? "0 10px 36px rgba(0,0,0,0.30)" : "0 10px 32px rgba(26,18,15,0.08)",
+        backdropFilter: "blur(24px) saturate(1.6)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.6)",
+      }}>
+        <div style={{
+          width: "100%",
+          maxWidth: 1180,
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: isMobile ? 10 : 18,
+        }}>
+          <Skeleton darkMode={darkMode} width={isMobile ? 120 : 152} height={34} radius={8} style={{ flexShrink: 0 }} />
+          {!isMobile && (
+            <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: 14 }}>
+              <SkeletonButton darkMode={darkMode} width={126} height={48} style={{ borderRadius: 8 }} />
+              <SkeletonButton darkMode={darkMode} width={126} height={48} style={{ borderRadius: 8 }} />
+              <SkeletonButton darkMode={darkMode} width={138} height={48} style={{ borderRadius: 8 }} />
+            </div>
+          )}
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            {!isMobile && <SkeletonButton darkMode={darkMode} width={150} height={38} />}
+            <SkeletonAvatar darkMode={darkMode} size={38} radius={19} />
+            {isMobile && <SkeletonAvatar darkMode={darkMode} size={38} radius={19} />}
+          </div>
+        </div>
+      </header>
+      <SkeletonLandingDashboard darkMode={darkMode} />
     </div>
   );
 }

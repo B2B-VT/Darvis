@@ -8,7 +8,7 @@ const PRIVACY_SECTIONS = [
     heading: "Scope and Current Product",
     body: [
       "This Privacy Policy applies to Darvis at darvis.tech, the Darvis frontend, the Cyrus chatbot backend, Echo reviews, forums, profile features, saved schedules, saved conversations, feedback tools, and related support communications.",
-      "As of the Last Updated date, public landing and legal pages can be viewed without signing in. Product features such as course browsing, schedule building, Cyrus chat, forums, profile tools, saved conversations, and Echo review submission generally require Clerk authentication or early-access approval.",
+      "As of the Last Updated date, Darvis core features such as course browsing, instructor lookup, schedule exploration, forums, public landing pages, and legal pages are available without the old invite gate. Account-based features such as saved schedules, profile tools, saved conversations, posting, Echo review submission, and Cyrus access may require Clerk authentication.",
       "Darvis is not a school official, university contractor, registrar, advisor, or education-record system. It does not intentionally collect official education records from Virginia Tech or another school.",
     ],
   },
@@ -31,7 +31,7 @@ const PRIVACY_SECTIONS = [
       "Darvis does not require students to provide a student ID, PID, transcript, GPA, academic standing, disability status, medical information, financial information, immigration status, passwords, or official university credentials to use core planning features.",
       "The current chatbot interface can attach file names to a prompt and may keep attachment previews in local browser state as part of the visible conversation, but the backend request model currently accepts text prompts rather than uploaded file contents. If Darvis later processes uploaded file contents, transcripts, resumes, images, or attachments server-side, Darvis will update this Policy or provide feature-specific notice before launch.",
       "Darvis may collect limited technical and usage information such as browser type, device type, operating system, approximate region, IP address, user agent, pages or API routes requested, features used, timestamps, error logs, latency, referral source, cookie, session, local storage, and rate-limit or abuse-prevention information.",
-      "Darvis may collect limited aggregated, anonymous, or de-identified course-planning metadata such as subject area, course number, request type, route selected, success or failure status, error type, aggregate course search counts, waitlist conversion metrics, feature usage trends, and whether sensitive information may have been detected.",
+      "Darvis may collect limited aggregated, anonymous, or de-identified course-planning metadata such as subject area, course number, request type, route selected, success or failure status, error type, aggregate course search counts, account conversion metrics, feature usage trends, and whether sensitive information may have been detected.",
     ],
   },
   {
@@ -47,9 +47,9 @@ const PRIVACY_SECTIONS = [
   {
     heading: "How We Use Information",
     body: [
-      "Darvis may use collected information to provide course search, professor/course comparison, grade distribution, schedule-building, waitlist, account, support, feedback, routing, recommendation, AI-assisted explanation, security, reliability, product analytics, communications, legal compliance, and policy enforcement features.",
+      "Darvis may use collected information to provide course search, professor/course comparison, grade distribution, schedule-building, account, support, feedback, routing, recommendation, AI-assisted explanation, security, reliability, product analytics, communications, legal compliance, and policy enforcement features.",
       "Darvis may use Echo review data to publish user-submitted reviews, calculate aggregate review summaries, improve course and professor discovery, detect abuse or spam, enforce review standards, and build student-facing planning features.",
-      "Darvis does not sell student data. Darvis does not use student searches, course interests, schedule preferences, waitlist information, or AI prompts to build advertising profiles.",
+      "Darvis does not sell student data. Darvis does not use student searches, course interests, schedule preferences, account information, or AI prompts to build advertising profiles.",
     ],
   },
   {
@@ -209,11 +209,11 @@ const TERMS_SECTIONS = [
     ],
   },
   {
-    heading: "Eligibility, Accounts, Waitlist, and Access",
+    heading: "Eligibility, Accounts, and Access",
     body: [
       "Darvis is intended for users who are at least 13 years old. If you are under 18, you may use Darvis only if legally permitted and, where required, with permission from a parent or guardian.",
-      "Most current product features require registration or early-access approval through Clerk. If you create an account, join a waitlist, or submit access information, you agree to provide accurate information and keep login credentials secure.",
-      "Darvis may restrict, suspend, terminate, approve, deny, prioritize, limit, or revoke access, waitlist participation, or early-access participation at its discretion if misuse, abuse, fraud, security risk, unauthorized access, or violation of these Terms is detected.",
+      "Some product features require registration through Clerk. If you create an account or submit access information, you agree to provide accurate information and keep login credentials secure.",
+      "Darvis may restrict, suspend, terminate, limit, or revoke account access or Cyrus early-access participation at its discretion if misuse, abuse, fraud, security risk, unauthorized access, or violation of these Terms is detected.",
     ],
   },
   {
@@ -369,7 +369,7 @@ const DOCS = {
   terms: {
     eyebrow: "Terms",
     title: "Darvis Terms of Use",
-    intro: "Welcome to Darvis. These Terms of Use govern your access to and use of Darvis, including the website, course-planning tools, schedule builder, professor/course insights, grade distribution features, AI-assisted explanations, waitlist forms, early-access features, and related services.",
+    intro: "Welcome to Darvis. These Terms of Use govern your access to and use of Darvis, including the website, course-planning tools, schedule builder, professor/course insights, grade distribution features, AI-assisted explanations, Cyrus early-access features, and related services.",
     sections: TERMS_SECTIONS,
   },
 };

@@ -7,10 +7,14 @@ const PAGE_LABELS = {
   schedule: "Schedule Builder",
   chatbot:  "Cyrus",
   forums:   "Forums",
+  kairo:    "Kairo",
+  ruvo:     "Ruvo",
+  watchlist:"Watchlist",
 };
 
 export default function AuthModal({ page, onClose, darkMode = true }) {
   const isMobile = useIsMobile();
+  const isCyrus = page === "chatbot";
   return (
     <div
       style={{
@@ -60,14 +64,18 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         >×</button>
 
         <div style={{ marginBottom: 20 }}>
-          <img src="/darvis-logo.png" alt="Darvis" style={{ width: 56, height: 56, borderRadius: 12, objectFit: "cover" }} />
+          <img
+            src={isCyrus ? "/cyrus-logo-stable.png" : "/darvis-logo.png"}
+            alt={isCyrus ? "Cyrus" : "Darvis"}
+            style={{ width: 56, height: 56, borderRadius: 12, objectFit: "cover" }}
+          />
         </div>
 
         <div style={{
           fontSize: 10, fontWeight: 700, color: "#861F41",
           letterSpacing: "2.5px", textTransform: "uppercase", marginBottom: 14,
         }}>
-          Invite Only · Beta
+          {isCyrus ? "Private Testing" : "Student Account"}
         </div>
 
         <h2 style={{
@@ -75,7 +83,7 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
           fontSize: 24, fontWeight: 800, color: "white", letterSpacing: "-0.5px",
           lineHeight: 1.25,
         }}>
-          Sign in to access<br />
+          {isCyrus ? "Cyrus is still private" : "Sign in to continue"}<br />
           <span style={{ color: "#861F41" }}>{PAGE_LABELS[page] || "this feature"}</span>
         </h2>
 
@@ -83,8 +91,9 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
           margin: "0 0 30px",
           fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.65,
         }}>
-          Darvis is invite-only during beta.<br />
-          Already have an invite? Sign in or create an account.
+          {isCyrus
+            ? "Cyrus is still being tested with a small group. Sign in if your account has access."
+            : "Darvis is live. Create a free account to save your work across devices."}
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -122,7 +131,7 @@ export default function AuthModal({ page, onClose, darkMode = true }) {
         </div>
 
         <p style={{ margin: "20px 0 0", fontSize: 11, color: "rgba(255,255,255,0.22)" }}>
-          No invite? Reach out to a founder for access.
+          {isCyrus ? "Cyrus will open more broadly after testing." : "Course browsing, instructors, schedule tools, and forums are available now."}
         </p>
       </div>
     </div>

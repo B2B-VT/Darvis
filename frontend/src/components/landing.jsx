@@ -1653,11 +1653,15 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
     { val: 100,  suffix: "%",    label: "Free to use" },
   ];
 
-  const Btn = ({ label, primary, onClick }) => {
+  const Btn = ({ label, primary, onClick, ...buttonProps }) => {
     const hasArrow = label.endsWith("→");
     const text = hasArrow ? label.slice(0, -1).trimEnd() : label;
+    const handleClick = event => {
+      buttonProps.onClick?.(event);
+      if (!event.defaultPrevented) onClick?.(event);
+    };
     return (
-    <button onClick={onClick} style={{
+    <button {...buttonProps} onClick={handleClick} style={{
       background: primary ? ACCENT : "transparent",
       color: primary ? "white" : t.textSub,
       border: primary ? "none" : `1px solid ${t.line}`,
@@ -1768,7 +1772,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
             <SignedOut>
               <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                 <SignUpButton mode="modal">
-                  <Btn label="Join the waitlist →" primary />
+                  <Btn label="Create account →" primary />
                 </SignUpButton>
                 <Btn label="Browse courses" onClick={onEnter} />
               </div>
@@ -1893,7 +1897,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
           </SignedIn>
           <SignedOut>
             <SignUpButton mode="modal">
-              <Btn label="Join the waitlist →" primary />
+              <Btn label="Create account →" primary />
             </SignUpButton>
           </SignedOut>
         </Reveal>

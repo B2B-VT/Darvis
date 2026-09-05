@@ -48,6 +48,29 @@ const Icons = {
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
     </svg>
   ),
+  kairo: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2h9l5 5v15H6z"/>
+      <path d="M14 2v6h6"/>
+      <path d="M9 13h6"/>
+      <path d="M9 17h4"/>
+    </svg>
+  ),
+  ruvo: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v4"/>
+      <path d="M3 12h18v7H3z"/>
+      <path d="M7 19v2"/>
+      <path d="M17 19v2"/>
+    </svg>
+  ),
+  watchlist: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      <path d="M10 2h4"/>
+    </svg>
+  ),
   profile: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4"/>
@@ -291,6 +314,9 @@ export default function AppShell({
     { id: "schedule",    label: "Schedule",   icon: Icons.schedule, badge: isSignedIn ? (schedule?.length || 0) : 0 },
     { id: "chatbot",     label: "Cyrus", icon: Icons.chatbot     },
     { id: "forums",      label: "Forums",     icon: Icons.forums      },
+    { id: "kairo",       label: "Kairo",      icon: Icons.kairo       },
+    { id: "ruvo",        label: "Ruvo",       icon: Icons.ruvo        },
+    { id: "watchlist",   label: "Watchlist",  icon: Icons.watchlist   },
   ];
 
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Account";
