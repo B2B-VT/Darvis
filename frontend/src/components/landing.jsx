@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 import { API } from "../api.js";
-import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, glassCard, RADIUS } from "../theme.jsx";
+import { Scribble, Reveal, MONO, SERIF, SANS, ACCENT, COPPER, EASE, palette, glassCard, RADIUS, useIsMobile } from "../theme.jsx";
 
 // ── Page-scoped CSS ───────────────────────────────────────────────────────────
 const LP_CSS = `
@@ -365,7 +365,7 @@ function ScrollStory({ dark, t, isMobile, pad }) {
   return (
     <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100vh",
+        position: "sticky", top: 0, minHeight: "100dvh",
         display: "flex", alignItems: "center",
         padding: pad, boxSizing: "border-box",
       }}>
@@ -1227,7 +1227,7 @@ function ChatSection({ dark, t, isMobile, pad }) {
   return (
     <section ref={wrapRef} style={{ height: isMobile ? "240vh" : "280vh", position: "relative" }}>
     <div style={{
-      position: "sticky", top: 0, minHeight: "100vh",
+      position: "sticky", top: 0, minHeight: "100dvh",
       display: "flex", alignItems: "center",
       maxWidth: 1150, margin: "0 auto", padding: pad, boxSizing: "border-box",
     }}>
@@ -1493,7 +1493,7 @@ function DataViz({ dark, t, isMobile, pad }) {
   return (
     <section ref={wrapRef} style={{ height: isMobile ? "200vh" : "240vh", position: "relative" }}>
       <div style={{
-        position: "sticky", top: 0, minHeight: "100vh",
+        position: "sticky", top: 0, minHeight: "100dvh",
         display: "flex", alignItems: "center", padding: pad, boxSizing: "border-box",
       }}>
         <div style={{ maxWidth: 1150, margin: "0 auto", width: "100%" }}>
@@ -1593,13 +1593,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
   const t = palette(darkMode);
   const statsRef = useRef(null);
   const [statsActive, setStatsActive] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
+  const isMobile = useIsMobile();
 
   injectStyles("lp-v7", LP_CSS);
 
@@ -1673,7 +1667,7 @@ export default function LandingPage({ onEnter, onNavigate, darkMode, onCourseCli
 
       {/* ── HERO (treated campus photo · parallax · HUD) ─────────────────────── */}
       <section style={{
-        minHeight: "calc(100vh - 80px)",
+        minHeight: "calc(100dvh - 80px)",
         position: "relative",
         display: "flex", flexDirection: "column", justifyContent: "center",
       }}>

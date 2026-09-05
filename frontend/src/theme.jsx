@@ -15,6 +15,91 @@ export const MONO  = "'SF Mono', 'JetBrains Mono', Menlo, monospace";
 // macOS-style radius scale
 export const RADIUS = { xs: 6, sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
 
+// ── Responsive scale ──────────────────────────────────────────────────────────
+// One breakpoint set for the whole app. Before this existed each page invented
+// its own cutoff (640 / 700 / 760 / 768 / 900), so the same viewport could be
+// "mobile" on one page and "desktop" on the next.
+export const BREAKPOINTS = { sm: 480, md: 768, lg: 1024, xl: 1280 };
+
+// Horizontal page padding — phones need the content to breathe against the edge
+// without wasting the little width they have.
+export const PAGE_PAD = { mobile: 16, tablet: 28, desktop: 48 };
+
+// Minimum comfortable tap target (Apple HIG 44pt / Material 48dp).
+export const TAP = 44;
+
+// Fixed chrome heights, shared so pages can reserve space for them.
+export const MOBILE_HEADER_H = 56;
+export const MOBILE_NAV_H    = 62;
+
+// Safe-area helpers — iPhone notch / Dynamic Island / home indicator.
+// Always additive so they collapse to the base value on devices without insets.
+export const safeArea = {
+  top:    (extra = 0) => `calc(${extra}px + env(safe-area-inset-top, 0px))`,
+  bottom: (extra = 0) => `calc(${extra}px + env(safe-area-inset-bottom, 0px))`,
+  left:   (extra = 0) => `calc(${extra}px + env(safe-area-inset-left, 0px))`,
+  right:  (extra = 0) => `calc(${extra}px + env(safe-area-inset-right, 0px))`,
+};
+
+// ── Viewport hooks ────────────────────────────────────────────────────────────
+// Single shared matchMedia listener per breakpoint instead of a resize handler
+// per component. matchMedia fires on orientation change too, which the old
+// `useState(() => window.innerWidth < 768)` snapshots never did.
+export function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia(query).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mql = window.matchMedia(query);
+    const onChange = e => setMatches(e.matches);
+    setMatches(mql.matches);
+    // Safari < 14 only supports the deprecated addListener form.
+    if (mql.addEventListener) mql.addEventListener("change", onChange);
+    else mql.addListener(onChange);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener("change", onChange);
+      else mql.removeListener(onChange);
+    };
+  }, [query]);
+
+  return matches;
+}
+
+/** True below the `md` breakpoint (< 768px) — the phone layout. */
+export function useIsMobile(bp = BREAKPOINTS.md) {
+  return useMediaQuery(`(max-width: ${bp - 0.02}px)`);
+}
+
+/** True for narrow phones (< 480px) where two-column forms stop fitting. */
+export function useIsSmallMobile() {
+  return useMediaQuery(`(max-width: ${BREAKPOINTS.sm - 0.02}px)`);
+}
+
+/** True between md and lg — tablets and small laptops. */
+export function useIsTablet() {
+  return useMediaQuery(`(min-width: ${BREAKPOINTS.md}px) and (max-width: ${BREAKPOINTS.lg - 0.02}px)`);
+}
+
+/** True when the primary input is touch — drives hover-vs-tap decisions. */
+export function useIsTouch() {
+  return useMediaQuery("(hover: none) and (pointer: coarse)");
+}
+
+/** Respects the OS "reduce motion" setting. */
+export function usePrefersReducedMotion() {
+  return useMediaQuery("(prefers-reduced-motion: reduce)");
+}
+
+/** Page gutter for the current viewport. */
+export function usePagePad() {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  return isMobile ? PAGE_PAD.mobile : isTablet ? PAGE_PAD.tablet : PAGE_PAD.desktop;
+}
+
 // macOS-style layered shadows
 export const SHADOW = {
   sm:  "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
@@ -165,6 +250,77 @@ body, body * {
   transition-property: background-color, color, border-color, fill, stroke, box-shadow;
   transition-duration: 0.45s;
   transition-timing-function: ease;
+}
+
+/* ── Mobile foundations ───────────────────────────────────────────────────── */
+
+/* A single overflowing child used to make the whole page scroll sideways.
+   Clamp at the root so one wide table can never break the page. */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Stop iOS from re-flowing type when the device is rotated to landscape. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Media and embeds must never exceed their column. */
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
+/* Horizontal scrollers (wide tables, chip rows) — momentum scrolling, no
+   visible scrollbar, and a hint that the region scrolls independently. */
+.dv-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.dv-scroll-x::-webkit-scrollbar { display: none; }
+
+/* Snap wide row-based scrollers so cards land aligned instead of half-cut. */
+.dv-snap-x {
+  scroll-snap-type: x mandatory;
+}
+.dv-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* Reserve the home-indicator strip on fixed bottom chrome. */
+.dv-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.dv-safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
+
+@media (max-width: 767.98px) {
+  /* iOS zooms the viewport when a focused input renders below 16px. Forcing the
+     minimum kills that jump — the visual size is tuned per-field where needed. */
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* Long unbroken strings (course codes, emails, URLs) must wrap rather than
+     push the layout wider than the screen. */
+  body {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* 100px backdrop blurs are a real scroll cost on phones. Keep the glass look
+     but at a radius the GPU can sustain. */
+  .dv-glass-heavy {
+    backdrop-filter: blur(28px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(160%) !important;
+  }
+}
+
+/* Touch devices: grey tap flashes fight the app's own press states. */
+@media (hover: none) and (pointer: coarse) {
+  * { -webkit-tap-highlight-color: transparent; }
+  /* Hover-driven reveals are unreachable without a pointer — show them. */
+  .dv-hover-only { opacity: 1 !important; }
 }
 `;
 

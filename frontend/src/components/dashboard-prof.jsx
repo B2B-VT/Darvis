@@ -7,7 +7,7 @@ import { StarRating } from "./nav-auth.jsx";
 import { GpaBadge, GradeGrid } from "./courses.jsx";
 import { BookIcon, ClockIcon, MapPinIcon, UserIcon, CalendarIcon } from "./icons.jsx";
 import { SkeletonCard, SkeletonChart, useMinimumLoading } from "./skeletons.jsx";
-import { ACCENT, MONO, RADIUS, SANS, SERIF, SHADOW, palette } from "../theme.jsx";
+import { ACCENT, MONO, RADIUS, SANS, SERIF, SHADOW, palette, useIsMobile } from "../theme.jsx";
 
 const COURSE_COLORS = [
   { bg:"#fde8ee", border:"#861F41", text:"#861F41" },
@@ -60,7 +60,7 @@ function Dashboard({ user, schedule, darkMode, onCourseClick, onProfClick, onRem
   courseIds.forEach((id, i) => colorMap[id] = i);
 
   return (
-    <div style={{ background: colors.bg, minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Header */}
       <div style={{ background: "linear-gradient(135deg, #6b1833 0%, #861F41 60%, #a02850 100%)", padding: "36px 24px 32px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -220,7 +220,6 @@ function Dashboard({ user, schedule, darkMode, onCourseClick, onProfClick, onRem
   );
 }
 
-
 // ── Professor Profile ─────────────────────────────────────────────
 export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClose, currentUser, isSignedIn, onRequireSignIn }) {
   const dm = darkMode;
@@ -242,13 +241,8 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
   const [echoError, setEchoError] = useState("");
   const [showEchoForm, setShowEchoForm] = useState(false);
   const [selectedGradeCourseId, setSelectedGradeCourseId] = useState("all");
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const showLoading = useMinimumLoading(loading);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
 
   // grades.instructor was migrated to canonical names matching instructors.name exactly.
   useEffect(() => {
@@ -428,7 +422,7 @@ export default function ProfessorProfile({ prof, darkMode, onCourseClick, onClos
         marginBottom: isMobile ? 0 : 40,
         marginTop: isMobile ? "auto" : 0,
         overflow: "hidden",
-        ...(isMobile ? { position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "92vh", overflowY: "auto" } : {}),
+        ...(isMobile ? { position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "92dvh", overflowY: "auto" } : {}),
       }}>
         {isMobile && (
           <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>

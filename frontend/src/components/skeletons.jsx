@@ -243,7 +243,7 @@ export function SkeletonForumList({ darkMode, rows = 5 }) {
 
 export function SkeletonLandingDashboard({ darkMode }) {
   return (
-    <div aria-busy="true" style={{ minHeight: "100vh", padding: "72px 64px", fontFamily: SANS }}>
+    <div aria-busy="true" style={{ minHeight: "100dvh", padding: "72px 64px", fontFamily: SANS }}>
       <Skeleton darkMode={darkMode} width="min(680px, 72%)" height={92} radius={14} style={{ marginBottom: 24 }} />
       <SkeletonText darkMode={darkMode} lines={2} widths={["420px", "320px"]} lineHeight={16} style={{ marginBottom: 34 }} />
       <div style={{ display: "flex", gap: 12, marginBottom: 68 }}>
@@ -278,9 +278,9 @@ export function SkeletonSearchResults({ darkMode, rows = 6 }) {
 export function LoadingShell({ darkMode }) {
   const p = palette(darkMode);
   return (
-    <div aria-busy="true" style={{ minHeight: "100vh", background: p.bg, fontFamily: SANS }}>
+    <div aria-busy="true" style={{ minHeight: "100dvh", background: p.bg, fontFamily: SANS }}>
       <div style={{ display: "flex" }}>
-        <SkeletonSidebar darkMode={darkMode} rows={6} style={{ width: 304, height: "100vh", flexShrink: 0 }} />
+        <SkeletonSidebar darkMode={darkMode} rows={6} style={{ width: 304, height: "100dvh", flexShrink: 0 }} />
         <SkeletonLandingDashboard darkMode={darkMode} />
       </div>
     </div>

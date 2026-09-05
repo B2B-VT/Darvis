@@ -1,7 +1,7 @@
 // Schedule Builder component
 import { useState, useEffect } from "react";
 import { API } from "../api.js";
-import { MONO, SERIF, SANS, ACCENT, palette, glassCard, RADIUS, SHADOW } from "../theme.jsx";
+import { MONO, SERIF, SANS, ACCENT, palette, glassCard, RADIUS, SHADOW, useIsMobile, BREAKPOINTS } from "../theme.jsx";
 import { ClockIcon, MapPinIcon, UserIcon, AlertTriangleIcon, CalendarIcon, GridIcon, ListIcon } from "./icons.jsx";
 import { SkeletonSchedule, useMinimumLoading } from "./skeletons.jsx";
 
@@ -394,8 +394,8 @@ function ScheduleList({ sections, colorMap, darkMode, onRemove, courseMap, onCou
 
 // ── Schedule Builder Page ─────────────────────────────────────────
 function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCourseClick, loading = false }) {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const [view, setView] = useState(() => window.innerWidth < 768 ? "list" : "grid");
+  const isMobile = useIsMobile();
+  const [view, setView] = useState(() => (window.innerWidth < BREAKPOINTS.md ? "list" : "grid"));
   const [courseMap, setCourseMap] = useState({}); // keyed by "SUBJECT-number"
   const dm = darkMode;
   const p = palette(dm);
@@ -405,11 +405,10 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
   const detailsLoading = loading || (sections.length > 0 && missingCourseDetails.length > 0);
   const showDetailsLoading = useMinimumLoading(detailsLoading);
 
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
+  // The weekly grid needs ~600px to stay readable. Dropping to a phone width
+  // while it is showing used to leave the user inside a sideways-scrolling grid
+  // with the view toggle hidden — no way back to the list.
+  useEffect(() => { if (isMobile) setView("list"); }, [isMobile]);
 
   // Fetch course details for every unique course in the schedule so we
   // can show titles and open the detail modal when a card is clicked.
@@ -434,7 +433,7 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
   const conflict = hasConflict(sections);
 
   return (
-    <div style={{ background: "transparent", minHeight: "100vh", fontFamily: SANS }}>
+    <div style={{ background: "transparent", minHeight: "100dvh", fontFamily: SANS }}>
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${p.line}`, padding: isMobile ? "24px 16px 20px" : "32px 24px 28px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -519,7 +518,7 @@ function ScheduleBuilder({ darkMode, schedule, onAdd, onRemove, setPage, onCours
             </div>
 
             {view === "grid" ? (
-              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <div className="dv-scroll-x">
                 <div style={{ minWidth: 600 }}>
                   <ScheduleGrid sections={sections} colorMap={colorMap} darkMode={dm} onRemove={onRemove} courseMap={courseMap} onCourseClick={onCourseClick} />
                 </div>
