@@ -51,7 +51,7 @@ Darvis/
 ├── backend/                Node.js data pipeline (not a server)
 │   ├── scrapers/           UDC grades (browser-console + Playwright), Banner timetable, RMP, catalog, prereqs, Pathways
 │   ├── scripts/            Supabase importers
-│   ├── supabase/schema.sql Full DB schema
+│   ├── supabase/schema.sql Partial DB schema (6 tables — see CLAUDE.md)
 │   └── README.md
 ├── evals/                  "Cyrus" JSONL eval harness — retrieval QA, reranker A/B, LLM-judge grading
 ├── docs/                   Chatbot audit + implementation-plan trail; design specs and plans
@@ -117,3 +117,5 @@ See `CLAUDE.md` for the full issue list. Top items:
 3. `chatbot/app/generation/` (OpenAI multi-tier structured generation) is built and tested but not wired into `/chat` — wire it in or drop the flag
 4. Drop the dead `grade_embeddings` table (0 rows, unreferenced)
 5. Upgrade Render to Starter ($7/month) to eliminate ~30s cold-start latency
+6. Swap Vercel's `VITE_CLERK_PUBLISHABLE_KEY` from `pk_test_` to `pk_live_` — production currently authenticates against Clerk's test instance
+7. `chatbot/README.md` and `chatbot/RAG_ARCHITECTURE.md` still describe the retired Anthropic/Claude Haiku backend — rewrite or drop them (`chatbot/CLAUDE.md` is current)

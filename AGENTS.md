@@ -14,14 +14,15 @@ Darvis/
 ├── outputs/                Eval run artifacts (e.g. rag_qa_workbook/)
 ├── tools/                  One-off diagnostics (e.g. diagnose_cross_encoder.py)
 ├── CHATBOT_AUDIT_REPORT.md Standalone chatbot reliability/hallucination-risk audit (not cross-linked elsewhere)
-├── .github/workflows/      CI — update-timetable.yml (authenticated Banner scrape every 4h)
+├── .github/workflows/      CI — update-timetable.yml (authenticated Banner scrape every 4h); .github/CODEOWNERS assigns everything to @pujanpatel08
+├── .claude/                Local agent config — settings.local.json (SessionStart hook: rename session + green), a hookify rule that asks for git commands after every change, agents/kfc spec-workflow agents; .codex/hooks.json mirrors the SessionStart hook
 ├── CLAUDE.md               Claude Code equivalent of this file — near-identical sibling, keep both in sync when editing
 └── AGENTS.md
 ```
 
 ## Frontend
 
-React 19 built with Vite (`@vitejs/plugin-react`). Auth via `@clerk/clerk-react`, Supabase via `@supabase/supabase-js`, charts via `chart.js` — all npm packages. `pdfjs-dist` + `jszip` exist solely to support LinkedIn-PDF profile import in `profile-page.jsx`. Styles are CSS-in-JS inline objects — no Tailwind, no CSS modules.
+React 19.2 built with Vite 8 (`@vitejs/plugin-react` 6). Auth via `@clerk/clerk-react` 5, Supabase via `@supabase/supabase-js` 2, charts via `chart.js` 4 — all npm packages. No version pins beyond `package.json` (no `.nvmrc`/`engines`); local dev runs Node 24, CI runs Node 22. `pdfjs-dist` + `jszip` exist solely to support LinkedIn-PDF profile import in `profile-page.jsx`. Styles are CSS-in-JS inline objects — no Tailwind, no CSS modules.
 
 **Run locally:**
 ```bash
@@ -34,13 +35,13 @@ npm run dev        # http://localhost:5173
 **Tooling:** no ESLint/Prettier config and no test runner (Jest/Vitest) set up yet — plain JS, manual formatting.
 
 **Key files:**
-- `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env`
-- `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state
+- `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env` (no `.env.example` exists — create the file yourself). Throws if the key is missing, but only `console.error`s when a `pk_test_` key is used in a prod build — that guard must never throw at module scope (a throwing version white-screened darvis.tech on 2026-09-05, fixed in `b19814e`)
+- `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state. Only `/privacy` and `/terms` map to real URLs (`pageToPath`/`pathToPage` + `vercel.json` rewrites); every other page lives at `/`. Also defines `UPCOMING_PRODUCTS` (Kairo, Ruvo, Watchlist) — sidebar entries that open `locked-product.jsx` instead of a page
 - `frontend/src/api.js` — centralizes most Supabase calls from the frontend (`dashboard-prof.jsx`, `forums.jsx`, `instructors.jsx`, `profile-modal.jsx` query the `db` client from `supabase.js` directly instead)
 - `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
 - `frontend/src/supabase.js` — Supabase client singleton
 - `frontend/src/theme.jsx` — dark/light theme tokens
-- `frontend/src/mock-data.js` — mock data imported directly by `dashboard-prof.jsx` and `courses.jsx`; worth confirming why production components still depend on it
+- `frontend/src/mock-data.js` — `courses.jsx` imports it only as a constants bag (`MOCK.gradeColors`, `MOCK.pathwaysOptions`), but `dashboard-prof.jsx`'s schedule-summary block still resolves sections through `MOCK.sections`/`MOCK.getCourse`/`MOCK.getProf`/`MOCK.formatTime` — a real mock-data dependency in a production component, not yet migrated to `api.js`
 
 **Component map (`src/components/`):**
 | File | Page/feature |
@@ -58,13 +59,14 @@ npm run dev        # http://localhost:5173
 | `nav-auth.jsx` | Top nav with Clerk sign-in/out |
 | `auth-gate.jsx` | Dead code — `AuthGate` is imported nowhere. Real auth-gating is a `PROTECTED` page-name Set + `navigateTo()` in `App.jsx`, which redirects to landing and opens `auth-modal.jsx` |
 | `auth-modal.jsx` | Sign-in prompt modal |
+| `locked-product.jsx` | "Coming soon" modal for the unlaunched sidebar products (Kairo, Ruvo, Watchlist) — driven by `UPCOMING_PRODUCTS` in `App.jsx`; added in `2fb818c` (2026-09-05) |
 | `faqs.jsx` | FAQ page |
 | `legal-page.jsx` | Legal/policy page |
 | `skeletons.jsx` | Loading-state skeleton components |
 | `icons.jsx` | Shared SVG icon components |
 | `app-shell.jsx` | Outer shell — nav, sidebar, page switcher |
 
-**Auth:** Clerk. Users must be signed in to access courses, schedule, chatbot, and forums. Waitlist mode is enabled in the Clerk dashboard (Configure → Restrictions → Sign-up mode).
+**Auth:** Clerk. Since `2fb818c` (2026-09-05) only the chatbot page is auth-gated — `PROTECTED = new Set(["chatbot"])` in `App.jsx`. Courses, instructors, schedule, forums, FAQs and profile open signed-out; write actions (Echo reviews, profile/course posts) prompt sign-in via `onRequireSignIn` → `auth-modal.jsx`, and forums hide the composer when signed out. Waitlist mode is enabled in the Clerk dashboard (Configure → Restrictions → Sign-up mode). `supabase.js` wraps `fetch` to forward the Clerk session JWT (template `supabase`) as the Supabase `Authorization` header so Row Level Security can enforce ownership on user-owned tables.
 
 **Cyrus (chatbot) access gate:** separately from Clerk waitlist, the chatbot itself is gated behind a private allowlist ahead of public launch — `frontend/src/config.js` defines `CYRUS_PUBLIC_LAUNCHED = false` and a two-email `CYRUS_ALLOWLIST`; `chatbot.jsx` shows most signed-in users a `CyrusLockedScreen` instead of the real chat UI. Flip `CYRUS_PUBLIC_LAUNCHED` to `true` (and clear/expand the allowlist) to launch. Design docs: `docs/superpowers/plans/2026-08-05-cyrus-access-gate.md` + matching spec.
 
@@ -79,7 +81,7 @@ source .venv/bin/activate
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
-**Tests:** pytest suite in `chatbot/tests/` — 14 files (intent extractor, planner critic, retrieval eval, normalization, generation/model-router, reranker, safety-refusals, RAG-refactor, Cyrus eval-grader, plus newer compound-constraint-fixes, entity-retrieval-guards, eval-workbook-loader, and structured-generation tests):
+**Tests:** pytest suite in `chatbot/tests/` — 15 files, 255 tests collected as of 2026-09-17 (intent extractor, planner critic, retrieval eval, normalization, generation/model-router, generation-provider-routing, reranker, safety-refusals, RAG-refactor, Cyrus eval-grader, compound-constraint-fixes, entity-retrieval-guards, eval-workbook-loader, structured-generation, schedule-builder year-resolution). No `pytest.ini`/`pyproject.toml` — pytest defaults; `chatbot/conftest.py` only adds the repo root to `sys.path`. The venv is Python 3.14 (no pinned version file):
 ```bash
 cd chatbot && python -m pytest tests/
 ```
@@ -139,7 +141,7 @@ backend/
 │   ├── fetch_rmp_tags.js       Fetches RMP profiles for rmp_tags — no-op (API returns none)
 │   └── update_banner_secret.sh Re-encodes Banner cookies → GitHub secret BANNER_PROFILE_B64
 └── supabase/
-    └── schema.sql              Full DB schema
+    └── schema.sql              PARTIAL schema — only grades, courses, professors, sections, profile_posts, echo_reviews. instructors/majors/major_requirements/embeddings/feedback/forum_*/roadmap_courses/user_* exist only in Supabase (some via chatbot/migrations/)
 ```
 
 **Run scripts:**
@@ -183,6 +185,9 @@ Row counts verified live 2026-07-01:
 | `grade_embeddings` | 0 | Dead/unused — left over from earlier architecture |
 | `forum_posts` | 1 | Effectively empty — no users yet |
 | `forum_replies` | 0 | Empty |
+| `profile_posts` | not in snapshot | Frontend-only (`api.js` createPost/getPosts/deletePost) — profile-page feed; the one user-owned table that IS in `backend/supabase/schema.sql` |
+| `user_schedules` | not in snapshot | Frontend-only (`api.js` getSchedule/saveSchedule) — per-user saved schedule-builder state; not in any checked-in schema or migration |
+| `user_conversations` | not in snapshot | Frontend-only (`api.js` getConversations/saveConversation/deleteConversation) — per-user Cyrus chat history; not in any checked-in schema or migration |
 | `echo_reviews` | not in 2026-07-01 snapshot | Added `chatbot/migrations/003_echo_reviews.sql` (commit `7940a06`, 2026-07-05) — live table, read/written by `frontend/src/api.js` and served by chatbot `GET /rmp/reviews` |
 | `feedback` | not in 2026-07-01 snapshot | Written via chatbot `POST /feedback` (thumbs up/down, rating `1`/`-1`); `reason` column added `chatbot/migrations/004_feedback_reason.sql` (2026-08-01) |
 | `roadmap_courses` | not in 2026-07-01 snapshot | Added `chatbot/migrations/005_roadmap_courses.sql` (commit `d40e915`, 2026-08-07) — `major_name` (plain text, not FK'd)/`year_number`/`semester`/`course_code` sourced from VT registrar checksheet PDFs via `scripts/scrape_checksheets.py`; feeds roadmap-aware schedule building in `schedule_builder.py` |
@@ -194,6 +199,7 @@ Row counts verified live 2026-07-01:
 
 **Medium priority:**
 - Cyrus (chatbot) is gated behind a private allowlist (`CYRUS_PUBLIC_LAUNCHED=false` in `frontend/src/config.js`) ahead of public launch — most signed-in users see a locked screen instead of the chat UI. See Frontend section above.
+- Production Clerk key: Vercel's `VITE_CLERK_PUBLISHABLE_KEY` is still a `pk_test_` key (per the `main.jsx` comment from the 2026-09-05 outage), so darvis.tech authenticates against Clerk's test instance. Swap to a `pk_live_` key in Vercel project settings.
 - `chatbot/scripts/scrape_checksheets.py` depends on `pdfplumber`, `beautifulsoup4`, `lxml` — none are in `chatbot/requirements.txt`; install manually before running.
 - `grade_embeddings` table is dead (0 rows, unused). Can be dropped.
 - `chatbot/app/generation/` — a fully built, unit-tested OpenAI multi-tier (Luna/Terra/Sol) structured-generation system with cost-first routing (commit `794f27a`) — is NOT imported by `chatbot/app/main.py` and stays inert: `CYRUS_MODEL_ROUTING_ENABLED=false` in `chatbot/.env`. Production `/chat` still runs exclusively on Groq via `GemmaAnswerClient`. Wire it in or remove the flag when ready — see `docs/CYRUS_OPENAI_MODEL_ROUTING_IMPLEMENTATION_PLAN.md`.
@@ -201,13 +207,15 @@ Row counts verified live 2026-07-01:
 **Low priority:**
 - Two professor tables (`professors` + `instructors`) create inconsistency. Both the frontend `api.js` and the chatbot read `instructors`; the legacy `professors` table is only written (by `import_rmp.js`), never read. Consolidate when convenient.
 - `rmp_tags` is empty for all 1,982 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
+- `chatbot/README.md` and `chatbot/RAG_ARCHITECTURE.md` are stale — both still describe an Anthropic/Claude Haiku backend and the retired `IntentExtractor`. `chatbot/CLAUDE.md` is the accurate one; rewrite or delete the other two.
+- `backend/supabase/schema.sql` is partial (six tables — see Backend section). No single checked-in file defines the whole live schema; `chatbot/migrations/` covers the rest only partially.
 - `README.md` was rewritten 2026-08-25 to match this file (stack, env vars, data counts, pending work). It restates the same facts for a public audience — when the stack or pending-work list changes here, update README too.
 
 ## Git and PR conventions
 
-- **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`. Older history predates the convention and uses plain sentence-case subjects; new work should follow it.
-- **Branches:** `codex/<topic>` for agent-driven work (`codex/UI-fixes`, `codex/landing-earth-scene`, `codex/cyrus-testing`). `main` is the default and the deploy branch — every push to `main` auto-deploys the frontend (Vercel) and chatbot (Render), so never push unfinished work to `main`.
-- **Merges:** GitHub PRs into `main`, merged with merge commits (not squash) — remote is `B2B-VT/Darvis`.
+- **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`. Older history predates the convention and uses plain sentence-case subjects; new work should follow it. Roughly half of the last 60 non-merge commits comply (the sentence-case ones mostly come from Codex PRs).
+- **Branches:** `codex/<topic>` for Codex-driven work (`codex/UI-fixes`, `codex/sep5`, `codex/cyrus-testing`) and `claude/<topic>` for Claude Code work (`claude/mobile-responsive-ui`). `main` is the default and the deploy branch — every push to `main` auto-deploys the frontend (Vercel) and chatbot (Render), so never push unfinished work to `main`.
+- **Merges:** GitHub PRs into `main`, merged with merge commits (not squash) — remote is `B2B-VT/Darvis`. `claude/*` branches have also been merged locally with a plain `git merge` and pushed without a PR.
 - **Design docs:** larger initiatives land a dated spec + plan pair in `docs/superpowers/specs/` and `docs/superpowers/plans/` before implementation.
 
 ## Deployment
@@ -229,3 +237,5 @@ Render free tier sleeps after inactivity — first request takes ~30 seconds. Up
 - `loader.py` column rename map (`_RENAME`): the analytics layer expects the original VT UDC CSV column names. Don't change the rename mapping without updating analytics.py too.
 - Rate limiting: `/chat` is limited to 10 requests/minute per IP. Do not remove this.
 - CORS: `ALLOWED_ORIGINS` in `.env` controls which origins can call the chat API. Darvis.tech must be in the list.
+- `frontend/src/main.jsx` env-key guard runs at module scope: warn on a `pk_test_` key, never throw — a throw there aborts the bundle before React mounts and takes the whole site down (2026-09-05 outage).
+- `frontend/src/supabase.js` custom `fetch` that injects the Clerk JWT: `profile_posts`, `user_schedules`, `user_conversations` and the forum tables rely on it for RLS. Don't replace `db` with a bare `createClient`.
