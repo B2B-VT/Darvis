@@ -1,0 +1,60 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>
+	Blacksburg Transit BT4U
+</title><link href="Styles/bt4u.css" rel="stylesheet" type="text/css" /><meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    
+    <script
+  	src="https://code.jquery.com/jquery-3.6.0.js"
+  	integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+ 	crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Remove  this when TTT error is fixed.
+            $("#Ack").click(function () {
+                $("#Alert").hide();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <img src="Images/4u-logo.gif" width="150" height="67" alt="BT4U Logo" />
+    </div>
+    <form method="post" action="./" id="form1">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTE2MTY5NDQ1OWRkUYzbssvsPI+1fKF46THdzdIT/Y7Q4OOOGS8tCttsQnA=" />
+
+<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+    <div id="content_wrapper" style="margin: 0 auto;">
+        <div id="welcome" style="text-align:center; height:10%; min-height:100px;">
+            <br />Welcome to <b>BT4U</b>, your source for real-time Blacksburg Transit Bus information.<br />To get started choose one of the options below.<br />
+        </div>
+        <div id="links-wrapper" style="margin:0 auto; overflow:hidden;">
+            <div id="live-map" style="margin:0 auto; width:45%;">
+                <a href="LiveMap.aspx"><img src="Images/BT4U_LiveMap.jpg" alt="Live Bus Map" style="width:200px; height:271px; float:left; border:none;" /></a>
+            </div>
+            <div id="spacer" style="margin:0 auto; width:10%;"></div>
+            <div id="classic" style="margin:0 auto; width:45%;">
+                <a href="Mobile.aspx"><img src="Images/BT4U_Classic.jpg" alt="BT4U Classic" style="width:200px; height:271px; float:right; border:none;" /></a>
+            </div>
+        </div>
+        <div id="contact-us" style="text-align:center; height:10%;">
+            <br />Questions, comments or concerns?<br /><a href="mailto:btransit@blacksburg.gov?Subject=BT4U">Email us</a>
+        </div>
+        <div id="Alert" class="notices">
+            <div style="margin: 10%;">
+		        <span style="font-size: 20pt; font-weight: bold;">Notice</span><br /><br />
+		        There is an error in the list of stops that the Two Town Trolley makes. The stop at Main/Ardmore Nbnd, Stop Code 1619 is missing. We apologise for the error and we are working on fixing it. 
+                <div><input id="Ack" type="button" value="OK" /></div>
+	        </div>
+        </div>              
+    </div>
+    <div class="footer">
+         &nbsp;&copy; Blacksburg Transit All Rights Reserved...
+    </div>
+    </form>
+</body>
+</html>
