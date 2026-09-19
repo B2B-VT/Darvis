@@ -8,14 +8,16 @@ Darvis is a live Virginia Tech academic intelligence platform at darvis.tech. St
 Darvis/
 ├── frontend/               React 19 + Vite — deployed on Vercel
 ├── chatbot/                FastAPI chatbot backend — deployed on Render
-├── backend/                Node.js data scripts (scrapers, importers) — not a server
-├── evals/                  "Cyrus" JSONL eval harness (RAG retrieval QA, reranker A/B, LLM-judge grading) — sibling to chatbot/tests/, imported by it via a sys.path hack in chatbot/conftest.py
+├── backend/                Node.js data scripts (scrapers, importers) — not a server; has its own backend/README.md with a script-by-script table
+├── evals/                  "Cyrus" JSONL eval harness (RAG retrieval QA, reranker A/B, LLM-judge grading) — sibling to chatbot/tests/, imported by it via a sys.path hack in chatbot/conftest.py. run.py is the main entry; run_rag_qa.py + load_qa_workbook.py are the older workbook-QA path, run_reranker_ab.py / judge_response.py / report_results.py are the A/B, judge and reporting helpers (none has a docstring); thresholds.yaml = release gates (entity-match 1.00, P@5 0.90, nDCG@5 0.85, …); datasets/ has 6 JSONL suites, graders/deterministic.py, fixtures/generation/, reports/ holds the CYRUS_*_REPORT.md run write-ups
 ├── docs/                   CYRUS_*.md audit/implementation-plan trail for the chatbot generation-quality initiative — not linked from any CLAUDE.md/AGENTS.md/README; also docs/superpowers/{plans,specs}/ — brainstorm/spec/plan artifacts from the superpowers skill workflow, one pair per initiative (currently cyrus-access-gate, landing-earth-scene)
 ├── outputs/                Eval run artifacts (e.g. rag_qa_workbook/)
 ├── tools/                  One-off diagnostics (e.g. diagnose_cross_encoder.py)
 ├── CHATBOT_AUDIT_REPORT.md Standalone chatbot reliability/hallucination-risk audit (not cross-linked elsewhere)
 ├── .github/workflows/      CI — update-timetable.yml (authenticated Banner scrape every 4h); .github/CODEOWNERS assigns everything to @pujanpatel08
-├── .claude/                Local agent config — settings.local.json (SessionStart hook: rename session + green), a hookify rule that asks for git commands after every change, agents/kfc spec-workflow agents; .codex/hooks.json mirrors the SessionStart hook
+├── .claude/                Local agent config — settings.local.json (SessionStart hook: rename session + green, plus a small permission allowlist), settings.json (empty enabledPlugins), hookify.git-commands-after-changes.local.md (stop-event warn rule: print git add/commit/push after every change), agents/kfc/ (7 spec-* workflow agents) + system-prompts/spec-workflow-starter.md + settings/kfc-settings.json (points at .claude/specs + .claude/steering, neither exists yet), empty worktrees/; .codex/hooks.json mirrors the SessionStart hook. Root-level .worktrees/ and .superpowers/ are gitignored agent workspaces
+├── .playwright-mcp/        One tracked Playwright-MCP page snapshot (page-2026-06-11T17-45-15-503Z.yml) — stray commit, not referenced anywhere; delete + gitignore
+├── bt4uhome.html           Saved copy of the Blacksburg Transit BT4U homepage (commit 642a733 "tools update", 2026-09-17) — purpose undocumented, presumably reference HTML for a future transit scraper; no code references it
 ├── CLAUDE.md               Claude Code equivalent of this file — near-identical sibling, keep both in sync when editing
 └── AGENTS.md
 ```
@@ -38,7 +40,8 @@ npm run dev        # http://localhost:5173
 - `frontend/src/main.jsx` — entry point; requires `VITE_CLERK_PUBLISHABLE_KEY` in `frontend/.env` (no `.env.example` exists — create the file yourself). Throws if the key is missing, but only `console.error`s when a `pk_test_` key is used in a prod build — that guard must never throw at module scope (a throwing version white-screened darvis.tech on 2026-09-05, fixed in `b19814e`)
 - `frontend/src/App.jsx` — root component, page routing (`page` state, no router lib), global dark mode state. Only `/privacy` and `/terms` map to real URLs (`pageToPath`/`pathToPage` + `vercel.json` rewrites); every other page lives at `/`. Also defines `UPCOMING_PRODUCTS` (Kairo, Ruvo, Watchlist) — sidebar entries that open `locked-product.jsx` instead of a page
 - `frontend/src/api.js` — centralizes most Supabase calls from the frontend (`dashboard-prof.jsx`, `forums.jsx`, `instructors.jsx`, `profile-modal.jsx` query the `db` client from `supabase.js` directly instead)
-- `frontend/src/config.js` — Supabase URL + publishable key, chatbot API URL
+- `frontend/src/config.js` — Supabase URL + publishable key; chatbot API URL resolves `VITE_CHAT_API_URL` env override → else `http://127.0.0.1:8000/chat` on localhost → else the Render URL; also home of the `CYRUS_PUBLIC_LAUNCHED` / `CYRUS_ALLOWLIST` gate flags
+- `frontend/public/` — logos (darvis, cyrus, kairo, ruvo, watchlist), favicons, `images/` (campus_day/night.jpg = landing.jsx backgrounds, virginia-tech-seal.webp, no-rmp-data.png), `videos/` (campus_day/night.mp4 — referenced nowhere in src). `frontend/images/` and `frontend/videos/` at the frontend root are stale duplicates of the public/ copies: not served by Vite, not imported
 - `frontend/src/supabase.js` — Supabase client singleton
 - `frontend/src/theme.jsx` — dark/light theme tokens
 - `frontend/src/mock-data.js` — `courses.jsx` imports it only as a constants bag (`MOCK.gradeColors`, `MOCK.pathwaysOptions`), but `dashboard-prof.jsx`'s schedule-summary block still resolves sections through `MOCK.sections`/`MOCK.getCourse`/`MOCK.getProf`/`MOCK.formatTime` — a real mock-data dependency in a production component, not yet migrated to `api.js`
@@ -81,7 +84,7 @@ source .venv/bin/activate
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
 
-**Tests:** pytest suite in `chatbot/tests/` — 15 files, 255 tests collected as of 2026-09-17 (intent extractor, planner critic, retrieval eval, normalization, generation/model-router, generation-provider-routing, reranker, safety-refusals, RAG-refactor, Cyrus eval-grader, compound-constraint-fixes, entity-retrieval-guards, eval-workbook-loader, structured-generation, schedule-builder year-resolution). No `pytest.ini`/`pyproject.toml` — pytest defaults; `chatbot/conftest.py` only adds the repo root to `sys.path`. The venv is Python 3.14 (no pinned version file):
+**Tests:** pytest suite in `chatbot/tests/` — 15 files, 255 tests collected as of 2026-09-19 (intent extractor, planner critic, retrieval eval, normalization, generation/model-router, generation-provider-routing, reranker, safety-refusals, RAG-refactor, Cyrus eval-grader, compound-constraint-fixes, entity-retrieval-guards, eval-workbook-loader, structured-generation, schedule-builder year-resolution). No `pytest.ini`/`pyproject.toml` — pytest defaults; `chatbot/conftest.py` only adds the repo root to `sys.path`. The venv is Python 3.14 (no pinned version file):
 ```bash
 cd chatbot && python -m pytest tests/
 ```
@@ -93,7 +96,9 @@ A second, separate QA surface — `evals/` at the repo root (the "Cyrus" JSONL e
 
 **LLM:** Groq (`openai/gpt-oss-120b` by default) via the OpenAI-compatible client — the client class/file still carry the legacy name `GemmaAnswerClient`/`gemma_client.py` from an earlier Gemma-era backend. History: migrated Anthropic→Groq, briefly reverted by a bad merge, restored in commit `cbdf7db`. Set `GROQ_API_KEY` and `GROQ_MODEL` in `chatbot/.env`. 30-second client timeout. Falls back to template answers when the LLM is unavailable.
 
-**Required env vars (`chatbot/.env`):**
+**Routes (`main.py`, 10 total):** `/chat`, `/chat/stream` (SSE), `/feedback`, `/feedback/recent` (gated by `X-Darvis-Dev-Token` = `DEV_FEEDBACK_TOKEN`), `/courses/search`, `/professors/search`, `/rmp/reviews` (live RMP GraphQL proxy), `/retrieval/debug` (404 unless `RAG_DEBUG_MODE=true`), `/health`, `/ping`. Rate limits per route in `chatbot/CLAUDE.md`.
+
+**Required env vars (`chatbot/.env`):** — the minimum set; `chatbot/.env.example` documents the full ~40-var list (OpenAI tiers, local reranker, RAG tuning)
 ```
 GROQ_API_KEY=...
 GROQ_MODEL=openai/gpt-oss-120b
@@ -209,11 +214,14 @@ Row counts verified live 2026-07-01:
 - `rmp_tags` is empty for all 1,982 instructors with RMP data. RMP's GraphQL API does not return `teacherRatingTags` — confirmed after running `fetch_rmp_tags.js`. Accepted limitation.
 - `chatbot/README.md` and `chatbot/RAG_ARCHITECTURE.md` are stale — both still describe an Anthropic/Claude Haiku backend and the retired `IntentExtractor`. `chatbot/CLAUDE.md` is the accurate one; rewrite or delete the other two.
 - `backend/supabase/schema.sql` is partial (six tables — see Backend section). No single checked-in file defines the whole live schema; `chatbot/migrations/` covers the rest only partially.
+- `frontend/images/` + `frontend/videos/` are unreferenced duplicates of `frontend/public/images|videos`; the campus mp4s in both places are referenced nowhere. Delete the frontend-root copies (and the mp4s unless a video background is coming back).
+- `.playwright-mcp/page-2026-06-11T17-45-15-503Z.yml` is a tracked browser-automation snapshot — `git rm` it and add `.playwright-mcp/` to `.gitignore`.
+- `bt4uhome.html` sits undocumented at the repo root (BT4U transit page saved 2026-09-17) — move under `backend/data/` or `tools/` with a note, or delete.
 - `README.md` was rewritten 2026-08-25 to match this file (stack, env vars, data counts, pending work). It restates the same facts for a public audience — when the stack or pending-work list changes here, update README too.
 
 ## Git and PR conventions
 
-- **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`. Older history predates the convention and uses plain sentence-case subjects; new work should follow it. Roughly half of the last 60 non-merge commits comply (the sentence-case ones mostly come from Codex PRs).
+- **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`. Older history predates the convention and uses plain sentence-case subjects; new work should follow it. 23 of the last 40 non-merge commits comply as of 2026-09-19 (the sentence-case ones mostly come from Codex PRs).
 - **Branches:** `codex/<topic>` for Codex-driven work (`codex/UI-fixes`, `codex/sep5`, `codex/cyrus-testing`) and `claude/<topic>` for Claude Code work (`claude/mobile-responsive-ui`). `main` is the default and the deploy branch — every push to `main` auto-deploys the frontend (Vercel) and chatbot (Render), so never push unfinished work to `main`.
 - **Merges:** GitHub PRs into `main`, merged with merge commits (not squash) — remote is `B2B-VT/Darvis`. `claude/*` branches have also been merged locally with a plain `git merge` and pushed without a PR.
 - **Design docs:** larger initiatives land a dated spec + plan pair in `docs/superpowers/specs/` and `docs/superpowers/plans/` before implementation.
