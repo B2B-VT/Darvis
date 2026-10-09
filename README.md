@@ -1,14 +1,14 @@
 # Darvis
 
-Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence platform — grade distributions, professor comparisons, an AI chatbot, a schedule builder, and forums for VT students.
+Live at [darvis.tech](https://darvis.tech). A Virginia Tech academic intelligence platform: grade distributions, professor comparisons, an AI chatbot, a schedule builder, and forums for VT students.
 
 ## What it does
 
 - Browse and search VT courses by subject, GPA range, credits, and Pathways concept area
 - See historical grade distributions (GPA, A/A- rate, F rate, withdrawals) per course and per professor, sourced from VT UDC
 - View RateMyProfessors ratings, difficulty scores, and review excerpts on professor profiles
-- Ask "Cyrus", the AI chatbot, questions like "which CS 3114 professor has the strongest outcomes?" or "what do I need to graduate with a CS degree?" — currently gated behind a private early-access allowlist ahead of public launch
-- Build a conflict-free weekly schedule from live Fall 2026 section data, ranked against VT registrar checksheet roadmaps
+- Ask Cyrus, the AI chatbot, questions like "which CS 3114 professor has the strongest outcomes?" or "what do I need to graduate with a CS degree?" (currently behind a private early-access allowlist)
+- Build a conflict-free weekly schedule from Fall 2026 section data, ranked against VT registrar checksheet roadmaps
 - Import a LinkedIn "Save to PDF" export to pre-fill your profile
 - Post and discuss on the forums
 
@@ -16,106 +16,104 @@ Live at [darvis.tech](https://darvis.tech). Virginia Tech academic intelligence 
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 19 + Vite 8, CSS-in-JS, Clerk auth |
-| Chatbot backend | FastAPI (Python), Pandas, Groq (`openai/gpt-oss-120b`) |
-| Retrieval | Redis Cloud (redisvl) — hybrid vector + keyword search, RRF fusion |
-| Data scripts | Node.js 22 (scrapers + importers) |
-| Database | Supabase (Postgres) — also the durable source of truth for embeddings |
-| Frontend hosting | Vercel |
-| Chatbot hosting | Render |
-| Auth | Clerk (waitlist/beta mode) |
-| CI | GitHub Actions — authenticated Banner timetable scrape every 4h |
+| Frontend | React 19 + Vite 8, CSS-in-JS, Clerk auth — hosted on Vercel |
+| Chatbot | FastAPI (Python), Pandas, Groq (`openai/gpt-oss-120b`) — hosted on Render |
+| Retrieval | Redis Cloud (redisvl) — hybrid vector + keyword search with RRF fusion |
+| Database | Supabase (Postgres) — also the source of truth for embeddings |
+| Data scripts | Node.js 22 scrapers + importers |
+| CI | GitHub Actions — Banner timetable scrape every 4 hours |
 
 ## Folder layout
 
 ```
 Darvis/
-├── .github/workflows/      update-timetable.yml — Banner scrape every 4h
-├── CLAUDE.md / AGENTS.md   Full architecture context for coding agents (kept in sync)
-├── README.md               This file
-├── frontend/               React + Vite frontend — deployed on Vercel
-│   ├── index.html          Vite entry point
-│   ├── vite.config.js
-│   └── src/
-│       ├── App.jsx         Root component, page routing (state-based, no router lib), dark mode
-│       ├── api.js          Most Supabase queries
-│       ├── config.js       Supabase URL + publishable key, chatbot API URL, Cyrus access gate
-│       └── components/     One file per page (landing, courses, chatbot, schedule, etc.)
-├── chatbot/                FastAPI chatbot — deployed on Render
-│   ├── app/                Application code (rag/, features/, data/, safety/, generation/)
-│   ├── migrations/         SQL migrations, run by hand against Supabase
-│   ├── scripts/            Embedding builders, Redis sync, curriculum + checksheet scrapers
-│   ├── tests/              pytest suite
-│   ├── requirements.txt
-│   └── README.md
-├── backend/                Node.js data pipeline (not a server)
-│   ├── scrapers/           UDC grades (browser-console + Playwright), Banner timetable, RMP, catalog, prereqs, Pathways
-│   ├── scripts/            Supabase importers
-│   ├── supabase/schema.sql Partial DB schema (6 tables — see CLAUDE.md)
-│   └── README.md
-├── evals/                  "Cyrus" JSONL eval harness — retrieval QA, reranker A/B, LLM-judge grading
-├── docs/                   Chatbot audit + implementation-plan trail; design specs and plans
-└── tools/                  One-off diagnostics
+├── frontend/     React + Vite app (src/App.jsx routing, src/api.js Supabase queries, src/components/ one file per page)
+├── chatbot/      FastAPI chatbot: app/ code, tests/ (pytest), scripts/ (embeddings, Redis sync, curriculum + checksheet scrapers), migrations/ (SQL)
+├── backend/      Node data pipeline: scrapers/, scripts/ (Supabase importers), supabase/schema.sql (partial schema)
+├── evals/        Cyrus JSONL eval harness: run.py, datasets/, graders/, fixtures/
+├── .github/      update-timetable.yml + CODEOWNERS
+├── CLAUDE.md     Full architecture and conventions reference for coding agents
+└── README.md
 ```
 
 ## Running locally
 
-**Frontend:**
+**Frontend**
 ```bash
 cd frontend
 npm install
 echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_..." > .env   # required
 npm run dev      # http://localhost:5173
 ```
-`VITE_CHAT_API_URL` is optional — without it the app points at `http://127.0.0.1:8000/chat` on localhost and at the Render deployment everywhere else.
+`VITE_CHAT_API_URL` is optional. Without it the app calls `http://127.0.0.1:8000/chat` on localhost and the Render deployment everywhere else.
 
-**Chatbot:**
+**Chatbot**
 ```bash
 cd chatbot
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env    # fill in GROQ_API_KEY, SUPABASE_URL, SUPABASE_KEY, REDIS_URL
+cp .env.example .env    # fill in GROQ_API_KEY, GROQ_MODEL, SUPABASE_URL, SUPABASE_KEY, REDIS_URL
 uvicorn app.main:app --reload   # http://127.0.0.1:8000
 ```
-`.env.example` defines ~44 vars; the four above plus `GROQ_MODEL` are the ones needed to boot.
+Set `SHOW_DOCS=true` in `.env` to get the Swagger UI at `/docs`.
 
-**Data scripts:**
+**Data scripts**
 ```bash
 cd backend
 npm install
 cp .env.example .env    # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
-npm run import-grades   # after dropping vt_udc_grades_*.csv in data/raw/
 ```
 
-## Tests
+## Data pipeline
+
+All scraped inputs land in `backend/data/raw/` (gitignored), then an importer writes them to Supabase.
+
+| Data | Scrape | Import |
+|------|--------|--------|
+| Grades (all subjects, 2020-21 → 2025-26) | Paste `scrapers/udc_2020_present_scraper.js` into DevTools on the [UDC grades page](https://udc.vt.edu/irdata/data/courses/grades). Rename the downloaded `vt_grades_...csv` to `vt_grade_distribution_2020-21_to_2025-26.csv` | `node scripts/import_all_grades.js` |
+| Grades, headless alternative | `npm run scrape-grades` (per-subject CSVs) | `npm run import-grades` |
+| Fall sections | `npm run scrape-timetable-auth` (CI runs this every 4 hours) or `npm run scrape-timetable` without login | Authenticated scraper writes directly; otherwise `npm run import-timetable` |
+| Course descriptions | `npm run scrape-catalog` | `npm run import-descriptions` |
+| Prerequisites | `npm run scrape-prereqs` | `npm run import-prerequisites` |
+| Pathways codes | `npm run scrape-pathways` | `npm run import-pathways` |
+| RMP ratings → instructors | `node scrapers/rmp_scraper.js` | `node scripts/rebuild_instructors.js` |
+| Majors + requirements | `python -m scripts.scrape_curriculum` (from `chatbot/`) | same script |
+| Checksheet roadmaps | `python -m scripts.scrape_checksheets` (needs `pdfplumber beautifulsoup4 lxml`) | same script |
+| Embeddings | `python -m scripts.rebuild_embeddings --wipe` | `python -m scripts.sync_redis_index` |
+
+The Banner scraper needs a logged-in browser profile. After `npm run auth-banner` (or a headed run of `scrapers/banner_puppeteer_scraper.js`) approves Duo, run `npm run update-banner-secret` so CI can reuse the cookies.
+
+Row counts as of 2026-07-01: 59,790 grade rows across 152 subjects, 6,589 courses, 10,663 Fall 2026 sections, 3,834 instructors (1,982 with RMP ratings), 183 majors with 16,290 requirement rows. The Redis index held 36,210 vectors on 2026-09-29.
+
+## Tests and evals
 
 ```bash
-cd chatbot && python -m pytest tests/                                   # 16 test files
-python evals/run.py --end-to-end --all --endpoint http://127.0.0.1:8000/chat
+cd chatbot && python -m pytest tests/     # 245 tests
 ```
-The frontend has no test runner and no ESLint/Prettier config — plain JS, manual formatting.
+The frontend has no test runner and no ESLint/Prettier config.
 
-## Data pipeline status
+The Cyrus eval harness grades retrieval, routing, formatting and grounding against JSONL suites in `evals/datasets/`. Start the chatbot first, then from the repo root:
 
-Row counts verified 2026-07-01 unless noted.
+```bash
+python evals/run.py --end-to-end --all --endpoint http://127.0.0.1:8000/chat   # full suite against a live endpoint
+python evals/run.py --dataset course_recommendations.jsonl                   # one dataset
+python evals/run.py --id course_rec_ai_001                                   # one case
+python evals/run.py --retrieval-only                                         # retrieval/ranking only, no generation
+python evals/run.py --generation-only                                        # grade saved fixtures in evals/fixtures/generation/
+```
+Add `--require-provider-success` to fail the run on rate limits, timeouts, fallbacks or model changes. Results go to `evals/reports/` (gitignored). Target release gates are recorded in `evals/thresholds.yaml`.
 
-| Data | Status |
-|------|--------|
-| Grades | 59,790 rows across all 152 subjects (2020-21 → 2025-26) — full UDC import complete. Re-scrape only when VT releases a new academic year |
-| Courses | 6,589 — 5,468 with `avg_gpa`, 5,051 with descriptions, 1,153 with prerequisites, 751 with Pathways codes |
-| Sections | 10,663 rows for Fall 2026 (term `202609`) — auto-refreshed every 4h by the GitHub Actions Banner scrape |
-| Instructors | 3,834 — 1,982 matched to RMP ratings (`rmp_tags` stays empty; RMP's API doesn't return them) |
-| Major requirements | 183 majors, 16,290 requirement rows, plus registrar checksheet roadmaps |
-| Embeddings | Supabase `embeddings` is the source of truth; the live Redis index held 36,210 vectors as of 2026-07-31. Rebuild with `python -m scripts.rebuild_embeddings --wipe` then `python -m scripts.sync_redis_index` |
+Each JSONL case can set `id`, `query`, `user_profile`, `history`, `expected_intent`, `expected_entities`, `must_retrieve`, `acceptable_retrieve`, `must_not_retrieve`, `relevance`, `must_include_in_answer`, `must_not_include_in_answer`, `expected_answer_type`, `expected_format`, `required_table_columns`, `forbidden_behavior` and `notes`. Relevance labels are `3` directly relevant, `2` strongly related, `1` defensible but secondary, `0` irrelevant, `-1` prohibited.
+
+Raw thumbs-up/down feedback never becomes eval or training data automatically. A reviewer first converts it to a record with `query`, `bad_answer`, `failure_labels`, `reviewer_reason`, `corrected_answer`, `expected_courses`, `excluded_courses`, `approved_for_eval` and `approved_for_training`. Only `approved_for_eval: true` cases become JSONL regression cases.
 
 ## Pending work
 
-See `CLAUDE.md` for the full issue list. Top items:
+See `CLAUDE.md` for the full list. Top items:
 
-1. Launch Cyrus publicly — flip `CYRUS_PUBLIC_LAUNCHED` in `frontend/src/config.js` and clear the allowlist
-2. `courses.avg_gpa` is still null for 1,121 courses that have no matching grade rows
-3. `chatbot/app/generation/` (OpenAI multi-tier structured generation) is built and tested but not wired into `/chat` — wire it in or drop the flag
-4. Drop the dead `grade_embeddings` table (0 rows, unreferenced)
-5. Upgrade Render to Starter ($7/month) to eliminate ~30s cold-start latency
-6. Swap Vercel's `VITE_CLERK_PUBLISHABLE_KEY` from `pk_test_` to `pk_live_` — production currently authenticates against Clerk's test instance
-7. `chatbot/README.md` and `chatbot/RAG_ARCHITECTURE.md` still describe the retired Anthropic/Claude Haiku backend — rewrite or drop them (`chatbot/CLAUDE.md` is current)
+1. Re-authenticate the Banner scraper — the 4-hourly timetable job has failed since at least 2026-08-14, so section data is frozen at 2026-07-01
+2. Launch Cyrus publicly by flipping `CYRUS_PUBLIC_LAUNCHED` in `frontend/src/config.js` and clearing the allowlist
+3. `courses.avg_gpa` is null for 1,121 courses with no grade rows
+4. Swap Vercel's `VITE_CLERK_PUBLISHABLE_KEY` from `pk_test_` to `pk_live_`
+5. Wire `chatbot/app/generation/` into `/chat` or remove it
+6. Drop the dead `grade_embeddings` and legacy `professors` tables

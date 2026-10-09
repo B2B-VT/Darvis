@@ -13,7 +13,7 @@ from app.safety.entity_resolver import EntityResolver
 # ── normalize_question ────────────────────────────────────────────────────────
 
 # normalize_question is whitespace/quote cleanup only — typos, slang, and
-# abbreviations are handled downstream by the LLM IntentExtractor.
+# abbreviations are handled downstream by the LLM QueryPlanner.
 
 def test_normalize_collapses_whitespace():
     assert normalize_question("  cs   3114\n grade    distribution ") == "cs 3114 grade distribution"
