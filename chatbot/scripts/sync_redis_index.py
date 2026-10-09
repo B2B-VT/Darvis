@@ -2,12 +2,12 @@
 scripts/sync_redis_index.py
 
 Reads the `embeddings` table from Supabase (the durable source of truth,
-populated by build_embeddings.py / rebuild_embeddings.py)
+populated by rebuild_embeddings.py)
 and loads every row into the Redis index that app/rag/retriever.py queries
 at runtime via redisvl.
 
 Rerunnable any time:
-  - after running build_embeddings.py / rebuild_embeddings.py
+  - after running rebuild_embeddings.py
   - any time Redis is cold (e.g. a Redis Cloud free-tier restart/eviction)
   - after changing RAG_REDIS_INDEX_NAME
 
@@ -113,7 +113,7 @@ def main() -> int:
     rows = fetch_all_embeddings(supabase)
     if not rows:
         logger.error("No rows found in Supabase `embeddings` table — nothing to sync. "
-                      "Run build_embeddings.py / rebuild_embeddings.py first.")
+                      "Run rebuild_embeddings.py first.")
         return 1
 
     first_emb = _parse_embedding(rows[0]["embedding"])

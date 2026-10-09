@@ -185,7 +185,7 @@ async function fetchAllProfessors(schoolId) {
 
     fs.writeFileSync(OUT_FILE, JSON.stringify(professors, null, 2));
     console.log(`\nSaved to: ${OUT_FILE}`);
-    console.log('\nNext step: run  node scripts/import_rmp.js');
+    console.log('\nNext step: run  node scripts/rebuild_instructors.js');
 
   } catch (err) {
     console.error('\nERROR:', err.message);

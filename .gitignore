@@ -1,11 +1,14 @@
 # Dependencies
 node_modules/
 
-# Python bytecode cache
+# Python
 __pycache__/
 *.pyc
+.venv/
+venv/
+.pytest_cache/
 
-# Environment variables
+# Environment variables (the committed .env.example files are not matched)
 .env
 .env.local
 .env.*.local
@@ -14,10 +17,18 @@ __pycache__/
 dist/
 build/
 
-# Data files (scraped CSVs can be large — store separately or in a private bucket)
+# Scraped data, browser sessions and scraper resume state (backend/)
 backend/data/raw/*.csv
 backend/data/raw/*.json
-backend/data/canonical/
+backend/data/browser-profile/
+backend/data/progress/
+
+# Written by chatbot/scripts/scrape_curriculum.py on every run
+chatbot/scripts/catalog_data_backup.json
+
+# Eval run outputs (evals/run.py writes here by default)
+evals/reports/
+evals/results/
 
 # macOS
 .DS_Store
@@ -32,6 +43,8 @@ backend/data/canonical/
 # Agent workspaces
 .worktrees/
 .superpowers/
+.claude/worktrees/
+.playwright-mcp/
 
 # Logs
 *.log
@@ -41,4 +54,3 @@ npm-debug.log*
 *.db
 *.sqlite
 *.sqlite3
-chat-bot/
