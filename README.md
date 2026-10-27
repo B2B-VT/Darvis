@@ -20,8 +20,7 @@ Live at [darvis.tech](https://darvis.tech). A Virginia Tech academic intelligenc
 | Chatbot | FastAPI (Python), Pandas, Groq (`openai/gpt-oss-120b`) — hosted on Render |
 | Retrieval | Redis Cloud (redisvl) — hybrid vector + keyword search with RRF fusion |
 | Database | Supabase (Postgres) — also the source of truth for embeddings |
-| Data scripts | Node.js 22 scrapers + importers |
-| CI | GitHub Actions — Banner timetable scrape every 4 hours |
+| Data scripts | Node.js scrapers + importers, run by hand |
 
 ## Folder layout
 
@@ -31,7 +30,6 @@ Darvis/
 ├── chatbot/      FastAPI chatbot: app/ code, tests/ (pytest), scripts/ (embeddings, Redis sync, curriculum + checksheet scrapers), migrations/ (SQL)
 ├── backend/      Node data pipeline: scrapers/, scripts/ (Supabase importers), supabase/schema.sql (partial schema)
 ├── evals/        Cyrus JSONL eval harness: run.py, datasets/, graders/, fixtures/
-├── .github/      update-timetable.yml + CODEOWNERS
 ├── CLAUDE.md     Full architecture and conventions reference for coding agents
 └── README.md
 ```
@@ -72,7 +70,7 @@ All scraped inputs land in `backend/data/raw/` (gitignored), then an importer wr
 |------|--------|--------|
 | Grades (all subjects, 2020-21 → 2025-26) | Paste `scrapers/udc_2020_present_scraper.js` into DevTools on the [UDC grades page](https://udc.vt.edu/irdata/data/courses/grades). Rename the downloaded `vt_grades_...csv` to `vt_grade_distribution_2020-21_to_2025-26.csv` | `node scripts/import_all_grades.js` |
 | Grades, headless alternative | `npm run scrape-grades` (per-subject CSVs) | `npm run import-grades` |
-| Fall sections | `npm run scrape-timetable-auth` (CI runs this every 4 hours) or `npm run scrape-timetable` without login | Authenticated scraper writes directly; otherwise `npm run import-timetable` |
+| Fall sections | `npm run scrape-timetable-auth` or `npm run scrape-timetable` without login | Authenticated scraper writes directly; otherwise `npm run import-timetable` |
 | Course descriptions | `npm run scrape-catalog` | `npm run import-descriptions` |
 | Prerequisites | `npm run scrape-prereqs` | `npm run import-prerequisites` |
 | Pathways codes | `npm run scrape-pathways` | `npm run import-pathways` |
@@ -81,9 +79,9 @@ All scraped inputs land in `backend/data/raw/` (gitignored), then an importer wr
 | Checksheet roadmaps | `python -m scripts.scrape_checksheets` (needs `pdfplumber beautifulsoup4 lxml`) | same script |
 | Embeddings | `python -m scripts.rebuild_embeddings --wipe` | `python -m scripts.sync_redis_index` |
 
-The Banner scraper needs a logged-in browser profile. After `npm run auth-banner` (or a headed run of `scrapers/banner_puppeteer_scraper.js`) approves Duo, run `npm run update-banner-secret` so CI can reuse the cookies.
+The Banner scraper needs a logged-in browser profile: approve Duo once with `npm run auth-banner` (or a headed run of `scrapers/banner_puppeteer_scraper.js`), then later runs can use `HEADLESS=true`. Delete `backend/data/progress/banner_timetable_progress.json` before each full refresh, because the scraper skips every subject listed there.
 
-Row counts as of 2026-07-01: 59,790 grade rows across 152 subjects, 6,589 courses, 10,663 Fall 2026 sections, 3,834 instructors (1,982 with RMP ratings), 183 majors with 16,290 requirement rows. The Redis index held 36,210 vectors on 2026-09-29.
+Row counts as of 2026-10-27: 59,790 grade rows across 152 subjects, 6,589 courses, 10,663 Fall 2026 sections (last refreshed 2026-07-01), 3,834 instructors (1,982 with RMP ratings), 183 majors with 16,290 requirement rows. The Redis index held 36,210 vectors.
 
 ## Tests and evals
 
@@ -111,9 +109,9 @@ Raw thumbs-up/down feedback never becomes eval or training data automatically. A
 
 See `CLAUDE.md` for the full list. Top items:
 
-1. Re-authenticate the Banner scraper — the 4-hourly timetable job has failed since at least 2026-08-14, so section data is frozen at 2026-07-01
+1. Refresh section data by hand and roll the term over to Spring 2027 — the 4-hourly timetable job was removed on 2026-10-09, and section data is frozen at 2026-07-01
 2. Launch Cyrus publicly by flipping `CYRUS_PUBLIC_LAUNCHED` in `frontend/src/config.js` and clearing the allowlist
 3. `courses.avg_gpa` is null for 1,121 courses with no grade rows
 4. Swap Vercel's `VITE_CLERK_PUBLISHABLE_KEY` from `pk_test_` to `pk_live_`
 5. Wire `chatbot/app/generation/` into `/chat` or remove it
-6. Drop the dead `grade_embeddings` and legacy `professors` tables
+6. Create the missing `roadmap_courses`, `echo_reviews` and `profile_posts` tables
