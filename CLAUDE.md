@@ -2,7 +2,7 @@
 
 Darvis is a live Virginia Tech academic intelligence platform at darvis.tech. Students use it to look up grade distributions, compare professors, build schedules, and ask the AI chatbot ("Cyrus") questions like "which CS 3114 professor has the strongest outcomes?" Auth is handled by Clerk (waitlist/beta mode). Built and maintained by Pujan Patel.
 
-This is the only CLAUDE.md in the repo, and `README.md` is the only README. On 2026-10-08 the repo was purged of dead code, generated eval outputs, finished design docs (`docs/`), the old workbook QA harness, Codex config (`AGENTS.md`, `.codex/`) and duplicate media; `.github/` (timetable CI, CODEOWNERS) followed on 2026-10-09. Anything removed is recoverable from git history. `AGENTS.md` came back on 2026-10-12 (`287d359`) as a find-and-replace Codex copy of this file; nothing keeps the two in sync.
+This is the only CLAUDE.md in the repo, and `README.md` is the only README. On 2026-10-08 the repo was purged of dead code, generated eval outputs, finished design docs (`docs/`), the old workbook QA harness, Codex config (`AGENTS.md`, `.codex/`) and duplicate media; `.github/` (timetable CI, CODEOWNERS) followed on 2026-10-09. Anything removed is recoverable from git history. `AGENTS.md` came back on 2026-10-12 (`287d359`) as a find-and-replace Codex copy of this file; nothing keeps the two in sync, and it already lags this file: it still describes the deleted timetable CI and recommends the broken `auth.uid()` RLS pattern (see Migrations).
 
 ## Frontend
 
@@ -22,7 +22,9 @@ React 19.2 + Vite 8 (`@vitejs/plugin-react` 6). Clerk via `@clerk/clerk-react` 5
 
 FastAPI backend in Python. Loads Supabase data at startup into Pandas DataFrames (plus precomputed `DataIndexes`). Each question runs through `_run_chat_pipeline()` in `main.py`: a rule-based safety classifier (`safety/refusals.py`), a deterministic-professor pre-planner that can bypass the LLM, then `QueryPlanner` (`rag/query_planner.py`) — primarily LLM-driven, but on low confidence or LLM failure it falls through to `_deterministic_fallback_plan()`, an intentional ~130-line keyword/regex router, before returning a bare clarification request for a small set of ambiguous phrases. Then a fuzzy `EntityResolver`, a sufficiency gate (`check_plan`), the feature handler, and a templated or LLM answer. Responses are JSON: `answer`, `tables`, `charts`, `warnings`, `metadata`, `schedule_actions`. `schedule_builder.py` folds VT registrar checksheet roadmaps (`roadmap_courses`) into required-course ranking once major + year are known; if year is unknown it asks inline and recovers the original request from history on the follow-up.
 
-**Endpoints:** the Cyrus UI posts to `/chat/stream` and falls back to `/chat`. The stream runs `_run_chat_pipeline()` to completion, then replays the answer as SSE `status` → `route` → `answer_chunk` → `final` events, so it isn't token streaming. `/ping` is the keep-warm target; `/health` reports per-table `*_loaded` counts and `vector_records`. `load_roadmap_from_supabase()` logs a warning and returns an empty DataFrame on any error, so roadmap ranking turns off without failing anything.
+**Endpoints:** the Cyrus UI posts to `/chat/stream` and falls back to `/chat`. The stream runs `_run_chat_pipeline()` to completion, then replays the answer as SSE `status` → `route` → `answer_chunk` → `final` events, so it isn't token streaming. `/ping` is the keep-warm target, though nothing in the repo (or its history) calls it, so any pinger lives outside it; `/health` reports per-table `*_loaded` counts and `vector_records`. `load_roadmap_from_supabase()` logs a warning and returns an empty DataFrame on any error, so roadmap ranking turns off without failing anything.
+
+**Adding a Cyrus route:** add the name to `VALID_ROUTES` in `rag/planner_models.py` first, because its validator silently rewrites unknown routes to `general_rag`. Then describe it in the planner prompt's `ROUTES` list in `rag/query_planner.py` (plus a keyword branch in `_deterministic_fallback_plan()` if it should survive LLM failure) and add a `_dispatch_route()` branch in `main.py`. Handlers return `(answer, tables, charts, metadata)`, and `metadata["schedule_actions"]` becomes the response's `schedule_actions`; the answer must still be a string when the LLM returns `None`. Optional: `_SECONDARY_ROUTE_PAIRS` and `_stream_status_for_route()` in `main.py`, per-route framing in `rag/prompts.py`.
 
 **Tests:** `cd chatbot && .venv/bin/python -m pytest tests/` runs 245 offline tests in under a second (2026-10-27); the one `TestClient` call skips `lifespan`, so nothing touches Supabase. `pytest` isn't in `requirements.txt`, and the repo pins no Python version (the local `.venv` runs 3.14).
 
@@ -47,9 +49,9 @@ The current term (`202609`, Fall 2026) lives in several places; change them toge
 - **Chatbot:** `CURRENT_TERM` and `CURRENT_TERM_LABEL` env vars on Render (read by `loader.py`, `schedule_builder.py`, `section_lookup.py`, `sync_redis_index.py`).
 - **Frontend:** `CURRENT_SECTIONS_TERM` and three more `'202609'` literals in `api.js`.
 - **Scrapers:** `TERM` and the `case "202609"` regex in `banner_puppeteer_scraper.js` and `banner_timetable_scraper.js`, plus the count check in `import_timetable.js`.
-- **Copy:** "Fall 2026" strings that ignore `CURRENT_TERM_LABEL` across `chatbot/app/` and `courses.jsx` (`git grep -n "Fall 2026"`); `tests/test_rag_refactor.py` asserts on some of them.
+- **Copy:** "Fall 2026" strings that ignore `CURRENT_TERM_LABEL` in 13 `chatbot/app/` files and 7 `frontend/src/` files, not just `courses.jsx` (`git grep -n "Fall 2026"`); `tests/test_rag_refactor.py` asserts on some of them.
 
-Then reload `sections` and run `python -m scripts.sync_redis_index`, which embeds only current-term sections. `backend/data/spring_2027_sections.csv` (term `202701`, scraped 2026-10-10) is committed, but no script reads it, and Supabase held no `202701` rows on 2026-10-27.
+Then reload `sections`, run `python -m scripts.sync_redis_index` (it embeds only current-term sections), and restart the Render service, since the chatbot reads Supabase only at startup. `backend/data/spring_2027_sections.csv` (term `202701`, scraped 2026-10-10) is committed, but no script reads it, and Supabase held no `202701` rows on 2026-10-27.
 
 ## Supabase database
 
@@ -84,10 +86,12 @@ No single file defines the whole live schema: `backend/supabase/schema.sql` cove
 - Vercel's `VITE_CLERK_PUBLISHABLE_KEY` is a `pk_test_` key (still in the live bundle on 2026-10-27), so darvis.tech authenticates against Clerk's test instance — swap to `pk_live_`.
 - `scrape_checksheets.py` deps (`pdfplumber`, `beautifulsoup4`, `lxml`) are missing from `chatbot/requirements.txt`.
 - `chatbot/app/generation/` is built and tested but not wired into `/chat` (`CYRUS_MODEL_ROUTING_ENABLED=false`) — wire it in or remove it along with the `--generation-only` eval mode.
+- `api.js` `getLiveCourseDescription()` fetches `/catalog/course-description`, a route the chatbot has never served (it was added frontend-only in `dacef9e`). It returned 404 live on 2026-10-27, so the ~1,538 courses with no stored `description` show "Catalog description unavailable right now." Add the route or drop the fetch.
 
 **Low priority:**
 - `rmp_tags` stays empty — RMP's GraphQL API doesn't return `teacherRatingTags`. Accepted.
 - `dashboard-prof.jsx` still reads sections from `mock-data.js`.
+- The privacy policy in `legal-page.jsx` still names GitHub Actions as the timetable scraper (deleted 2026-10-09) and lists Google embeddings, which don't work.
 - `README.md` restates the stack, setup and pending work for a public audience — update it when those change here.
 
 ## Git and PR conventions
@@ -111,7 +115,7 @@ No single file defines the whole live schema: `backend/supabase/schema.sql` cove
 - `SYSTEM_GUARDRAIL` in `safety/guardrails.py`: advisor tone — lead with the insight, support with numbers. Never revert to "Based on historical grade data..." phrasing.
 - `_RENAME` in `data/loader.py`: analytics expects the original VT UDC column names. Change both or neither.
 - Rate limits in `main.py`: `/chat` and `/chat/stream` stay at 10 requests/minute per IP.
-- CORS: `ALLOWED_ORIGINS` must include `https://www.darvis.tech` (the browser's real origin, since the apex redirects there) and `https://darvis.tech`. Both passed preflight on 2026-10-27.
+- CORS: `ALLOWED_ORIGINS` must include `https://www.darvis.tech` (the browser's real origin, since the apex redirects there) and `https://darvis.tech`. Both passed preflight on 2026-10-27. Ignore the "set to your Vercel URL only" comment in `chatbot/.env.example`.
 - `features/templated_answers.py`: every handler must return a string when the LLM is down — never `None`.
 - `frontend/src/main.jsx` env-key guard runs at module scope: warn on `pk_test_`, never throw (2026-09-05 outage).
 - `frontend/src/supabase.js` custom `fetch` that injects the Clerk JWT from `getToken({ template: "supabase" })` (keep that template name in the Clerk dashboard): `profile_posts`, `user_schedules`, `user_conversations`, `echo_reviews` and the forum tables rely on it for RLS. Don't replace `db` with a bare `createClient`.
